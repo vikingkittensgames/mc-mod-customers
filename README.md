@@ -47,9 +47,20 @@ block texture.
   Just under 3 1/2 minutes.
 * Dinner Shift - This mode will keep spawning customers from 4:30pm - 9:00pm -
   Just under 4 minutes.
+* Manual - This mode only spawns manually with a redstone pulse.
 
 For the time restricted shift modes, the players within 64 blocks of the spawner will get
 shift messages, progress bars, and scores.
+
+### Redstone and Customer Spawner
+
+Similar to a hopper, if the Customer Spawner block is is any mode other than Manual and
+is receiving power, it will turn off spawning.  This will allow you to turn off getting
+new customers when you don't want to deal with them or if you want to use redstone to control
+when the shifts are on.
+
+If a Customer Spawner is in Manual mode, a redstone pulse like with a button will spawn a
+customer.  This will let you completely customize the spawning with your redstone contraption.
 
 ### Controlling Items For Purchase
 
