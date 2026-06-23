@@ -1,5 +1,6 @@
-package com.vikingkittens.mc.customers;
+package com.vikingkittens.mc.customers.client;
 
+import com.vikingkittens.mc.customers.Customers;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
