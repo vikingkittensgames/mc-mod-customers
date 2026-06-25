@@ -1,13 +1,16 @@
 package com.vikingkittens.mc.customers.customer;
 
+import com.google.common.collect.ImmutableSet;
 import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.Customers;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.slf4j.Logger;
 
@@ -26,7 +29,6 @@ public class Customer {
 
     // -------------------- Registries --------------------
     private static final DeferredRegister<EntityType<?>> entities = DeferredRegister.create(Registries.ENTITY_TYPE, modid);
-    private static final DeferredRegister<PoiType> pois = DeferredRegister.create(BuiltInRegistries.POINT_OF_INTEREST_TYPE, modid);
     private static final DeferredRegister<VillagerProfession> professions = DeferredRegister.create(BuiltInRegistries.VILLAGER_PROFESSION, modid);
 
     // -------------------- Registries --------------------
@@ -34,7 +36,25 @@ public class Customer {
         LOGGER.info("Registering components");
 
         entities.register(modEventBus);
-        pois.register(modEventBus);
         professions.register(modEventBus);
     }
+
+    // -------------------- Entities --------------------
+    public static final DeferredHolder<EntityType<?>, EntityType<CustomerVillagerEntity>> CUSTOMER_VILLAGER = entities.register(CustomerVillagerEntity.NAME,
+            () -> EntityType.Builder.of(CustomerVillagerEntity::new, MobCategory.CREATURE)
+                    .sized(0.6F, 1.95F) // Villager size
+                    .build(CustomerVillagerEntity.NAME)
+    );
+
+    // -------------------- Professions --------------------
+    public static final DeferredHolder<VillagerProfession, VillagerProfession> CUSTOMER_PROFESSION = professions.register("customer",
+            () -> new VillagerProfession(
+                    "customer",
+                    holder -> false, // No POI
+                    holder -> false, // No POI
+                    ImmutableSet.of(),
+                    ImmutableSet.of(),
+                    null
+            )
+    );
 }

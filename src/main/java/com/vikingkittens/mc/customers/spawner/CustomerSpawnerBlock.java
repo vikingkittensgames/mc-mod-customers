@@ -1,8 +1,10 @@
 package com.vikingkittens.mc.customers.spawner;
 
 
+import com.mojang.logging.LogUtils;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -23,9 +25,12 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 
 
 public class CustomerSpawnerBlock extends BaseEntityBlock {
+    private static final Logger LOGGER = LogUtils.getLogger();
+
     public static final String NAME = "customer_spawner_block";
 
     private static final MapCodec<CustomerSpawnerBlock> CODEC = RecordCodecBuilder.mapCodec(instance ->
@@ -53,8 +58,7 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
     @Override
     @Nullable
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        // Return your custom BlockEntity here (e.g., new CustomBlockEntity(pPos, pState))
-        return null;
+        return new CustomerSpawnerBlockEntity(pos, state);
     }
 
     // Required to prevent the block from being entirely invisible
@@ -79,6 +83,7 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
     @Override
     @NotNull
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        LOGGER.debug("useWithoutItem");
         if (!level.isClientSide()) {
             // Open up container
             BlockEntity blockEntity = level.getBlockEntity(pos);
@@ -93,14 +98,23 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
     @Override
     @NotNull
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+        LOGGER.debug("useItemOn");
         // Check if the player right-clicked with a clock
         if (stack.is(Items.CLOCK)) {
+            LOGGER.debug("useItemOn.clock");
             if (!level.isClientSide()) {
+                LOGGER.debug("useItemOn.clock.server-side");
                 BlockEntity blockEntity = level.getBlockEntity(pos);
                 if (blockEntity instanceof CustomerSpawnerBlockEntity entity) {
+                    LOGGER.debug("useItemOn.clock.cycle");
                     entity.cycleSpawnMode();
                 }
             }
+            return ItemInteractionResult.SUCCESS;
+        }
+
+        if (stack.is(Items.VILLAGER_SPAWN_EGG)) {
+            CustomerVillagerEntity.spawn(level, pos);
             return ItemInteractionResult.SUCCESS;
         }
 

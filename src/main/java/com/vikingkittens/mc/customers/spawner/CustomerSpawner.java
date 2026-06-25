@@ -39,6 +39,7 @@ public class CustomerSpawner {
 
         blocks.register(modEventBus);
         blockEntities.register(modEventBus);
+        items.register(modEventBus);
 
         modEventBus.addListener(CustomerSpawner::addCreative);
     }
