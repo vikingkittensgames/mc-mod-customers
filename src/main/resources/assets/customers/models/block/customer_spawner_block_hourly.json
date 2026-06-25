@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "customers:block/customer_spawner_block_top",
+    "bottom": "customers:block/customer_spawner_block_bottom",
+    "side": "customers:block/customer_spawner_block_hourly_side",
+    "particle": "customers:block/customer_spawner_block_top"
+  }
+}

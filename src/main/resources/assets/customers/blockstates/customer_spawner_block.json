@@ -1,0 +1,12 @@
+{
+  "variants": {
+    "spawn_mode=continuous": { "model":  "customers:block/customer_spawner_block_continuous" },
+    "spawn_mode=manual": { "model":  "customers:block/customer_spawner_block_manual" },
+    "spawn_mode=hourly": { "model":  "customers:block/customer_spawner_block_hourly" },
+    "spawn_mode=day": { "model":  "customers:block/customer_spawner_block_day" },
+    "spawn_mode=night": { "model":  "customers:block/customer_spawner_block_night" },
+    "spawn_mode=breakfast": { "model":  "customers:block/customer_spawner_block_breakfast" },
+    "spawn_mode=lunch": { "model":  "customers:block/customer_spawner_block_lunch" },
+    "spawn_mode=dinner": { "model":  "customers:block/customer_spawner_block_dinner" }
+  }
+}

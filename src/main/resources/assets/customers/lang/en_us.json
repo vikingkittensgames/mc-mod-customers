@@ -3,6 +3,10 @@
   "block.customers.example_block": "Example Block",
   "item.customers.example_item": "Example Item",
 
+  "block.customers.customer_spawner_block": "Customer Spawner",
+
+  "item.customers.customer_spawner_block": "Customer Spawner",
+
   "customers.configuration.title": "Customers Configs",
   "customers.configuration.section.customers.common.toml": "Customers Configs",
   "customers.configuration.section.customers.common.toml.title": "Customers Configs",
