@@ -8,10 +8,14 @@ pay you, say thank you, and go on their merry way.  It provides the basic villag
 and controls to crafter and customer type gameplay experiences like a fast-paced diner or a cozy
 rode-side farm stand.
 
-## Supported Versions
+## Supported Minecraft Versions
 
 For now we support Minecraft versions:
 * 1.21.1
+
+## Mod Loader
+
+For now we are only supporting NeoForge.
 
 ## Customer Spawner Blocks
 
@@ -140,7 +144,7 @@ If you want your customers to have names, think about using the [Villager Names 
 If the Customer Spawner Block has a lit jack-o-lantern block next to it and the spawner
 mode is on Night Shift, it will also randomly spawn the monster customers which are just
 like the villager customers but on the client side will show up and sound like friendly
-zombies, skeletons, witches, or illagers.
+zombies, skeletons, witches, pillagers, vindicators, evokers, and illusioners.
 
 ### Picking Items to Buy
 
