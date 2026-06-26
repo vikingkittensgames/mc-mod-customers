@@ -114,7 +114,10 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
         }
 
         if (stack.is(Items.VILLAGER_SPAWN_EGG)) {
-            CustomerVillagerEntity.spawn(level, pos);
+            BlockEntity blockEntity = level.getBlockEntity(pos);
+            if (blockEntity instanceof CustomerSpawnerBlockEntity entity) {
+                entity.spawnCustomer();
+            }
             return ItemInteractionResult.SUCCESS;
         }
 

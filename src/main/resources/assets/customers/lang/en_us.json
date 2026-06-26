@@ -7,6 +7,8 @@
 
   "item.customers.customer_spawner_block": "Customer Spawner",
 
+  "entity.customers.customer_villager": "Customer",
+
   "customers.configuration.title": "Customers Configs",
   "customers.configuration.section.customers.common.toml": "Customers Configs",
   "customers.configuration.section.customers.common.toml.title": "Customers Configs",
