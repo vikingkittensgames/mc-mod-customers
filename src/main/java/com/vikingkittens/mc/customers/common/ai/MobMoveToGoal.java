@@ -1,4 +1,4 @@
-package com.vikingkittens.mc.customers.common;
+package com.vikingkittens.mc.customers.common.ai;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Mob;
@@ -27,12 +27,11 @@ public class MobMoveToGoal extends Goal {
     }
 
     protected boolean isDone() {
-        return mob.blockPosition().closerThan(targetPos, TARGET_DISTANCE_THRESHOLD);
+        return targetPos != null && mob.blockPosition().closerThan(targetPos, TARGET_DISTANCE_THRESHOLD);
     }
 
     @Override
     public boolean canUse() {
-        // Run only if the pathfinding navigation isn't busy and we aren't already at the target
         return mob.isAlive() &&
                 !mob.getNavigation().isInProgress() &&
                 !isDone();
@@ -62,7 +61,10 @@ public class MobMoveToGoal extends Goal {
         }
 
         if (isDone()) {
-            mob.discard();
+            onDone();
         }
+    }
+
+    protected void onDone() {
     }
 }

@@ -1,10 +1,15 @@
 package com.vikingkittens.mc.customers.customer;
 
 import com.mojang.logging.LogUtils;
+import com.vikingkittens.mc.customers.customer.ai.CustomerLeaveGoal;
+import com.vikingkittens.mc.customers.customer.ai.CustomerMoveToCounterGoal;
+import com.vikingkittens.mc.customers.customer.ai.CustomerMoveToSpawnGoal;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
@@ -13,20 +18,16 @@ import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerData;
 import net.minecraft.world.entity.npc.VillagerType;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.trading.ItemCost;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.neoforged.neoforge.registries.datamaps.builtin.BiomeVillagerType;
 import net.neoforged.neoforge.registries.datamaps.builtin.NeoForgeDataMaps;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
-
-import java.util.Optional;
 
 public class CustomerVillagerEntity extends Villager {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -42,7 +43,12 @@ public class CustomerVillagerEntity extends Villager {
         return VillagerType.PLAINS;
     }
 
-    public static void spawn(Level level, BlockPos pos, MerchantOffers offers) {
+    public static CustomerVillagerEntity spawn(
+            Level level,
+            BlockPos pos,
+            MerchantOffers offers,
+            BlockState counterBlockState
+    ) {
         if (!level.isClientSide) {
             ServerLevel serverLevel = (ServerLevel)level;
             CustomerVillagerEntity customer = Customer.CUSTOMER_VILLAGER.get().create(level);
@@ -80,21 +86,25 @@ public class CustomerVillagerEntity extends Villager {
                     ));
 
                     customer.setSpawnPos(safePos);
-
                     customer.setOffers(offers);
+                    customer.setCounterBlockState(counterBlockState);
 
                     // Finalize spawn logic (sets default items, resets AI brain, etc.)
                     customer.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(pos), MobSpawnType.COMMAND, null);
 
                     // Spawn the entity in the world
                     serverLevel.addFreshEntity(customer);
+
+                    return customer;
                 }
             }
         }
+        return null;
     }
 
     private CustomerState state;
     private BlockPos spawnPos;
+    private BlockState counterBlockState;
 
     public CustomerVillagerEntity(EntityType<? extends Villager> entityType, Level level) {
         super(entityType, level);
@@ -114,6 +124,14 @@ public class CustomerVillagerEntity extends Villager {
 
     public void setSpawnPos(BlockPos spawnPos) {
         this.spawnPos = spawnPos;
+    }
+
+    public BlockState getCounterBlockState() {
+        return counterBlockState;
+    }
+
+    public void setCounterBlockState(BlockState counterBlockState) {
+        this.counterBlockState = counterBlockState;
     }
 
     @Override
@@ -139,7 +157,10 @@ public class CustomerVillagerEntity extends Villager {
         this.goalSelector.addGoal(0, new LookAtTradingPlayerGoal(this));
         this.goalSelector.addGoal(1, new LookAtPlayerGoal(this, Player.class, 8));
 
-        // TODO: Custom goals to find counter/table-top
+        // Customer specific goals
+        this.goalSelector.addGoal(0, new CustomerMoveToCounterGoal(this, counterBlockState, 1));
+        this.goalSelector.addGoal(0, new CustomerMoveToSpawnGoal(this, 1));
+        this.goalSelector.addGoal(0, new CustomerLeaveGoal(this, 1));
     }
 
     @Override
@@ -151,6 +172,15 @@ public class CustomerVillagerEntity extends Villager {
     @Override
     public boolean showProgressBar() {
         return false;
+    }
+
+    @Override
+    @NotNull
+    public InteractionResult mobInteract(Player player, InteractionHand hand) {
+        if (state != CustomerState.BUYING) {
+            return InteractionResult.sidedSuccess(level().isClientSide());
+        }
+        return super.mobInteract(player, hand);
     }
 
     private MerchantOffers previousOffers;
