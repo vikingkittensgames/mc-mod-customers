@@ -9,6 +9,9 @@
 
   "entity.customers.customer_villager": "Customer",
 
+  "messages.customers.thank_you": "Thank you %s!",
+  "messages.customers.give_up": "I have other things to do.",
+
   "customers.configuration.title": "Customers Configs",
   "customers.configuration.section.customers.common.toml": "Customers Configs",
   "customers.configuration.section.customers.common.toml.title": "Customers Configs",

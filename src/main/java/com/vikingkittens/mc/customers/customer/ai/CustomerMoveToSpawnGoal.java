@@ -1,10 +1,15 @@
 package com.vikingkittens.mc.customers.customer.ai;
 
+import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.common.ai.MobMoveToGoal;
 import com.vikingkittens.mc.customers.customer.CustomerState;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
+import net.minecraft.world.entity.npc.Villager;
+import org.slf4j.Logger;
 
 public class CustomerMoveToSpawnGoal extends MobMoveToGoal {
+    private static final Logger LOGGER = LogUtils.getLogger();
+
     private CustomerVillagerEntity customer;
 
     public CustomerMoveToSpawnGoal(CustomerVillagerEntity customer, double speedModifier) {
@@ -14,16 +19,27 @@ public class CustomerMoveToSpawnGoal extends MobMoveToGoal {
 
     @Override
     public boolean canUse() {
-        return super.canUse() && customer.getState() == CustomerState.BUYING && customer.getOffers().isEmpty();
+        return super.canUse() &&
+                customer.getState() == CustomerState.DONE &&
+                customer.getSpawnPos() != null;
     }
 
     @Override
     public void start() {
+        targetPos = customer.getSpawnPos();
+        LOGGER.debug("Target positions: {}", targetPos);
+        customer.setState(CustomerState.MOVING_TO_SPAWN);
         super.start();
     }
 
     @Override
+    public double acceptedDistance() {
+        return 1.5;
+    }
+
+    @Override
     protected void onDone() {
+        LOGGER.debug("Reached spawn");
         customer.setState(CustomerState.LEAVING);
     }
 }

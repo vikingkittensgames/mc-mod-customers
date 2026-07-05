@@ -2,6 +2,7 @@ package com.vikingkittens.mc.customers.common;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
 import net.minecraft.core.BlockPos;
@@ -11,7 +12,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 
 public class SearchUtils {
-    public static List<BlockPos> findBlocksInSphere(Level level, BlockPos center, int radius, Predicate<BlockState> predicate) {
+    public static List<BlockPos> findBlocksInSphere(Level level, BlockPos center, int radius, BiPredicate<BlockPos, BlockState> predicate) {
         List<BlockPos> matchingBlocks = new ArrayList<>();
         double radiusSq = radius * radius;
 
@@ -22,7 +23,7 @@ public class SearchUtils {
             if (center.distSqr(pos) <= radiusSq) {
                 BlockState state = level.getBlockState(pos);
 
-                if (predicate.test(state)) {
+                if (predicate.test(pos, state)) {
                     matchingBlocks.add(pos.immutable());
                 }
             }
@@ -31,13 +32,13 @@ public class SearchUtils {
         return matchingBlocks;
     }
 
-    public static <T extends Entity> List<T> findEntitiesInSphere(Level level, Class<T> entityClass, BlockPos center, double radius, Predicate<T> predicate) {
+    public static <T extends Entity> List<T> findEntitiesInSphere(Level level, Class<T> entityClass, BlockPos center, double radius, BiPredicate<BlockPos, T> predicate) {
         double radiusSq = radius * radius;
 
         AABB boundingBox = new AABB(center).inflate(radius);
 
         return level.getEntitiesOfClass(entityClass, boundingBox, entity -> {
-            if (!predicate.test(entity)) {
+            if (!predicate.test(entity.blockPosition(), entity)) {
                 return false;
             }
             return entity.distanceToSqr(center.getX(), center.getY(), center.getZ()) <= radiusSq;
