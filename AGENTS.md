@@ -25,6 +25,8 @@ This project is a Minecraft mod built with the NeoForge mod loader.
 - Change tests only when they no longer match the expected functionality described in `README.md` or an approved requirement change.
 - When possible, run the relevant Gradle tests before presenting changes for review.
 - Explain every change made and present the diff for review and approval.
+- Before changing any file, present the exact diff or patch and wait for explicit approval.
+- Ignore the `logs/` directory. Do not modify, delete, clean up, summarize, or treat it as part of the working changes unless explicitly requested.
 
 ## Testing Standards
 
@@ -52,3 +54,4 @@ This project is a Minecraft mod built with the NeoForge mod loader.
 - Keep changes scoped to the requested feature or fix.
 - Preserve unrelated user changes.
 - Before asking for review, summarize what changed, list tests run, and show or reference the diff.
+- Do not apply file changes until the user has approved the proposed diff.
