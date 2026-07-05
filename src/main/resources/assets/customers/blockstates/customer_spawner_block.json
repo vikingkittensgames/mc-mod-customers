@@ -1,12 +1,43 @@
 {
   "variants": {
-    "spawn_mode=continuous": { "model":  "customers:block/customer_spawner_block_continuous" },
-    "spawn_mode=manual": { "model":  "customers:block/customer_spawner_block_manual" },
-    "spawn_mode=hourly": { "model":  "customers:block/customer_spawner_block_hourly" },
-    "spawn_mode=day": { "model":  "customers:block/customer_spawner_block_day" },
-    "spawn_mode=night": { "model":  "customers:block/customer_spawner_block_night" },
-    "spawn_mode=breakfast": { "model":  "customers:block/customer_spawner_block_breakfast" },
-    "spawn_mode=lunch": { "model":  "customers:block/customer_spawner_block_lunch" },
-    "spawn_mode=dinner": { "model":  "customers:block/customer_spawner_block_dinner" }
+    "spawn_mode=continuous,disabled=false,special_enabled=false": { "model":  "customers:block/customer_spawner_block_continuous" },
+    "spawn_mode=continuous,disabled=false,special_enabled=true": { "model":  "customers:block/customer_spawner_block_continuous_special" },
+    "spawn_mode=continuous,disabled=true,special_enabled=false": { "model":  "customers:block/customer_spawner_block_continuous_disabled" },
+    "spawn_mode=continuous,disabled=true,special_enabled=true": { "model":  "customers:block/customer_spawner_block_continuous_special_disabled" },
+
+    "spawn_mode=manual,disabled=false,special_enabled=false": { "model":  "customers:block/customer_spawner_block_manual" },
+    "spawn_mode=manual,disabled=false,special_enabled=true": { "model":  "customers:block/customer_spawner_block_manual_special" },
+    "spawn_mode=manual,disabled=true,special_enabled=false": { "model":  "customers:block/customer_spawner_block_manual_disabled" },
+    "spawn_mode=manual,disabled=true,special_enabled=true": { "model":  "customers:block/customer_spawner_block_manual_special_disabled" },
+
+    "spawn_mode=hourly,disabled=false,special_enabled=false": { "model":  "customers:block/customer_spawner_block_hourly" },
+    "spawn_mode=hourly,disabled=false,special_enabled=true": { "model":  "customers:block/customer_spawner_block_hourly_special" },
+    "spawn_mode=hourly,disabled=true,special_enabled=false": { "model":  "customers:block/customer_spawner_block_hourly_disabled" },
+    "spawn_mode=hourly,disabled=true,special_enabled=true": { "model":  "customers:block/customer_spawner_block_hourly_special_disabled" },
+
+    "spawn_mode=day,disabled=false,special_enabled=false": { "model":  "customers:block/customer_spawner_block_day" },
+    "spawn_mode=day,disabled=false,special_enabled=true": { "model":  "customers:block/customer_spawner_block_day_special" },
+    "spawn_mode=day,disabled=true,special_enabled=false": { "model":  "customers:block/customer_spawner_block_day_disabled" },
+    "spawn_mode=day,disabled=true,special_enabled=true": { "model":  "customers:block/customer_spawner_block_day_special_disabled" },
+
+    "spawn_mode=night,disabled=false,special_enabled=false": { "model":  "customers:block/customer_spawner_block_night" },
+    "spawn_mode=night,disabled=false,special_enabled=true": { "model":  "customers:block/customer_spawner_block_night_special" },
+    "spawn_mode=night,disabled=true,special_enabled=false": { "model":  "customers:block/customer_spawner_block_night_disabled" },
+    "spawn_mode=night,disabled=true,special_enabled=true": { "model":  "customers:block/customer_spawner_block_night_special_disabled" },
+
+    "spawn_mode=breakfast,disabled=false,special_enabled=false": { "model":  "customers:block/customer_spawner_block_breakfast" },
+    "spawn_mode=breakfast,disabled=false,special_enabled=true": { "model":  "customers:block/customer_spawner_block_breakfast_special" },
+    "spawn_mode=breakfast,disabled=true,special_enabled=false": { "model":  "customers:block/customer_spawner_block_breakfast_disabled" },
+    "spawn_mode=breakfast,disabled=true,special_enabled=true": { "model":  "customers:block/customer_spawner_block_breakfast_special_disabled" },
+
+    "spawn_mode=lunch,disabled=false,special_enabled=false": { "model":  "customers:block/customer_spawner_block_lunch" },
+    "spawn_mode=lunch,disabled=false,special_enabled=true": { "model":  "customers:block/customer_spawner_block_lunch_special" },
+    "spawn_mode=lunch,disabled=true,special_enabled=false": { "model":  "customers:block/customer_spawner_block_lunch_disabled" },
+    "spawn_mode=lunch,disabled=true,special_enabled=true": { "model":  "customers:block/customer_spawner_block_lunch_special_disabled" },
+
+    "spawn_mode=dinner,disabled=false,special_enabled=false": { "model":  "customers:block/customer_spawner_block_dinner" },
+    "spawn_mode=dinner,disabled=false,special_enabled=true": { "model":  "customers:block/customer_spawner_block_dinner_special" },
+    "spawn_mode=dinner,disabled=true,special_enabled=false": { "model":  "customers:block/customer_spawner_block_dinner_disabled" },
+    "spawn_mode=dinner,disabled=true,special_enabled=true": { "model":  "customers:block/customer_spawner_block_dinner_special_disabled" }
   }
 }

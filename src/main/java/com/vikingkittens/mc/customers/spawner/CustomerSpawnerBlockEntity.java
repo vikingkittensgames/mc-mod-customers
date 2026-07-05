@@ -27,6 +27,7 @@ import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
@@ -97,13 +98,15 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     public static final String NAME = "customer_spawner_block_entity";
 
+    private boolean needsUpdate = true;
+    private long updateDelayTicks = 0;
     private final ItemStackHandler inventory = new ItemStackHandler(INVENTORY_ROW_SIZE * 6) {
         @Override
         protected void onContentsChanged(int slot) {
+            LOGGER.debug("Inventory changed");
             setChanged();
         }
     };
-
     private final Set<UUID> customerIds = new HashSet<>();
 
     public CustomerSpawnerBlockEntity(BlockPos pos, BlockState blockState) {
@@ -112,25 +115,54 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        LOGGER.debug("Saving");
         super.saveAdditional(tag, registries);
-        tag.put("inventory", this.inventory.serializeNBT(registries));
-        ListTag customersTag = new ListTag();
-        for (UUID uuid : customerIds) {
-            customersTag.add(NbtUtils.createUUID(uuid));
+
+        try {
+            tag.put("inventory", this.inventory.serializeNBT(registries));
+        } catch (Throwable t) {
+            LOGGER.error("Failed to save inventory", t);
         }
-        tag.put("customers", customersTag);
+
+        updateSpawned();
+        try {
+            ListTag customersTag = new ListTag();
+            for (UUID uuid : customerIds) {
+                try {
+                    customersTag.add(NbtUtils.createUUID(uuid));
+                } catch (Throwable t) {
+                    LOGGER.error("Couldn't add customer to saved list because of error", t);
+                }
+            }
+            tag.put("customers", customersTag);
+        } catch (Throwable t) {
+            LOGGER.error("Failed to save customers", t);
+        }
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        LOGGER.debug("Loading");
         super.loadAdditional(tag, registries);
         if (tag.contains("inventory")) {
-            this.inventory.deserializeNBT(registries, tag.getCompound("inventory"));
+            try {
+                inventory.deserializeNBT(registries, tag.getCompound("inventory"));
+            } catch (Throwable t) {
+                LOGGER.error("Failed to load inventory because of error", t);
+            }
         }
         if (tag.contains("customers")) {
-            ListTag customersTag = tag.getList("customers", Tag.TAG_INT_ARRAY);
-            for (int i = 0; i < customersTag.size(); i++) {
-                customerIds.add(NbtUtils.loadUUID(customersTag.getCompound(i)));
+            try {
+                ListTag customersTag = tag.getList("customers", Tag.TAG_INT_ARRAY);
+                for (int i = 0; i < customersTag.size(); i++) {
+                    try {
+                        customerIds.add(NbtUtils.loadUUID(customersTag.getCompound(i)));
+                    } catch (Throwable t) {
+                        LOGGER.warn("Failed to load one of the customers because of error", t);
+                    }
+                }
+            } catch (Throwable t) {
+                LOGGER.error("Failed to load customers because of error", t);
             }
         }
     }
@@ -225,8 +257,55 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         return ChestMenu.sixRows(containerId, playerInventory, containerBridge);
     }
 
-    public void cycleSpawnMode() {
-        CustomerSpawnerMode spawnerMode = getBlockState().getValue(CustomerSpawnerBlock.STATE_SPAWN_MODE);
+    /* package private */ static BlockState updateState(Level level, BlockPos pos, BlockState currentState) {
+        CustomerSpawnerMode spawnerMode = currentState.getValue(CustomerSpawnerBlock.STATE_SPAWN_MODE);
+        boolean wasDisabled = currentState.getValue(CustomerSpawnerBlock.STATE_DISABLED);
+        boolean wasPowered = currentState.getValue(CustomerSpawnerBlock.STATE_POWERED);
+        boolean wasSpecialEnabled = currentState.getValue(CustomerSpawnerBlock.STATE_SPECIAL_ENABLED);
+
+        boolean powered = level.hasNeighborSignal(pos);
+        boolean disabled;
+        if (spawnerMode == CustomerSpawnerMode.MANUAL) {
+            disabled = !powered || wasPowered;
+        } else {
+            disabled = powered;
+        }
+
+        List<BlockState> neighbors = new ArrayList<>();
+        neighbors.add(level.getBlockState(pos.north()));
+        neighbors.add(level.getBlockState(pos.south()));
+        neighbors.add(level.getBlockState(pos.east()));
+        neighbors.add(level.getBlockState(pos.west()));
+        boolean specialEnabled = switch (spawnerMode) {
+            case NIGHT -> neighbors.stream().anyMatch(blockState -> blockState.is(Blocks.JACK_O_LANTERN));
+            default -> false;
+        };
+
+        BlockState newState = currentState
+                .setValue(CustomerSpawnerBlock.STATE_DISABLED, disabled)
+                .setValue(CustomerSpawnerBlock.STATE_POWERED, powered)
+                .setValue(CustomerSpawnerBlock.STATE_SPECIAL_ENABLED, specialEnabled);
+        LOGGER.debug("spawn_mode[{}].{}: {} -> {}", pos, spawnerMode, wasDisabled, disabled);
+        LOGGER.debug("spawn_mode[{}].{}: {} -> {}", pos, spawnerMode, wasPowered, powered);
+        LOGGER.debug("spawn_mode[{}].{}: {} -> {}", pos, spawnerMode, wasSpecialEnabled, specialEnabled);
+        return newState;
+    }
+
+    /* package private */ void updateState() {
+        boolean wasDisabled = getBlockState().getValue(CustomerSpawnerBlock.STATE_DISABLED);
+        BlockState newState = updateState(getLevel(), getBlockPos(), getBlockState());
+        level.setBlock(getBlockPos(), newState, Block.UPDATE_ALL);
+        if (
+                newState.getValue(CustomerSpawnerBlock.STATE_SPAWN_MODE) == CustomerSpawnerMode.MANUAL &&
+                newState.getValue(CustomerSpawnerBlock.STATE_DISABLED) != wasDisabled
+        ) {
+            needsUpdate = true;
+            updateDelayTicks = 4;
+        }
+    }
+
+    /* package private */ static BlockState cycleSpawnMode(Level level, BlockPos pos, BlockState currentState) {
+        CustomerSpawnerMode spawnerMode = currentState.getValue(CustomerSpawnerBlock.STATE_SPAWN_MODE);
         CustomerSpawnerMode nextSpawnerMode = switch (spawnerMode) {
             case CONTINUOUS -> CustomerSpawnerMode.HOURLY;
             case HOURLY -> CustomerSpawnerMode.DAY;
@@ -237,12 +316,23 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             case DINNER -> CustomerSpawnerMode.MANUAL;
             case MANUAL -> CustomerSpawnerMode.CONTINUOUS;
         };
-        BlockState newState = getBlockState().setValue(CustomerSpawnerBlock.STATE_SPAWN_MODE, nextSpawnerMode);
+        BlockState newState = updateState(
+                level,
+                pos,
+                currentState.setValue(CustomerSpawnerBlock.STATE_SPAWN_MODE, nextSpawnerMode)
+        );
+        LOGGER.debug("spawn_mode[{}]: {} -> {}", pos, spawnerMode, nextSpawnerMode);
+        return newState;
+    }
+
+    /* package private */ void cycleSpawnMode() {
+        BlockState newState = cycleSpawnMode(getLevel(), getBlockPos(), getBlockState());
         level.setBlock(getBlockPos(), newState, Block.UPDATE_ALL);
     }
 
     public void spawnCustomer() {
         MerchantOffers offers = getOffersFromInventory(level.getRandom(), inventory);
+        LOGGER.debug("Trying to spawn customer: Num offers = {}", offers.size());
         if (!offers.isEmpty()) {
             BlockState counterBlockState = level.getBlockState(getBlockPos().above());
 
@@ -256,12 +346,41 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             if (customer != null) {
                 LOGGER.debug("Customer UUID={}, pos={}", customer.getUUID(), customer.blockPosition());
                 customerIds.add(customer.getUUID());
+                setChanged();
             }
         }
     }
 
+    private void updateSpawned() {
+        Set<UUID> idsToRemove = new HashSet<>();
+        for (UUID id : customerIds) {
+            try {
+                Entity entity = ((ServerLevel) level).getEntity(id);
+                if (entity instanceof CustomerVillagerEntity customer) {
+                    if (!customer.isAlive() || customer.isRemoved()) {
+                        idsToRemove.add(id);
+                    }
+                } else {
+                    idsToRemove.add(id);
+                }
+            } catch (Throwable t) {
+                LOGGER.warn("Removing customer from tracking because of error", t);
+                idsToRemove.add(id);
+            }
+        }
+        customerIds.removeAll(idsToRemove);
+    }
+
     public static void tick(Level level, BlockPos pos, BlockState state, CustomerSpawnerBlockEntity entity) {
         if (!level.isClientSide()) {
+            if (entity.needsUpdate) {
+                if (entity.updateDelayTicks <= 0) {
+                    entity.needsUpdate = false;
+                    entity.updateState();
+                }
+                entity.updateDelayTicks--;
+            }
+
             Set<UUID> customerIdsToRemove = new HashSet<>();
             for (UUID uuid : entity.customerIds) {
                 Entity customerEntity = ((ServerLevel)level).getEntity(uuid);
