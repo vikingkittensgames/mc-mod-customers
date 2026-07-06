@@ -91,7 +91,7 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
 
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock())) {
+        if (!level.isClientSide() && !state.is(newState.getBlock())) {
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof CustomerSpawnerBlockEntity entity) {
                 entity.beforeRemove();
@@ -104,7 +104,6 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
     @Override
     @NotNull
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        LOGGER.debug("useWithoutItem");
         if (!level.isClientSide()) {
             // Open up container
             BlockEntity blockEntity = level.getBlockEntity(pos);
@@ -119,15 +118,11 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
     @Override
     @NotNull
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
-        LOGGER.debug("useItemOn");
         // Check if the player right-clicked with a clock
         if (stack.is(Items.CLOCK)) {
-            LOGGER.debug("useItemOn.clock");
             if (!level.isClientSide()) {
-                LOGGER.debug("useItemOn.clock.server-side");
                 BlockEntity blockEntity = level.getBlockEntity(pos);
                 if (blockEntity instanceof CustomerSpawnerBlockEntity entity) {
-                    LOGGER.debug("useItemOn.clock.cycle");
                     entity.cycleSpawnMode();
                 }
             }

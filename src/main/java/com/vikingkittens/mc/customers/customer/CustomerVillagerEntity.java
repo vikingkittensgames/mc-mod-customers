@@ -3,9 +3,9 @@ package com.vikingkittens.mc.customers.customer;
 import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.common.MobUtils;
 import com.vikingkittens.mc.customers.customer.ai.*;
+import com.vikingkittens.mc.customers.spawner.CustomerSpawnerBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
@@ -32,6 +32,7 @@ import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.registries.datamaps.builtin.BiomeVillagerType;
 import net.neoforged.neoforge.registries.datamaps.builtin.NeoForgeDataMaps;
 import org.jetbrains.annotations.NotNull;
@@ -117,8 +118,10 @@ public class CustomerVillagerEntity extends Villager {
     private BlockPos spawnerPos;
     private BlockPos spawnPos;
     private BlockState counterBlockState;
+    private BlockPos counterTargetBlockPos;
     private Set<UUID> tradedWithPlayers = new HashSet<>();
     private long ticksSinceTrade = 0;
+    private long ticksSincePlayerScan = 0;
 
     public CustomerVillagerEntity(EntityType<? extends Villager> entityType, Level level) {
         super(entityType, level);
@@ -175,6 +178,14 @@ public class CustomerVillagerEntity extends Villager {
 
     public void setCounterBlockState(BlockState counterBlockState) {
         this.counterBlockState = counterBlockState;
+    }
+
+    public BlockPos getCounterTargetBlockPos() {
+        return counterTargetBlockPos;
+    }
+
+    public void setCounterTargetBlockPos(BlockPos counterBlockPos) {
+        this.counterTargetBlockPos = counterTargetBlockPos;
     }
 
     public long getTicksSinceTrade() {
@@ -346,6 +357,12 @@ public class CustomerVillagerEntity extends Villager {
     @Override
     @NotNull
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
+        // Add all interacting players to the spawner
+        if (!level().isClientSide()) {
+            if (spawnerPos != null && level().getBlockEntity(spawnerPos) instanceof CustomerSpawnerBlockEntity spawner) {
+                spawner.addPlayer(player.getUUID());
+            }
+        }
         if (getState() != CustomerState.BUYING) {
             return InteractionResult.sidedSuccess(level().isClientSide());
         }
@@ -419,6 +436,18 @@ public class CustomerVillagerEntity extends Villager {
             }
             ticksInState++;
             ticksSinceTrade++;
+
+            // Look for near by players and add them to the spawner
+            if (ticksSincePlayerScan == 0 || ticksSincePlayerScan > 20) {
+                ticksSincePlayerScan = 0;
+                if (spawnerPos != null && level().getBlockEntity(spawnerPos) instanceof CustomerSpawnerBlockEntity spawner) {
+                    List<Player> nearbyPlayers = level().getEntitiesOfClass(Player.class, getBoundingBox().inflate(5));
+                    for (Player player : nearbyPlayers) {
+                        spawner.addPlayer(player.getUUID());
+                    }
+                }
+            }
+            ticksSincePlayerScan++;
         }
     }
 }

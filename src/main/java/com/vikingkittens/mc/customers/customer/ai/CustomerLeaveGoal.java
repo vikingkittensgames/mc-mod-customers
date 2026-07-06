@@ -33,7 +33,7 @@ public class CustomerLeaveGoal extends MobMoveToGoal {
         } else {
             targetPos = mob.blockPosition();
         }
-        LOGGER.debug("Target positions: {}", targetPos);
+        // LOGGER.debug("Target positions: {}", targetPos);
         customer.setState(CustomerState.MOVING_TO_DESPAWN);
         super.start();
     }
@@ -45,7 +45,7 @@ public class CustomerLeaveGoal extends MobMoveToGoal {
 
     @Override
     protected void onDone() {
-        LOGGER.debug("Reached despawn");
+        // LOGGER.debug("Reached despawn");
         customer.discard();
     }
 }

@@ -1,20 +1,16 @@
 package com.vikingkittens.mc.customers.customer.ai;
 
 import com.mojang.logging.LogUtils;
-import com.vikingkittens.mc.customers.common.SearchUtils;
 import com.vikingkittens.mc.customers.common.ai.MobTimedGoal;
 import com.vikingkittens.mc.customers.customer.CustomerState;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
 import org.slf4j.Logger;
 
 import java.util.List;
-import java.util.UUID;
 
 public class CustomerGiveUpGoal extends MobTimedGoal {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -41,7 +37,7 @@ public class CustomerGiveUpGoal extends MobTimedGoal {
 
     @Override
     public void start() {
-        LOGGER.debug("Giving up");
+        // LOGGER.debug("Giving up");
         customer.setState(CustomerState.GIVING_UP);
         ticksSinceFX = 0;
         super.start();
@@ -76,7 +72,7 @@ public class CustomerGiveUpGoal extends MobTimedGoal {
 
     @Override
     protected void onDone() {
-        LOGGER.debug("Done giving up");
+        // LOGGER.debug("Done giving up");
         customer.setState(CustomerState.DONE);
     }
 }

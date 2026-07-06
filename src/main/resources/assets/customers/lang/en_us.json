@@ -9,6 +9,14 @@
 
   "entity.customers.customer_villager": "Customer",
 
+  "titles.customers.spawn_mode.continuous": "Continuous",
+  "titles.customers.spawn_mode.day": "Day Shift",
+  "titles.customers.spawn_mode.night": "Night Shift",
+  "titles.customers.spawn_mode.breakfast": "Breakfast Shift",
+  "titles.customers.spawn_mode.lunch": "Lunch Shift",
+  "titles.customers.spawn_mode.dinner": "Dinner Shift",
+  "titles.customers.spawn_mode.manual": "Manual",
+
   "messages.customers.thank_you": "Thank you %s!",
   "messages.customers.give_up": "I have other things to do.",
 

@@ -10,11 +10,6 @@
     "spawn_mode=manual,disabled=true,special_enabled=false": { "model":  "customers:block/customer_spawner_block_manual_disabled" },
     "spawn_mode=manual,disabled=true,special_enabled=true": { "model":  "customers:block/customer_spawner_block_manual_special_disabled" },
 
-    "spawn_mode=hourly,disabled=false,special_enabled=false": { "model":  "customers:block/customer_spawner_block_hourly" },
-    "spawn_mode=hourly,disabled=false,special_enabled=true": { "model":  "customers:block/customer_spawner_block_hourly_special" },
-    "spawn_mode=hourly,disabled=true,special_enabled=false": { "model":  "customers:block/customer_spawner_block_hourly_disabled" },
-    "spawn_mode=hourly,disabled=true,special_enabled=true": { "model":  "customers:block/customer_spawner_block_hourly_special_disabled" },
-
     "spawn_mode=day,disabled=false,special_enabled=false": { "model":  "customers:block/customer_spawner_block_day" },
     "spawn_mode=day,disabled=false,special_enabled=true": { "model":  "customers:block/customer_spawner_block_day_special" },
     "spawn_mode=day,disabled=true,special_enabled=false": { "model":  "customers:block/customer_spawner_block_day_disabled" },

@@ -39,8 +39,6 @@ spawning modes.  Each spawning mode change will show a message with the change a
 block texture.
 
 * Continuous / Default - The default mode will try to continuously keep 4 customers spawned.
-* Every Hour - This mode will only spawn customers at the top of each in game hour. 
-  The idea is to keep customers coming, but provide a break for the rest of the hour.
 * Day Shift - This mode will keep spawning customers, but only when it's daytime from
   5am - 7pm.
 * Night Shift - This mode will keep spawning customers, but only when it's nighttime from

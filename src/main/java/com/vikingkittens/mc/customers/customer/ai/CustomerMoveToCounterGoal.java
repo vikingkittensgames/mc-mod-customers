@@ -5,18 +5,20 @@ import com.vikingkittens.mc.customers.common.SearchUtils;
 import com.vikingkittens.mc.customers.common.ai.MobMoveToGoal;
 import com.vikingkittens.mc.customers.customer.CustomerState;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
+import com.vikingkittens.mc.customers.spawner.CustomerSpawnerBlockEntity;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 
 public class CustomerMoveToCounterGoal extends MobMoveToGoal {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -55,7 +57,7 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
         }
 
         public double getDistanceSqr() {
-            return pos.distToCenterSqr(center.getX(), center.getY(), center.getZ());
+            return pos.distToCenterSqr(center.getCenter());
         }
 
         @Override
@@ -114,47 +116,54 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
                 (blockPos, blockState) -> blockState.is(customer.getCounterBlockState().getBlock()) &&
                         (blockPos.getX() != customer.getSpawnerPos().getX() || blockPos.getZ() != customer.getSpawnerPos().getZ())
         );
-        LOGGER.debug("Counter positions: {}", counterPositions);
+        // LOGGER.debug("Counter positions: {}", counterPositions);
         List<SurroundingPosition> validPositions = findValidSurroundingPositions(customer.level(), counterPositions);
-        LOGGER.debug("Valid positions: {}", validPositions);
+        // LOGGER.debug("Valid positions: {}", validPositions);
         if (!validPositions.isEmpty()) {
+            // All valid positions
             RandomSource random = customer.level().getRandom();
             Util.shuffle(validPositions, random);
-            LOGGER.debug("Valid positions shuffled: {}", validPositions);
+            // LOGGER.debug("Valid positions shuffled: {}", validPositions);
             validPositions.sort(Comparator.comparingDouble(SurroundingPosition::getDistanceSqr));
-            LOGGER.debug("Valid positions sorted: {}", validPositions);
-            List<CustomerVillagerEntity> otherCustomers = SearchUtils.findEntitiesInSphere(
-                    customer.level(),
-                    CustomerVillagerEntity.class,
-                    customer.blockPosition(),
-                    64,
-                    (blockpos, customer) -> customer.getState() == CustomerState.BUYING
-            );
-            List<SurroundingPosition> unusedPositions = new ArrayList<>();
-            for (SurroundingPosition surroundingPos : validPositions) {
-                BlockPos pos = surroundingPos.getPos();
-                boolean isTooClose = false;
-                for (CustomerVillagerEntity customer : otherCustomers) {
-                    // distanceToSqr measures from the entity's exact position to the center of the BlockPos
-                    // 3 blocks distance squared = 9.0
-                    if (customer.distanceToSqr(
-                            pos.getX() + 0.5,
-                            pos.getY() + 0.5,
-                            pos.getZ() + 0.5
-                    ) < 9.0) {
-                        isTooClose = true;
-                        break;
+            // LOGGER.debug("Valid positions sorted: {}", validPositions);
+
+            // Valid positions not targeted by other customers
+            List<SurroundingPosition> untargetedPositions = new ArrayList<>();
+            List<SurroundingPosition> untargetedNotTooClosePositions = new ArrayList<>();
+            if (customer.getSpawnerPos() != null && customer.level().getBlockEntity(customer.getSpawnerPos()) instanceof CustomerSpawnerBlockEntity spawner) {
+                List<BlockPos> otherCustomersTargetPositions = new ArrayList<>();
+                for (UUID customerId : spawner.getCustomerIds()) {
+                    try {
+                        if (((ServerLevel) customer.level()).getEntity(customerId) instanceof CustomerVillagerEntity otherCustomer) {
+                            if (
+                                    otherCustomer.isAlive() &&
+                                            !otherCustomer.isRemoved() &&
+                                            otherCustomer.getCounterTargetBlockPos() != null
+                            ) {
+                                otherCustomersTargetPositions.add(otherCustomer.getCounterTargetBlockPos());
+                            }
+                        }
+                    } catch (Throwable t) {
+                        LOGGER.warn("Couldn't get customer targeted position because of error", t);
                     }
                 }
-                // If no customer was within 3 blocks, it's safe to use!
-                if (!isTooClose) {
-                    unusedPositions.add(surroundingPos);
+                for (SurroundingPosition surroundingPos : validPositions) {
+                    if (otherCustomersTargetPositions.stream().noneMatch(pos -> pos.equals(surroundingPos.getPos()))) {
+                        untargetedPositions.add(surroundingPos);
+                        if (otherCustomersTargetPositions.stream().noneMatch(pos -> pos.distToCenterSqr(surroundingPos.getPos().getBottomCenter()) < 3 * 3)) {
+                            untargetedNotTooClosePositions.add(surroundingPos);
+                        }
+                    }
                 }
             }
-            LOGGER.debug("Unused positions: {}", unusedPositions);
+            // LOGGER.debug("Untargeted positions: {}", untargetedPositions);
+            // LOGGER.debug("Untargeted & not close positions: {}", untargetedNotTooClosePositions);
+
             SurroundingPosition surroundingPos;
-            if (!unusedPositions.isEmpty()) {
-                surroundingPos = unusedPositions.getFirst();
+            if (!untargetedNotTooClosePositions.isEmpty()) {
+                surroundingPos = untargetedNotTooClosePositions.getFirst();
+            } else if (!untargetedPositions.isEmpty()) {
+                surroundingPos = untargetedPositions.getFirst();
             } else {
                 surroundingPos = validPositions.getFirst();
             }
@@ -164,15 +173,16 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
             targetPos = customer.getSpawnPos();
             counterPosition = targetPos;
         }
-        LOGGER.debug("Target positions: {}", targetPos);
-        LOGGER.debug("Counter positions: {}", counterPositions);
+        customer.setCounterTargetBlockPos(targetPos);
+        // LOGGER.debug("Target positions: {}", targetPos);
+        // LOGGER.debug("Counter positions: {}", counterPositions);
         customer.setState(CustomerState.MOVING_TO_COUNTER);
         super.start();
     }
 
     @Override
     protected void onDone() {
-        LOGGER.debug("Reached counter or gave up: counter = {}, num-offers = {}", counterPosition, ((Villager)mob).getOffers().size());
+        // LOGGER.debug("Reached counter or gave up: counter = {}, num-offers = {}", counterPosition, ((Villager)mob).getOffers().size());
         mob.moveTo(targetPos.getBottomCenter(), mob.getYRot(), mob.getXRot());
         if (counterPosition != null) {
             Vec3 lookTargetVec = new Vec3(

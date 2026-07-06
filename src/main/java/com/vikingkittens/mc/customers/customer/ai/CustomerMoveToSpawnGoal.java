@@ -4,7 +4,6 @@ import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.common.ai.MobMoveToGoal;
 import com.vikingkittens.mc.customers.customer.CustomerState;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
-import net.minecraft.world.entity.npc.Villager;
 import org.slf4j.Logger;
 
 public class CustomerMoveToSpawnGoal extends MobMoveToGoal {
@@ -27,8 +26,9 @@ public class CustomerMoveToSpawnGoal extends MobMoveToGoal {
     @Override
     public void start() {
         targetPos = customer.getSpawnPos();
-        LOGGER.debug("Target positions: {}", targetPos);
+        // LOGGER.debug("Target positions: {}", targetPos);
         customer.setState(CustomerState.MOVING_TO_SPAWN);
+        customer.setCounterTargetBlockPos(null);
         super.start();
     }
 
@@ -39,7 +39,7 @@ public class CustomerMoveToSpawnGoal extends MobMoveToGoal {
 
     @Override
     protected void onDone() {
-        LOGGER.debug("Reached spawn");
+        // LOGGER.debug("Reached spawn");
         customer.setState(CustomerState.LEAVING);
     }
 }

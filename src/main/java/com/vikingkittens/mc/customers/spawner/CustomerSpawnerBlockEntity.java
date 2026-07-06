@@ -9,12 +9,11 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.Container;
-import net.minecraft.world.Containers;
-import net.minecraft.world.MenuProvider;
-import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.*;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -40,6 +39,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     private static final Logger LOGGER = LogUtils.getLogger();
 
     private static final int INVENTORY_ROW_SIZE = 9;
+    private static final int SPAWN_CHECK_MAX_TICKS = 4;
     private static final int MAX_CUSTOMERS = 4;
 
     private static MerchantOffers getOffersFromInventory(RandomSource random, ItemStackHandler inventory) {
@@ -107,7 +107,11 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             setChanged();
         }
     };
+    private long spawnCheckTicks = 0;
     private final Set<UUID> customerIds = new HashSet<>();
+    private ServerBossEvent progressBar;
+    private final Set<UUID> playerIds = new HashSet<>();
+    private long ticksSinceUpdatePlayers = 0;
 
     public CustomerSpawnerBlockEntity(BlockPos pos, BlockState blockState) {
         super(CustomerSpawner.CUSTOMER_SPAWNER_ENTITY.get(), pos, blockState);
@@ -295,20 +299,20 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         boolean wasDisabled = getBlockState().getValue(CustomerSpawnerBlock.STATE_DISABLED);
         BlockState newState = updateState(getLevel(), getBlockPos(), getBlockState());
         level.setBlock(getBlockPos(), newState, Block.UPDATE_ALL);
+
         if (
                 newState.getValue(CustomerSpawnerBlock.STATE_SPAWN_MODE) == CustomerSpawnerMode.MANUAL &&
                 newState.getValue(CustomerSpawnerBlock.STATE_DISABLED) != wasDisabled
         ) {
             needsUpdate = true;
-            updateDelayTicks = 4;
+            updateDelayTicks = 2;
         }
     }
 
     /* package private */ static BlockState cycleSpawnMode(Level level, BlockPos pos, BlockState currentState) {
         CustomerSpawnerMode spawnerMode = currentState.getValue(CustomerSpawnerBlock.STATE_SPAWN_MODE);
         CustomerSpawnerMode nextSpawnerMode = switch (spawnerMode) {
-            case CONTINUOUS -> CustomerSpawnerMode.HOURLY;
-            case HOURLY -> CustomerSpawnerMode.DAY;
+            case CONTINUOUS -> CustomerSpawnerMode.DAY;
             case DAY -> CustomerSpawnerMode.NIGHT;
             case NIGHT -> CustomerSpawnerMode.BREAKFAST;
             case BREAKFAST -> CustomerSpawnerMode.LUNCH;
@@ -321,7 +325,6 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 pos,
                 currentState.setValue(CustomerSpawnerBlock.STATE_SPAWN_MODE, nextSpawnerMode)
         );
-        LOGGER.debug("spawn_mode[{}]: {} -> {}", pos, spawnerMode, nextSpawnerMode);
         return newState;
     }
 
@@ -330,13 +333,17 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         level.setBlock(getBlockPos(), newState, Block.UPDATE_ALL);
     }
 
+    public Set<UUID> getCustomerIds() {
+        return customerIds;
+    }
+
     public void spawnCustomer() {
         MerchantOffers offers = getOffersFromInventory(level.getRandom(), inventory);
-        LOGGER.debug("Trying to spawn customer: Num offers = {}", offers.size());
         if (!offers.isEmpty()) {
             BlockState counterBlockState = level.getBlockState(getBlockPos().above());
+            boolean specialEnabled = getBlockState().getValue(CustomerSpawnerBlock.STATE_SPECIAL_ENABLED);
+            boolean spawnSpecial = specialEnabled && level.getRandom().nextIntBetweenInclusive(0, 100) < 25;
 
-            LOGGER.debug("Spawning a customer");
             CustomerVillagerEntity customer = CustomerVillagerEntity.spawn(
                     level,
                     getBlockPos(),
@@ -353,22 +360,76 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     private void updateSpawned() {
         Set<UUID> idsToRemove = new HashSet<>();
-        for (UUID id : customerIds) {
+        for (UUID customerId : customerIds) {
             try {
-                Entity entity = ((ServerLevel) level).getEntity(id);
+                Entity entity = ((ServerLevel) level).getEntity(customerId);
                 if (entity instanceof CustomerVillagerEntity customer) {
                     if (!customer.isAlive() || customer.isRemoved()) {
-                        idsToRemove.add(id);
+                        idsToRemove.add(customerId);
                     }
                 } else {
-                    idsToRemove.add(id);
+                    idsToRemove.add(customerId);
                 }
             } catch (Throwable t) {
                 LOGGER.warn("Removing customer from tracking because of error", t);
-                idsToRemove.add(id);
+                idsToRemove.add(customerId);
             }
         }
         customerIds.removeAll(idsToRemove);
+    }
+
+    public void addPlayer(UUID playerId) {
+        if (!playerIds.contains(playerId)) {
+            LOGGER.debug("Added player {}", playerId);
+            playerIds.add(playerId);
+            updatePlayers();
+        }
+    }
+    public void updatePlayers() {
+        // Since the customers will add players our job here is to remove them
+        Set<UUID> playerIdsToRemove = new HashSet<>();
+        for (UUID playerId : playerIds) {
+            try {
+                Player player = level.getPlayerByUUID(playerId);
+                if (player != null) {
+                    if (player.blockPosition().distToCenterSqr(getBlockPos().getCenter()) > 64 * 64) {
+                        playerIdsToRemove.add(playerId);
+                    }
+                } else {
+                    playerIdsToRemove.add(playerId);
+                }
+            } catch (Throwable t) {
+                LOGGER.warn("Removing player because of error", t);
+                playerIdsToRemove.add(playerId);
+            }
+        }
+        playerIds.removeAll(playerIdsToRemove);
+        if (!playerIdsToRemove.isEmpty()) {
+            LOGGER.debug("Removed players: {}", playerIdsToRemove);
+        }
+
+        if (progressBar != null) {
+            for (UUID playerId : playerIdsToRemove) {
+                try {
+                    Player player = level.getPlayerByUUID(playerId);
+                    if (player != null) {
+                        progressBar.removePlayer((ServerPlayer) player);
+                    }
+                } catch (Throwable t) {
+                    LOGGER.warn("Failed to remove player from progress bar because of error", t);
+                }
+            }
+            for (UUID playerId : playerIds) {
+                try {
+                    Player player = level.getPlayerByUUID(playerId);
+                    if (player != null) {
+                        progressBar.addPlayer((ServerPlayer)player);
+                    }
+                } catch (Throwable t) {
+                    LOGGER.warn("Unable to add player to progress bar", t);
+                }
+            }
+        }
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, CustomerSpawnerBlockEntity entity) {
@@ -381,18 +442,64 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 entity.updateDelayTicks--;
             }
 
-            Set<UUID> customerIdsToRemove = new HashSet<>();
-            for (UUID uuid : entity.customerIds) {
-                Entity customerEntity = ((ServerLevel)level).getEntity(uuid);
-                if (customerEntity == null || !customerEntity.isAlive() || !(customerEntity instanceof CustomerVillagerEntity)) {
-                    customerIdsToRemove.add(uuid);
+            entity.updateSpawned();
+
+            if (entity.ticksSinceUpdatePlayers == 0 || entity.ticksSinceUpdatePlayers > 20 * 5) {
+                entity.ticksSinceUpdatePlayers = 0;
+                entity.updatePlayers();
+            }
+            entity.ticksSinceUpdatePlayers++;
+
+            if (entity.spawnCheckTicks > SPAWN_CHECK_MAX_TICKS) {
+                if (!state.getValue(CustomerSpawnerBlock.STATE_DISABLED)) {
+                    CustomerSpawnerMode spawnerMode = state.getValue(CustomerSpawnerBlock.STATE_SPAWN_MODE);
+                    long timeOfDay = (level.getDayTime() + 6000L) % 24000L;
+                    boolean shouldSpawn = CustomerSpawnerMode.shouldSpawn(spawnerMode, timeOfDay);
+                    if (shouldSpawn) {
+                        if (entity.customerIds.size() < MAX_CUSTOMERS) {
+                            entity.spawnCustomer();
+                        }
+
+                        if (CustomerSpawnerMode.shouldShowProgress(spawnerMode)) {
+                            if (entity.progressBar == null) {
+                                entity.progressBar = new ServerBossEvent(
+                                        spawnerMode.getTitle(),
+                                        BossEvent.BossBarColor.GREEN,
+                                        BossEvent.BossBarOverlay.PROGRESS
+                                );
+                                entity.progressBar.setPlayBossMusic(false);
+                                entity.progressBar.setCreateWorldFog(false);
+                                entity.progressBar.setDarkenScreen(false);
+                                entity.updatePlayers();
+                            }
+                            entity.progressBar.setProgress(1.0F - CustomerSpawnerMode.generateProgress(spawnerMode, timeOfDay));
+                            Component progressBarTitle = spawnerMode.getTitle();
+                            if (entity.progressBar.getName().getString() != progressBarTitle.getString()) {
+                                entity.progressBar.setName(progressBarTitle);
+                            }
+                            BossEvent.BossBarColor progressBarColor = BossEvent.BossBarColor.GREEN;
+                            if (entity.progressBar.getProgress() <= 0.25F) {
+                                progressBarColor = BossEvent.BossBarColor.RED;
+                            } else if (entity.progressBar.getProgress() <= 0.5F) {
+                                progressBarColor = BossEvent.BossBarColor.YELLOW;
+                            }
+                            if (entity.progressBar.getColor() != progressBarColor) {
+                                entity.progressBar.setColor(progressBarColor);
+                            }
+                            entity.progressBar.setVisible(true);
+                        } else if (entity.progressBar != null) {
+                            entity.progressBar.setVisible(false);
+                        }
+                    } else {
+                        if (entity.progressBar != null) {
+                            entity.progressBar.setVisible(false);
+                        }
+                    }
                 }
+                entity.spawnCheckTicks = 0;
             }
-            entity.customerIds.removeAll(customerIdsToRemove);
-            if (entity.customerIds.size() < MAX_CUSTOMERS) {
-                CustomerSpawnerMode spawnerMode = state.getValue(CustomerSpawnerBlock.STATE_SPAWN_MODE);
-                long timeOfDay = level.getDayTime() % 24000;
-            }
+            entity.spawnCheckTicks++;
         }
     }
 }
+
