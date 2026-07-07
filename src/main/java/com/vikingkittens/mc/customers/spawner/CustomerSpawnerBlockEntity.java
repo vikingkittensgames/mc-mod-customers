@@ -83,7 +83,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             offers.add(new MerchantOffer(
                     new ItemCost(itemStack.getItem(), count),
                     Optional.empty(),
-                    new ItemStack(Items.EMERALD, rowCost.get(row)),
+                    new ItemStack(Items.EMERALD, rowCost.get(row) * count),
                     1,
                     rowCost.get(row),
                     0
@@ -157,10 +157,11 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         }
         if (tag.contains("customers")) {
             try {
+                customerIds.clear();
                 ListTag customersTag = tag.getList("customers", Tag.TAG_INT_ARRAY);
                 for (int i = 0; i < customersTag.size(); i++) {
                     try {
-                        customerIds.add(NbtUtils.loadUUID(customersTag.getCompound(i)));
+                        customerIds.add(NbtUtils.loadUUID(customersTag.get(i)));
                     } catch (Throwable t) {
                         LOGGER.warn("Failed to load one of the customers because of error", t);
                     }
@@ -341,6 +342,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         MerchantOffers offers = getOffersFromInventory(level.getRandom(), inventory);
         if (!offers.isEmpty()) {
             BlockState counterBlockState = level.getBlockState(getBlockPos().above());
+            BlockState avoidBlockState = level.getBlockState(getBlockPos().below());
             boolean specialEnabled = getBlockState().getValue(CustomerSpawnerBlock.STATE_SPECIAL_ENABLED);
             boolean spawnSpecial = specialEnabled && level.getRandom().nextIntBetweenInclusive(0, 100) < 25;
 
@@ -348,7 +350,8 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                     level,
                     getBlockPos(),
                     offers,
-                    counterBlockState
+                    counterBlockState,
+                    avoidBlockState
             );
             if (customer != null) {
                 LOGGER.debug("Customer UUID={}, pos={}", customer.getUUID(), customer.blockPosition());
@@ -502,4 +505,5 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         }
     }
 }
+
 

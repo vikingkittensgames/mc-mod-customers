@@ -32,7 +32,6 @@ import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.registries.datamaps.builtin.BiomeVillagerType;
 import net.neoforged.neoforge.registries.datamaps.builtin.NeoForgeDataMaps;
 import org.jetbrains.annotations.NotNull;
@@ -51,6 +50,7 @@ public class CustomerVillagerEntity extends Villager {
     private static final String TAG_SPAWNER_POS = "SpawnerPos";
     private static final String TAG_SPAWN_POS = "SpawnPos";
     private static final String TAG_COUNTER_BLOCK_STATE = "CounterBlockState";
+    private static final String TAG_AVOID_BLOCK_STATE = "AvoidBlockState";
     private static final String TAG_TRADED_WITH_PLAYERS = "TradedWithPlayers";
     private static final String TAG_TRADED_PLAYER_UUID = "UUID";
     private static final int MAX_SYNCED_DISPLAY_OFFERS = 3;
@@ -74,7 +74,8 @@ public class CustomerVillagerEntity extends Villager {
             Level level,
             BlockPos spawnerPos,
             MerchantOffers offers,
-            BlockState counterBlockState
+            BlockState counterBlockState,
+            BlockState avoidBlockState
     ) {
         if (!level.isClientSide) {
             ServerLevel serverLevel = (ServerLevel)level;
@@ -97,6 +98,7 @@ public class CustomerVillagerEntity extends Villager {
                     customer.setSpawnPos(safePos);
                     customer.setOffers(offers);
                     customer.setCounterBlockState(counterBlockState);
+                    customer.setAvoidBlockState(avoidBlockState);
 
                     customer.setState(CustomerState.INITIALIZING);
 
@@ -118,6 +120,7 @@ public class CustomerVillagerEntity extends Villager {
     private BlockPos spawnerPos;
     private BlockPos spawnPos;
     private BlockState counterBlockState;
+    private BlockState avoidBlockState;
     private BlockPos counterTargetBlockPos;
     private Set<UUID> tradedWithPlayers = new HashSet<>();
     private long ticksSinceTrade = 0;
@@ -180,6 +183,14 @@ public class CustomerVillagerEntity extends Villager {
         this.counterBlockState = counterBlockState;
     }
 
+    public BlockState getAvoidBlockState() {
+        return avoidBlockState;
+    }
+
+    public void setAvoidBlockState(BlockState avoidBlockState) {
+        this.avoidBlockState = avoidBlockState;
+    }
+
     public BlockPos getCounterTargetBlockPos() {
         return counterTargetBlockPos;
     }
@@ -235,6 +246,12 @@ public class CustomerVillagerEntity extends Villager {
                     compound.getCompound(TAG_COUNTER_BLOCK_STATE)
             );
         }
+        if (compound.contains(TAG_AVOID_BLOCK_STATE)) {
+            avoidBlockState = NbtUtils.readBlockState(
+                    registryAccess().lookupOrThrow(Registries.BLOCK),
+                    compound.getCompound(TAG_AVOID_BLOCK_STATE)
+            );
+        }
         tradedWithPlayers.clear();
         if (compound.contains(TAG_TRADED_WITH_PLAYERS, Tag.TAG_LIST)) {
             ListTag tradedPlayerTags = compound.getList(TAG_TRADED_WITH_PLAYERS, Tag.TAG_COMPOUND);
@@ -264,6 +281,9 @@ public class CustomerVillagerEntity extends Villager {
         }
         if (counterBlockState != null) {
             compound.put(TAG_COUNTER_BLOCK_STATE, NbtUtils.writeBlockState(counterBlockState));
+        }
+        if (avoidBlockState != null) {
+            compound.put(TAG_AVOID_BLOCK_STATE, NbtUtils.writeBlockState(avoidBlockState));
         }
         if (!tradedWithPlayers.isEmpty()) {
             ListTag tradedPlayerTags = new ListTag();
@@ -451,3 +471,4 @@ public class CustomerVillagerEntity extends Villager {
         }
     }
 }
+

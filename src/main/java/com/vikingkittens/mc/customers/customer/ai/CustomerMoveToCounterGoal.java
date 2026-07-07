@@ -12,6 +12,13 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.BaseFireBlock;
+import net.minecraft.world.level.block.CactusBlock;
+import net.minecraft.world.level.block.CampfireBlock;
+import net.minecraft.world.level.block.MagmaBlock;
+import net.minecraft.world.level.block.SweetBerryBushBlock;
+import net.minecraft.world.level.block.WitherRoseBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.slf4j.Logger;
 
@@ -19,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 public class CustomerMoveToCounterGoal extends MobMoveToGoal {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -66,7 +74,11 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
         }
     }
 
-    public List<SurroundingPosition> findValidSurroundingPositions(Level level, List<BlockPos> centerPositions) {
+    public List<SurroundingPosition> findValidSurroundingPositions(
+            Level level,
+            List<BlockPos> centerPositions,
+            Predicate<BlockState> supportBlockPredicate
+    ) {
         List<SurroundingPosition> validPositions = new ArrayList<>();
         BlockPos.MutableBlockPos checkPos = new BlockPos.MutableBlockPos();
         BlockPos.MutableBlockPos airCheckPos = new BlockPos.MutableBlockPos();
@@ -83,7 +95,11 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
                     if (level.getBlockState(checkPos).isAir()) {
                         for (int dy = 0; dy >= -2; dy--) {
                             checkPos.setY(centerPos.getY() + dy);
-                            if (!level.getBlockState(checkPos).isAir()) {
+                            BlockState supportBlockState = level.getBlockState(checkPos);
+                            if (!supportBlockState.isAir()) {
+                                if (!supportBlockPredicate.test(supportBlockState)) {
+                                    break;
+                                }
                                 checkPos.setY(checkPos.getY() + 1);
                                 int numAir = 0;
                                 airCheckPos.set(checkPos);
@@ -106,6 +122,22 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
         return validPositions;
     }
 
+    private static boolean isValidSupportBlock(CustomerVillagerEntity customer, BlockState blockState) {
+        BlockState avoidBlockState = customer.getAvoidBlockState();
+        return (avoidBlockState == null || !blockState.is(avoidBlockState.getBlock())) &&
+                blockState.getFluidState().isEmpty() &&
+                !causesDamage(blockState);
+    }
+
+    private static boolean causesDamage(BlockState blockState) {
+        return blockState.getBlock() instanceof BaseFireBlock ||
+                blockState.getBlock() instanceof CactusBlock ||
+                blockState.getBlock() instanceof MagmaBlock ||
+                blockState.getBlock() instanceof SweetBerryBushBlock ||
+                blockState.getBlock() instanceof WitherRoseBlock ||
+                CampfireBlock.isLitCampfire(blockState);
+    }
+
     @Override
     public void start() {
         targetPos = null;
@@ -117,7 +149,11 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
                         (blockPos.getX() != customer.getSpawnerPos().getX() || blockPos.getZ() != customer.getSpawnerPos().getZ())
         );
         // LOGGER.debug("Counter positions: {}", counterPositions);
-        List<SurroundingPosition> validPositions = findValidSurroundingPositions(customer.level(), counterPositions);
+        List<SurroundingPosition> validPositions = findValidSurroundingPositions(
+                customer.level(),
+                counterPositions,
+                blockState -> isValidSupportBlock(customer, blockState)
+        );
         // LOGGER.debug("Valid positions: {}", validPositions);
         if (!validPositions.isEmpty()) {
             // All valid positions
@@ -195,3 +231,4 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
         customer.setState(CustomerState.BUYING);
     }
 }
+
