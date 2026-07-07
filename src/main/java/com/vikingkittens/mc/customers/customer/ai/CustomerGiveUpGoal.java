@@ -27,7 +27,7 @@ public class CustomerGiveUpGoal extends MobTimedGoal {
 
     @Override
     public boolean canUse() {
-        return super.canUse() && customer.getState() == CustomerState.BUYING && customer.getTicksSinceTrade() > (20 * 30);
+        return super.canUse() && customer.getState() == CustomerState.BUYING && customer.getTicksSinceTrade() > (20 * 60);
     }
 
     @Override
