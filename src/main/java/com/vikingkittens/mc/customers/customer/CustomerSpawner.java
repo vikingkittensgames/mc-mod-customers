@@ -55,7 +55,7 @@ public class CustomerSpawner {
 
     // Add each item to the right creative tab
     private static void addCreative(BuildCreativeModeTabContentsEvent event) {
-        if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
+        if (event.getTabKey() == CreativeModeTabs.FUNCTIONAL_BLOCKS) {
             event.accept(CUSTOMER_SPAWNER_ITEM);
         }
     }

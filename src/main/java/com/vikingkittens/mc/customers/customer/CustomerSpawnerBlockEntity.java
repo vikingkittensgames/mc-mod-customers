@@ -1,6 +1,7 @@
 package com.vikingkittens.mc.customers.customer;
 
 import com.mojang.logging.LogUtils;
+import com.vikingkittens.mc.customers.common.SearchUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -96,6 +97,9 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     public static final String NAME = "customer_spawner_block_entity";
+
+    private boolean ticksDisabled = false;
+    private long ticksSinceTicksDisabledCheck = 0;
 
     private boolean needsUpdate = true;
     private long updateDelayTicks = 0;
@@ -295,9 +299,6 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 .setValue(CustomerSpawnerBlock.STATE_DISABLED, disabled)
                 .setValue(CustomerSpawnerBlock.STATE_POWERED, powered)
                 .setValue(CustomerSpawnerBlock.STATE_SPECIAL_ENABLED, specialEnabled);
-        LOGGER.debug("spawn_mode[{}].{}: {} -> {}", pos, spawnerMode, wasDisabled, disabled);
-        LOGGER.debug("spawn_mode[{}].{}: {} -> {}", pos, spawnerMode, wasPowered, powered);
-        LOGGER.debug("spawn_mode[{}].{}: {} -> {}", pos, spawnerMode, wasSpecialEnabled, specialEnabled);
         return newState;
     }
 
@@ -555,6 +556,19 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     public static void tick(Level level, BlockPos pos, BlockState state, CustomerSpawnerBlockEntity entity) {
         if (!level.isClientSide()) {
+            if (entity.ticksSinceTicksDisabledCheck == 0 || entity.ticksSinceTicksDisabledCheck > 20) {
+                try {
+                    entity.ticksDisabled = SearchUtils.findEntitiesInSphere(level, Player.class, pos, 64, (p, e) -> true).isEmpty();
+                } catch (Throwable t) {
+                    entity.ticksDisabled = false;
+                }
+                entity.ticksSinceTicksDisabledCheck = 0;
+            }
+            entity.ticksSinceTicksDisabledCheck++;
+            if (entity.ticksDisabled) {
+                return;
+            }
+
             if (entity.needsUpdate) {
                 if (entity.updateDelayTicks <= 0) {
                     entity.needsUpdate = false;
