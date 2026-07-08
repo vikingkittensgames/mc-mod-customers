@@ -4,10 +4,13 @@
   "item.customers.example_item": "Example Item",
 
   "block.customers.customer_spawner_block": "Customer Spawner",
+  "block.customers.supplier_spawner_block": "Supplier Spawner",
 
   "item.customers.customer_spawner_block": "Customer Spawner",
+  "item.customers.supplier_spawner_block": "Supplier Spawner",
 
   "entity.customers.customer_villager": "Customer",
+  "entity.customers.supplier_villager": "Supplier",
 
   "titles.customers.spawn_mode.continuous": "Continuous",
   "titles.customers.spawn_mode.day": "Day Shift",
@@ -24,6 +27,8 @@
   "messages.customers.scoreboard.detail.customers_served": "%s customers served",
   "messages.customers.scoreboard.detail.customers_gave_up": "%s customers gave up",
   "messages.customers.scoreboard.detail.player_served_items": "%s served %s out of %s items",
+
+  "messages.customers.supplies": "I have your supplies for the day.",
 
   "customers.configuration.title": "Customers Configs",
   "customers.configuration.section.customers.common.toml": "Customers Configs",

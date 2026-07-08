@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "disabled=false": { "model":  "customers:block/supplier_spawner_block" },
+    "disabled=true": { "model":  "customers:block/supplier_spawner_block_disabled" }
+  }
+}

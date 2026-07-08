@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "customers:block/supplier_spawner_block_top",
+    "bottom": "customers:block/supplier_spawner_block_bottom",
+    "side": "customers:block/supplier_spawner_block_side",
+    "particle": "customers:block/supplier_spawner_block_top"
+  }
+}

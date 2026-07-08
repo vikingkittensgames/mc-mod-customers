@@ -1,0 +1,14 @@
+{
+  "loader": "neoforge:composite",
+  "textures": {
+    "particle": "customers:block/supplier_spawner_block_top"
+  },
+  "children": {
+    "base_layer": {
+      "parent": "customers:block/supplier_spawner_block"
+    },
+    "overlay_layer": {
+      "parent": "customers:block/supplier_spawner_block_overlay_disabled"
+    }
+  }
+}
