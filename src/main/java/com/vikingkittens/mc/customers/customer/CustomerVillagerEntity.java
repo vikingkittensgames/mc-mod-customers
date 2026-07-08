@@ -400,6 +400,9 @@ public class CustomerVillagerEntity extends Villager {
                 tradedWithPlayers.add(tradingPlayer.getUUID());
                 LOGGER.debug("Bought {} from {}", offer.getCostA().getDisplayName().getString(), tradingPlayer.getDisplayName().getString());
                 playHappy();
+                if (level().getBlockEntity(spawnerPos) instanceof CustomerSpawnerBlockEntity spawner) {
+                    spawner.scoreboardAddItemServed(tradingPlayer.getUUID());
+                }
             }
         }
     }
@@ -422,7 +425,17 @@ public class CustomerVillagerEntity extends Villager {
         }
     }
 
-    private MerchantOffers previousOffers;
+    public void sentPlayersMessage(Component message) {
+        if (!level().isClientSide() && level().getBlockEntity(spawnerPos) instanceof CustomerSpawnerBlockEntity spawner) {
+            spawner.sentPlayersMessage(message);
+        }
+    }
+
+    public void sentPlayersChat(Component message) {
+        if (!level().isClientSide() && level().getBlockEntity(spawnerPos) instanceof CustomerSpawnerBlockEntity spawner) {
+            spawner.sentPlayersChat(message);
+        }
+    }
 
     @Override
     public void tick() {
@@ -431,10 +444,6 @@ public class CustomerVillagerEntity extends Villager {
         if (!level().isClientSide()) {
             if (getState() == CustomerState.BUYING) {
                 MerchantOffers currentOffers = getOffers();
-                if (previousOffers == null) {
-                    previousOffers = currentOffers;
-                }
-
                 Player tradingPlayer = getTradingPlayer();
                 long numRemaining = currentOffers.stream().filter(offer -> !offer.isOutOfStock()).count();
                 if (tradingPlayer == null || numRemaining == 0) {

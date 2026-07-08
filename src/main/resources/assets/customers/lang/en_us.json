@@ -17,8 +17,13 @@
   "titles.customers.spawn_mode.dinner": "Dinner Shift",
   "titles.customers.spawn_mode.manual": "Manual",
 
-  "messages.customers.thank_you": "Thank you %s!",
+  "messages.customers.thank_you": "Thank you!",
   "messages.customers.give_up": "I have other things to do.",
+  "messages.customers.scoreboard.summary": "%s finished with a score of %s",
+  "messages.customers.scoreboard.detail.total_customers": "%s total customers",
+  "messages.customers.scoreboard.detail.customers_served": "%s customers served",
+  "messages.customers.scoreboard.detail.customers_gave_up": "%s customers gave up",
+  "messages.customers.scoreboard.detail.player_served_items": "%s served %s out of %s items",
 
   "customers.configuration.title": "Customers Configs",
   "customers.configuration.section.customers.common.toml": "Customers Configs",

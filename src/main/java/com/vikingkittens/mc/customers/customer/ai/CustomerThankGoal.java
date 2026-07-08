@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.common.ai.MobTimedGoal;
 import com.vikingkittens.mc.customers.customer.CustomerState;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
+import com.vikingkittens.mc.customers.spawner.CustomerSpawnerBlockEntity;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
@@ -43,6 +44,9 @@ public class CustomerThankGoal extends MobTimedGoal {
         messageSent = false;
         ticksSinceJump = 0;
         ticksSinceFX = 0;
+        if (customer.level().getBlockEntity(customer.getSpawnerPos()) instanceof CustomerSpawnerBlockEntity spawner) {
+            spawner.scoreboardAddCustomerServed();
+        }
         super.start();
     }
 
@@ -51,16 +55,7 @@ public class CustomerThankGoal extends MobTimedGoal {
         super.tick();
         if (!messageSent && ticksSinceStart >= 20 * 1) {
             messageSent = true;
-            for (UUID playerUUID : customer.getTradedWithPlayers()) {
-                try {
-                    Player player = customer.level().getPlayerByUUID(playerUUID);
-                    if (player != null) {
-                        player.displayClientMessage(Component.translatable("messages.customers.thank_you", player.getDisplayName()).withColor(0x36991C), true);
-                    }
-                } catch (Throwable t) {
-                    LOGGER.warn("Failed to sent message to player", t);
-                }
-            }
+            customer.sentPlayersMessage(Component.translatable("messages.customers.thank_you").withColor(0x36991C));
         }
         if (ticksSinceJump == 0 || ticksSinceJump > 20) {
             customer.jumpFromGround();

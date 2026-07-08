@@ -72,14 +72,14 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 rowsWithItems.add(row);
             }
         }
-        int numItemsToBuy = rowsWithItems.size() > 1 ? random.nextInt(1, rowsWithItems.size()) : rowsWithItems.size();
+        int numItemsToBuy = rowsWithItems.size() > 1 ? random.nextIntBetweenInclusive(1, rowsWithItems.size()) : rowsWithItems.size();
         while (numItemsToBuy > 0) {
             int rowNum = random.nextInt(rowsWithItems.size());
             int row = rowsWithItems.get(rowNum);
 
             int itemNum = rowItems.get(row).size() > 1 ? random.nextInt(rowItems.get(row).size()) : 0;
             ItemStack itemStack = rowItems.get(row).get(itemNum);
-            int count = itemStack.getCount() > 1 ? random.nextInt(1, itemStack.getCount()) : 1;
+            int count = itemStack.getCount() > 1 ? random.nextIntBetweenInclusive(1, itemStack.getCount()) : 1;
             offers.add(new MerchantOffer(
                     new ItemCost(itemStack.getItem(), count),
                     Optional.empty(),
@@ -112,6 +112,12 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     private ServerBossEvent progressBar;
     private final Set<UUID> playerIds = new HashSet<>();
     private long ticksSinceUpdatePlayers = 0;
+    // Scoreboard
+    private int totalCustomers = 0;
+    private int numCustomersServed = 0;
+    private int totalItemsWanted = 0;
+    private int numCustomersGaveUp = 0;
+    private final Map<UUID, Integer> numItemsServedByPlayer = new HashMap<>();
 
     public CustomerSpawnerBlockEntity(BlockPos pos, BlockState blockState) {
         super(CustomerSpawner.CUSTOMER_SPAWNER_ENTITY.get(), pos, blockState);
@@ -357,6 +363,8 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 LOGGER.debug("Customer UUID={}, pos={}", customer.getUUID(), customer.blockPosition());
                 customerIds.add(customer.getUUID());
                 setChanged();
+                scoreboardAddCustomer();
+                scoreboardAddItemsWanted(offers.size());
             }
         }
     }
@@ -435,6 +443,117 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         }
     }
 
+    public void sentPlayersMessage(Component message) {
+        if (!level.isClientSide()) {
+            for (UUID playerId : playerIds) {
+                try {
+                    Player player = level.getPlayerByUUID(playerId);
+                    player.displayClientMessage(message, true);
+                } catch (Throwable t) {
+                    LOGGER.warn("Unable to send message to player because of error", t);
+                }
+            }
+        }
+    }
+
+    public void sentPlayersChat(Component message) {
+        if (!level.isClientSide()) {
+            for (UUID playerId : playerIds) {
+                try {
+                    Player player = level.getPlayerByUUID(playerId);
+                    player.sendSystemMessage(message);
+                } catch (Throwable t) {
+                    LOGGER.warn("Unable to send chat to player because of error", t);
+                }
+            }
+        }
+    }
+
+    private boolean hasScoreboard() {
+        return totalCustomers > 0;
+    }
+
+    private void scoreboardReset() {
+        totalCustomers = 0;
+        numCustomersServed = 0;
+        totalItemsWanted = 0;
+        numCustomersGaveUp = 0;
+        numItemsServedByPlayer.clear();
+    }
+
+    private float scoreboardGetPercentage() {
+        int totalItemsServed = numItemsServedByPlayer.values().stream()
+                .reduce(0, Integer::sum);
+        return ((float)totalItemsServed / (float)totalItemsWanted);
+    }
+
+    private void scoreboardShow() {
+    }
+
+    private void scoreboardShowFinal() {
+        CustomerSpawnerMode spawnerMode = getBlockState().getValue(CustomerSpawnerBlock.STATE_SPAWN_MODE);
+        int color = 0x36991C;
+        if (scoreboardGetPercentage() <= 0.25) {
+            color = 0xFF0000;
+        } else if (scoreboardGetPercentage() <= 0.50) {
+            color = 0xFE8B00;
+        }
+
+        Component summary = Component.translatable(
+                "messages.customers.scoreboard.summary",
+                spawnerMode.getTitle(),
+                (int)(scoreboardGetPercentage() * 100) + "%"
+        ).withColor(color);
+        sentPlayersMessage(summary);
+
+        sentPlayersChat(summary);
+        sentPlayersChat(Component.translatable(
+                "messages.customers.scoreboard.detail.total_customers",
+                totalCustomers
+        ).withColor(color));
+        sentPlayersChat(Component.translatable(
+                "messages.customers.scoreboard.detail.customers_served",
+                numCustomersServed
+        ).withColor(color));
+        sentPlayersChat(Component.translatable(
+                "messages.customers.scoreboard.detail.customers_gave_up",
+                numCustomersGaveUp
+        ).withColor(color));
+        for (UUID playerId : numItemsServedByPlayer.keySet()) {
+            try {
+                Player player = level.getPlayerByUUID(playerId);
+                sentPlayersChat(Component.translatable(
+                        "messages.customers.scoreboard.detail.player_served_items",
+                        player.getDisplayName(),
+                        numItemsServedByPlayer.get(playerId),
+                        totalItemsWanted
+                ).withColor(color));
+            } catch (Throwable t) {
+                LOGGER.warn("Unable to add player score because of error", t);
+            }
+        }
+    }
+
+    public void scoreboardAddCustomer() {
+        totalCustomers++;
+    }
+
+    public void scoreboardAddItemsWanted(int numItemsWanted) {
+        totalItemsWanted += numItemsWanted;
+    }
+
+    public void scoreboardAddCustomerServed() {
+        numCustomersServed++;
+    }
+
+    public void scoreboardAddCustomerGaveUp() {
+        numCustomersGaveUp++;
+    }
+
+    public void scoreboardAddItemServed(UUID playerId) {
+        numItemsServedByPlayer.put(playerId, numItemsServedByPlayer.getOrDefault(playerId, 0) + 1);
+    }
+
     public static void tick(Level level, BlockPos pos, BlockState state, CustomerSpawnerBlockEntity entity) {
         if (!level.isClientSide()) {
             if (entity.needsUpdate) {
@@ -454,50 +573,52 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             entity.ticksSinceUpdatePlayers++;
 
             if (entity.spawnCheckTicks > SPAWN_CHECK_MAX_TICKS) {
-                if (!state.getValue(CustomerSpawnerBlock.STATE_DISABLED)) {
-                    CustomerSpawnerMode spawnerMode = state.getValue(CustomerSpawnerBlock.STATE_SPAWN_MODE);
-                    long timeOfDay = (level.getDayTime() + 6000L) % 24000L;
-                    boolean shouldSpawn = CustomerSpawnerMode.shouldSpawn(spawnerMode, timeOfDay);
-                    if (shouldSpawn) {
-                        if (entity.customerIds.size() < MAX_CUSTOMERS) {
-                            entity.spawnCustomer();
-                        }
-
-                        if (CustomerSpawnerMode.shouldShowProgress(spawnerMode)) {
-                            if (entity.progressBar == null) {
-                                entity.progressBar = new ServerBossEvent(
-                                        spawnerMode.getTitle(),
-                                        BossEvent.BossBarColor.GREEN,
-                                        BossEvent.BossBarOverlay.PROGRESS
-                                );
-                                entity.progressBar.setPlayBossMusic(false);
-                                entity.progressBar.setCreateWorldFog(false);
-                                entity.progressBar.setDarkenScreen(false);
-                                entity.updatePlayers();
-                            }
-                            entity.progressBar.setProgress(1.0F - CustomerSpawnerMode.generateProgress(spawnerMode, timeOfDay));
-                            Component progressBarTitle = spawnerMode.getTitle();
-                            if (entity.progressBar.getName().getString() != progressBarTitle.getString()) {
-                                entity.progressBar.setName(progressBarTitle);
-                            }
-                            BossEvent.BossBarColor progressBarColor = BossEvent.BossBarColor.GREEN;
-                            if (entity.progressBar.getProgress() <= 0.25F) {
-                                progressBarColor = BossEvent.BossBarColor.RED;
-                            } else if (entity.progressBar.getProgress() <= 0.5F) {
-                                progressBarColor = BossEvent.BossBarColor.YELLOW;
-                            }
-                            if (entity.progressBar.getColor() != progressBarColor) {
-                                entity.progressBar.setColor(progressBarColor);
-                            }
-                            entity.progressBar.setVisible(true);
-                        } else if (entity.progressBar != null) {
-                            entity.progressBar.setVisible(false);
-                        }
-                    } else {
-                        if (entity.progressBar != null) {
-                            entity.progressBar.setVisible(false);
-                        }
+                CustomerSpawnerMode spawnerMode = state.getValue(CustomerSpawnerBlock.STATE_SPAWN_MODE);
+                long timeOfDay = (level.getDayTime() + 6000L) % 24000L;
+                boolean shouldSpawn = CustomerSpawnerMode.shouldSpawn(spawnerMode, timeOfDay);
+                if (!state.getValue(CustomerSpawnerBlock.STATE_DISABLED) && shouldSpawn) {
+                    if (entity.customerIds.size() < MAX_CUSTOMERS) {
+                        entity.spawnCustomer();
                     }
+
+                    if (CustomerSpawnerMode.shouldShowProgress(spawnerMode)) {
+                        if (entity.progressBar == null) {
+                            entity.progressBar = new ServerBossEvent(
+                                    spawnerMode.getTitle(),
+                                    BossEvent.BossBarColor.GREEN,
+                                    BossEvent.BossBarOverlay.PROGRESS
+                            );
+                            entity.progressBar.setPlayBossMusic(false);
+                            entity.progressBar.setCreateWorldFog(false);
+                            entity.progressBar.setDarkenScreen(false);
+                            entity.updatePlayers();
+                        }
+                        entity.progressBar.setProgress(1.0F - CustomerSpawnerMode.generateProgress(spawnerMode, timeOfDay));
+                        Component progressBarTitle = spawnerMode.getTitle();
+                        if (entity.progressBar.getName().getString() != progressBarTitle.getString()) {
+                            entity.progressBar.setName(progressBarTitle);
+                        }
+                        BossEvent.BossBarColor progressBarColor = BossEvent.BossBarColor.GREEN;
+                        if (entity.progressBar.getProgress() <= 0.25F) {
+                            progressBarColor = BossEvent.BossBarColor.RED;
+                        } else if (entity.progressBar.getProgress() <= 0.5F) {
+                            progressBarColor = BossEvent.BossBarColor.YELLOW;
+                        }
+                        if (entity.progressBar.getColor() != progressBarColor) {
+                            entity.progressBar.setColor(progressBarColor);
+                        }
+                        entity.progressBar.setVisible(true);
+                    } else if (entity.progressBar != null) {
+                        entity.progressBar.setVisible(false);
+                    }
+                } else {
+                    if (entity.progressBar != null) {
+                        entity.progressBar.setVisible(false);
+                    }
+                    if (entity.hasScoreboard()) {
+                        entity.scoreboardShowFinal();
+                    }
+                    entity.scoreboardReset();
                 }
                 entity.spawnCheckTicks = 0;
             }

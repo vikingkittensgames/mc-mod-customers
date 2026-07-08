@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.common.ai.MobTimedGoal;
 import com.vikingkittens.mc.customers.customer.CustomerState;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
+import com.vikingkittens.mc.customers.spawner.CustomerSpawnerBlockEntity;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.player.Player;
@@ -40,6 +41,9 @@ public class CustomerGiveUpGoal extends MobTimedGoal {
         // LOGGER.debug("Giving up");
         customer.setState(CustomerState.GIVING_UP);
         ticksSinceFX = 0;
+        if (customer.level().getBlockEntity(customer.getSpawnerPos()) instanceof CustomerSpawnerBlockEntity spawner) {
+            spawner.scoreboardAddCustomerGaveUp();
+        }
         super.start();
     }
 
@@ -48,20 +52,7 @@ public class CustomerGiveUpGoal extends MobTimedGoal {
         super.tick();
         if (!messageSent && ticksSinceStart >= 20 * 1) {
             messageSent = true;
-            List<Player> players = customer.level().getNearbyPlayers(
-                    TargetingConditions.forNonCombat().ignoreLineOfSight(),
-                    customer,
-                    AABB.ofSize(customer.position(), 32, 32, 32)
-            );
-            for (Player player : players) {
-                try {
-                    if (player != null) {
-                        player.displayClientMessage(Component.translatable("messages.customers.give_up").withColor(0xFF0000), true);
-                    }
-                } catch (Throwable t) {
-                    LOGGER.warn("Failed to sent message to player", t);
-                }
-            }
+            customer.sentPlayersMessage(Component.translatable("messages.customers.give_up").withColor(0xFF0000));
         }
         if (ticksSinceFX == 0 || ticksSinceFX > 30) {
             customer.playAngry();
