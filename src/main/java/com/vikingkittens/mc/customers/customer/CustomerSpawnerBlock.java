@@ -1,4 +1,4 @@
-package com.vikingkittens.mc.customers.spawner;
+package com.vikingkittens.mc.customers.customer;
 
 
 import com.mojang.logging.LogUtils;

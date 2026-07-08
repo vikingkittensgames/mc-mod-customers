@@ -1,7 +1,6 @@
-package com.vikingkittens.mc.customers.spawner;
+package com.vikingkittens.mc.customers.customer;
 
 import com.mojang.logging.LogUtils;
-import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;

@@ -4,14 +4,9 @@ import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.common.ai.MobTimedGoal;
 import com.vikingkittens.mc.customers.customer.CustomerState;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
-import com.vikingkittens.mc.customers.spawner.CustomerSpawnerBlockEntity;
+import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlockEntity;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.ai.targeting.TargetingConditions;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.phys.AABB;
 import org.slf4j.Logger;
-
-import java.util.List;
 
 public class CustomerGiveUpGoal extends MobTimedGoal {
     private static final Logger LOGGER = LogUtils.getLogger();

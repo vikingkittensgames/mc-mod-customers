@@ -3,7 +3,6 @@ package com.vikingkittens.mc.customers.customer;
 import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.common.MobUtils;
 import com.vikingkittens.mc.customers.customer.ai.*;
-import com.vikingkittens.mc.customers.spawner.CustomerSpawnerBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;

@@ -2,7 +2,7 @@ package com.vikingkittens.mc.customers;
 
 import com.vikingkittens.mc.customers.config.Config;
 import com.vikingkittens.mc.customers.customer.Customer;
-import com.vikingkittens.mc.customers.spawner.CustomerSpawner;
+import com.vikingkittens.mc.customers.customer.CustomerSpawner;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -31,7 +31,6 @@ public class Customers {
     public Customers(IEventBus modEventBus, ModContainer modContainer) {
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
-
 
         // Register our features
         CustomerSpawner.register(modEventBus);

@@ -1,11 +1,9 @@
-package com.vikingkittens.mc.customers.spawner;
+package com.vikingkittens.mc.customers.customer;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.StringRepresentable;
 import org.slf4j.Logger;
-
-import static com.ibm.icu.lang.UCharacter.GraphemeClusterBreak.L;
 
 public enum CustomerSpawnerMode implements StringRepresentable {
     CONTINUOUS("continuous"),
