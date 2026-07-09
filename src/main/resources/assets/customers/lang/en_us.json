@@ -33,8 +33,7 @@
   "customers.configuration.title": "Customers Configs",
   "customers.configuration.section.customers.common.toml": "Customers Configs",
   "customers.configuration.section.customers.common.toml.title": "Customers Configs",
-  "customers.configuration.items": "Item List",
-  "customers.configuration.logDirtBlock": "Log Dirt Block",
-  "customers.configuration.magicNumberIntroduction": "Magic Number Text",
-  "customers.configuration.magicNumber": "Magic Number"
+  "customers.configuration.enableCustomerSpawnerBlockRecipe": "Customer Spawner Recipe",
+  "customers.configuration.enableSupplierSpawnerBlockRecipe": "Supplier Spawner Recipe"
 }
+

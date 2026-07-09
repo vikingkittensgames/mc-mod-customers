@@ -1,6 +1,12 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "customers:recipe_enabled",
+      "recipe": "customer_spawner_block"
+    }
+  ],
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
+  "category": "blocks",
   "pattern": [
     "EEE",
     "EBE",
@@ -11,7 +17,7 @@
       "item": "minecraft:emerald"
     },
     "B": {
-      "item": "minecraft:bed"
+      "tag": "minecraft:beds"
     }
   },
   "result": {
@@ -19,3 +25,4 @@
     "count": 1
   }
 }
+
