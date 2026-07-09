@@ -126,6 +126,15 @@ counter where you want customers to gather.
 For all the blocks of this type in a 64 block radius and go to a random one trying to avoid
 going to one that already has a customer next to it.
 
+### Avoid Block
+
+When a Customer looks for a spot to go to next to your counter or table-top blocks it will
+look at all the spaces around it as options unless that block matches the block directly
+under the customer spawner block.  This can be used to set of builds like a counter where
+you only want the customers to go to one side of it because the other side if the kitchen.
+On the other side of the counter use a different block for the kitchen tiles and put that
+same kitchen floor block under the customer spawner.
+
 ## Villager Customers
 
 The Customer Spawner will spawn Customer Villagers that are just normal villagers with
@@ -191,11 +200,11 @@ You can craft a supplier spawner block from a barrel surrounded by 8 emeralds.
 
 The supplier spawner block acts like a double-chest container and the items you put in it,
 including the size of the stack, will be what the supplier will sell you.  Similar to the
-sustomer spawner blocks, the exception is emeralds.  Emeralds are used to set the price of
+customer spawner blocks, the exception is emeralds.  Emeralds are used to set the price of
 the items the supplier will sell.  The Supplier will default to 1 emerald per stack of items,
 but if you put a stack of emeralds after each of the items in the container, that will set
 the price to the count of emeralds.  For example if you put a stack of 32 raw steaks in the
-container ans in the next slot put 5 emeralds, the supplier will sell you 32 raw steaks for
+container and in the next slot put 5 emeralds, the supplier will sell you 32 raw steaks for
 5 emeralds.
 
 ### Supplier Spawning
