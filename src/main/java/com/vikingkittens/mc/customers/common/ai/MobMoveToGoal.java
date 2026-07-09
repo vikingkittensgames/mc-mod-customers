@@ -1,16 +1,11 @@
 package com.vikingkittens.mc.customers.common.ai;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.PathfinderMob;
-import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.MoveToBlockGoal;
 import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.phys.Vec3;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.util.EnumSet;
 
 public class MobMoveToGoal extends MoveToBlockGoal {
     protected static final Logger LOGGER = LogManager.getLogger();
@@ -48,6 +43,7 @@ public class MobMoveToGoal extends MoveToBlockGoal {
                 !isDone() &&
                 ticksSinceStart < maxTicks();
         if (started && !canContinue) {
+            mob.getNavigation().stop();
             callDone();
         }
         return canContinue;
@@ -73,11 +69,19 @@ public class MobMoveToGoal extends MoveToBlockGoal {
 
     @Override
     public double acceptedDistance() {
-        return 1.0;
+        return 1.5;
+    }
+
+    @Override
+    public boolean shouldRecalculatePath() {
+        return this.tryTicks % 10 == 0;
     }
 
     @Override
     public void tick() {
+        if (mob.getNavigation().getPath() != null && !mob.getNavigation().getPath().canReach()) {
+            mob.getNavigation().recomputePath();
+        }
         super.tick();
         ticksSinceStart++;
 

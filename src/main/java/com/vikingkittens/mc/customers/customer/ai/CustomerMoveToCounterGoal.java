@@ -18,7 +18,6 @@ import net.minecraft.world.level.block.MagmaBlock;
 import net.minecraft.world.level.block.SweetBerryBushBlock;
 import net.minecraft.world.level.block.WitherRoseBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.Vec3;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -153,6 +152,7 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
                 counterPositions,
                 blockState -> isValidSupportBlock(customer, blockState)
         );
+
         // LOGGER.debug("Valid positions: {}", validPositions);
         if (!validPositions.isEmpty()) {
             // All valid positions
@@ -219,13 +219,17 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
     protected void onDone() {
         // LOGGER.debug("Reached counter or gave up: counter = {}, num-offers = {}", counterPosition, ((Villager)mob).getOffers().size());
         mob.moveTo(targetPos.getBottomCenter(), mob.getYRot(), mob.getXRot());
+        /*
+        mob.getNavigation().moveTo(
+                targetPos.getBottomCenter().x(),
+                targetPos.getBottomCenter().y(),
+                targetPos.getBottomCenter().z(),
+                0,
+                1
+        );
+         */
         if (counterPosition != null) {
-            Vec3 lookTargetVec = new Vec3(
-                    counterPosition.getX() + 0.5,
-                    counterPosition.getY() + 0.5,
-                    counterPosition.getZ() + 0.5
-            );
-            mob.getLookControl().setLookAt(lookTargetVec);
+            mob.getLookControl().setLookAt(targetPos.getCenter());
         }
         customer.setState(CustomerState.BUYING);
     }
