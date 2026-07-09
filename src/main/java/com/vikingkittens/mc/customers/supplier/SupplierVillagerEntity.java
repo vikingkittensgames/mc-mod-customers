@@ -61,8 +61,6 @@ public class SupplierVillagerEntity extends Villager {
                 if (safePos != null) {
                     supplier.moveTo(safePos, 0, 0);
 
-                    LOGGER.debug("Spawning: spawner-pos={}, num-offers={}", spawnerPos, offers.size());
-
                     VillagerData data = supplier.getVillagerData();
                     supplier.setVillagerData(new VillagerData(
                             getVillagerTypeForLocation(level, spawnerPos),

@@ -106,7 +106,6 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     private final ItemStackHandler inventory = new ItemStackHandler(INVENTORY_ROW_SIZE * 6) {
         @Override
         protected void onContentsChanged(int slot) {
-            LOGGER.debug("Inventory changed");
             setChanged();
         }
     };
@@ -128,7 +127,6 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        LOGGER.debug("Saving");
         super.saveAdditional(tag, registries);
 
         try {
@@ -155,7 +153,6 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        LOGGER.debug("Loading");
         super.loadAdditional(tag, registries);
         if (tag.contains("inventory")) {
             try {
@@ -360,7 +357,6 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                     avoidBlockState
             );
             if (customer != null) {
-                LOGGER.debug("Customer UUID={}, pos={}", customer.getUUID(), customer.blockPosition());
                 customerIds.add(customer.getUUID());
                 setChanged();
                 scoreboardAddCustomer();
@@ -391,7 +387,6 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     public void addPlayer(UUID playerId) {
         if (!playerIds.contains(playerId)) {
-            LOGGER.debug("Added player {}", playerId);
             playerIds.add(playerId);
             updatePlayers();
         }
@@ -415,9 +410,6 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             }
         }
         playerIds.removeAll(playerIdsToRemove);
-        if (!playerIdsToRemove.isEmpty()) {
-            LOGGER.debug("Removed players: {}", playerIdsToRemove);
-        }
 
         if (progressBar != null) {
             for (UUID playerId : playerIdsToRemove) {

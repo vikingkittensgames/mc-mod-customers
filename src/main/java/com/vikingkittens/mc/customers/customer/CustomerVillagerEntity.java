@@ -84,8 +84,6 @@ public class CustomerVillagerEntity extends Villager {
                 if (safePos != null) {
                     customer.moveTo(safePos, 0, 0);
 
-                    LOGGER.debug("Spawning: spawner-pos={}, num-offers={}, counter-block={}", spawnerPos, offers.size(), counterBlockState);
-
                     VillagerData data = customer.getVillagerData();
                     customer.setVillagerData(new VillagerData(
                             getVillagerTypeForLocation(level, spawnerPos),
@@ -397,7 +395,6 @@ public class CustomerVillagerEntity extends Villager {
             Player tradingPlayer = getTradingPlayer();
             if (tradingPlayer != null) {
                 tradedWithPlayers.add(tradingPlayer.getUUID());
-                LOGGER.debug("Bought {} from {}", offer.getCostA().getDisplayName().getString(), tradingPlayer.getDisplayName().getString());
                 playHappy();
                 if (level().getBlockEntity(spawnerPos) instanceof CustomerSpawnerBlockEntity spawner) {
                     spawner.scoreboardAddItemServed(tradingPlayer.getUUID());
@@ -458,7 +455,6 @@ public class CustomerVillagerEntity extends Villager {
                     }
                 }
                 if (getOffers().isEmpty()) {
-                    LOGGER.debug("No more offers");
                     playLove();
                 }
             }

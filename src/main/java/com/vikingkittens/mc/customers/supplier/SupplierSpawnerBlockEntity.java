@@ -38,7 +38,6 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
         for (int slot = 0; slot < inventory.getSlots(); slot++) {
             ItemStack stack = inventory.getStackInSlot(slot);
             if (!stack.isEmpty()) {
-                LOGGER.debug("Slot[{}]: item={}, count={}, lastItemStack={}", slot, stack.getItem(), stack.getCount(), lastItemStack);
                 if (stack.is(Items.EMERALD)) {
                     if (lastItemStack != null) {
                         offers.removeLast();
@@ -50,7 +49,6 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
                                 0,
                                 0
                         ));
-                        LOGGER.debug("Updated cost of {} to {}/{}", offers.getLast().getCostA().getItem(), offers.getLast().getCostA().getCount(), stack.getCount());
                     }
                     lastItemStack = null;
                 } else {
@@ -80,7 +78,6 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
     private final ItemStackHandler inventory = new ItemStackHandler(INVENTORY_ROW_SIZE * 6) {
         @Override
         protected void onContentsChanged(int slot) {
-            LOGGER.debug("Inventory changed");
             setChanged();
         }
     };
@@ -93,7 +90,6 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        LOGGER.debug("Saving");
         super.saveAdditional(tag, registries);
 
         try {
@@ -107,7 +103,6 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        LOGGER.debug("Loading");
         super.loadAdditional(tag, registries);
 
         if (tag.contains("inventory")) {
@@ -226,7 +221,6 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
                     offers
             );
             if (supplier != null) {
-                LOGGER.debug("Supplier UUID={}, pos={}", supplier.getUUID(), supplier.blockPosition());
                 setChanged();
             }
         }

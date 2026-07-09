@@ -27,7 +27,6 @@ public class SupplierEvents {
         if (!event.getLevel().isClientSide()) {
             if (event.getEntity() instanceof SupplierVillagerEntity supplier) {
                 Entity.RemovalReason reason = supplier.getRemovalReason();
-                LOGGER.debug("Supplier leaving: reason = {}", reason);
                 if (reason == Entity.RemovalReason.CHANGED_DIMENSION) {
                     supplier.discard();
                 }

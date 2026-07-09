@@ -20,24 +20,6 @@ public class CustomerEvents {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     @SubscribeEvent
-    public static void onServerAboutToStart(ServerAboutToStartEvent event) {
-        MinecraftServer server = event.getServer();
-
-        AtomicInteger numRemovedCustomers = new AtomicInteger();
-        for (ServerLevel serverLevel : server.getAllLevels()) {
-            serverLevel.getAllEntities().forEach(entity -> {
-                if (entity instanceof CustomerVillagerEntity) {
-                    entity.discard();
-                    numRemovedCustomers.getAndIncrement();
-                }
-            });
-        }
-        if (numRemovedCustomers.get() > 0) {
-            LOGGER.info("Removed " + numRemovedCustomers.get() + " customers.");
-        }
-    }
-
-    @SubscribeEvent
     public static void registerAttributes(EntityAttributeCreationEvent event) {
         // Add the default Villager attributes to the customer
         event.put(Customer.CUSTOMER_VILLAGER.get(), Villager.createAttributes().build());
@@ -48,7 +30,6 @@ public class CustomerEvents {
         if (!event.getLevel().isClientSide()) {
             if (event.getEntity() instanceof CustomerVillagerEntity customer) {
                 Entity.RemovalReason reason = customer.getRemovalReason();
-                LOGGER.debug("Customer leaving: reason = {}", reason);
                 if (reason == Entity.RemovalReason.CHANGED_DIMENSION) {
                     customer.discard();
                 }
