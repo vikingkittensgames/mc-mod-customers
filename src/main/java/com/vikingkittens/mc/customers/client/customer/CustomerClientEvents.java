@@ -2,6 +2,12 @@ package com.vikingkittens.mc.customers.client.customer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.client.customer.special.CustomerZombieEntityRenderer;
+import com.vikingkittens.mc.customers.client.customer.special.CustomerWitchEntityRenderer;
+import com.vikingkittens.mc.customers.client.customer.special.CustomerStrayEntityRenderer;
+import com.vikingkittens.mc.customers.client.customer.special.CustomerSkeletonEntityRenderer;
+import com.vikingkittens.mc.customers.client.customer.special.CustomerHuskEntityRenderer;
+import com.vikingkittens.mc.customers.client.customer.special.CustomerDrownedEntityRenderer;
 import com.vikingkittens.mc.customers.customer.Customer;
 import com.vikingkittens.mc.customers.customer.CustomerState;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
@@ -25,6 +31,12 @@ public class CustomerClientEvents {
     @SubscribeEvent
     public static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(Customer.CUSTOMER_VILLAGER.get(), VillagerRenderer::new);
+        event.registerEntityRenderer(Customer.CUSTOMER_ZOMBIE.get(), CustomerZombieEntityRenderer::new);
+        event.registerEntityRenderer(Customer.CUSTOMER_SKELETON.get(), CustomerSkeletonEntityRenderer::new);
+        event.registerEntityRenderer(Customer.CUSTOMER_WITCH.get(), CustomerWitchEntityRenderer::new);
+        event.registerEntityRenderer(Customer.CUSTOMER_HUSK.get(), CustomerHuskEntityRenderer::new);
+        event.registerEntityRenderer(Customer.CUSTOMER_DROWNED.get(), CustomerDrownedEntityRenderer::new);
+        event.registerEntityRenderer(Customer.CUSTOMER_STRAY.get(), CustomerStrayEntityRenderer::new);
     }
 
     @SubscribeEvent
@@ -66,3 +78,5 @@ public class CustomerClientEvents {
         }
     }
 }
+
+

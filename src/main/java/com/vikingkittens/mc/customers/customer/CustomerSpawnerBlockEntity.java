@@ -15,6 +15,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.*;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -347,9 +348,23 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             BlockState counterBlockState = level.getBlockState(getBlockPos().above());
             BlockState avoidBlockState = level.getBlockState(getBlockPos().below());
             boolean specialEnabled = getBlockState().getValue(CustomerSpawnerBlock.STATE_SPECIAL_ENABLED);
-            boolean spawnSpecial = specialEnabled && level.getRandom().nextIntBetweenInclusive(0, 100) < 25;
 
+            List<EntityType<? extends CustomerVillagerEntity>> entityTypes = new ArrayList<>();
+            entityTypes.add(Customer.CUSTOMER_VILLAGER.get());
+            if (specialEnabled) {
+                CustomerSpawnerMode spawnerMode = getBlockState().getValue(CustomerSpawnerBlock.STATE_SPAWN_MODE);
+                if (spawnerMode == CustomerSpawnerMode.NIGHT) {
+                    entityTypes.add(Customer.CUSTOMER_ZOMBIE.get());
+                    entityTypes.add(Customer.CUSTOMER_SKELETON.get());
+                    entityTypes.add(Customer.CUSTOMER_WITCH.get());
+                    entityTypes.add(Customer.CUSTOMER_HUSK.get());
+                    entityTypes.add(Customer.CUSTOMER_DROWNED.get());
+                    entityTypes.add(Customer.CUSTOMER_STRAY.get());
+                }
+            }
+            EntityType<? extends CustomerVillagerEntity> entityType = entityTypes.get(level.getRandom().nextInt(entityTypes.size()));
             CustomerVillagerEntity customer = CustomerVillagerEntity.spawn(
+                    entityType,
                     level,
                     getBlockPos(),
                     offers,
@@ -631,5 +646,6 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         }
     }
 }
+
 
 

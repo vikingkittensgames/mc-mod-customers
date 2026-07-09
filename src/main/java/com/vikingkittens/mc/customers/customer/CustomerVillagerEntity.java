@@ -1,6 +1,7 @@
 package com.vikingkittens.mc.customers.customer;
 
 import com.mojang.logging.LogUtils;
+import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.common.MobUtils;
 import com.vikingkittens.mc.customers.customer.ai.*;
 import net.minecraft.core.BlockPos;
@@ -76,9 +77,20 @@ public class CustomerVillagerEntity extends Villager {
             BlockState counterBlockState,
             BlockState avoidBlockState
     ) {
+        return spawn(Customer.CUSTOMER_VILLAGER.get(), level, spawnerPos, offers, counterBlockState, avoidBlockState);
+    }
+
+    public static CustomerVillagerEntity spawn(
+            EntityType<? extends CustomerVillagerEntity> customerType,
+            Level level,
+            BlockPos spawnerPos,
+            MerchantOffers offers,
+            BlockState counterBlockState,
+            BlockState avoidBlockState
+    ) {
         if (!level.isClientSide) {
             ServerLevel serverLevel = (ServerLevel)level;
-            CustomerVillagerEntity customer = Customer.CUSTOMER_VILLAGER.get().create(level);
+            CustomerVillagerEntity customer = customerType.create(level);
             if (customer != null) {
                 BlockPos safePos = MobUtils.getRandomSpawnPos(level, spawnerPos, 5, 3);
                 if (safePos != null) {
@@ -475,4 +487,5 @@ public class CustomerVillagerEntity extends Villager {
         }
     }
 }
+
 
