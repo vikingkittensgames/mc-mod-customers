@@ -139,6 +139,8 @@ If you want your customers to have names, think about using the [Villager Names 
 
 ### Special Night Shift Customers
 
+(Not done yet)
+
 If the Customer Spawner Block has a lit jack-o-lantern block next to it and the spawner
 mode is on Night Shift, it will also randomly spawn the monster customers which are just
 like the villager customers but on the client side will show up and sound like friendly
@@ -173,3 +175,32 @@ chat and walk back to the spawner that created them.  Once they reach the spawne
 will pick a random block to walk to 32 blocks away that has 2 air blocks above it and
 that they can actually path to.  They will then walk to this block and once they get
 there despawn.
+
+## Supplier Spawner Block
+
+A Supplier Spawner Block can be used to setup a Supplier that will show up at the beginning
+of the day will new supplies to buy for your restaurant or stand when you can't or don't
+want to gather them your self.  Lets say your Customers want steaks, but you don't want
+to harvest a bunch of cows.  That's where a Supplier can help you out.
+
+### Crafting Supplier Spawner Blocks
+
+You can craft a supplier spawner block from a barrel surrounded by 8 emeralds.
+
+### Specifying What the Supplier Will Sell
+
+The supplier spawner block acts like a double-chest container and the items you put in it,
+including the size of the stack, will be what the supplier will sell you.  Similar to the
+sustomer spawner blocks, the exception is emeralds.  Emeralds are used to set the price of
+the items the supplier will sell.  The Supplier will default to 1 emerald per stack of items,
+but if you put a stack of emeralds after each of the items in the container, that will set
+the price to the count of emeralds.  For example if you put a stack of 32 raw steaks in the
+container ans in the next slot put 5 emeralds, the supplier will sell you 32 raw steaks for
+5 emeralds.
+
+### Supplier Spawning
+
+The Supplier will spawn each morning up to 32 blocks away from the spawner and walk to the
+spawner.  Once the Supplier is there you can start build items.
+
+Once it is dark the Supplier will walk away and despawn.
