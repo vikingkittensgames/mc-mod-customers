@@ -114,6 +114,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     private final Set<UUID> customerIds = new HashSet<>();
     private ServerBossEvent progressBar;
     private final Set<UUID> playerIds = new HashSet<>();
+    private long ticksSinceUpdateSpawned = 0;
     private long ticksSinceUpdatePlayers = 0;
     // Scoreboard
     private int totalCustomers = 0;
@@ -136,7 +137,6 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             LOGGER.error("Failed to save inventory", t);
         }
 
-        updateSpawned();
         try {
             ListTag customersTag = new ListTag();
             for (UUID uuid : customerIds) {
@@ -384,7 +384,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         Set<UUID> idsToRemove = new HashSet<>();
         for (UUID customerId : customerIds) {
             try {
-                Entity entity = ((ServerLevel) level).getEntity(customerId);
+                Entity entity = ((ServerLevel)level).getEntity(customerId);
                 if (entity instanceof CustomerVillagerEntity customer) {
                     if (!customer.isAlive() || customer.isRemoved()) {
                         idsToRemove.add(customerId);
@@ -393,7 +393,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                     idsToRemove.add(customerId);
                 }
             } catch (Throwable t) {
-                LOGGER.warn("Removing customer from tracking because of error", t);
+                LOGGER.warn("Removing customer " + customerId + " from tracking because of error", t);
                 idsToRemove.add(customerId);
             }
         }
@@ -584,8 +584,6 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 entity.updateDelayTicks--;
             }
 
-            entity.updateSpawned();
-
             if (entity.ticksSinceUpdatePlayers == 0 || entity.ticksSinceUpdatePlayers > 20 * 5) {
                 entity.ticksSinceUpdatePlayers = 0;
                 entity.updatePlayers();
@@ -593,6 +591,8 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             entity.ticksSinceUpdatePlayers++;
 
             if (entity.spawnCheckTicks > SPAWN_CHECK_MAX_TICKS) {
+                entity.updateSpawned();
+
                 CustomerSpawnerMode spawnerMode = state.getValue(CustomerSpawnerBlock.STATE_SPAWN_MODE);
                 long timeOfDay = (level.getDayTime() + 6000L) % 24000L;
                 boolean shouldSpawn = CustomerSpawnerMode.shouldSpawn(spawnerMode, timeOfDay);
