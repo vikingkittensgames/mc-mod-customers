@@ -26,7 +26,9 @@ import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerData;
 import net.minecraft.world.entity.npc.VillagerType;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
@@ -38,6 +40,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -58,6 +61,13 @@ public class CustomerVillagerEntity extends Villager {
     private static final EntityDataAccessor<ItemStack> DATA_OFFER_DISPLAY_ITEM_0 = SynchedEntityData.defineId(CustomerVillagerEntity.class, EntityDataSerializers.ITEM_STACK);
     private static final EntityDataAccessor<ItemStack> DATA_OFFER_DISPLAY_ITEM_1 = SynchedEntityData.defineId(CustomerVillagerEntity.class, EntityDataSerializers.ITEM_STACK);
     private static final EntityDataAccessor<ItemStack> DATA_OFFER_DISPLAY_ITEM_2 = SynchedEntityData.defineId(CustomerVillagerEntity.class, EntityDataSerializers.ITEM_STACK);
+    private static final Map<Item, Item> TRADE_REMAINDER_FALLBACKS = Map.of(
+            Items.MUSHROOM_STEW, Items.BOWL,
+            Items.RABBIT_STEW, Items.BOWL,
+            Items.BEETROOT_SOUP, Items.BOWL,
+            Items.SUSPICIOUS_STEW, Items.BOWL,
+            Items.POTION, Items.GLASS_BOTTLE
+    );
 
     public static final String NAME = "customer_villager";
 
@@ -375,6 +385,9 @@ public class CustomerVillagerEntity extends Villager {
     @Override
     @NotNull
     public net.minecraft.network.chat.Component getDisplayName() {
+        if (getCustomName() != null) {
+            return getCustomName();
+        }
         return Component.translatable("entity.customers.customer_villager");
     }
 
@@ -406,6 +419,7 @@ public class CustomerVillagerEntity extends Villager {
             ticksSinceTrade = 0;
             Player tradingPlayer = getTradingPlayer();
             if (tradingPlayer != null) {
+                giveTradeRemainderItems(tradingPlayer, offer.getCostA());
                 tradedWithPlayers.add(tradingPlayer.getUUID());
                 playHappy();
                 if (level().getBlockEntity(spawnerPos) instanceof CustomerSpawnerBlockEntity spawner) {
@@ -413,6 +427,27 @@ public class CustomerVillagerEntity extends Villager {
                 }
             }
         }
+    }
+
+    private static void giveTradeRemainderItems(Player player, ItemStack soldStack) {
+        ItemStack remainder = getTradeRemainderItem(soldStack);
+        if (remainder.isEmpty()) {
+            return;
+        }
+
+        remainder.setCount(soldStack.getCount());
+        if (!player.getInventory().add(remainder)) {
+            player.drop(remainder, false);
+        }
+    }
+
+    private static ItemStack getTradeRemainderItem(ItemStack soldStack) {
+        if (soldStack.hasCraftingRemainingItem()) {
+            return soldStack.getCraftingRemainingItem();
+        }
+
+        Item fallbackItem = TRADE_REMAINDER_FALLBACKS.get(soldStack.getItem());
+        return fallbackItem == null ? ItemStack.EMPTY : new ItemStack(fallbackItem);
     }
 
     public void playHappy() {
@@ -487,5 +522,6 @@ public class CustomerVillagerEntity extends Villager {
         }
     }
 }
+
 
 
