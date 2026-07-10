@@ -15,6 +15,7 @@ public class MobMoveToGoal extends MoveToBlockGoal {
     private boolean doneCalled = false;
 
     protected BlockPos targetPos;
+    private long ticksSinceCanReachCheck = 0;
 
     public MobMoveToGoal(PathfinderMob mob, BlockPos targetPos, double speedModifier) {
         super(mob, speedModifier, 0);
@@ -73,15 +74,15 @@ public class MobMoveToGoal extends MoveToBlockGoal {
     }
 
     @Override
-    public boolean shouldRecalculatePath() {
-        return this.tryTicks % 10 == 0;
-    }
-
-    @Override
     public void tick() {
-        if (mob.getNavigation().getPath() != null && !mob.getNavigation().getPath().canReach()) {
-            mob.getNavigation().recomputePath();
+        if (ticksSinceCanReachCheck == 0 || ticksSinceCanReachCheck > 5) {
+            ticksSinceCanReachCheck = 0;
+            if (mob.getNavigation().getPath() != null && !mob.getNavigation().getPath().canReach()) {
+                mob.getNavigation().recomputePath();
+            }
         }
+        ticksSinceCanReachCheck++;
+
         super.tick();
         ticksSinceStart++;
 
