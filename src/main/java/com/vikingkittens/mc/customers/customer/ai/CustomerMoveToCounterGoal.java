@@ -40,7 +40,15 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
     @Override
     public boolean canUse() {
         return super.canUse() &&
-                customer.getState() == CustomerState.INITIALIZING &&
+                (
+                        // Happy path for state flow
+                        customer.getState() == CustomerState.INITIALIZING ||
+                        // Non-happy path where movement starts and the path is lost like with a server restart
+                        (
+                                customer.getState() == CustomerState.MOVING_TO_COUNTER &&
+                                customer.getNavigation().getPath() == null
+                        )
+                ) &&
                 customer.getCounterBlockState() != null &&
                 !customer.getCounterBlockState().isAir();
     }

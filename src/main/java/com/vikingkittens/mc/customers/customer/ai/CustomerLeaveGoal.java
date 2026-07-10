@@ -22,7 +22,15 @@ public class CustomerLeaveGoal extends MobMoveToGoal {
     @Override
     public boolean canUse() {
         return super.canUse() &&
-                customer.getState() == CustomerState.LEAVING;
+                (
+                        // Happy path for state flow
+                        customer.getState() == CustomerState.LEAVING ||
+                        // Non-happy path where movement starts and the path is lost like with a server restart
+                        (
+                            customer.getState() == CustomerState.MOVING_TO_DESPAWN &&
+                            customer.getNavigation().getPath() == null
+                        )
+                );
     }
 
     @Override
