@@ -20,6 +20,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.ClientHooks;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RenderNameTagEvent;
 
@@ -27,6 +28,8 @@ import java.util.List;
 
 @EventBusSubscriber(modid = Customers.MODID, value = Dist.CLIENT)
 public class CustomerClientEvents {
+    private static final float NAME_TAG_TEXT_SCALE = 0.025F;
+    private static final float NAME_TAG_ITEM_GAP = 0.12F;
 
     @SubscribeEvent
     public static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
@@ -45,13 +48,18 @@ public class CustomerClientEvents {
         if (event.getEntity() instanceof CustomerVillagerEntity customer) {
             List<ItemStack> offerDisplayItems = customer.getState() == CustomerState.BUYING ? customer.getOfferDisplayItems() : List.of();
             if (!offerDisplayItems.isEmpty()) {
+                Minecraft minecraft = Minecraft.getInstance();
                 PoseStack poseStack = event.getPoseStack();
                 MultiBufferSource buffer = event.getMultiBufferSource();
+                float nameTagOffset = isNameTagRendered(event, customer, minecraft)
+                        ? minecraft.font.lineHeight * NAME_TAG_TEXT_SCALE + NAME_TAG_ITEM_GAP
+                        : 0.0F;
 
                 poseStack.pushPose();
                 // Translate above the head
-                poseStack.translate(0, customer.getBbHeight() + 0.5F, 0);
-                poseStack.mulPose(Minecraft.getInstance().getEntityRenderDispatcher().cameraOrientation());
+                poseStack.translate(0, customer.getBbHeight() + 0.25F, 0);
+                poseStack.mulPose(minecraft.getEntityRenderDispatcher().cameraOrientation());
+                poseStack.translate(0.0F, nameTagOffset, 0.0F);
 
                 float iconSpacing = 0.5F;
                 float startX = -((offerDisplayItems.size() - 1) * iconSpacing) / 2.0F;
@@ -59,7 +67,7 @@ public class CustomerClientEvents {
                 for (ItemStack costA : offerDisplayItems) {
                     poseStack.pushPose();
                     poseStack.translate(startX + index * iconSpacing, 0, 0);
-                    Minecraft.getInstance().getItemRenderer().renderStatic(
+                    minecraft.getItemRenderer().renderStatic(
                             costA,
                             ItemDisplayContext.GROUND,
                             event.getPackedLight(),
@@ -76,6 +84,23 @@ public class CustomerClientEvents {
                 poseStack.popPose();
             }
         }
+    }
+
+    private static boolean isNameTagRendered(RenderNameTagEvent event, CustomerVillagerEntity customer, Minecraft minecraft) {
+        if (event.getContent() == null || event.getContent().getString().isBlank()) {
+            return false;
+        }
+
+        if (!ClientHooks.isNameplateInRenderDistance(customer, minecraft.getEntityRenderDispatcher().distanceToSqr(customer))) {
+            return false;
+        }
+
+        if (event.canRender().isTrue()) {
+            return true;
+        }
+
+        return event.canRender().isDefault()
+                && (customer.shouldShowName() || customer.hasCustomName() && customer == minecraft.getEntityRenderDispatcher().crosshairPickEntity);
     }
 }
 
