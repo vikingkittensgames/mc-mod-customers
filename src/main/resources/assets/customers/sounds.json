@@ -1,0 +1,20 @@
+{
+  "bling": {
+    "sounds": [
+      {
+        "name": "customers:bling",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "bonk": {
+    "sounds": [
+      {
+        "name": "customers:bonk",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  }
+}

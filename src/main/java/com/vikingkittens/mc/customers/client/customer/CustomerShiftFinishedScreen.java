@@ -9,6 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.PlayerFaceRenderer;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.PlayerInfo;
@@ -16,8 +17,11 @@ import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.client.resources.PlayerSkin;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.Util;
 import net.minecraft.util.Mth;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 
@@ -27,8 +31,16 @@ public class CustomerShiftFinishedScreen extends Screen {
     private static final int TEXT_COLOR = 0xFF3F3028;
     private static final int STAR_SIZE = 32;
     private static final int STAR_GAP = 8;
+    private static final long STAR_ANIMATION_MILLIS = 500L;
     private static final int PLAYER_HEAD_SIZE = 16;
     private static final int PLAYER_ROW_WIDTH = 220;
+
+    private static final SoundEvent BLING_SOUND = SoundEvent.createVariableRangeEvent(
+            ResourceLocation.fromNamespaceAndPath(Customers.MODID, "bling")
+    );
+    private static final SoundEvent BONK_SOUND = SoundEvent.createVariableRangeEvent(
+            ResourceLocation.fromNamespaceAndPath(Customers.MODID, "bonk")
+    );
 
     private static final ResourceLocation RECEIPT_TEXTURE = texture("reciept.png");
     private static final ResourceLocation STAR_TEXTURE = texture("star.png");
@@ -43,6 +55,8 @@ public class CustomerShiftFinishedScreen extends Screen {
     private final CustomerShiftFinishedPayload payload;
     private int leftPos;
     private int topPos;
+    private long animationStartMillis;
+    private final boolean[] starSoundsPlayed = new boolean[5];
 
     public CustomerShiftFinishedScreen(CustomerShiftFinishedPayload payload) {
         super(Component.translatable("screen.customers.shift_finished"));
@@ -57,6 +71,8 @@ public class CustomerShiftFinishedScreen extends Screen {
     protected void init() {
         leftPos = (width - IMAGE_WIDTH) / 2;
         topPos = (height - IMAGE_HEIGHT) / 2;
+        animationStartMillis = Util.getMillis();
+        Arrays.fill(starSoundsPlayed, false);
         addRenderableWidget(Button.builder(
                         Component.translatable("screen.customers.shift_finished.close"),
                         button -> onClose()
@@ -103,11 +119,24 @@ public class CustomerShiftFinishedScreen extends Screen {
     private void renderStars(GuiGraphics graphics) {
         int totalWidth = STAR_SIZE * 5 + STAR_GAP * 4;
         int x = leftPos + (IMAGE_WIDTH - totalWidth) / 2;
+        int y = topPos + 32;
+        long elapsedMillis = Util.getMillis() - animationStartMillis;
+        playStarSounds(elapsedMillis);
+
         for (int index = 0; index < 5; index++) {
+            int starX = x + index * (STAR_SIZE + STAR_GAP);
+            float centerX = starX + STAR_SIZE / 2.0F;
+            float centerY = y + STAR_SIZE / 2.0F;
+            float scale = getStarScale(elapsedMillis, index);
+
+            graphics.pose().pushPose();
+            graphics.pose().translate(centerX, centerY, 0.0F);
+            graphics.pose().scale(scale, scale, 1.0F);
+            graphics.pose().translate(-centerX, -centerY, 0.0F);
             graphics.blit(
                     getStarTexture(getStarState(payload.percentComplete(), index)),
-                    x + index * (STAR_SIZE + STAR_GAP),
-                    topPos + 32,
+                    starX,
+                    y,
                     0.0F,
                     0.0F,
                     STAR_SIZE,
@@ -115,7 +144,59 @@ public class CustomerShiftFinishedScreen extends Screen {
                     STAR_SIZE,
                     STAR_SIZE
             );
+            graphics.pose().popPose();
         }
+    }
+
+    static float getStarScale(long elapsedMillis, int starIndex) {
+        long starElapsedMillis = elapsedMillis - starIndex * STAR_ANIMATION_MILLIS;
+        float progress = Mth.clamp(
+                (float) starElapsedMillis / STAR_ANIMATION_MILLIS,
+                0.0F,
+                1.0F
+        );
+        return easeOutElastic(progress);
+    }
+
+    static float easeOutElastic(float progress) {
+        if (progress == 0.0F || progress == 1.0F) {
+            return progress;
+        }
+
+        double period = 2.0D * Math.PI / 3.0D;
+        return (float) (
+                Math.pow(2.0D, -10.0D * progress)
+                        * Math.sin((progress * 10.0D - 0.75D) * period)
+                        + 1.0D
+        );
+    }
+
+    private void playStarSounds(long elapsedMillis) {
+        for (int index = 0; index < 5; index++) {
+            StarState state = getStarState(payload.percentComplete(), index);
+            if (shouldPlayStarSound(elapsedMillis, index, starSoundsPlayed[index])) {
+                Minecraft.getInstance().getSoundManager().play(
+                        SimpleSoundInstance.forUI(getStarSound(state), 1.0F)
+                );
+                starSoundsPlayed[index] = true;
+            }
+        }
+    }
+
+    static boolean shouldPlayStarSound(
+            long elapsedMillis,
+            int starIndex,
+            boolean alreadyPlayed
+    ) {
+        return !alreadyPlayed
+                && elapsedMillis >= starIndex * STAR_ANIMATION_MILLIS;
+    }
+
+    static SoundEvent getStarSound(StarState state) {
+        return switch (state) {
+            case FULL, HALF -> BLING_SOUND;
+            case EMPTY -> BONK_SOUND;
+        };
     }
 
     private void renderCustomerTotals(GuiGraphics graphics) {
