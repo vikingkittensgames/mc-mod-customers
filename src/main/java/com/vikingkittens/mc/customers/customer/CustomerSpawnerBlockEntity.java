@@ -31,6 +31,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
@@ -494,17 +495,44 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         return ((float)totalItemsServed / (float)totalItemsWanted);
     }
 
+    private void sendShiftFinishedPayload(CustomerSpawnerMode spawnerMode) {
+        CustomerShiftFinishedPayload payload = new CustomerShiftFinishedPayload(
+                spawnerMode,
+                scoreboardGetPercentage(),
+                totalCustomers,
+                numCustomersServed,
+                numCustomersGaveUp,
+                numItemsServedByPlayer
+        );
+        for (UUID playerId : playerIds) {
+            try {
+                Player player = level.getPlayerByUUID(playerId);
+                if (player instanceof ServerPlayer serverPlayer) {
+                    PacketDistributor.sendToPlayer(serverPlayer, payload);
+                }
+            } catch (Throwable throwable) {
+                LOGGER.warn("Unable to send completed customer shift results to player {}", playerId, throwable);
+            }
+        }
+    }
+
     private void scoreboardShow() {
     }
 
     private void scoreboardShowFinal() {
         CustomerSpawnerMode spawnerMode = getBlockState().getValue(CustomerSpawnerBlock.STATE_SPAWN_MODE);
+        if (!CustomerSpawnerMode.shouldShowScore(spawnerMode)) {
+            return;
+        }
+
         int color = 0x36991C;
         if (scoreboardGetPercentage() <= 0.25) {
             color = 0xFF0000;
         } else if (scoreboardGetPercentage() <= 0.50) {
             color = 0xFE8B00;
         }
+
+        sendShiftFinishedPayload(spawnerMode);
 
         Component summary = Component.translatable(
                 "messages.customers.scoreboard.summary",

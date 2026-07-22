@@ -77,6 +77,13 @@ public enum CustomerSpawnerMode implements StringRepresentable {
         };
     }
 
+    public static boolean shouldShowScore(CustomerSpawnerMode spawnerMode) {
+        return switch (spawnerMode) {
+            case CONTINUOUS, MANUAL -> false;
+            default -> true;
+        };
+    }
+
     public static float generateProgress(CustomerSpawnerMode spawnerMode, long timeOfDay) {
         int minuteOfDay = timeToMinuteOfDay(timeOfDay);
 

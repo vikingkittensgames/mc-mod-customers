@@ -27,6 +27,9 @@
   "messages.customers.scoreboard.detail.customers_served": "%s customers served",
   "messages.customers.scoreboard.detail.customers_gave_up": "%s customers gave up",
   "messages.customers.scoreboard.detail.player_served_items": "%s served %s out of %s items",
+  "screen.customers.shift_finished": "Shift Results",
+  "screen.customers.shift_finished.items_served": "%s items",
+  "screen.customers.shift_finished.close": "Close",
 
   "messages.customers.supplies": "I have your supplies for the day.",
 

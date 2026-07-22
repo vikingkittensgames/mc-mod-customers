@@ -52,7 +52,8 @@ block texture.
 * Manual - This mode only spawns manually with a redstone pulse.
 
 For the time restricted shift modes, the players within 64 blocks of the spawner will get
-shift messages, progress bars, and scores.
+shift messages, progress bars, and a results screen showing the final score, customer totals,
+and each participating player's served item count.
 
 ### Redstone and Customer Spawner
 

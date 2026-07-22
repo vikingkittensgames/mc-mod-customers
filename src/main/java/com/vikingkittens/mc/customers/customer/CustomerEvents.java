@@ -11,6 +11,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
 import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import org.slf4j.Logger;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -18,6 +19,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 @EventBusSubscriber(modid = Customers.MODID)
 public class CustomerEvents {
     private static final Logger LOGGER = LogUtils.getLogger();
+
+    @SubscribeEvent
+    public static void registerPayloads(RegisterPayloadHandlersEvent event) {
+        event.registrar("1").playToClient(
+                CustomerShiftFinishedPayload.TYPE,
+                CustomerShiftFinishedPayload.STREAM_CODEC,
+                CustomerShiftFinishedPayload::handle
+        );
+    }
 
     @SubscribeEvent
     public static void registerAttributes(EntityAttributeCreationEvent event) {

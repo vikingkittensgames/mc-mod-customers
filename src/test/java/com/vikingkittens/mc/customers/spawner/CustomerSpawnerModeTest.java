@@ -22,6 +22,12 @@ class CustomerSpawnerModeTest {
     }
 
     @ParameterizedTest
+    @MethodSource("scoreVisibilityCases")
+    void shouldShowScoreOnlyForTimedModes(CustomerSpawnerMode mode, boolean expected) {
+        assertEquals(expected, CustomerSpawnerMode.shouldShowScore(mode));
+    }
+
+    @ParameterizedTest
     @MethodSource("spawnCases")
     void shouldSpawnMatchesConfiguredTimeWindows(CustomerSpawnerMode mode, int minuteOfDay, boolean expected) {
         assertEquals(expected, CustomerSpawnerMode.shouldSpawn(mode, ticksSinceMidnightAtMinute(minuteOfDay)));
@@ -59,6 +65,18 @@ class CustomerSpawnerModeTest {
     }
 
     private static Stream<Arguments> progressVisibilityCases() {
+        return Stream.of(
+                Arguments.of(CustomerSpawnerMode.CONTINUOUS, false),
+                Arguments.of(CustomerSpawnerMode.MANUAL, false),
+                Arguments.of(CustomerSpawnerMode.DAY, true),
+                Arguments.of(CustomerSpawnerMode.NIGHT, true),
+                Arguments.of(CustomerSpawnerMode.BREAKFAST, true),
+                Arguments.of(CustomerSpawnerMode.LUNCH, true),
+                Arguments.of(CustomerSpawnerMode.DINNER, true)
+        );
+    }
+
+    private static Stream<Arguments> scoreVisibilityCases() {
         return Stream.of(
                 Arguments.of(CustomerSpawnerMode.CONTINUOUS, false),
                 Arguments.of(CustomerSpawnerMode.MANUAL, false),
@@ -147,4 +165,3 @@ class CustomerSpawnerModeTest {
         return (minuteOfDay * 24000L + 1439L) / 1440L;
     }
 }
-

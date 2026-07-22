@@ -9,6 +9,7 @@ import com.vikingkittens.mc.customers.client.customer.special.CustomerSkeletonEn
 import com.vikingkittens.mc.customers.client.customer.special.CustomerHuskEntityRenderer;
 import com.vikingkittens.mc.customers.client.customer.special.CustomerDrownedEntityRenderer;
 import com.vikingkittens.mc.customers.customer.Customer;
+import com.vikingkittens.mc.customers.customer.CustomerShiftFinishedPayload;
 import com.vikingkittens.mc.customers.customer.CustomerState;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 import net.minecraft.client.Minecraft;
@@ -30,6 +31,10 @@ import java.util.List;
 public class CustomerClientEvents {
     private static final float NAME_TAG_TEXT_SCALE = 0.025F;
     private static final float NAME_TAG_ITEM_GAP = 0.12F;
+
+    public static void showCustomerShiftFinishedScreen(CustomerShiftFinishedPayload payload) {
+        Minecraft.getInstance().setScreen(new CustomerShiftFinishedScreen(payload));
+    }
 
     @SubscribeEvent
     public static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
