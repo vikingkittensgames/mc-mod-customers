@@ -25,8 +25,13 @@ public class CustomerGiveUpGoal extends MobTimedGoal {
     @Override
     public boolean canUse() {
         return super.canUse()
-                && customer.getState() == CustomerState.BUYING
-                && customer.getTicksSinceTrade() > (20L * Config.CUSTOMER_GIVE_UP_SECONDS.get());
+                && (
+                    (
+                        customer.getState() == CustomerState.BUYING
+                        && customer.getTicksSinceTrade() > (20L * Config.CUSTOMER_GIVE_UP_SECONDS.get())
+                    )
+                    || customer.getState() == CustomerState.FORCED_GIVING_UP
+                );
     }
 
     @Override
@@ -37,6 +42,9 @@ public class CustomerGiveUpGoal extends MobTimedGoal {
     @Override
     public void start() {
         // LOGGER.debug("Giving up");
+        if (customer.getState() == CustomerState.FORCED_GIVING_UP) {
+            messageSent = true;
+        }
         customer.setState(CustomerState.GIVING_UP);
         ticksSinceFX = 0;
         if (customer.level().getBlockEntity(customer.getSpawnerPos()) instanceof CustomerSpawnerBlockEntity spawner) {

@@ -109,4 +109,11 @@ public enum CustomerSpawnerMode implements StringRepresentable {
             default -> true;
         };
     }
+
+    public static boolean shouldRemoveCustomers(CustomerSpawnerMode spawnerMode) {
+        return switch (spawnerMode) {
+            case CONTINUOUS, MANUAL -> false;
+            default -> true;
+        };
+    }
 }

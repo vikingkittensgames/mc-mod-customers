@@ -5,6 +5,7 @@ public enum CustomerState {
     MOVING_TO_COUNTER,
     BUYING,
     THANKING,
+    FORCED_GIVING_UP,
     GIVING_UP,
     DONE,
     MOVING_TO_SPAWN,

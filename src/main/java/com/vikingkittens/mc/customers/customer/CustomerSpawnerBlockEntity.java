@@ -671,6 +671,18 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                         entity.progressBar.setVisible(false);
                     }
                 } else {
+                    // All customers still buying or arriving should give up
+                    if (CustomerSpawnerMode.shouldRemoveCustomers(spawnerMode)) {
+                        for (UUID customerId : entity.customerIds) {
+                            Entity customerEntity = ((ServerLevel)level).getEntity(customerId);
+                            if (
+                                    customerEntity instanceof CustomerVillagerEntity customer &&
+                                    customer.getState().compareTo(CustomerState.BUYING) <= 0
+                            ) {
+                                customer.setState(CustomerState.FORCED_GIVING_UP);
+                            }
+                        }
+                    }
                     if (entity.progressBar != null) {
                         entity.progressBar.setVisible(false);
                     }
