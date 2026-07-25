@@ -6,6 +6,7 @@ import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.common.SearchUtils;
 import com.vikingkittens.mc.customers.config.Config;
 import com.vikingkittens.mc.customers.customer.ai.CustomerMoveToCounterGoal;
+import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
@@ -54,11 +55,7 @@ public class CustomerCommands {
         Map<BlockPos, CustomerCounterMarker> markers = new LinkedHashMap<>();
 
         source.sendSuccess(
-                () -> Component.literal(
-                        includeCounters
-                                ? "Customer Spawners & Counters:"
-                                : "Customer Spawners:"
-                ),
+                () -> formatHeading(includeCounters),
                 false
         );
 
@@ -124,6 +121,14 @@ public class CustomerCommands {
         );
     }
 
+    static Component formatHeading(boolean includeCounters) {
+        return Component.literal(
+                includeCounters
+                        ? "Customer Spawners & Counters:"
+                        : "Customer Spawners:"
+        ).withStyle(ChatFormatting.GREEN);
+    }
+
     static Component formatSpawner(
             BlockPos pos,
             boolean enabled,
@@ -132,7 +137,7 @@ public class CustomerCommands {
         return Component.literal(
                 "  (" + pos.toShortString() + "): " +
                         (enabled ? "Enabled" : "Disabled") + ", "
-        ).append(mode.getTitle());
+        ).append(mode.getTitle()).withStyle(ChatFormatting.YELLOW);
     }
 
     static Component formatCounter(BlockPos pos, Component blockName) {

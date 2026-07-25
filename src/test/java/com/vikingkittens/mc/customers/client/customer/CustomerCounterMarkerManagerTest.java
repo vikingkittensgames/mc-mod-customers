@@ -54,4 +54,46 @@ class CustomerCounterMarkerManagerTest {
                 CustomerCounterMarkerManager.get(139_999L)
         );
     }
+
+    @Test
+    void rotationAdvancesSmoothlyBetweenGameTicks() {
+        assertEquals(
+                80.0F,
+                CustomerCounterMarkerManager.getRotationDegrees(1_000L),
+                0.0001F
+        );
+        assertEquals(
+                80.8F,
+                CustomerCounterMarkerManager.getRotationDegrees(1_010L),
+                0.0001F
+        );
+    }
+
+    @Test
+    void rotationWrapsAfterOneCompleteTurn() {
+        assertEquals(
+                359.92F,
+                CustomerCounterMarkerManager.getRotationDegrees(4_499L),
+                0.0001F
+        );
+        assertEquals(
+                0.0F,
+                CustomerCounterMarkerManager.getRotationDegrees(4_500L),
+                0.0001F
+        );
+    }
+
+    @Test
+    void bobbingUsesElapsedClientTime() {
+        assertEquals(
+                0.0F,
+                CustomerCounterMarkerManager.getBobOffset(0L),
+                0.0001F
+        );
+        assertEquals(
+                0.1F,
+                CustomerCounterMarkerManager.getBobOffset(785L),
+                0.001F
+        );
+    }
 }

@@ -23,7 +23,6 @@ import java.util.List;
 @EventBusSubscriber(modid = Customers.MODID, value = Dist.CLIENT)
 public class CustomerCounterMarkerRenderer {
     private static final float SCALE = 0.5F;
-    private static final float ROTATION_DEGREES_PER_TICK = 4.0F;
 
     @SubscribeEvent
     public static void render(RenderLevelStageEvent event) {
@@ -36,14 +35,13 @@ public class CustomerCounterMarkerRenderer {
             return;
         }
 
-        List<CustomerCounterMarker> markers = CustomerCounterMarkerManager.get(Util.getMillis());
+        long currentTime = Util.getMillis();
+        List<CustomerCounterMarker> markers = CustomerCounterMarkerManager.get(currentTime);
         if (markers.isEmpty()) {
             return;
         }
 
-        float partialTick = event.getPartialTick().getGameTimeDeltaPartialTick(true);
-        float animationTick = minecraft.level.getGameTime() + partialTick;
-        float bob = (float)Math.sin(animationTick * 0.1F) * 0.1F;
+        float bob = CustomerCounterMarkerManager.getBobOffset(currentTime);
         Vec3 cameraPosition = event.getCamera().getPosition();
         PoseStack poseStack = event.getPoseStack();
         MultiBufferSource.BufferSource bufferSource =
@@ -59,7 +57,7 @@ public class CustomerCounterMarkerRenderer {
                     marker.position().getZ() + 0.5D - cameraPosition.z()
             );
             poseStack.mulPose(Axis.YP.rotationDegrees(
-                    animationTick * ROTATION_DEGREES_PER_TICK
+                    CustomerCounterMarkerManager.getRotationDegrees(currentTime)
             ));
             poseStack.scale(SCALE, SCALE, SCALE);
             poseStack.translate(-0.5D, -0.5D, -0.5D);

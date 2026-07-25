@@ -5,6 +5,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.common.SearchUtils;
 import com.vikingkittens.mc.customers.config.Config;
+import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
@@ -43,7 +44,7 @@ public class SupplierCommands {
                 (pos, state) -> state.is(SupplierSpawner.SUPPLIER_SPAWNER_BLOCK.get())
         );
 
-        source.sendSuccess(() -> Component.literal("Supplier Spawners:"), false);
+        source.sendSuccess(SupplierCommands::formatHeading, false);
         for (BlockPos spawnerPos : spawnerPositions) {
             BlockState state = level.getBlockState(spawnerPos);
             source.sendSuccess(
@@ -57,9 +58,14 @@ public class SupplierCommands {
         return spawnerPositions.size();
     }
 
+    static Component formatHeading() {
+        return Component.literal("Supplier Spawners:")
+                .withStyle(ChatFormatting.GREEN);
+    }
+
     static Component formatSpawner(BlockPos pos, boolean enabled) {
         return Component.literal(
                 "  (" + pos.toShortString() + "): " + (enabled ? "Enabled" : "Disabled")
-        );
+        ).withStyle(ChatFormatting.YELLOW);
     }
 }
