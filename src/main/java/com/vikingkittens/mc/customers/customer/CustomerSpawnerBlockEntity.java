@@ -401,6 +401,17 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         customerIds.removeAll(idsToRemove);
     }
 
+    private long countActiveCustomers() {
+        ServerLevel serverLevel = (ServerLevel) level;
+        return customerIds.stream()
+                .map(serverLevel::getEntity)
+                .filter(CustomerVillagerEntity.class::isInstance)
+                .map(CustomerVillagerEntity.class::cast)
+                .filter(customer -> customer.getState() != null)
+                .filter(customer -> customer.getState().countsTowardSpawnerLimit())
+                .count();
+    }
+
     public void addPlayer(UUID playerId) {
         if (!playerIds.contains(playerId)) {
             playerIds.add(playerId);
@@ -625,7 +636,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 long timeOfDay = (level.getDayTime() + 6000L) % 24000L;
                 boolean shouldSpawn = CustomerSpawnerMode.shouldSpawn(spawnerMode, timeOfDay);
                 if (!state.getValue(CustomerSpawnerBlock.STATE_DISABLED) && shouldSpawn) {
-                    if (entity.customerIds.size() < Config.MAX_CUSTOMERS.get()) {
+                    if (entity.countActiveCustomers() < Config.MAX_CUSTOMERS.get()) {
                         entity.spawnCustomer();
                     }
 

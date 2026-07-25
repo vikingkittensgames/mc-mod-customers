@@ -9,5 +9,9 @@ public enum CustomerState {
     DONE,
     MOVING_TO_SPAWN,
     LEAVING,
-    MOVING_TO_DESPAWN
+    MOVING_TO_DESPAWN;
+
+    public boolean countsTowardSpawnerLimit() {
+        return compareTo(DONE) < 0;
+    }
 }

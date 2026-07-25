@@ -28,7 +28,8 @@ blocks, slabs, carpet, or stairs.
 
 Similar to a regular mob spawner block, each customer block will try to keep up to 4 customers
 spawned at any one time by default. The maximum can be changed with the `maxCustomers`
-configuration option.
+configuration option. Customers that are done buying and are leaving do not count toward this
+maximum.
 
 ### Crafting Customer Spawner Blocks
 
