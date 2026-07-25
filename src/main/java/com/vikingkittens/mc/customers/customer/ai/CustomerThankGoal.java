@@ -55,7 +55,7 @@ public class CustomerThankGoal extends MobTimedGoal {
             messageSent = true;
             customer.sentPlayersMessage(Component.translatable("messages.customers.thank_you").withColor(0x36991C));
         }
-        if (ticksSinceJump == 0 || ticksSinceJump > 20) {
+        if (!customer.isPassenger() && (ticksSinceJump == 0 || ticksSinceJump > 20)) {
             customer.jumpFromGround();
             ticksSinceJump = 0;
         }

@@ -175,6 +175,7 @@ sort it ascending by the number of customers within 2 blocks of it.  It will the
 the first one which should be a random block with the fewest number of other customers
 near it.  This should give a nice pattern of filling our a counter or restaurant full
 of tables.
+Customers prioritize available stairs and seat-like blocks near counters and will sit while waiting to be served.
 
 ### Serving and Selling to the Customer
 

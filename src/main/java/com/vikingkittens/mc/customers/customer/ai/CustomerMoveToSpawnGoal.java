@@ -33,6 +33,7 @@ public class CustomerMoveToSpawnGoal extends MobMoveToGoal {
 
     @Override
     public void start() {
+        customer.stopRiding();
         targetPos = customer.getSpawnPos();
         // LOGGER.debug("Target positions: {}", targetPos);
         customer.setState(CustomerState.MOVING_TO_SPAWN);

@@ -16,7 +16,7 @@ import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.entity.VillagerRenderer;
+import net.minecraft.client.renderer.entity.NoopRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -44,7 +44,7 @@ public class CustomerClientEvents {
 
     @SubscribeEvent
     public static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerEntityRenderer(Customer.CUSTOMER_VILLAGER.get(), VillagerRenderer::new);
+        event.registerEntityRenderer(Customer.CUSTOMER_SEAT.get(), NoopRenderer::new);
         event.registerEntityRenderer(Customer.CUSTOMER_ZOMBIE.get(), CustomerZombieEntityRenderer::new);
         event.registerEntityRenderer(Customer.CUSTOMER_SKELETON.get(), CustomerSkeletonEntityRenderer::new);
         event.registerEntityRenderer(Customer.CUSTOMER_WITCH.get(), CustomerWitchEntityRenderer::new);
