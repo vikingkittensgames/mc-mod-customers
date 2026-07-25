@@ -19,6 +19,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
@@ -148,6 +149,16 @@ public class CustomerVillagerEntity extends Villager {
 
     public CustomerVillagerEntity(EntityType<? extends Villager> entityType, Level level) {
         super(entityType, level);
+    }
+
+    @Override
+    protected void doPush(Entity entity) {
+        if (entity instanceof CustomerVillagerEntity otherCustomer) {
+            CustomerState state = getState();
+            if (state != null && state.canPushCustomer(otherCustomer.getState())) {
+                super.doPush(entity);
+            }
+        }
     }
 
     @Override

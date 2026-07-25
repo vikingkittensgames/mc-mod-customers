@@ -14,4 +14,10 @@ public enum CustomerState {
     public boolean countsTowardSpawnerLimit() {
         return compareTo(DONE) < 0;
     }
+
+    public boolean canPushCustomer(CustomerState otherState) {
+        return compareTo(DONE) < 0
+                && otherState != null
+                && otherState.compareTo(DONE) < 0;
+    }
 }
