@@ -1,6 +1,9 @@
 package com.vikingkittens.mc.customers.common.ai;
 
+import net.minecraft.world.phys.Vec3;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -15,5 +18,27 @@ class MobMoveToGoalTest {
     void accountsForMovementSpeed() {
         assertEquals(1_024, MobMoveToGoal.calculateMaxTicks(64, 0.25));
         assertEquals(256, MobMoveToGoal.calculateMaxTicks(64, 0.5));
+    }
+
+    @Test
+    void calculatesPathLengthFromTheMobThroughEachRemainingNode() {
+        assertEquals(
+                17.0,
+                MobMoveToGoal.calculatePathLength(
+                        new Vec3(0, 0, 0),
+                        List.of(
+                                new Vec3(3, 0, 4),
+                                new Vec3(3, 12, 4)
+                        )
+                )
+        );
+    }
+
+    @Test
+    void regeneratedPathDeadlineIncludesAlreadyElapsedTicks() {
+        assertEquals(
+                660,
+                MobMoveToGoal.calculateDeadlineTicks(500, 10, 0.25)
+        );
     }
 }

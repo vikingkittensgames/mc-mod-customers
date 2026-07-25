@@ -5,8 +5,13 @@ import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.MoveToBlockGoal;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.pathfinder.Path;
+import net.minecraft.world.phys.Vec3;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MobMoveToGoal extends MoveToBlockGoal {
     protected static final Logger LOGGER = LogManager.getLogger();
@@ -15,6 +20,7 @@ public class MobMoveToGoal extends MoveToBlockGoal {
     private long ticksSinceStart = 0;
     private long maxTicks;
     private boolean doneCalled = false;
+    private Path lastPath;
 
     protected BlockPos targetPos;
     private long ticksSinceCanReachCheck = 0;
@@ -34,6 +40,24 @@ public class MobMoveToGoal extends MoveToBlockGoal {
                 ? movementSpeed * movementSpeed
                 : movementSpeed;
         return (long)Math.ceil(initialDistance / estimatedBlocksPerTick);
+    }
+
+    static double calculatePathLength(Vec3 start, List<Vec3> nodes) {
+        double distance = 0;
+        Vec3 previous = start;
+        for (Vec3 node : nodes) {
+            distance += previous.distanceTo(node);
+            previous = node;
+        }
+        return distance;
+    }
+
+    static long calculateDeadlineTicks(
+            long elapsedTicks,
+            double remainingDistance,
+            double movementSpeed
+    ) {
+        return elapsedTicks + calculateMaxTicks(remainingDistance, movementSpeed);
     }
 
     protected boolean isDone() {
@@ -73,11 +97,13 @@ public class MobMoveToGoal extends MoveToBlockGoal {
     public void start() {
         started = true;
         ticksSinceStart = 0;
+        lastPath = null;
         blockPos = targetPos;
         double initialDistance = Math.sqrt(mob.blockPosition().distSqr(targetPos));
         double movementSpeed = speedModifier * mob.getAttributeValue(Attributes.MOVEMENT_SPEED);
         maxTicks = calculateMaxTicks(initialDistance, movementSpeed);
         super.start();
+        updateMaxTicksFromPath();
     }
 
     @Override
@@ -97,9 +123,37 @@ public class MobMoveToGoal extends MoveToBlockGoal {
 
         super.tick();
         ticksSinceStart++;
+        updateMaxTicksFromPath();
 
         if (isDone()) {
             callDone();
+        }
+    }
+
+    private void updateMaxTicksFromPath() {
+        Path path = mob.getNavigation().getPath();
+        if (path == null || !path.canReach() || path == lastPath) {
+            return;
+        }
+        if (lastPath != null && path.sameAs(lastPath)) {
+            lastPath = path;
+            return;
+        }
+
+        lastPath = path;
+        List<Vec3> remainingNodes = new ArrayList<>();
+        for (int index = path.getNextNodeIndex(); index < path.getNodeCount(); index++) {
+            remainingNodes.add(path.getEntityPosAtNode(mob, index));
+        }
+        double remainingDistance = calculatePathLength(mob.position(), remainingNodes);
+        if (remainingDistance > 0) {
+            double movementSpeed =
+                    speedModifier * mob.getAttributeValue(Attributes.MOVEMENT_SPEED);
+            maxTicks = calculateDeadlineTicks(
+                    ticksSinceStart,
+                    remainingDistance,
+                    movementSpeed
+            );
         }
     }
 
