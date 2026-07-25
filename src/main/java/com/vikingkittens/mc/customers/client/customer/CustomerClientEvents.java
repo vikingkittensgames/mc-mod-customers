@@ -43,8 +43,22 @@ public class CustomerClientEvents {
     }
 
     @SubscribeEvent
+    public static void registerLayerDefinitions(
+            EntityRenderersEvent.RegisterLayerDefinitions event
+    ) {
+        event.registerLayerDefinition(
+                CustomerVillagerEntityRenderer.MODEL_LAYER,
+                CustomerVillagerEntityRenderer.Model::createBodyLayer
+        );
+    }
+
+    @SubscribeEvent
     public static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(Customer.CUSTOMER_SEAT.get(), NoopRenderer::new);
+        event.registerEntityRenderer(
+                Customer.CUSTOMER_VILLAGER.get(),
+                CustomerVillagerEntityRenderer::new
+        );
         event.registerEntityRenderer(Customer.CUSTOMER_ZOMBIE.get(), CustomerZombieEntityRenderer::new);
         event.registerEntityRenderer(Customer.CUSTOMER_SKELETON.get(), CustomerSkeletonEntityRenderer::new);
         event.registerEntityRenderer(Customer.CUSTOMER_WITCH.get(), CustomerWitchEntityRenderer::new);

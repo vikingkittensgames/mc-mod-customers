@@ -36,6 +36,7 @@ import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.registries.datamaps.builtin.BiomeVillagerType;
 import net.neoforged.neoforge.registries.datamaps.builtin.NeoForgeDataMaps;
 import org.jetbrains.annotations.NotNull;
@@ -49,6 +50,13 @@ import java.util.Set;
 import java.util.UUID;
 
 public class CustomerVillagerEntity extends Villager {
+    @Override
+    public Vec3 getVehicleAttachmentPoint(Entity vehicle) {
+        if (vehicle instanceof CustomerSeatEntity) {
+            return CustomerSeatLogic.getCustomerVehicleAttachmentPoint();
+        }
+        return super.getVehicleAttachmentPoint(vehicle);
+    }
     private static final Logger LOGGER = LogUtils.getLogger();
 
     private static final String TAG_STATE = "CustomerState";
@@ -153,7 +161,7 @@ public class CustomerVillagerEntity extends Villager {
 
     @Override
     protected void doPush(Entity entity) {
-        if (entity instanceof CustomerVillagerEntity otherCustomer) {
+        if (entity instanceof CustomerVillagerEntity otherCustomer && !isPassenger() && !entity.isPassenger()) {
             CustomerState state = getState();
             if (state != null && state.canPushCustomer(otherCustomer.getState())) {
                 super.doPush(entity);

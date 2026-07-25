@@ -1,14 +1,23 @@
 package com.vikingkittens.mc.customers.customer;
 
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.ExperienceOrb;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Predicate;
 
 final class CustomerSeatLogic {
+    private static final Vec3 CUSTOMER_VEHICLE_ATTACHMENT =
+            new Vec3(0.0D, 0.7D, 0.0D);
     private CustomerSeatLogic() {
     }
 
@@ -45,5 +54,56 @@ final class CustomerSeatLogic {
 
     static boolean shouldDiscardEmptySeat(int emptyTicks) {
         return emptyTicks >= 20 * 60 * 2;
+    }
+
+    static Vec3 getCustomerVehicleAttachmentPoint() {
+        return CUSTOMER_VEHICLE_ATTACHMENT;
+    }
+
+    static boolean isIgnoredSeatPositionEntityType(
+            Class<? extends Entity> entityType
+    ) {
+        return ExperienceOrb.class.isAssignableFrom(entityType)
+                || ItemEntity.class.isAssignableFrom(entityType);
+    }
+
+    static Vec3 getPassengerPosition(
+            Vec3 seatPosition,
+            Vec3 passengerAttachment
+    ) {
+        return seatPosition.subtract(passengerAttachment);
+    }
+
+    static Vec3 getDismountLocation(
+            Vec3 seatPosition,
+            float initialYRotation,
+            Predicate<BlockPos> isAir
+    ) {
+        Vec3 facingDirection = Vec3.directionFromRotation(
+                0.0F,
+                initialYRotation
+        );
+        Vec3 behind = seatPosition.subtract(
+                facingDirection.x,
+                0.0D,
+                facingDirection.z
+        );
+        Vec3 left = seatPosition.add(
+                facingDirection.z,
+                0.0D,
+                -facingDirection.x
+        );
+        Vec3 right = seatPosition.add(
+                -facingDirection.z,
+                0.0D,
+                facingDirection.x
+        );
+
+        for (Vec3 candidate : List.of(behind, left, right)) {
+            if (isAir.test(BlockPos.containing(candidate))) {
+                return candidate;
+            }
+        }
+        return seatPosition;
     }
 }

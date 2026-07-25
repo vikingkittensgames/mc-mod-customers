@@ -83,7 +83,6 @@ public class CustomerSeatEntity extends Entity {
     }
 
     public static boolean trySit(Level level, BlockPos pos, Entity passenger) {
-        LOGGER.debug("trySit.A: {} -- {}", pos, canSit(level, pos, passenger));
         if (level.isClientSide() || !canSit(level, pos, passenger)) {
             return false;
         }
@@ -93,11 +92,12 @@ public class CustomerSeatEntity extends Entity {
         CustomerSeatEntity seat;
         boolean created;
         if (existingSeats.isEmpty()) {
+            Vec3 seatPosition = getSeatPosition(level, pos, passenger);
             seat = new CustomerSeatEntity(Customer.CUSTOMER_SEAT.get(), level);
             seat.moveTo(
-                    pos.getX() + 0.5D,
-                    pos.getY(),
-                    pos.getZ() + 0.5D,
+                    seatPosition.x,
+                    seatPosition.y,
+                    seatPosition.z,
                     passenger.getYRot(),
                     0.0F
             );
@@ -109,15 +109,24 @@ public class CustomerSeatEntity extends Entity {
         }
 
         boolean startedRiding = passenger.startRiding(seat, true);
-        LOGGER.debug("trySit.B: {} -- {} -- {}", pos, startedRiding, created);
         if (!startedRiding && created) {
             seat.discard();
         }
         return startedRiding;
     }
 
-    private static List<Entity> getEntitiesAt(Level level, BlockPos pos, Entity excludedEntity) {
-        return level.getEntities(excludedEntity, new AABB(pos), entity -> true);
+    private static List<Entity> getEntitiesAt(
+            Level level,
+            BlockPos pos,
+            Entity excludedEntity
+    ) {
+        return level.getEntities(
+                excludedEntity,
+                new AABB(pos),
+                entity -> !CustomerSeatLogic.isIgnoredSeatPositionEntityType(
+                        entity.getClass()
+                )
+        );
     }
 
     static boolean shouldDiscardEmptySeat(int emptyTicks) {
@@ -130,13 +139,16 @@ public class CustomerSeatEntity extends Entity {
             return;
         }
 
-        Vec3 seatPosition = getSeatPosition(level(), blockPosition(), passenger);
         Vec3 passengerAttachment = passenger.getVehicleAttachmentPoint(this);
+        Vec3 passengerPosition = CustomerSeatLogic.getPassengerPosition(
+                position(),
+                passengerAttachment
+        );
         callback.accept(
                 passenger,
-                seatPosition.x - passengerAttachment.x,
-                seatPosition.y - passengerAttachment.y,
-                seatPosition.z - passengerAttachment.z
+                passengerPosition.x,
+                passengerPosition.y,
+                passengerPosition.z
         );
         if (passenger instanceof LivingEntity livingPassenger) {
             livingPassenger.setYBodyRot(getYRot());
@@ -197,6 +209,14 @@ public class CustomerSeatEntity extends Entity {
     @Override
     public boolean shouldRiderSit() {
         return true;
+    }
+    @Override
+    public Vec3 getDismountLocationForPassenger(LivingEntity passenger) {
+        return CustomerSeatLogic.getDismountLocation(
+                position(),
+                getYRot(),
+                pos -> level().getBlockState(pos).isAir()
+        );
     }
 
     @Override
