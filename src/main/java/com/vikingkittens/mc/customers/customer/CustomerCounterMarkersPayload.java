@@ -53,7 +53,6 @@ public record CustomerCounterMarkersPayload(
             CustomerCounterMarkersPayload payload,
             IPayloadContext context
     ) {
-        LOGGER.debug(payload.toString());
         if (FMLEnvironment.dist == Dist.CLIENT) {
             CustomerClientEvents.showCounterMarkers(payload);
         }

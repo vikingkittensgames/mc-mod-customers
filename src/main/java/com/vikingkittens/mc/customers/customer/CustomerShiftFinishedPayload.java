@@ -66,7 +66,6 @@ public record CustomerShiftFinishedPayload(
     }
 
     public static void handle(CustomerShiftFinishedPayload payload, IPayloadContext context) {
-        LOGGER.debug(payload.toString());
         if (FMLEnvironment.dist == Dist.CLIENT) {
             CustomerClientEvents.showCustomerShiftFinishedScreen(payload);
         }
