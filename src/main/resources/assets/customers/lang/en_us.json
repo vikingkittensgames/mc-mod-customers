@@ -37,6 +37,11 @@
   "customers.configuration.section.customers.common.toml": "Customers Configs",
   "customers.configuration.section.customers.common.toml.title": "Customers Configs",
   "customers.configuration.enableCustomerSpawnerBlockRecipe": "Customer Spawner Recipe",
-  "customers.configuration.enableSupplierSpawnerBlockRecipe": "Supplier Spawner Recipe"
+  "customers.configuration.enableSupplierSpawnerBlockRecipe": "Supplier Spawner Recipe",
+  "customers.configuration.maxCounterDistance": "Maximum Counter Distance",
+  "customers.configuration.maxCustomers": "Maximum Customers",
+  "customers.configuration.customerGiveUpSeconds": "Customer Give Up Seconds",
+  "customers.configuration.enableBuildCommands": "Enable Build Commands",
+  "customers.configuration.enableQuickSell": "Enable Quick Sell"
 }
 

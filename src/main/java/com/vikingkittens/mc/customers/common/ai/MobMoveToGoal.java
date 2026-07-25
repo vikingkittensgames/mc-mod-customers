@@ -2,6 +2,7 @@ package com.vikingkittens.mc.customers.common.ai;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.MoveToBlockGoal;
 import net.minecraft.world.level.LevelReader;
 import org.apache.logging.log4j.LogManager;
@@ -12,6 +13,7 @@ public class MobMoveToGoal extends MoveToBlockGoal {
 
     private boolean started = false;
     private long ticksSinceStart = 0;
+    private long maxTicks;
     private boolean doneCalled = false;
 
     protected BlockPos targetPos;
@@ -24,7 +26,14 @@ public class MobMoveToGoal extends MoveToBlockGoal {
     }
 
     protected long maxTicks() {
-        return 20 * 20;
+        return maxTicks;
+    }
+
+    static long calculateMaxTicks(double initialDistance, double movementSpeed) {
+        double estimatedBlocksPerTick = movementSpeed < 1.0
+                ? movementSpeed * movementSpeed
+                : movementSpeed;
+        return (long)Math.ceil(initialDistance / estimatedBlocksPerTick);
     }
 
     protected boolean isDone() {
@@ -65,6 +74,9 @@ public class MobMoveToGoal extends MoveToBlockGoal {
         started = true;
         ticksSinceStart = 0;
         blockPos = targetPos;
+        double initialDistance = Math.sqrt(mob.blockPosition().distSqr(targetPos));
+        double movementSpeed = speedModifier * mob.getAttributeValue(Attributes.MOVEMENT_SPEED);
+        maxTicks = calculateMaxTicks(initialDistance, movementSpeed);
         super.start();
     }
 

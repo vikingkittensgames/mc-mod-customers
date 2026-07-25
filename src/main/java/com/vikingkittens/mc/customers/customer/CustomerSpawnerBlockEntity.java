@@ -2,6 +2,7 @@ package com.vikingkittens.mc.customers.customer;
 
 import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.common.SearchUtils;
+import com.vikingkittens.mc.customers.config.Config;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -42,7 +43,6 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     private static final int INVENTORY_ROW_SIZE = 9;
     private static final int SPAWN_CHECK_MAX_TICKS = 4;
-    private static final int MAX_CUSTOMERS = 4;
 
     private static MerchantOffers getOffersFromInventory(RandomSource random, ItemStackHandler inventory) {
         MerchantOffers offers = new MerchantOffers();
@@ -625,7 +625,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 long timeOfDay = (level.getDayTime() + 6000L) % 24000L;
                 boolean shouldSpawn = CustomerSpawnerMode.shouldSpawn(spawnerMode, timeOfDay);
                 if (!state.getValue(CustomerSpawnerBlock.STATE_DISABLED) && shouldSpawn) {
-                    if (entity.customerIds.size() < MAX_CUSTOMERS) {
+                    if (entity.customerIds.size() < Config.MAX_CUSTOMERS.get()) {
                         entity.spawnCustomer();
                     }
 

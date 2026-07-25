@@ -2,6 +2,7 @@ package com.vikingkittens.mc.customers.customer.ai;
 
 import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.common.ai.MobTimedGoal;
+import com.vikingkittens.mc.customers.config.Config;
 import com.vikingkittens.mc.customers.customer.CustomerState;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlockEntity;
@@ -23,7 +24,9 @@ public class CustomerGiveUpGoal extends MobTimedGoal {
 
     @Override
     public boolean canUse() {
-        return super.canUse() && customer.getState() == CustomerState.BUYING && customer.getTicksSinceTrade() > (20 * 60);
+        return super.canUse()
+                && customer.getState() == CustomerState.BUYING
+                && customer.getTicksSinceTrade() > (20L * Config.CUSTOMER_GIVE_UP_SECONDS.get());
     }
 
     @Override

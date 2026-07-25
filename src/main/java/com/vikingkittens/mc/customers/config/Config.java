@@ -15,6 +15,21 @@ public class Config {
             .comment("Whether the supplier spawner block recipe is enabled.")
             .define("enableSupplierSpawnerBlockRecipe", true);
 
+    public static final ModConfigSpec.IntValue MAX_COUNTER_DISTANCE = BUILDER
+            .defineInRange("maxCounterDistance", 64, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue MAX_CUSTOMERS = BUILDER
+            .defineInRange("maxCustomers", 4, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.IntValue CUSTOMER_GIVE_UP_SECONDS = BUILDER
+            .defineInRange("customerGiveUpSeconds", 60, 1, Integer.MAX_VALUE);
+
+    public static final ModConfigSpec.BooleanValue ENABLE_BUILD_COMMANDS = BUILDER
+            .define("enableBuildCommands", false);
+
+    public static final ModConfigSpec.BooleanValue ENABLE_QUICK_SELL = BUILDER
+            .define("enableQuickSell", false);
+
     public static final ModConfigSpec SPEC = BUILDER.build();
 
     private static boolean validateItemName(final Object obj) {

@@ -12,6 +12,27 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 
 public class SearchUtils {
+    public static List<BlockPos> findBlocksInBox(
+            Level level,
+            BlockPos center,
+            int size,
+            BiPredicate<BlockPos, BlockState> predicate
+    ) {
+        int minOffset = -(size / 2);
+        int maxOffset = minOffset + size - 1;
+        BlockPos minPos = center.offset(minOffset, minOffset, minOffset);
+        BlockPos maxPos = center.offset(maxOffset, maxOffset, maxOffset);
+        List<BlockPos> matchingBlocks = new ArrayList<>();
+
+        BlockPos.betweenClosedStream(minPos, maxPos).forEach(pos -> {
+            BlockState state = level.getBlockState(pos);
+            if (predicate.test(pos, state)) {
+                matchingBlocks.add(pos.immutable());
+            }
+        });
+
+        return matchingBlocks;
+    }
     public static List<BlockPos> findBlocksInSphere(Level level, BlockPos center, int radius, BiPredicate<BlockPos, BlockState> predicate) {
         List<BlockPos> matchingBlocks = new ArrayList<>();
         double radiusSq = radius * radius;

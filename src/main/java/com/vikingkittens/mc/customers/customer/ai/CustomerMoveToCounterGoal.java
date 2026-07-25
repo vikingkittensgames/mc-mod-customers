@@ -3,6 +3,8 @@ package com.vikingkittens.mc.customers.customer.ai;
 import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.common.SearchUtils;
 import com.vikingkittens.mc.customers.common.ai.MobMoveToGoal;
+import com.vikingkittens.mc.customers.config.Config;
+import com.vikingkittens.mc.customers.customer.CustomerSpawner;
 import com.vikingkittens.mc.customers.customer.CustomerState;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlockEntity;
@@ -144,15 +146,65 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
                 CampfireBlock.isLitCampfire(blockState);
     }
 
+/*
+
+Supplier Spawners:
+  (100, 60, 150): Enabled
+  (300, 80, -200): Disabled
+
+Customer Spawners:
+  (100, 60, 150): Enabled, Breakfast
+  (300, 80, -200): Disabled, Night
+
+Customer Spawners & Counters:
+  (100, 60, 150): Enabled, Breakfast
+      (110, 65, 160): Green Candles
+      (115, 65, 165): Green Candles
+      (120, 65, 170): Green Candles
+  (300, 80, -200): Disabled, Night
+      (110, 65, 160): Red Carpet
+      (115, 65, 165): Red Carpet
+
+ */
+
+    public static List<BlockPos> findCounterPositions(
+            Level level,
+            BlockPos spawnerPos,
+            BlockState counterBlockState
+    ) {
+        return SearchUtils.findBlocksInSphere(
+                level,
+                spawnerPos,
+                Config.MAX_COUNTER_DISTANCE.get(),
+                (blockPos, blockState) -> blockState.is(counterBlockState.getBlock()) &&
+                        isPossibleCounterPosition(
+                                spawnerPos,
+                                blockPos,
+                                level.getBlockState(blockPos.below())
+                                        .is(CustomerSpawner.CUSTOMER_SPAWNER_BLOCK.get())
+                        )
+        );
+    }
+
+    static boolean isPossibleCounterPosition(
+            BlockPos spawnerPos,
+            BlockPos candidatePos,
+            boolean aboveCustomerSpawner
+    ) {
+        return !aboveCustomerSpawner &&
+                (
+                        candidatePos.getX() != spawnerPos.getX() ||
+                        candidatePos.getZ() != spawnerPos.getZ()
+                );
+    }
+
     @Override
     public void start() {
         targetPos = null;
-        List<BlockPos> counterPositions = SearchUtils.findBlocksInSphere(
+        List<BlockPos> counterPositions = findCounterPositions(
                 customer.level(),
-                customer.blockPosition(),
-                64,
-                (blockPos, blockState) -> blockState.is(customer.getCounterBlockState().getBlock()) &&
-                        (blockPos.getX() != customer.getSpawnerPos().getX() || blockPos.getZ() != customer.getSpawnerPos().getZ())
+                customer.getSpawnerPos(),
+                customer.getCounterBlockState()
         );
         // LOGGER.debug("Counter positions: {}", counterPositions);
         List<SurroundingPosition> validPositions = findValidSurroundingPositions(

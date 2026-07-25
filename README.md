@@ -23,9 +23,12 @@ A customer spawner block is the starting point for this mod.  Where you place it
 customers will spawn and what you place inside of it determines what your customers will want to
 buy from you.
 
+Customers only spawn where they have enough vertical clearance and a 2×2 surface made from solid
+blocks, slabs, carpet, or stairs.
+
 Similar to a regular mob spawner block, each customer block will try to keep up to 4 customers
-spawned at any one time.  If you want more customers at the same time, put down more customer
-spawner blocks.
+spawned at any one time by default. The maximum can be changed with the `maxCustomers`
+configuration option.
 
 ### Crafting Customer Spawner Blocks
 
@@ -124,8 +127,9 @@ counter where you want customers to gather.
 * Lecterns with a named book on them - Matches the book name
 * Other items - Exact block match
 
-For all the blocks of this type in a 64 block radius and go to a random one trying to avoid
-going to one that already has a customer next to it.
+Customers search for all blocks of this type within 64 blocks by default and go to a random one,
+trying to avoid one that already has a customer next to it. The search distance can be changed
+with the `maxCounterDistance` configuration option.
 
 ### Avoid Block
 
@@ -178,6 +182,10 @@ any other villager trader.  Right click on them to open up the trade and sell th
 of the items.  After being sold one of the items they want, that item will be removed
 from the trades.
 
+Quick selling can be enabled with the `enableQuickSell` configuration option. When enabled,
+right-clicking a customer while holding enough of a wanted item in your main hand immediately
+completes one matching sale instead of opening the trading screen.
+
 ### Thank You and Goodbye
 
 Once the customer's trade list is empty they will say thank you and goodbye to you in
@@ -213,4 +221,31 @@ container and in the next slot put 5 emeralds, the supplier will sell you 32 raw
 The Supplier will spawn each morning up to 32 blocks away from the spawner and walk to the
 spawner.  Once the Supplier is there you can start build items.
 
+Suppliers only spawn where they have enough vertical clearance and a 2×2 surface made from solid
+blocks, slabs, carpet, or stairs.
+
 Once it is dark the Supplier will walk away and despawn.
+
+## Build Commands
+
+Build commands provide information about customer and supplier spawners near the player. They are
+disabled by default and can be enabled with the `enableBuildCommands` configuration option.
+
+* `/suppliers spawners` lists supplier spawners in a 64×64×64 area centered on the player and
+  shows whether each spawner is enabled.
+* `/customers spawners` lists customer spawners in a 64×64×64 area centered on the player and
+  shows whether each spawner is enabled and its spawning mode.
+* `/customers spawners counters` also lists the matching counter blocks found for each customer
+  spawner and displays a rotating mode icon above each counter for 90 seconds.
+
+## Configuration
+
+| Name | Config property | Description | Default |
+| --- | --- | --- | --- |
+| Customer Spawner Recipe | `enableCustomerSpawnerBlockRecipe` | Enables the crafting recipe for the Customer Spawner Block. | `true` |
+| Supplier Spawner Recipe | `enableSupplierSpawnerBlockRecipe` | Enables the crafting recipe for the Supplier Spawner Block. | `true` |
+| Maximum Counter Distance | `maxCounterDistance` | Sets the maximum distance in blocks between a Customer Spawner and the counters its customers can find. | `64` |
+| Maximum Customers | `maxCustomers` | Sets the maximum number of customers that each Customer Spawner tries to keep spawned. | `4` |
+| Customer Give Up Seconds | `customerGiveUpSeconds` | Sets how many seconds a customer waits without completing a trade before giving up and leaving. | `60` |
+| Enable Build Commands | `enableBuildCommands` | Enables the customer and supplier build inspection commands. | `false` |
+| Enable Quick Sell | `enableQuickSell` | Enables selling directly to a customer by right-clicking while holding enough of a wanted item in the main hand. | `false` |

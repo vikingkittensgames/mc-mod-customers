@@ -2,7 +2,10 @@ package com.vikingkittens.mc.customers.customer;
 
 import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.config.Config;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.npc.Villager;
@@ -10,6 +13,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import org.slf4j.Logger;
@@ -22,10 +26,16 @@ public class CustomerEvents {
 
     @SubscribeEvent
     public static void registerPayloads(RegisterPayloadHandlersEvent event) {
-        event.registrar("1").playToClient(
+        var registrar = event.registrar("1");
+        registrar.playToClient(
                 CustomerShiftFinishedPayload.TYPE,
                 CustomerShiftFinishedPayload.STREAM_CODEC,
                 CustomerShiftFinishedPayload::handle
+        );
+        registrar.playToClient(
+                CustomerCounterMarkersPayload.TYPE,
+                CustomerCounterMarkersPayload.STREAM_CODEC,
+                CustomerCounterMarkersPayload::handle
         );
     }
 
@@ -50,6 +60,20 @@ public class CustomerEvents {
                     customer.discard();
                 }
             }
+        }
+    }
+
+    @SubscribeEvent
+    public static void onCustomerInteract(PlayerInteractEvent.EntityInteract event) {
+        if (
+                Config.ENABLE_QUICK_SELL.get() &&
+                event.getHand() == InteractionHand.MAIN_HAND &&
+                !event.getEntity().level().isClientSide() &&
+                event.getTarget() instanceof CustomerVillagerEntity customer &&
+                customer.tryQuickSell(event.getEntity())
+        ) {
+            event.setCancellationResult(InteractionResult.SUCCESS);
+            event.setCanceled(true);
         }
     }
 }

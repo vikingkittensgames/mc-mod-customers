@@ -53,6 +53,14 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
         );
     }
 
+    public static BlockState getMarkerState(CustomerSpawnerMode spawnerMode) {
+        return CustomerSpawner.CUSTOMER_SPAWNER_BLOCK.get()
+                .defaultBlockState()
+                .setValue(STATE_SPAWN_MODE, spawnerMode)
+                .setValue(STATE_DISABLED, false)
+                .setValue(STATE_SPECIAL_ENABLED, false);
+    }
+
     @Override
     @NotNull
     protected MapCodec<? extends BaseEntityBlock> codec() {

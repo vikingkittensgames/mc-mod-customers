@@ -16,6 +16,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
@@ -224,6 +225,54 @@ public class CustomerVillagerEntity extends Villager {
 
     public Set<UUID> getTradedWithPlayers() {
         return tradedWithPlayers;
+    }
+
+    public boolean tryQuickSell(Player player) {
+        if (
+                level().isClientSide() ||
+                getState() != CustomerState.BUYING ||
+                getTradingPlayer() != null
+        ) {
+            return false;
+        }
+
+        ItemStack heldStack = player.getMainHandItem();
+        MerchantOffer offer = findQuickSellOffer(getOffers(), heldStack);
+        if (offer == null) {
+            return false;
+        }
+
+        setTradingPlayer(player);
+        try {
+            if (!offer.take(heldStack, ItemStack.EMPTY)) {
+                return false;
+            }
+
+            ItemStack result = offer.assemble();
+            result.onCraftedBy(level(), player, result.getCount());
+            if (!player.getInventory().add(result)) {
+                player.drop(result, false);
+            }
+
+            notifyTrade(offer);
+            player.awardStat(Stats.TRADED_WITH_VILLAGER);
+            overrideXp(getVillagerXp() + offer.getXp());
+            playSound(getNotifyTradeSound(), 1.0F, 1.0F);
+            return true;
+        } finally {
+            setTradingPlayer(null);
+        }
+    }
+
+    static MerchantOffer findQuickSellOffer(
+            List<MerchantOffer> offers,
+            ItemStack heldStack
+    ) {
+        return CustomerQuickSellOfferSelector.find(
+                offers,
+                offer -> !offer.isOutOfStock(),
+                offer -> offer.satisfiedBy(heldStack, ItemStack.EMPTY)
+        );
     }
 
     @Override
