@@ -39,7 +39,7 @@ public enum CustomerSpawnerMode implements StringRepresentable {
     }
     private static final int DAY_START = clockToMinuteOfDay(5, 0);
     private static final int DAY_END = clockToMinuteOfDay(19, 0);
-    private static final int NIGHT_START = clockToMinuteOfDay(17, 0);
+    private static final int NIGHT_START = clockToMinuteOfDay(19, 0);
     private static final int NIGHT_END = clockToMinuteOfDay(5, 0);
     private static final int BREAKFAST_START = clockToMinuteOfDay(5, 30);
     private static final int BREAKFAST_END = clockToMinuteOfDay(10, 30);

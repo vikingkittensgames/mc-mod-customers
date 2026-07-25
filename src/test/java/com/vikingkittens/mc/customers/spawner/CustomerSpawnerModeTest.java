@@ -98,8 +98,8 @@ class CustomerSpawnerModeTest {
 
                 Arguments.of(CustomerSpawnerMode.NIGHT, clockMinute(4, 59), true),
                 Arguments.of(CustomerSpawnerMode.NIGHT, clockMinute(5, 0), false),
-                Arguments.of(CustomerSpawnerMode.NIGHT, clockMinute(16, 59), false),
-                Arguments.of(CustomerSpawnerMode.NIGHT, clockMinute(17, 0), true),
+                Arguments.of(CustomerSpawnerMode.NIGHT, clockMinute(18, 59), false),
+                Arguments.of(CustomerSpawnerMode.NIGHT, clockMinute(19, 0), true),
                 Arguments.of(CustomerSpawnerMode.NIGHT, clockMinute(23, 59), true),
                 Arguments.of(CustomerSpawnerMode.NIGHT, clockMinute(0, 0), true),
 
@@ -131,10 +131,10 @@ class CustomerSpawnerModeTest {
                 Arguments.of(CustomerSpawnerMode.DAY, clockMinute(18, 59), 839.0F / 840.0F),
                 Arguments.of(CustomerSpawnerMode.DAY, clockMinute(19, 0), 0.0F),
 
-                Arguments.of(CustomerSpawnerMode.NIGHT, clockMinute(16, 59), 0.0F),
-                Arguments.of(CustomerSpawnerMode.NIGHT, clockMinute(17, 0), 0.0F),
-                Arguments.of(CustomerSpawnerMode.NIGHT, clockMinute(23, 0), 0.5F),
-                Arguments.of(CustomerSpawnerMode.NIGHT, clockMinute(4, 59), 719.0F / 720.0F),
+                Arguments.of(CustomerSpawnerMode.NIGHT, clockMinute(18, 59), 0.0F),
+                Arguments.of(CustomerSpawnerMode.NIGHT, clockMinute(19, 0), 0.0F),
+                Arguments.of(CustomerSpawnerMode.NIGHT, clockMinute(0, 0), 0.5F),
+                Arguments.of(CustomerSpawnerMode.NIGHT, clockMinute(4, 59), 599.0F / 600.0F),
                 Arguments.of(CustomerSpawnerMode.NIGHT, clockMinute(5, 0), 0.0F),
 
                 Arguments.of(CustomerSpawnerMode.BREAKFAST, clockMinute(5, 29), 0.0F),
