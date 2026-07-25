@@ -72,26 +72,39 @@ public final class MobUtils {
             int randomX = centerPos.getX() + level.getRandom().nextIntBetweenInclusive(-radius, radius);
             int randomZ = centerPos.getZ() + level.getRandom().nextIntBetweenInclusive(-radius, radius);
             int groundY = level.getHeight(Heightmap.Types.WORLD_SURFACE, randomX, randomZ);
-            safePos.set(randomX, groundY, randomZ);
+            boolean outsideVerticalRadius = Math.abs((long) groundY - centerPos.getY()) > radius;
+            int finalY = outsideVerticalRadius ? centerPos.getY() : groundY;
+            int yStep = Integer.compare(finalY, groundY);
 
-            int airCount = 0;
-            for (int yOffset = 0; yOffset < requiredAirBlocks; yOffset++) {
-                BlockPos checkPos = safePos.above(yOffset);
-                if (level.isEmptyBlock(checkPos)) {
-                    airCount++;
+            for (int y = groundY; ; y += yStep) {
+                if (Math.abs((long) y - centerPos.getY()) <= radius) {
+                    safePos.set(randomX, y, randomZ);
+
+                    int airCount = 0;
+                    for (int yOffset = 0; yOffset < requiredAirBlocks; yOffset++) {
+                        BlockPos checkPos = safePos.above(yOffset);
+                        if (level.isEmptyBlock(checkPos)) {
+                            airCount++;
+                        }
+                    }
+                    /*
+                    LOGGER.debug(
+                            "Finding Safe Pos: attempt={}, target={}, pos={}, airCount={}, requiredAirBlocks={}",
+                            attempt,
+                            centerPos,
+                            safePos,
+                            airCount,
+                            requiredAirBlocks
+                    );
+                    */
+                    if (airCount >= requiredAirBlocks && hasValidSupportArea(level, safePos)) {
+                        return safePos.immutable();
+                    }
                 }
-            }
 
-            LOGGER.debug(
-                    "Finding Safe Pos: attempt={}, target={}, pos={}, airCount={}, requiredAirBlocks={}",
-                    attempt,
-                    centerPos,
-                    safePos,
-                    airCount,
-                    requiredAirBlocks
-            );
-            if (airCount >= requiredAirBlocks && hasValidSupportArea(level, safePos)) {
-                return safePos.immutable();
+                if (y == finalY) {
+                    break;
+                }
             }
         }
         return null;

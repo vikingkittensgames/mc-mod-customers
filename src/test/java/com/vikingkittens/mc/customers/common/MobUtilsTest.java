@@ -19,6 +19,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,10 +31,10 @@ class MobUtilsTest {
         RandomSource random = mockRandom(level, 5, -5, -5, 5, -2);
         BlockPos center = new BlockPos(100, 64, 200);
 
-        mockHeight(level, 95, 195, 70);
-        mockHeight(level, 105, 198, 72);
-        mockVerticalAir(level, new BlockPos(95, 70, 195), true, true, false);
-        mockVerticalAir(level, new BlockPos(105, 72, 198), true, true, true);
+        mockHeight(level, 95, 195, 67);
+        mockHeight(level, 105, 198, 68);
+        mockVerticalAir(level, new BlockPos(95, 67, 195), true, true, false);
+        mockVerticalAir(level, new BlockPos(105, 68, 198), true, true, true);
 
         try (MockedStatic<MobUtils> mobUtils = mockStatic(MobUtils.class, CALLS_REAL_METHODS)) {
             mobUtils.when(() -> MobUtils.hasValidSupportArea(eq(level), any(BlockPos.class)))
@@ -41,7 +42,7 @@ class MobUtilsTest {
 
             BlockPos result = MobUtils.getRandomSpawnPos(level, center, 5, 3);
 
-            assertEquals(new BlockPos(105, 72, 198), result);
+            assertEquals(new BlockPos(105, 68, 198), result);
         }
 
         verify(random, times(4)).nextIntBetweenInclusive(-5, 5);
@@ -78,10 +79,10 @@ class MobUtilsTest {
         RandomSource random = mockRandom(level, 3, 1, -1, 2, -2);
         BlockPos center = new BlockPos(0, 70, 0);
 
-        mockHeight(level, 1, -1, 80);
-        mockHeight(level, 2, -2, 81);
-        mockVerticalAir(level, new BlockPos(1, 80, -1), true, true, true, false);
-        mockVerticalAir(level, new BlockPos(2, 81, -2), true, true, true, true);
+        mockHeight(level, 1, -1, 71);
+        mockHeight(level, 2, -2, 72);
+        mockVerticalAir(level, new BlockPos(1, 71, -1), true, true, true, false);
+        mockVerticalAir(level, new BlockPos(2, 72, -2), true, true, true, true);
 
         try (MockedStatic<MobUtils> mobUtils = mockStatic(MobUtils.class, CALLS_REAL_METHODS)) {
             mobUtils.when(() -> MobUtils.hasValidSupportArea(eq(level), any(BlockPos.class)))
@@ -89,7 +90,7 @@ class MobUtilsTest {
 
             BlockPos result = MobUtils.getRandomSpawnPos(level, center, 3, 4);
 
-            assertEquals(new BlockPos(2, 81, -2), result);
+            assertEquals(new BlockPos(2, 72, -2), result);
         }
 
         verify(random, times(4)).nextIntBetweenInclusive(-3, 3);
@@ -114,6 +115,56 @@ class MobUtilsTest {
         }
 
         verify(random, times(2)).nextIntBetweenInclusive(-1, 1);
+    }
+
+    @Test
+    void searchesDownFromHeightmapForValidPositionWithinVerticalRadius() {
+        Level level = mock(Level.class);
+        mockRandom(level, 3, 0, 0);
+        BlockPos center = new BlockPos(10, 64, 20);
+        BlockPos expected = new BlockPos(10, 66, 20);
+
+        mockHeight(level, 10, 20, 80);
+        mockVerticalAir(level, expected, true, true);
+
+        try (MockedStatic<MobUtils> mobUtils = mockStatic(MobUtils.class, CALLS_REAL_METHODS)) {
+            mobUtils.when(() -> MobUtils.hasValidSupportArea(level, expected))
+                    .thenReturn(true);
+
+            assertEquals(expected, MobUtils.getRandomSpawnPos(level, center, 3, 2));
+        }
+    }
+
+    @Test
+    void searchesUpFromHeightmapForValidPositionWithinVerticalRadius() {
+        Level level = mock(Level.class);
+        mockRandom(level, 3, 0, 0);
+        BlockPos center = new BlockPos(10, 64, 20);
+        BlockPos expected = new BlockPos(10, 62, 20);
+
+        mockHeight(level, 10, 20, 40);
+        mockVerticalAir(level, expected, true, true);
+
+        try (MockedStatic<MobUtils> mobUtils = mockStatic(MobUtils.class, CALLS_REAL_METHODS)) {
+            mobUtils.when(() -> MobUtils.hasValidSupportArea(level, expected))
+                    .thenReturn(true);
+
+            assertEquals(expected, MobUtils.getRandomSpawnPos(level, center, 3, 2));
+        }
+    }
+
+    @Test
+    void stopsSearchingAtCenterYBeforeStartingAnotherAttempt() {
+        Level level = mock(Level.class);
+        mockRandom(level, 3, repeat(0, 20));
+        BlockPos center = new BlockPos(10, 64, 20);
+
+        mockHeight(level, 10, 20, 80);
+        mockVerticalAir(level, new BlockPos(10, 63, 20), true, true);
+
+        assertNull(MobUtils.getRandomSpawnPos(level, center, 3, 2));
+
+        verify(level, never()).isEmptyBlock(new BlockPos(10, 63, 20));
     }
 
     @Test
