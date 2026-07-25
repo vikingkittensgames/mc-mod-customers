@@ -227,7 +227,7 @@ public class CustomerVillagerEntity extends Villager {
     }
 
     public void setCounterTargetBlockPos(BlockPos counterBlockPos) {
-        this.counterTargetBlockPos = counterTargetBlockPos;
+        this.counterTargetBlockPos = counterBlockPos;
     }
 
     public long getTicksSinceTrade() {
