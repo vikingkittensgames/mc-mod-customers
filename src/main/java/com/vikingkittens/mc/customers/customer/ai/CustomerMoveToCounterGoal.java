@@ -13,6 +13,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.BaseFireBlock;
 import net.minecraft.world.level.block.CactusBlock;
 import net.minecraft.world.level.block.CampfireBlock;
@@ -53,6 +54,15 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
                 ) &&
                 customer.getCounterBlockState() != null &&
                 !customer.getCounterBlockState().isAir();
+    }
+
+    @Override
+    protected boolean isValidTarget(LevelReader levelReader, BlockPos blockPos) {
+        // Use this to inject a forced state change check that should trigger ending the goal
+        return super.isValidTarget(levelReader, blockPos) && (
+                customer.getState() == CustomerState.INITIALIZING ||
+                customer.getState() == CustomerState.MOVING_TO_COUNTER
+        );
     }
 
     private static class SurroundingPosition {
@@ -145,27 +155,6 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
                 blockState.getBlock() instanceof WitherRoseBlock ||
                 CampfireBlock.isLitCampfire(blockState);
     }
-
-/*
-
-Supplier Spawners:
-  (100, 60, 150): Enabled
-  (300, 80, -200): Disabled
-
-Customer Spawners:
-  (100, 60, 150): Enabled, Breakfast
-  (300, 80, -200): Disabled, Night
-
-Customer Spawners & Counters:
-  (100, 60, 150): Enabled, Breakfast
-      (110, 65, 160): Green Candles
-      (115, 65, 165): Green Candles
-      (120, 65, 170): Green Candles
-  (300, 80, -200): Disabled, Night
-      (110, 65, 160): Red Carpet
-      (115, 65, 165): Red Carpet
-
- */
 
     public static List<BlockPos> findCounterPositions(
             Level level,
@@ -277,21 +266,14 @@ Customer Spawners & Counters:
 
     @Override
     protected void onDone() {
-        // LOGGER.debug("Reached counter or gave up: counter = {}, num-offers = {}", counterPosition, ((Villager)mob).getOffers().size());
-        mob.moveTo(targetPos.getBottomCenter(), mob.getYRot(), mob.getXRot());
-        /*
-        mob.getNavigation().moveTo(
-                targetPos.getBottomCenter().x(),
-                targetPos.getBottomCenter().y(),
-                targetPos.getBottomCenter().z(),
-                0,
-                1
-        );
-         */
-        if (counterPosition != null) {
-            mob.getLookControl().setLookAt(targetPos.getCenter());
+        // Check for a forced state change
+        if (customer.getState() == CustomerState.MOVING_TO_COUNTER) {
+            mob.moveTo(targetPos.getBottomCenter(), mob.getYRot(), mob.getXRot());
+            if (counterPosition != null) {
+                mob.getLookControl().setLookAt(targetPos.getCenter());
+            }
+            customer.setState(CustomerState.BUYING);
         }
-        customer.setState(CustomerState.BUYING);
     }
 }
 
