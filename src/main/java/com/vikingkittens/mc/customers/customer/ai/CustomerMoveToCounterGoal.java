@@ -188,17 +188,36 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
     }
 
     private boolean isValidSurroundingPosition(Level level, BlockPos pos) {
-        BlockState state = level.getBlockState(pos);
-        VoxelShape collisionShape = state.getCollisionShape(
+        BlockState blockState = level.getBlockState(pos);
+        BlockState avoidBlockState = customer.getAvoidBlockState();
+        VoxelShape collisionShape = blockState.getCollisionShape(
                 level,
                 pos,
                 CollisionContext.of(customer)
         );
-        return state.isAir()
+        return isValidSurroundingPosition(
+                avoidBlockState != null
+                        && blockState.is(avoidBlockState.getBlock()),
+                blockState.isAir(),
+                collisionShape,
+                CustomerSeatEntity.isSeat(level, pos)
+                        && CustomerSeatEntity.canSit(level, pos, customer)
+        );
+    }
+
+    static boolean isValidSurroundingPosition(
+            boolean matchesAvoidBlockState,
+            boolean air,
+            VoxelShape collisionShape,
+            boolean availableSeat
+    ) {
+        if (matchesAvoidBlockState) {
+            return false;
+        }
+        return air
                 || collisionShape.isEmpty()
                 || collisionShape.max(Direction.Axis.Y) <= 1.0D / 3.0D
-                || CustomerSeatEntity.isSeat(level, pos)
-                && CustomerSeatEntity.canSit(level, pos, customer);
+                || availableSeat;
     }
 
     public static List<BlockPos> findCounterPositions(

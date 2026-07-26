@@ -1,6 +1,7 @@
 package com.vikingkittens.mc.customers.customer.ai;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.shapes.Shapes;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -11,6 +12,35 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CustomerMoveToCounterGoalTest {
+    @Test
+    void rejectsLowCollisionBlockMatchingAvoidBlockState() {
+        assertFalse(CustomerMoveToCounterGoal.isValidSurroundingPosition(
+                true,
+                false,
+                Shapes.box(0.0D, 0.0D, 0.0D, 1.0D, 1.0D / 16.0D, 1.0D),
+                false
+        ));
+    }
+
+    @Test
+    void acceptsLowCollisionBlockWhenAvoidBlockStateIsNull() {
+        assertTrue(CustomerMoveToCounterGoal.isValidSurroundingPosition(
+                false,
+                false,
+                Shapes.box(0.0D, 0.0D, 0.0D, 1.0D, 1.0D / 16.0D, 1.0D),
+                false
+        ));
+    }
+
+    @Test
+    void acceptsLowCollisionBlockDifferentFromAvoidBlockState() {
+        assertTrue(CustomerMoveToCounterGoal.isValidSurroundingPosition(
+                false,
+                false,
+                Shapes.box(0.0D, 0.0D, 0.0D, 1.0D, 1.0D / 16.0D, 1.0D),
+                false
+        ));
+    }
     @Test
     void findsAirImmediatelyAboveSolidSupport() {
         assertEquals(10, findTargetY(10, Set.of(10), Set.of(10, 11, 12), Set.of(9)));
