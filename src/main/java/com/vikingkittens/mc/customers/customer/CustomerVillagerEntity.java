@@ -26,6 +26,7 @@ import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.LookAtTradingPlayerGoal;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerData;
+import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.npc.VillagerType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -117,9 +118,16 @@ public class CustomerVillagerEntity extends Villager {
                     customer.moveTo(safePos, 0, 0);
 
                     VillagerData data = customer.getVillagerData();
+                    VillagerProfession profession = Customer.CUSTOMER_PROFESSION.get();
+                    float professionVariantPercentage = level.random.nextFloat();
+                    if (professionVariantPercentage < 0.20F) {
+                        profession = Customer.CUSTOMER_IMPATIENT_PROFESSION.get();
+                    } else if (professionVariantPercentage < 0.50F) {
+                        profession = Customer.CUSTOMER_CASUAL_PROFESSION.get();
+                    }
                     customer.setVillagerData(new VillagerData(
                             getVillagerTypeForLocation(level, spawnerPos),
-                            Customer.CUSTOMER_PROFESSION.get(),
+                            profession,
                             data.getLevel()
                     ));
 

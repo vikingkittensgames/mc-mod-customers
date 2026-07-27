@@ -154,10 +154,18 @@ same kitchen floor block under the customer spawner.
 
 The Customer Spawner will spawn Customer Villagers that are just normal villagers with
 custom AI and a custom profession.  The Customer profession give them a unique skin and
-hat so you can tell they are customers.
+hat so you can tell they are customers.  There are 3 types of customers:
 
-NOTE: The Customer profession is tied to a new a separate customer_job_block you should
-actually never spawn.  It's just required by the profession system.
+* Normal - ~50% of spawned - Will give up at the configured max seconds.
+* Impatient - ~ 20% of spawned - Will give up at half of the configured seconds.
+* Casual - ~30% of spawned - Will never give up.
+
+Each wears a different hat:
+
+|                       Normal                        |                         Impatient                         |                       Casual                        |
+|:---------------------------------------------------:|:---------------------------------------------------------:|:---------------------------------------------------:|
+| ![Normal Customer](screenshots/customer-normal.png) | ![Impatient Customer](screenshots/customer-impatient.png) | ![Casual Customer](screenshots/customer-casual.png) |
+
 
 If you want your customers to have names, think about using the [Villager Names mod](https://www.curseforge.com/minecraft/mc-mods/villager-names).
 
@@ -252,11 +260,11 @@ disabled by default and can be enabled with the `enableBuildCommands` configurat
 ## Configuration
 
 | Name | Config property | Description | Default |
-| --- | --- | --- | --- |
-| Customer Spawner Recipe | `enableCustomerSpawnerBlockRecipe` | Enables the crafting recipe for the Customer Spawner Block. | `true` |
-| Supplier Spawner Recipe | `enableSupplierSpawnerBlockRecipe` | Enables the crafting recipe for the Supplier Spawner Block. | `true` |
-| Maximum Counter Distance | `maxCounterDistance` | Sets the maximum distance in blocks between a Customer Spawner and the counters its customers can find. | `64` |
-| Maximum Customers | `maxCustomers` | Sets the maximum number of customers that each Customer Spawner tries to keep spawned. | `4` |
-| Customer Give Up Seconds | `customerGiveUpSeconds` | Sets how many seconds a customer waits without completing a trade before giving up and leaving. | `60` |
+| --- | --- | --- |---------|
+| Customer Spawner Recipe | `enableCustomerSpawnerBlockRecipe` | Enables the crafting recipe for the Customer Spawner Block. | `true`  |
+| Supplier Spawner Recipe | `enableSupplierSpawnerBlockRecipe` | Enables the crafting recipe for the Supplier Spawner Block. | `true`  |
+| Maximum Counter Distance | `maxCounterDistance` | Sets the maximum distance in blocks between a Customer Spawner and the counters its customers can find. | `64`    |
+| Maximum Customers | `maxCustomers` | Sets the maximum number of customers that each Customer Spawner tries to keep spawned. | `4`     |
+| Customer Give Up Seconds | `customerGiveUpSeconds` | Sets how many seconds a customer waits without completing a trade before giving up and leaving. | `120`   |
 | Enable Build Commands | `enableBuildCommands` | Enables the customer and supplier build inspection commands. | `false` |
 | Enable Quick Sell | `enableQuickSell` | Enables selling directly to a customer by right-clicking while holding enough of a wanted item in the main hand. | `false` |

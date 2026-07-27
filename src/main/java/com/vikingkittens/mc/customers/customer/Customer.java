@@ -106,6 +106,26 @@ public class Customer {
                     null
             )
     );
+    public static final DeferredHolder<VillagerProfession, VillagerProfession> CUSTOMER_CASUAL_PROFESSION = professions.register("customer_casual",
+            () -> new VillagerProfession(
+                    "customer_casual",
+                    holder -> false, // No POI
+                    holder -> false, // No POI
+                    ImmutableSet.of(),
+                    ImmutableSet.of(),
+                    null
+            )
+    );
+    public static final DeferredHolder<VillagerProfession, VillagerProfession> CUSTOMER_IMPATIENT_PROFESSION = professions.register("customer_impatient",
+            () -> new VillagerProfession(
+                    "customer_impatient",
+                    holder -> false, // No POI
+                    holder -> false, // No POI
+                    ImmutableSet.of(),
+                    ImmutableSet.of(),
+                    null
+            )
+    );
 }
 
 

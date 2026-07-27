@@ -16,8 +16,8 @@ class ConfigTest {
     }
 
     @Test
-    void customerGiveUpSecondsDefaultsTo60() {
-        assertEquals(60, Config.CUSTOMER_GIVE_UP_SECONDS.getDefault());
+    void customerGiveUpSecondsDefaultsTo120() {
+        assertEquals(120, Config.CUSTOMER_GIVE_UP_SECONDS.getDefault());
     }
 
     @Test

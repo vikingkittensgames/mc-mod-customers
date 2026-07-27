@@ -22,7 +22,7 @@ public class Config {
             .defineInRange("maxCustomers", 4, 1, Integer.MAX_VALUE);
 
     public static final ModConfigSpec.IntValue CUSTOMER_GIVE_UP_SECONDS = BUILDER
-            .defineInRange("customerGiveUpSeconds", 60, 1, Integer.MAX_VALUE);
+            .defineInRange("customerGiveUpSeconds", 120, 1, Integer.MAX_VALUE);
 
     public static final ModConfigSpec.BooleanValue ENABLE_BUILD_COMMANDS = BUILDER
             .define("enableBuildCommands", false);

@@ -3,10 +3,12 @@ package com.vikingkittens.mc.customers.customer.ai;
 import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.common.ai.MobTimedGoal;
 import com.vikingkittens.mc.customers.config.Config;
+import com.vikingkittens.mc.customers.customer.Customer;
 import com.vikingkittens.mc.customers.customer.CustomerState;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlockEntity;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.npc.VillagerProfession;
 import org.slf4j.Logger;
 
 public class CustomerGiveUpGoal extends MobTimedGoal {
@@ -24,19 +26,26 @@ public class CustomerGiveUpGoal extends MobTimedGoal {
 
     @Override
     public boolean canUse() {
+        long giveUpTicks = 20L * Config.CUSTOMER_GIVE_UP_SECONDS.get();
+        VillagerProfession profession = customer.getVillagerData().getProfession();
+        if (profession == Customer.CUSTOMER_IMPATIENT_PROFESSION.get()) {
+            giveUpTicks = Math.max(1, giveUpTicks / 2);
+        } else if (profession == Customer.CUSTOMER_CASUAL_PROFESSION.get()) {
+            giveUpTicks = 0;
+        }
         return super.canUse() && (
                 // Happy path for state flow
                 (
                         (
                                 customer.getState() == CustomerState.BUYING &&
-                                customer.getTicksSinceTrade() > (20L * Config.CUSTOMER_GIVE_UP_SECONDS.get())
+                                (giveUpTicks > 0 && customer.getTicksSinceTrade() > giveUpTicks)
                         ) ||
-                        customer.getState() == CustomerState.FORCED_GIVING_UP
+                                customer.getState() == CustomerState.FORCED_GIVING_UP
                 ) ||
-                // Non-happy path where the state changed but timer never started like a server restart
-                (
-                        customer.getState() == CustomerState.GIVING_UP && !started
-                )
+                        // Non-happy path where the state changed but timer never started like a server restart
+                        (
+                                customer.getState() == CustomerState.GIVING_UP && !started
+                        )
         );
     }
 
