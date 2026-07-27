@@ -39,6 +39,24 @@ class CustomerSpawnerModeTest {
         assertEquals(expected, CustomerSpawnerMode.generateProgress(mode, ticksSinceMidnightAtMinute(minuteOfDay)), EPSILON);
     }
 
+    @ParameterizedTest
+    @MethodSource("variedMaximumCases")
+    void variesMaximumCustomersAcrossShiftProgress(
+            CustomerSpawnerMode mode,
+            int configuredMaximum,
+            float progress,
+            int expected
+    ) {
+        assertEquals(
+                expected,
+                CustomerSpawnerMode.getVariedMaxCustomers(
+                        mode,
+                        configuredMaximum,
+                        progress
+                )
+        );
+    }
+
     @Test
     void continuousAndManualAlwaysSpawnAndNeverShowProgress() {
         for (int minuteOfDay : new int[] {0, clockMinute(5, 0), clockMinute(12, 0), clockMinute(23, 59)}) {
@@ -154,6 +172,47 @@ class CustomerSpawnerModeTest {
                 Arguments.of(CustomerSpawnerMode.DINNER, clockMinute(18, 45), 0.5F),
                 Arguments.of(CustomerSpawnerMode.DINNER, clockMinute(20, 59), 269.0F / 270.0F),
                 Arguments.of(CustomerSpawnerMode.DINNER, clockMinute(21, 0), 0.0F)
+        );
+    }
+
+    private static Stream<Arguments> variedMaximumCases() {
+        return Stream.of(
+                Arguments.of(CustomerSpawnerMode.CONTINUOUS, 8, 0.0F, 8),
+                Arguments.of(CustomerSpawnerMode.CONTINUOUS, 8, 1.0F, 8),
+                Arguments.of(CustomerSpawnerMode.MANUAL, 8, 0.0F, 8),
+                Arguments.of(CustomerSpawnerMode.MANUAL, 8, 1.0F, 8),
+
+                Arguments.of(CustomerSpawnerMode.BREAKFAST, 8, 0.0F, 1),
+                Arguments.of(CustomerSpawnerMode.BREAKFAST, 8, 0.125F, 4),
+                Arguments.of(CustomerSpawnerMode.BREAKFAST, 8, 0.25F, 8),
+                Arguments.of(CustomerSpawnerMode.BREAKFAST, 8, 0.5F, 8),
+                Arguments.of(CustomerSpawnerMode.BREAKFAST, 8, 0.8F, 8),
+                Arguments.of(CustomerSpawnerMode.BREAKFAST, 8, 0.9F, 4),
+                Arguments.of(CustomerSpawnerMode.BREAKFAST, 8, 0.95F, 2),
+                Arguments.of(CustomerSpawnerMode.BREAKFAST, 8, 1.0F, 1),
+
+                Arguments.of(CustomerSpawnerMode.LUNCH, 8, 0.125F, 4),
+                Arguments.of(CustomerSpawnerMode.LUNCH, 8, 0.9F, 4),
+                Arguments.of(CustomerSpawnerMode.DINNER, 8, 0.125F, 4),
+                Arguments.of(CustomerSpawnerMode.DINNER, 8, 0.9F, 4),
+
+                Arguments.of(CustomerSpawnerMode.DAY, 12, 0.0F, 1),
+                Arguments.of(CustomerSpawnerMode.DAY, 12, 0.165F, 6),
+                Arguments.of(CustomerSpawnerMode.DAY, 12, 0.33F, 12),
+                Arguments.of(CustomerSpawnerMode.DAY, 12, 0.5F, 12),
+                Arguments.of(CustomerSpawnerMode.DAY, 12, 0.8F, 12),
+                Arguments.of(CustomerSpawnerMode.DAY, 12, 0.9F, 6),
+                Arguments.of(CustomerSpawnerMode.DAY, 12, 0.95F, 3),
+                Arguments.of(CustomerSpawnerMode.DAY, 12, 1.0F, 1),
+
+                Arguments.of(CustomerSpawnerMode.NIGHT, 12, 0.0F, 1),
+                Arguments.of(CustomerSpawnerMode.NIGHT, 12, 0.165F, 6),
+                Arguments.of(CustomerSpawnerMode.NIGHT, 12, 0.33F, 12),
+                Arguments.of(CustomerSpawnerMode.NIGHT, 12, 0.5F, 12),
+                Arguments.of(CustomerSpawnerMode.NIGHT, 12, 0.8F, 12),
+                Arguments.of(CustomerSpawnerMode.NIGHT, 12, 0.9F, 6),
+                Arguments.of(CustomerSpawnerMode.NIGHT, 12, 0.95F, 3),
+                Arguments.of(CustomerSpawnerMode.NIGHT, 12, 1.0F, 1)
         );
     }
 

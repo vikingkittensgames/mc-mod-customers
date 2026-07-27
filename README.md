@@ -31,6 +31,10 @@ spawned at any one time by default. The default maximum can be changed with the 
 configuration option or overridden for an individual spawner with redstone in its inventory.
 Customers that are done buying and are leaving do not count toward this maximum.
 
+During timed shifts, the customer maximum starts low, ramps up to the configured or
+inventory-defined maximum, and ramps down over the final portion of the shift. The longer
+Day and Night Shifts ramp up more gradually than the shorter meal shifts.
+
 ### Crafting Customer Spawner Blocks
 
 You can craft a customer spawner block from a bed surrounded by 8 emeralds.

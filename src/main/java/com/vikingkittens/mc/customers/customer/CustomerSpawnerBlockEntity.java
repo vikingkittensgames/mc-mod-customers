@@ -694,7 +694,13 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 long timeOfDay = (level.getDayTime() + 6000L) % 24000L;
                 boolean shouldSpawn = CustomerSpawnerMode.shouldSpawn(spawnerMode, timeOfDay);
                 if (!state.getValue(CustomerSpawnerBlock.STATE_DISABLED) && shouldSpawn) {
-                    if (entity.countActiveCustomers() < entity.getMaxCustomers()) {
+                    float progress = CustomerSpawnerMode.generateProgress(spawnerMode, timeOfDay);
+                    int maxCustomers = CustomerSpawnerMode.getVariedMaxCustomers(
+                            spawnerMode,
+                            entity.getMaxCustomers(),
+                            progress
+                    );
+                    if (entity.countActiveCustomers() < maxCustomers) {
                         entity.spawnCustomer();
                     }
 
@@ -710,7 +716,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                             entity.progressBar.setDarkenScreen(false);
                             entity.updatePlayers();
                         }
-                        entity.progressBar.setProgress(1.0F - CustomerSpawnerMode.generateProgress(spawnerMode, timeOfDay));
+                        entity.progressBar.setProgress(1.0F - progress);
                         Component progressBarTitle = spawnerMode.getTitle();
                         if (entity.progressBar.getName().getString() != progressBarTitle.getString()) {
                             entity.progressBar.setName(progressBarTitle);
