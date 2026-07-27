@@ -27,9 +27,9 @@ Customers only spawn where they have enough vertical clearance and a 2×2 surfac
 blocks, slabs, carpet, or stairs.
 
 Similar to a regular mob spawner block, each customer block will try to keep up to 4 customers
-spawned at any one time by default. The maximum can be changed with the `maxCustomers`
-configuration option. Customers that are done buying and are leaving do not count toward this
-maximum.
+spawned at any one time by default. The default maximum can be changed with the `maxCustomers`
+configuration option or overridden for an individual spawner with redstone in its inventory.
+Customers that are done buying and are leaving do not count toward this maximum.
 
 ### Crafting Customer Spawner Blocks
 
@@ -93,6 +93,11 @@ spawner container row contains a stack of emeralds, that will define how many em
 items in that row cost.  Remember this will be per item not per stack so if the customer
 buys more than one of the item, you will be payed that number of emeralds multiplied by
 the number of items in the stack.
+
+Redstone is also special and will not be offered to customers for purchase. The first stack
+of redstone in the spawner inventory sets the maximum number of customers for that individual
+spawner to the stack count. Removing all redstone returns the spawner to the `maxCustomers`
+configuration value.
 
 Examples:
 * Row 1 contains just a single apple - Customer will always ask for a single apple and

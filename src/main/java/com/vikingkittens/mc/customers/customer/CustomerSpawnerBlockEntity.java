@@ -21,6 +21,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ChestMenu;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.trading.ItemCost;
@@ -37,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.*;
+import java.util.function.Supplier;
 
 public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvider {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -44,7 +46,20 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     private static final int INVENTORY_ROW_SIZE = 9;
     private static final int SPAWN_CHECK_MAX_TICKS = 4;
 
-    private static MerchantOffers getOffersFromInventory(RandomSource random, ItemStackHandler inventory) {
+    static Item getPaymentItem() {
+        return Items.EMERALD;
+    }
+
+    static Item getMaxCustomersItem() {
+        return Items.REDSTONE;
+    }
+
+    static MerchantOffers getOffersFromInventory(
+            RandomSource random,
+            ItemStackHandler inventory,
+            Supplier<Item> paymentItem,
+            Supplier<Item> maxCustomersItem
+    ) {
         MerchantOffers offers = new MerchantOffers();
         int numRows = inventory.getSlots() / INVENTORY_ROW_SIZE;
         List<Integer> rowCost = new ArrayList<>();
@@ -59,11 +74,11 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             }
             ItemStack stack = inventory.getStackInSlot(slot);
             if (!stack.isEmpty()) {
-                if (stack.is(Items.EMERALD)) {
+                if (stack.is(paymentItem.get())) {
                     if (rowCost.get(row) < stack.getCount()) {
                         rowCost.set(row, stack.getCount());
                     }
-                } else {
+                } else if (!stack.is(maxCustomersItem.get())) {
                     rowItems.get(row).add(stack);
                 }
             }
@@ -85,7 +100,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             offers.add(new MerchantOffer(
                     new ItemCost(itemStack.getItem(), count),
                     Optional.empty(),
-                    new ItemStack(Items.EMERALD, rowCost.get(row) * count),
+                    new ItemStack(paymentItem.get(), rowCost.get(row) * count),
                     1,
                     rowCost.get(row),
                     0
@@ -98,6 +113,38 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         return offers;
     }
 
+    static MerchantOffers getOffersFromInventory(
+            RandomSource random,
+            ItemStackHandler inventory
+    ) {
+        return getOffersFromInventory(
+                random,
+                inventory,
+                CustomerSpawnerBlockEntity::getPaymentItem,
+                CustomerSpawnerBlockEntity::getMaxCustomersItem
+        );
+    }
+
+    static OptionalInt getMaxCustomersOverrideFromInventory(
+            ItemStackHandler inventory,
+            Supplier<Item> maxCustomersItem
+    ) {
+        for (int slot = 0; slot < inventory.getSlots(); slot++) {
+            ItemStack stack = inventory.getStackInSlot(slot);
+            if (stack.is(maxCustomersItem.get())) {
+                return OptionalInt.of(stack.getCount());
+            }
+        }
+        return OptionalInt.empty();
+    }
+
+    static OptionalInt getMaxCustomersOverrideFromInventory(ItemStackHandler inventory) {
+        return getMaxCustomersOverrideFromInventory(
+                inventory,
+                CustomerSpawnerBlockEntity::getMaxCustomersItem
+        );
+    }
+
     public static final String NAME = "customer_spawner_block_entity";
 
     private boolean ticksDisabled = false;
@@ -105,9 +152,11 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     private boolean needsUpdate = true;
     private long updateDelayTicks = 0;
+    private OptionalInt maxCustomersOverride = OptionalInt.empty();
     private final ItemStackHandler inventory = new ItemStackHandler(INVENTORY_ROW_SIZE * 6) {
         @Override
         protected void onContentsChanged(int slot) {
+            onInventoryUpdate();
             setChanged();
         }
     };
@@ -126,6 +175,14 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     public CustomerSpawnerBlockEntity(BlockPos pos, BlockState blockState) {
         super(CustomerSpawner.CUSTOMER_SPAWNER_ENTITY.get(), pos, blockState);
+    }
+
+    private void onInventoryUpdate() {
+        maxCustomersOverride = getMaxCustomersOverrideFromInventory(inventory);
+    }
+
+    private int getMaxCustomers() {
+        return maxCustomersOverride.orElseGet(Config.MAX_CUSTOMERS::get);
     }
 
     @Override
@@ -163,6 +220,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 LOGGER.error("Failed to load inventory because of error", t);
             }
         }
+        onInventoryUpdate();
         if (tag.contains("customers")) {
             try {
                 customerIds.clear();
@@ -636,7 +694,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 long timeOfDay = (level.getDayTime() + 6000L) % 24000L;
                 boolean shouldSpawn = CustomerSpawnerMode.shouldSpawn(spawnerMode, timeOfDay);
                 if (!state.getValue(CustomerSpawnerBlock.STATE_DISABLED) && shouldSpawn) {
-                    if (entity.countActiveCustomers() < Config.MAX_CUSTOMERS.get()) {
+                    if (entity.countActiveCustomers() < entity.getMaxCustomers()) {
                         entity.spawnCustomer();
                     }
 
