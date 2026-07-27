@@ -13,6 +13,7 @@ import com.vikingkittens.mc.customers.customer.CustomerCounterMarkersPayload;
 import com.vikingkittens.mc.customers.customer.CustomerShiftFinishedPayload;
 import com.vikingkittens.mc.customers.customer.CustomerState;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
+import com.vikingkittens.mc.customers.customer.special.CustomerWitchEntity;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -82,7 +83,11 @@ public class CustomerClientEvents {
 
                 poseStack.pushPose();
                 // Translate above the head
-                poseStack.translate(0, customer.getBbHeight() + 0.25F, 0);
+                float offset = 0.25F;
+                if (customer instanceof CustomerWitchEntity) {
+                    offset += 0.40F - nameTagOffset;
+                }
+                poseStack.translate(0, customer.getBbHeight() + offset, 0);
                 poseStack.mulPose(minecraft.getEntityRenderDispatcher().cameraOrientation());
                 poseStack.translate(0.0F, nameTagOffset, 0.0F);
 
