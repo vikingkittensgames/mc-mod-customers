@@ -9,7 +9,7 @@ public class MobTimedGoal extends Goal {
     protected static final Logger LOGGER = LogManager.getLogger();
 
     protected Mob mob;
-    private boolean started = false;
+    protected boolean started = false;
     protected long ticksSinceStart = 0;
     private boolean doneCalled = false;
 

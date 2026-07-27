@@ -24,8 +24,8 @@ public class CustomerMoveToSpawnGoal extends MobMoveToGoal {
                         customer.getState() == CustomerState.DONE ||
                         // Non-happy path where movement starts and the path is lost like with a server restart
                         (
-                            customer.getState() == CustomerState.MOVING_TO_SPAWN &&
-                            customer.getNavigation().getPath() == null
+                                customer.getState() == CustomerState.MOVING_TO_SPAWN &&
+                                customer.getNavigation().getPath() == null
                         )
                 ) &&
                 customer.getSpawnPos() != null;

@@ -28,7 +28,18 @@ public class CustomerThankGoal extends MobTimedGoal {
 
     @Override
     public boolean canUse() {
-        return super.canUse() && customer.getState() == CustomerState.BUYING && customer.getOffers().isEmpty();
+        return super.canUse() && (
+                // Happy path for state flow
+                (
+                        customer.getState() == CustomerState.BUYING &&
+                        customer.getOffers().isEmpty()
+                ) ||
+                // Non-happy path where the state changed but timer never started like a server restart
+                (
+                        customer.getState() == CustomerState.THANKING &&
+                        !started
+                )
+        );
     }
 
     @Override

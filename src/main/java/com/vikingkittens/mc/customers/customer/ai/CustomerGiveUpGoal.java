@@ -24,14 +24,20 @@ public class CustomerGiveUpGoal extends MobTimedGoal {
 
     @Override
     public boolean canUse() {
-        return super.canUse()
-                && (
-                    (
-                        customer.getState() == CustomerState.BUYING
-                        && customer.getTicksSinceTrade() > (20L * Config.CUSTOMER_GIVE_UP_SECONDS.get())
-                    )
-                    || customer.getState() == CustomerState.FORCED_GIVING_UP
-                );
+        return super.canUse() && (
+                // Happy path for state flow
+                (
+                        (
+                                customer.getState() == CustomerState.BUYING &&
+                                customer.getTicksSinceTrade() > (20L * Config.CUSTOMER_GIVE_UP_SECONDS.get())
+                        ) ||
+                        customer.getState() == CustomerState.FORCED_GIVING_UP
+                ) ||
+                // Non-happy path where the state changed but timer never started like a server restart
+                (
+                        customer.getState() == CustomerState.GIVING_UP && !started
+                )
+        );
     }
 
     @Override

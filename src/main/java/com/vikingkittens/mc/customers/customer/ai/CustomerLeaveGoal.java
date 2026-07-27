@@ -27,8 +27,8 @@ public class CustomerLeaveGoal extends MobMoveToGoal {
                         customer.getState() == CustomerState.LEAVING ||
                         // Non-happy path where movement starts and the path is lost like with a server restart
                         (
-                            customer.getState() == CustomerState.MOVING_TO_DESPAWN &&
-                            customer.getNavigation().getPath() == null
+                                customer.getState() == CustomerState.MOVING_TO_DESPAWN &&
+                                customer.getNavigation().getPath() == null
                         )
                 );
     }
