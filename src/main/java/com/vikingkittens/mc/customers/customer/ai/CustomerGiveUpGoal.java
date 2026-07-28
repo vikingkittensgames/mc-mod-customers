@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 public class CustomerGiveUpGoal extends MobTimedGoal {
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    private CustomerVillagerEntity customer;
+    private final CustomerVillagerEntity customer;
 
     private boolean messageSent = false;
     private long ticksSinceFX = 0;

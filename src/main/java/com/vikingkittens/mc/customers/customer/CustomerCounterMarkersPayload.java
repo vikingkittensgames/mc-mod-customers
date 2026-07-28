@@ -3,6 +3,7 @@ package com.vikingkittens.mc.customers.customer;
 import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.client.customer.CustomerClientEvents;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -15,7 +16,8 @@ import org.slf4j.Logger;
 import java.util.List;
 
 public record CustomerCounterMarkersPayload(
-        List<CustomerCounterMarker> markers
+        List<CustomerCounterMarker> markers,
+        List<BlockPos> surroundingPositions
 ) implements CustomPacketPayload {
     private static final Logger LOGGER = LogUtils.getLogger();
 
@@ -28,6 +30,7 @@ public record CustomerCounterMarkersPayload(
 
     public CustomerCounterMarkersPayload {
         markers = List.copyOf(markers);
+        surroundingPositions = List.copyOf(surroundingPositions);
     }
 
     private static void write(
@@ -38,6 +41,7 @@ public record CustomerCounterMarkersPayload(
             target.writeBlockPos(marker.position());
             target.writeEnum(marker.spawnerMode());
         });
+        buffer.writeCollection(payload.surroundingPositions(), (target, pos) -> target.writeBlockPos(pos));
     }
 
     private static CustomerCounterMarkersPayload read(FriendlyByteBuf buffer) {
@@ -45,7 +49,8 @@ public record CustomerCounterMarkersPayload(
                 buffer.readList(source -> new CustomerCounterMarker(
                         source.readBlockPos(),
                         source.readEnum(CustomerSpawnerMode.class)
-                ))
+                )),
+                buffer.readList(source -> source.readBlockPos())
         );
     }
 

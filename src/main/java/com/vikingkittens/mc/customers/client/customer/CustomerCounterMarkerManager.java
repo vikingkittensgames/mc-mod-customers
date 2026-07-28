@@ -1,6 +1,7 @@
 package com.vikingkittens.mc.customers.client.customer;
 
 import com.vikingkittens.mc.customers.customer.CustomerCounterMarker;
+import net.minecraft.core.BlockPos;
 
 import java.util.List;
 
@@ -12,13 +13,15 @@ final class CustomerCounterMarkerManager {
     private static final float BOB_DISTANCE = 0.1F;
 
     private static List<CustomerCounterMarker> markers = List.of();
+    private static List<BlockPos> surroundingPositions = List.of();
     private static long expiresAt;
 
     private CustomerCounterMarkerManager() {
     }
 
-    static void show(List<CustomerCounterMarker> newMarkers, long currentTime) {
+    static void show(List<CustomerCounterMarker> newMarkers, List<BlockPos> newSurroundingPositions, long currentTime) {
         markers = List.copyOf(newMarkers);
+        surroundingPositions = List.copyOf(newSurroundingPositions);
         expiresAt = currentTime + DURATION_MILLIS;
     }
 
@@ -27,6 +30,11 @@ final class CustomerCounterMarkerManager {
             clear();
         }
         return markers;
+    }
+
+    static List<BlockPos> getSurroundingPositions(long currentTime) {
+        get(currentTime);
+        return surroundingPositions;
     }
 
     static float getRotationDegrees(long currentTime) {
@@ -41,6 +49,7 @@ final class CustomerCounterMarkerManager {
 
     static void clear() {
         markers = List.of();
+        surroundingPositions = List.of();
         expiresAt = 0L;
     }
 }

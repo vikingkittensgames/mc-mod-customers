@@ -40,7 +40,11 @@ public class CustomerClientEvents {
     }
 
     public static void showCounterMarkers(CustomerCounterMarkersPayload payload) {
-        CustomerCounterMarkerManager.show(payload.markers(), Util.getMillis());
+        CustomerCounterMarkerManager.show(
+                payload.markers(),
+                payload.surroundingPositions(),
+                Util.getMillis()
+        );
     }
 
     @SubscribeEvent

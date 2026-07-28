@@ -1,14 +1,17 @@
 package com.vikingkittens.mc.customers.client.customer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.customer.CustomerCounterMarker;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlock;
+import net.minecraft.core.BlockPos;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
@@ -23,6 +26,12 @@ import java.util.List;
 @EventBusSubscriber(modid = Customers.MODID, value = Dist.CLIENT)
 public class CustomerCounterMarkerRenderer {
     private static final float SCALE = 0.5F;
+    private static final double HEIGHT_OFFSET = 1.25D;
+    private static final float SURROUNDING_SCALE = 0.25F;
+    private static final float SURROUNDING_RED = 54.0F / 255.0F;
+    private static final float SURROUNDING_GREEN = 153.0F / 255.0F;
+    private static final float SURROUNDING_BLUE = 28.0F / 255.0F;
+    private static final float SURROUNDING_ALPHA = 0.6F;
 
     @SubscribeEvent
     public static void render(RenderLevelStageEvent event) {
@@ -37,7 +46,8 @@ public class CustomerCounterMarkerRenderer {
 
         long currentTime = Util.getMillis();
         List<CustomerCounterMarker> markers = CustomerCounterMarkerManager.get(currentTime);
-        if (markers.isEmpty()) {
+        List<BlockPos> surroundingPositions = CustomerCounterMarkerManager.getSurroundingPositions(currentTime);
+        if (markers.isEmpty() && surroundingPositions.isEmpty()) {
             return;
         }
 
@@ -53,7 +63,7 @@ public class CustomerCounterMarkerRenderer {
             poseStack.pushPose();
             poseStack.translate(
                     marker.position().getX() + 0.5D - cameraPosition.x(),
-                    marker.position().getY() + 1.75D + bob - cameraPosition.y(),
+                    marker.position().getY() + HEIGHT_OFFSET + bob - cameraPosition.y(),
                     marker.position().getZ() + 0.5D - cameraPosition.z()
             );
             poseStack.mulPose(Axis.YP.rotationDegrees(
@@ -75,6 +85,31 @@ public class CustomerCounterMarkerRenderer {
             poseStack.popPose();
         }
 
+        VertexConsumer surroundingBuffer = bufferSource.getBuffer(RenderType.debugFilledBox());
+        for (BlockPos position : surroundingPositions) {
+            poseStack.pushPose();
+            poseStack.translate(
+                    position.getX() + 0.5D - cameraPosition.x(),
+                    position.getY() + HEIGHT_OFFSET + bob - cameraPosition.y(),
+                    position.getZ() + 0.5D - cameraPosition.z()
+            );
+            poseStack.scale(SURROUNDING_SCALE, SURROUNDING_SCALE, SURROUNDING_SCALE);
+            LevelRenderer.addChainedFilledBoxVertices(
+                    poseStack,
+                    surroundingBuffer,
+                    -0.5D,
+                    -0.5D,
+                    -0.5D,
+                    0.5D,
+                    0.5D,
+                    0.5D,
+                    SURROUNDING_RED,
+                    SURROUNDING_GREEN,
+                    SURROUNDING_BLUE,
+                    SURROUNDING_ALPHA
+            );
+            poseStack.popPose();
+        }
         bufferSource.endBatch();
     }
 

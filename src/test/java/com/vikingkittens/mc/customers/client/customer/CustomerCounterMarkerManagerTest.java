@@ -22,16 +22,29 @@ class CustomerCounterMarkerManagerTest {
                 BlockPos.ZERO,
                 CustomerSpawnerMode.DAY
         );
+        BlockPos surroundingPosition = new BlockPos(1, 2, 3);
 
-        CustomerCounterMarkerManager.show(List.of(marker), 1_000L);
+        CustomerCounterMarkerManager.show(
+                List.of(marker),
+                List.of(surroundingPosition),
+                1_000L
+        );
 
         assertEquals(
                 List.of(marker),
                 CustomerCounterMarkerManager.get(90_999L)
         );
         assertEquals(
+                List.of(surroundingPosition),
+                CustomerCounterMarkerManager.getSurroundingPositions(90_999L)
+        );
+        assertEquals(
                 List.of(),
                 CustomerCounterMarkerManager.get(91_000L)
+        );
+        assertEquals(
+                List.of(),
+                CustomerCounterMarkerManager.getSurroundingPositions(91_000L)
         );
     }
 
@@ -46,8 +59,8 @@ class CustomerCounterMarkerManagerTest {
                 CustomerSpawnerMode.NIGHT
         );
 
-        CustomerCounterMarkerManager.show(List.of(first), 1_000L);
-        CustomerCounterMarkerManager.show(List.of(second), 50_000L);
+        CustomerCounterMarkerManager.show(List.of(first), List.of(), 1_000L);
+        CustomerCounterMarkerManager.show(List.of(second), List.of(), 50_000L);
 
         assertEquals(
                 List.of(second),

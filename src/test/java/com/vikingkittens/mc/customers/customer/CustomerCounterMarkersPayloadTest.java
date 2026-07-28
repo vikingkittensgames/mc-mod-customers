@@ -23,7 +23,7 @@ class CustomerCounterMarkersPayloadTest {
                         new BlockPos(-20, 70, 30),
                         CustomerSpawnerMode.NIGHT
                 )
-        ));
+        ), List.of(new BlockPos(1, 2, 3)));
         FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
 
         CustomerCounterMarkersPayload.STREAM_CODEC.encode(buffer, original);
@@ -42,7 +42,7 @@ class CustomerCounterMarkersPayloadTest {
         ));
 
         CustomerCounterMarkersPayload payload =
-                new CustomerCounterMarkersPayload(mutableMarkers);
+                new CustomerCounterMarkersPayload(mutableMarkers, List.of());
         mutableMarkers.clear();
 
         assertEquals(1, payload.markers().size());

@@ -61,13 +61,14 @@ public class MobMoveToGoal extends MoveToBlockGoal {
     }
 
     protected boolean isDone() {
-        return isReachedTarget();
+        return targetPos != null
+                && getMoveToTarget().getBottomCenter()
+                .closerThan(mob.position(), acceptedDistance());
     }
 
     @Override
     public boolean canUse() {
-        return mob.isAlive() &&
-                !isDone();
+        return mob.isAlive();
     }
 
     @Override
@@ -97,7 +98,9 @@ public class MobMoveToGoal extends MoveToBlockGoal {
     public void start() {
         started = true;
         ticksSinceStart = 0;
+        ticksSinceCanReachCheck = 0;
         lastPath = null;
+        doneCalled = false;
         blockPos = targetPos;
         double initialDistance = Math.sqrt(mob.blockPosition().distSqr(targetPos));
         double movementSpeed = speedModifier * mob.getAttributeValue(Attributes.MOVEMENT_SPEED);
@@ -107,12 +110,21 @@ public class MobMoveToGoal extends MoveToBlockGoal {
     }
 
     @Override
+    public void stop() {
+        super.stop();
+        started = false;
+    }
+
+    @Override
     public double acceptedDistance() {
         return 1.5;
     }
 
     @Override
     public void tick() {
+        if (!started) {
+            return;
+        }
         if (ticksSinceCanReachCheck == 0 || ticksSinceCanReachCheck > 5) {
             ticksSinceCanReachCheck = 0;
             if (mob.getNavigation().getPath() != null && !mob.getNavigation().getPath().canReach()) {

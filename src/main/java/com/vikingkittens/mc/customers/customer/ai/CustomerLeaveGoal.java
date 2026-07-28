@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 public class CustomerLeaveGoal extends MobMoveToGoal {
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    private CustomerVillagerEntity customer;
+    private final CustomerVillagerEntity customer;
 
     public CustomerLeaveGoal(CustomerVillagerEntity customer, double speedModifier) {
         super(customer, customer.getSpawnPos(), speedModifier);

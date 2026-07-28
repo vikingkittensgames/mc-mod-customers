@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 public class CustomerMoveToSpawnGoal extends MobMoveToGoal {
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    private CustomerVillagerEntity customer;
+    private final CustomerVillagerEntity customer;
 
     public CustomerMoveToSpawnGoal(CustomerVillagerEntity customer, double speedModifier) {
         super(customer, customer.getSpawnPos(), speedModifier);

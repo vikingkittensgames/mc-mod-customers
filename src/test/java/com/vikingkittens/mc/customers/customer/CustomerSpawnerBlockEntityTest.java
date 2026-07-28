@@ -1,29 +1,34 @@
 package com.vikingkittens.mc.customers.customer;
 
-import net.minecraft.SharedConstants;
+import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentMap;
-import net.minecraft.server.Bootstrap;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.trading.MerchantOffers;
-import net.neoforged.fml.loading.LoadingModList;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.OptionalInt;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 /**
@@ -32,14 +37,7 @@ import static org.mockito.Mockito.when;
 class CustomerSpawnerBlockEntityTest {
     @BeforeAll
     static void bootstrapMinecraft() {
-        LoadingModList modList = mock(LoadingModList.class);
-        when(modList.getModFiles()).thenReturn(List.of());
-        try (MockedStatic<LoadingModList> loadingModList =
-                     mockStatic(LoadingModList.class)) {
-            loadingModList.when(LoadingModList::get).thenReturn(modList);
-            SharedConstants.tryDetectVersion();
-            Bootstrap.bootStrap();
-        }
+        MinecraftTestBootstrap.bootstrap();
     }
     @Test
     void usesFirstMaximumCustomerStackAndIgnoresLaterStacks() {
@@ -213,6 +211,215 @@ class CustomerSpawnerBlockEntityTest {
         assertEquals(2, offers.size());
     }
 
+    @Test
+    void firstCustomerReservesCounterAndIsAtFrontOfLine() {
+        Map<BlockPos, List<UUID>> reservations = new HashMap<>();
+        BlockPos position = new BlockPos(10, 20, 30);
+        UUID customerId = UUID.randomUUID();
+
+        UUID result = CustomerSpawnerBlockEntity.tryReserveTargetCounterPosition(
+                reservations,
+                position,
+                customerId,
+                ignored -> true
+        );
+
+        assertEquals(customerId, result);
+        assertEquals(List.of(customerId), reservations.get(position));
+    }
+
+    @Test
+    void addsNewCustomersToBeginningAndReturnsLastCustomer() {
+        Map<BlockPos, List<UUID>> reservations = new HashMap<>();
+        BlockPos position = new BlockPos(10, 20, 30);
+        UUID firstCustomerId = UUID.randomUUID();
+        UUID secondCustomerId = UUID.randomUUID();
+        reservations.put(position, new ArrayList<>(List.of(firstCustomerId)));
+
+        UUID result = CustomerSpawnerBlockEntity.tryReserveTargetCounterPosition(
+                reservations,
+                position,
+                secondCustomerId,
+                ignored -> true
+        );
+
+        assertEquals(firstCustomerId, result);
+        assertEquals(
+                List.of(secondCustomerId, firstCustomerId),
+                reservations.get(position)
+        );
+    }
+
+    @Test
+    void reservingSameCustomerDoesNotDuplicateIt() {
+        Map<BlockPos, List<UUID>> reservations = new HashMap<>();
+        BlockPos position = new BlockPos(10, 20, 30);
+        UUID customerId = UUID.randomUUID();
+        reservations.put(position, new ArrayList<>(List.of(customerId)));
+
+        CustomerSpawnerBlockEntity.tryReserveTargetCounterPosition(
+                reservations,
+                position,
+                customerId,
+                ignored -> true
+        );
+
+        assertEquals(List.of(customerId), reservations.get(position));
+    }
+
+    @Test
+    void removesInvalidCustomersBeforeAddingNewCustomer() {
+        Map<BlockPos, List<UUID>> reservations = new HashMap<>();
+        BlockPos position = new BlockPos(10, 20, 30);
+        UUID invalidCustomerId = UUID.randomUUID();
+        UUID activeCustomerId = UUID.randomUUID();
+        UUID newCustomerId = UUID.randomUUID();
+        reservations.put(
+                position,
+                new ArrayList<>(List.of(activeCustomerId, invalidCustomerId))
+        );
+
+        UUID result = CustomerSpawnerBlockEntity.tryReserveTargetCounterPosition(
+                reservations,
+                position,
+                newCustomerId,
+                id -> !id.equals(invalidCustomerId)
+        );
+
+        assertEquals(activeCustomerId, result);
+        assertEquals(
+                List.of(newCustomerId, activeCustomerId),
+                reservations.get(position)
+        );
+    }
+
+    @Test
+    void returnsCustomerBeingFollowed() {
+        BlockPos position = new BlockPos(10, 20, 30);
+        UUID newestCustomerId = UUID.randomUUID();
+        UUID middleCustomerId = UUID.randomUUID();
+        UUID counterCustomerId = UUID.randomUUID();
+        Map<BlockPos, List<UUID>> reservations = new HashMap<>();
+        reservations.put(
+                position,
+                new ArrayList<>(List.of(
+                        newestCustomerId,
+                        middleCustomerId,
+                        counterCustomerId
+                ))
+        );
+
+        assertEquals(
+                middleCustomerId,
+                CustomerSpawnerBlockEntity
+                        .getReservedTargetCounterPositionFollowingCustomerId(
+                                reservations,
+                                position,
+                                newestCustomerId,
+                                ignored -> true
+                        )
+        );
+        assertEquals(
+                counterCustomerId,
+                CustomerSpawnerBlockEntity
+                        .getReservedTargetCounterPositionFollowingCustomerId(
+                                reservations,
+                                position,
+                                middleCustomerId,
+                                ignored -> true
+                        )
+        );
+    }
+
+    @Test
+    void followingCustomerLookupRemovesInactiveReservations() {
+        BlockPos position = new BlockPos(10, 20, 30);
+        UUID queuedCustomerId = UUID.randomUUID();
+        UUID inactiveCustomerId = UUID.randomUUID();
+        UUID activeCustomerId = UUID.randomUUID();
+        Map<BlockPos, List<UUID>> reservations = new HashMap<>();
+        reservations.put(
+                position,
+                new ArrayList<>(List.of(
+                        queuedCustomerId,
+                        inactiveCustomerId,
+                        activeCustomerId
+                ))
+        );
+
+        UUID followingCustomerId = CustomerSpawnerBlockEntity
+                .getReservedTargetCounterPositionFollowingCustomerId(
+                        reservations,
+                        position,
+                        queuedCustomerId,
+                        id -> !id.equals(inactiveCustomerId)
+                );
+
+        assertEquals(activeCustomerId, followingCustomerId);
+        assertEquals(
+                List.of(queuedCustomerId, activeCustomerId),
+                reservations.get(position)
+        );
+    }
+
+    @Test
+    void lastCustomerHasNoCustomerToFollow() {
+        BlockPos position = new BlockPos(10, 20, 30);
+        UUID customerId = UUID.randomUUID();
+        Map<BlockPos, List<UUID>> reservations = new HashMap<>();
+        reservations.put(position, new ArrayList<>(List.of(customerId)));
+
+        assertEquals(
+                null,
+                CustomerSpawnerBlockEntity
+                        .getReservedTargetCounterPositionFollowingCustomerId(
+                                reservations,
+                                position,
+                                customerId,
+                                ignored -> true
+                        )
+        );
+    }
+
+    @Test
+    void roundTripsReservedTargetCounterPositionQueues() {
+        Map<BlockPos, List<UUID>> reservations = Map.of(
+                new BlockPos(10, 20, 30),
+                List.of(UUID.randomUUID(), UUID.randomUUID()),
+                new BlockPos(-5, 70, 12),
+                List.of(UUID.randomUUID())
+        );
+
+        ListTag saved = CustomerSpawnerBlockEntity.saveReservedTargetCounterPositions(reservations);
+        Map<BlockPos, List<UUID>> loaded =
+                CustomerSpawnerBlockEntity.loadReservedTargetCounterPositions(saved);
+
+        assertEquals(reservations, loaded);
+    }
+
+    @Test
+    void identifiesActiveCustomerById() {
+        ServerLevel level = mock(ServerLevel.class);
+        UUID customerId = UUID.randomUUID();
+        CustomerVillagerEntity customer = mock(CustomerVillagerEntity.class);
+        when(level.getEntity(customerId)).thenReturn(customer);
+        when(customer.isAlive()).thenReturn(true);
+        when(customer.getState()).thenReturn(CustomerState.BUYING);
+
+        assertTrue(CustomerVillagerEntity.isActiveCustomer(level, customerId));
+    }
+
+    @Test
+    void rejectsDoneCustomerById() {
+        ServerLevel level = mock(ServerLevel.class);
+        UUID customerId = UUID.randomUUID();
+        CustomerVillagerEntity customer = mock(CustomerVillagerEntity.class);
+        when(level.getEntity(customerId)).thenReturn(customer);
+        when(customer.isAlive()).thenReturn(true);
+        when(customer.getState()).thenReturn(CustomerState.DONE);
+
+        assertFalse(CustomerVillagerEntity.isActiveCustomer(level, customerId));
+    }
     private static MerchantOffers getOffers(
             RandomSource random,
             ItemStackHandler inventory,

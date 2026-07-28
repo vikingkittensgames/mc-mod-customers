@@ -41,7 +41,14 @@ public class MobTimedGoal extends Goal {
     public void start() {
         started = true;
         ticksSinceStart = 0;
+        doneCalled = false;
         super.start();
+    }
+
+    @Override
+    public void stop() {
+        super.stop();
+        started = false;
     }
 
     @Override

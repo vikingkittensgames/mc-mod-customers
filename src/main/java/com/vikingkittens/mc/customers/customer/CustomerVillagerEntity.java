@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -63,6 +64,7 @@ public class CustomerVillagerEntity extends Villager {
     private static final String TAG_STATE = "CustomerState";
     private static final String TAG_SPAWNER_POS = "SpawnerPos";
     private static final String TAG_SPAWN_POS = "SpawnPos";
+    private static final String TAG_COUNTER_TARGET_BLOCK_POS = "CounterTargetBlockPos";
     private static final String TAG_COUNTER_BLOCK_STATE = "CounterBlockState";
     private static final String TAG_AVOID_BLOCK_STATE = "AvoidBlockState";
     private static final String TAG_TRADED_WITH_PLAYERS = "TradedWithPlayers";
@@ -152,6 +154,28 @@ public class CustomerVillagerEntity extends Villager {
         return null;
     }
 
+    public static CustomerVillagerEntity getActiveCustomer(Level level, UUID customerId) {
+        if (!(level instanceof ServerLevel serverLevel)) {
+            return null;
+        }
+        Entity entity = serverLevel.getEntity(customerId);
+        if (entity instanceof CustomerVillagerEntity customer) {
+            if (
+                    customer.isAlive() &&
+                    !customer.isRemoved() &&
+                    customer.getState() != null &&
+                    customer.getState().compareTo(CustomerState.DONE) < 0
+            ) {
+                return customer;
+            }
+        }
+        return null;
+    }
+
+    public static boolean isActiveCustomer(Level level, UUID customerId) {
+        return getActiveCustomer(level, customerId) != null;
+    }
+
     private CustomerState state;
     private long ticksInState = 0;
     private BlockPos spawnerPos;
@@ -212,6 +236,22 @@ public class CustomerVillagerEntity extends Villager {
 
     public void setSpawnerPos(BlockPos spawnerPos) {
         this.spawnerPos = spawnerPos;
+    }
+
+    public CustomerSpawnerBlockEntity getSpawner() {
+        try {
+            if (
+                    getSpawnerPos() != null &&
+                    level().getBlockEntity(getSpawnerPos()) instanceof CustomerSpawnerBlockEntity spawner
+            ) {
+                return spawner;
+            }
+        } catch (Throwable t) {
+            LOGGER.error("Unable to find spawner because of error", t);
+        }
+        LOGGER.warn("Removing customer {} because spawner at {} lost", getUUID(), getSpawnerPos());
+        discard();
+        return null;
     }
 
     public BlockPos getSpawnPos() {
@@ -335,6 +375,8 @@ public class CustomerVillagerEntity extends Villager {
         }
         NbtUtils.readBlockPos(compound, TAG_SPAWNER_POS).ifPresent(this::setSpawnerPos);
         NbtUtils.readBlockPos(compound, TAG_SPAWN_POS).ifPresent(this::setSpawnPos);
+        readCounterTargetBlockPos(compound)
+                .ifPresent(this::setCounterTargetBlockPos);
         if (compound.contains(TAG_COUNTER_BLOCK_STATE)) {
             counterBlockState = NbtUtils.readBlockState(
                     registryAccess().lookupOrThrow(Registries.BLOCK),
@@ -373,6 +415,9 @@ public class CustomerVillagerEntity extends Villager {
         }
         if (spawnPos != null) {
             compound.put(TAG_SPAWN_POS, NbtUtils.writeBlockPos(spawnPos));
+        }
+        if (counterTargetBlockPos != null) {
+            saveCounterTargetBlockPos(compound, counterTargetBlockPos);
         }
         if (counterBlockState != null) {
             compound.put(TAG_COUNTER_BLOCK_STATE, NbtUtils.writeBlockState(counterBlockState));
@@ -452,6 +497,8 @@ public class CustomerVillagerEntity extends Villager {
 
         // Customer specific goals
         goalSelector.addGoal(0, new CustomerMoveToCounterGoal(this, 0.5));
+        goalSelector.addGoal(0, new CustomerLineUpGoal(this, 0.5));
+        goalSelector.addGoal(0, new CustomerWaitOnLeaderGoal(this));
         goalSelector.addGoal(0, new CustomerThankGoal(this));
         goalSelector.addGoal(0, new CustomerGiveUpGoal(this));
         goalSelector.addGoal(0, new CustomerMoveToSpawnGoal(this, 0.5));
@@ -597,7 +644,25 @@ public class CustomerVillagerEntity extends Villager {
             ticksSincePlayerScan++;
         }
     }
+
+    /**
+     * Reads a saved counter target position.
+     */
+    static Optional<BlockPos> readCounterTargetBlockPos(CompoundTag compound) {
+        return NbtUtils.readBlockPos(compound, TAG_COUNTER_TARGET_BLOCK_POS);
+    }
+
+    /**
+     * Saves a counter target position.
+     */
+    static void saveCounterTargetBlockPos(
+            CompoundTag compound,
+            BlockPos counterTargetBlockPos
+    ) {
+        compound.put(
+                TAG_COUNTER_TARGET_BLOCK_POS,
+                NbtUtils.writeBlockPos(counterTargetBlockPos)
+        );
+    }
+
 }
-
-
-

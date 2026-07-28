@@ -38,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvider {
@@ -45,6 +46,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     private static final int INVENTORY_ROW_SIZE = 9;
     private static final int SPAWN_CHECK_MAX_TICKS = 4;
+    private static final int RESERVATION_CLEANUP_LOAD_GRACE_TICKS = 20 * 30;
 
     static Item getPaymentItem() {
         return Items.EMERALD;
@@ -162,6 +164,8 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     };
     private long spawnCheckTicks = 0;
     private final Set<UUID> customerIds = new HashSet<>();
+    private final Map<BlockPos, List<UUID>> reservedTargetCounterPositions = new HashMap<>();
+    private int reservationCleanupLoadTicks;
     private ServerBossEvent progressBar;
     private final Set<UUID> playerIds = new HashSet<>();
     private long ticksSinceUpdateSpawned = 0;
@@ -208,6 +212,11 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         } catch (Throwable t) {
             LOGGER.error("Failed to save customers", t);
         }
+
+        tag.put(
+                "reservedTargetCounterPositions",
+                saveReservedTargetCounterPositions(reservedTargetCounterPositions)
+        );
     }
 
     @Override
@@ -236,13 +245,149 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 LOGGER.error("Failed to load customers because of error", t);
             }
         }
+        reservedTargetCounterPositions.clear();
+        if (tag.contains("reservedTargetCounterPositions", Tag.TAG_LIST)) {
+            reservedTargetCounterPositions.putAll(
+                    loadReservedTargetCounterPositions(
+                            tag.getList("reservedTargetCounterPositions", Tag.TAG_COMPOUND)
+                    )
+            );
+        }
     }
 
+    static ListTag saveReservedTargetCounterPositions(Map<BlockPos, List<UUID>> reservations) {
+        ListTag reservationsTag = new ListTag();
+        reservations.forEach((position, customerIds) -> {
+            CompoundTag reservationTag = new CompoundTag();
+            reservationTag.put("targetPosition", NbtUtils.writeBlockPos(position));
+            ListTag customerIdsTag = new ListTag();
+            for (UUID customerId : customerIds) {
+                customerIdsTag.add(NbtUtils.createUUID(customerId));
+            }
+            reservationTag.put("customerIds", customerIdsTag);
+            reservationsTag.add(reservationTag);
+        });
+        return reservationsTag;
+    }
+
+    static Map<BlockPos, List<UUID>> loadReservedTargetCounterPositions(ListTag reservationsTag) {
+        Map<BlockPos, List<UUID>> reservations = new HashMap<>();
+        for (int index = 0; index < reservationsTag.size(); index++) {
+            CompoundTag reservationTag = reservationsTag.getCompound(index);
+            List<UUID> customerIds = new ArrayList<>();
+            ListTag customerIdsTag = reservationTag.getList("customerIds", Tag.TAG_INT_ARRAY);
+            for (int customerIndex = 0; customerIndex < customerIdsTag.size(); customerIndex++) {
+                customerIds.add(NbtUtils.loadUUID(customerIdsTag.get(customerIndex)));
+            }
+            NbtUtils.readBlockPos(reservationTag, "targetPosition").ifPresent(position ->
+                    reservations.put(position, customerIds)
+            );
+        }
+        return reservations;
+    }
+
+    public UUID tryReserveTargetCounterPosition(BlockPos targetPosition, UUID customerId) {
+        UUID counterCustomerId = tryReserveTargetCounterPosition(
+                reservedTargetCounterPositions,
+                targetPosition,
+                customerId,
+                this::isActiveCustomer
+        );
+        setChanged();
+        return counterCustomerId;
+    }
+
+    static UUID tryReserveTargetCounterPosition(
+            Map<BlockPos, List<UUID>> reservations,
+            BlockPos targetPosition,
+            UUID customerId,
+            Predicate<UUID> activeCustomer
+    ) {
+        List<UUID> customerIds = reservations.computeIfAbsent(
+                targetPosition,
+                ignored -> new ArrayList<>()
+        );
+        customerIds.removeIf(id -> !activeCustomer.test(id));
+        if (!customerIds.contains(customerId)) {
+            customerIds.addFirst(customerId);
+        }
+        return customerIds.getLast();
+    }
+
+    public UUID getReservedTargetCounterPositionFollowingCustomerId(
+            BlockPos targetPosition,
+            UUID customerId
+    ) {
+        UUID followingCustomerId = getReservedTargetCounterPositionFollowingCustomerId(
+                reservedTargetCounterPositions,
+                targetPosition,
+                customerId,
+                this::isActiveCustomer
+        );
+        setChanged();
+        return followingCustomerId;
+    }
+
+    static UUID getReservedTargetCounterPositionFollowingCustomerId(
+            Map<BlockPos, List<UUID>> reservations,
+            BlockPos targetPosition,
+            UUID customerId,
+            Predicate<UUID> activeCustomer
+    ) {
+        List<UUID> customerIds = reservations.get(targetPosition);
+        if (customerIds == null) {
+            return null;
+        }
+        customerIds.removeIf(id -> !activeCustomer.test(id));
+        if (customerIds.isEmpty()) {
+            reservations.remove(targetPosition);
+            return null;
+        }
+        int customerIndex = customerIds.indexOf(customerId);
+        if (customerIndex < 0 || customerIndex == customerIds.size() - 1) {
+            return null;
+        }
+        return customerIds.get(customerIndex + 1);
+    }
+
+    public Map<BlockPos, List<UUID>> getReservedTargetCounterPositions() {
+        boolean removed = false;
+        Iterator<Map.Entry<BlockPos, List<UUID>>> iterator =
+                reservedTargetCounterPositions.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<BlockPos, List<UUID>> entry = iterator.next();
+            if (entry.getValue().removeIf(id -> !isActiveCustomer(id))) {
+                removed = true;
+            }
+            if (entry.getValue().isEmpty()) {
+                iterator.remove();
+                removed = true;
+            }
+        }
+        if (removed) {
+            setChanged();
+        }
+        Map<BlockPos, List<UUID>> reservations = new HashMap<>();
+        reservedTargetCounterPositions.forEach((position, customerIds) ->
+                reservations.put(position, List.copyOf(customerIds))
+        );
+        return Map.copyOf(reservations);
+    }
+
+    private boolean isActiveCustomer(UUID customerId) {
+        if (
+                reservationCleanupLoadTicks < RESERVATION_CLEANUP_LOAD_GRACE_TICKS &&
+                level instanceof ServerLevel serverLevel &&
+                serverLevel.getEntity(customerId) == null
+        ) {
+            return true;
+        }
+        return CustomerVillagerEntity.isActiveCustomer(level, customerId);
+    }
     @Override
     public net.minecraft.network.chat.Component getDisplayName() {
         return Component.translatable("block.customers.customer_spawner_block");
     }
-
     public void beforeRemove() {
         // Drop all items when block is broken
         SimpleContainer container = new SimpleContainer(inventory.getSlots());
@@ -660,6 +805,9 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     public static void tick(Level level, BlockPos pos, BlockState state, CustomerSpawnerBlockEntity entity) {
         if (!level.isClientSide()) {
+            if (entity.reservationCleanupLoadTicks < RESERVATION_CLEANUP_LOAD_GRACE_TICKS) {
+                entity.reservationCleanupLoadTicks++;
+            }
             if (entity.ticksSinceTicksDisabledCheck == 0 || entity.ticksSinceTicksDisabledCheck > 20) {
                 try {
                     entity.ticksDisabled = SearchUtils.findEntitiesInSphere(level, Player.class, pos, 64, (p, e) -> true).isEmpty();

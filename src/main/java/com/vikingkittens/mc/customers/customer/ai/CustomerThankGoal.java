@@ -14,7 +14,7 @@ import java.util.EnumSet;
 public class CustomerThankGoal extends MobTimedGoal {
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    private CustomerVillagerEntity customer;
+    private final CustomerVillagerEntity customer;
 
     private boolean messageSent = false;
     private long ticksSinceJump = 0;

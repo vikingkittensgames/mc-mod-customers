@@ -5,7 +5,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.common.SearchUtils;
 import com.vikingkittens.mc.customers.config.Config;
-import com.vikingkittens.mc.customers.customer.ai.CustomerMoveToCounterGoal;
+import com.vikingkittens.mc.customers.customer.CustomerCounter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -22,6 +22,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @EventBusSubscriber(modid = Customers.MODID)
 public class CustomerCommands {
@@ -53,6 +55,7 @@ public class CustomerCommands {
                 (pos, state) -> state.is(CustomerSpawner.CUSTOMER_SPAWNER_BLOCK.get())
         );
         Map<BlockPos, CustomerCounterMarker> markers = new LinkedHashMap<>();
+        Set<BlockPos> surroundingPositions = new LinkedHashSet<>();
 
         source.sendSuccess(
                 () -> formatHeading(includeCounters),
@@ -66,14 +69,17 @@ public class CustomerCommands {
             source.sendSuccess(() -> formatSpawner(spawnerPos, enabled, mode), false);
 
             if (includeCounters) {
-                sendCounters(source, level, spawnerPos, mode, markers);
+                sendCounters(source, level, spawnerPos, player, mode, markers, surroundingPositions);
             }
         }
 
         if (includeCounters) {
             PacketDistributor.sendToPlayer(
                     player,
-                    new CustomerCounterMarkersPayload(List.copyOf(markers.values()))
+                    new CustomerCounterMarkersPayload(
+                            List.copyOf(markers.values()),
+                            List.copyOf(surroundingPositions)
+                    )
             );
         }
 
@@ -84,19 +90,35 @@ public class CustomerCommands {
             CommandSourceStack source,
             ServerLevel level,
             BlockPos spawnerPos,
+            ServerPlayer player,
             CustomerSpawnerMode spawnerMode,
-            Map<BlockPos, CustomerCounterMarker> markers
+            Map<BlockPos, CustomerCounterMarker> markers,
+            Set<BlockPos> surroundingPositions
     ) {
         BlockState counterBlockState = level.getBlockState(spawnerPos.above());
         if (counterBlockState.isAir()) {
             return;
         }
 
-        List<BlockPos> counterPositions = CustomerMoveToCounterGoal.findCounterPositions(
+        BlockState avoidBlockState = level.getBlockState(spawnerPos.below());
+        List<BlockPos> counterPositions = CustomerCounter.findCounterPositions(
                 level,
                 spawnerPos,
                 counterBlockState
         );
+        CustomerCounter.findValidSurroundingPositions(
+                level,
+                counterPositions,
+                player,
+                avoidBlockState
+        ).stream().map(position -> CustomerCounter.getMarkerPosition(
+                level,
+                position,
+                player,
+                avoidBlockState
+        ))
+                .forEach(surroundingPositions::add);
+
         for (BlockPos counterPos : counterPositions) {
             BlockState state = level.getBlockState(counterPos);
             addCounterMarker(markers, counterPos, spawnerMode);
