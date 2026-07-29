@@ -149,20 +149,6 @@ public class SupplierVillagerEntity extends Villager {
                         );
                         boolean pathFound = path != null;
                         boolean canReachSpawner = pathFound && path.canReach();
-
-                        LOGGER.debug(
-                                "Validating supplier spawn: attempt={}, position={}, spawner={}, navigationTarget={}, pathFound={}, canReachSpawner={}, onGround={}, inLiquid={}, passenger={}, followRange={}",
-                                attempt,
-                                candidatePos,
-                                spawnerPos,
-                                navigationTarget,
-                                pathFound,
-                                canReachSpawner,
-                                supplier.onGround(),
-                                supplier.isInLiquid(),
-                                supplier.isPassenger(),
-                                supplier.getAttributeValue(Attributes.FOLLOW_RANGE)
-                        );
                         return canReachSpawner;
                     }
             );
