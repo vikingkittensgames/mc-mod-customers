@@ -8,11 +8,17 @@ import com.vikingkittens.mc.customers.customer.CustomerState;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlockEntity;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.npc.VillagerProfession;
+import net.minecraft.world.item.trading.MerchantOffer;
 import org.slf4j.Logger;
+
+import java.util.List;
 
 public class CustomerGiveUpGoal extends MobTimedGoal {
     private static final Logger LOGGER = LogUtils.getLogger();
+    private static final int GIVE_UP_MESSAGE_COUNT = 15;
 
     private final CustomerVillagerEntity customer;
 
@@ -73,7 +79,12 @@ public class CustomerGiveUpGoal extends MobTimedGoal {
         super.tick();
         if (!messageSent && ticksSinceStart >= 20 * 1) {
             messageSent = true;
-            customer.sentPlayersMessage(Component.translatable("messages.customers.give_up").withColor(0xFF0000));
+            customer.sentPlayersMessage(
+                    createGiveUpMessage(
+                            customer.getRandom(),
+                            customer.getOffers()
+                    ).withColor(0xFF0000)
+            );
         }
         if (ticksSinceFX == 0 || ticksSinceFX > 30) {
             customer.playAngry();
@@ -86,5 +97,24 @@ public class CustomerGiveUpGoal extends MobTimedGoal {
     protected void onDone() {
         // LOGGER.debug("Done giving up");
         customer.setState(CustomerState.DONE);
+    }
+
+    static MutableComponent createGiveUpMessage(
+            RandomSource random,
+            List<MerchantOffer> offers
+    ) {
+        int messageNumber = random.nextInt(GIVE_UP_MESSAGE_COUNT) + 1;
+        List<Component> remainingItemNames = offers.stream()
+                .filter(offer -> !offer.isOutOfStock())
+                .map(offer -> offer.getBaseCostA().getHoverName())
+                .toList();
+        Component itemName = remainingItemNames.isEmpty()
+                ? Component.empty()
+                : remainingItemNames.get(random.nextInt(remainingItemNames.size()));
+
+        return Component.translatable(
+                "messages.customers.give_up" + messageNumber,
+                itemName
+        );
     }
 }

@@ -6,6 +6,8 @@ import com.vikingkittens.mc.customers.customer.CustomerState;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlockEntity;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.ai.goal.Goal;
 import org.slf4j.Logger;
 
@@ -13,12 +15,14 @@ import java.util.EnumSet;
 
 public class CustomerThankGoal extends MobTimedGoal {
     private static final Logger LOGGER = LogUtils.getLogger();
+    private static final int THANK_YOU_MESSAGE_COUNT = 15;
 
     private final CustomerVillagerEntity customer;
 
     private boolean messageSent = false;
     private long ticksSinceJump = 0;
     private long ticksSinceFX = 0;
+    private Component lastTradedItem = Component.empty();
 
     public CustomerThankGoal(CustomerVillagerEntity customer) {
         super(customer);
@@ -28,6 +32,13 @@ public class CustomerThankGoal extends MobTimedGoal {
 
     @Override
     public boolean canUse() {
+        customer.getOffers().stream()
+                .filter(offer -> !offer.isOutOfStock())
+                .findFirst()
+                .ifPresent(offer ->
+                        lastTradedItem = offer.getBaseCostA().getHoverName()
+                );
+
         return super.canUse() && (
                 // Happy path for state flow
                 (
@@ -64,7 +75,12 @@ public class CustomerThankGoal extends MobTimedGoal {
         super.tick();
         if (!messageSent && ticksSinceStart >= 20 * 1) {
             messageSent = true;
-            customer.sentPlayersMessage(Component.translatable("messages.customers.thank_you").withColor(0x36991C));
+            customer.sentPlayersMessage(
+                    createThankYouMessage(
+                            customer.getRandom(),
+                            lastTradedItem
+                    ).withColor(0x36991C)
+            );
         }
         if (!customer.isPassenger() && (ticksSinceJump == 0 || ticksSinceJump > 20)) {
             customer.jumpFromGround();
@@ -81,5 +97,16 @@ public class CustomerThankGoal extends MobTimedGoal {
     @Override
     protected void onDone() {
         customer.setState(CustomerState.DONE);
+    }
+
+    static MutableComponent createThankYouMessage(
+            RandomSource random,
+            Component itemName
+    ) {
+        int messageNumber = random.nextInt(THANK_YOU_MESSAGE_COUNT) + 1;
+        return Component.translatable(
+                "messages.customers.thank_you" + messageNumber,
+                itemName
+        );
     }
 }
