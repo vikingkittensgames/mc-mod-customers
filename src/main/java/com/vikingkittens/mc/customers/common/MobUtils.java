@@ -66,9 +66,16 @@ public final class MobUtils {
     }
 
     @Nullable
-    public static BlockPos getRandomSpawnPos(Level level, BlockPos centerPos, int radius, int requiredAirBlocks) {
+    public static BlockPos getRandomSpawnPos(
+            Level level,
+            BlockPos centerPos,
+            int radius,
+            int requiredAirBlocks,
+            int maxAttempts,
+            Predicate<BlockPos> isValid
+    ) {
         BlockPos.MutableBlockPos safePos = new BlockPos.MutableBlockPos();
-        for (int attempt = 0; attempt < MAX_RANDOM_SPAWN_ATTEMPTS; attempt++) {
+        for (int attempt = 0; attempt < maxAttempts; attempt++) {
             int randomX = centerPos.getX() + level.getRandom().nextIntBetweenInclusive(-radius, radius);
             int randomZ = centerPos.getZ() + level.getRandom().nextIntBetweenInclusive(-radius, radius);
             int groundY = level.getHeight(Heightmap.Types.WORLD_SURFACE, randomX, randomZ);
@@ -97,7 +104,11 @@ public final class MobUtils {
                             requiredAirBlocks
                     );
                     */
-                    if (airCount >= requiredAirBlocks && hasValidSupportArea(level, safePos)) {
+                    if (
+                            airCount >= requiredAirBlocks &&
+                            hasValidSupportArea(level, safePos) &&
+                            isValid.test(safePos)
+                    ) {
                         return safePos.immutable();
                     }
                 }
@@ -108,5 +119,14 @@ public final class MobUtils {
             }
         }
         return null;
+    }
+
+    public static BlockPos getRandomSpawnPos(
+            Level level,
+            BlockPos centerPos,
+            int radius,
+            int requiredAirBlocks
+    ) {
+        return getRandomSpawnPos(level, centerPos, radius, requiredAirBlocks, MAX_RANDOM_SPAWN_ATTEMPTS, (pos) -> true);
     }
 }

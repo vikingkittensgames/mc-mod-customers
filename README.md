@@ -237,8 +237,8 @@ container and in the next slot put 5 emeralds, the supplier will sell you 32 raw
 
 ### Supplier Spawning
 
-The Supplier will spawn each morning up to 32 blocks away from the spawner and walk to the
-spawner.  Once the Supplier is there you can start build items.
+The Supplier will spawn each morning up to 64 blocks away from the spawner at a position
+from which it can walk back to the spawner. Once the Supplier is there you can start buying items.
 
 Suppliers only spawn where they have enough vertical clearance and a 2×2 surface made from solid
 blocks, slabs, carpet, or stairs.

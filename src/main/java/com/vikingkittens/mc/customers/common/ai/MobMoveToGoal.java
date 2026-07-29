@@ -3,6 +3,7 @@ package com.vikingkittens.mc.customers.common.ai;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.MoveToBlockGoal;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.pathfinder.Path;
@@ -11,6 +12,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 public class MobMoveToGoal extends MoveToBlockGoal {
@@ -27,6 +29,7 @@ public class MobMoveToGoal extends MoveToBlockGoal {
 
     public MobMoveToGoal(PathfinderMob mob, BlockPos targetPos, double speedModifier) {
         super(mob, speedModifier, 0);
+        setFlags(EnumSet.of(Goal.Flag.MOVE));
 
         this.targetPos = targetPos;
     }

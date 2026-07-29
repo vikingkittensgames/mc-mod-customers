@@ -22,6 +22,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.LookAtTradingPlayerGoal;
 import net.minecraft.world.entity.npc.Villager;
@@ -118,6 +119,7 @@ public class CustomerVillagerEntity extends Villager {
                 BlockPos safePos = MobUtils.getRandomSpawnPos(level, spawnerPos, 5, 3);
                 if (safePos != null) {
                     customer.moveTo(safePos, 0, 0);
+                    customer.setOnGround(true);
 
                     VillagerData data = customer.getVillagerData();
                     VillagerProfession profession = Customer.CUSTOMER_PROFESSION.get();
@@ -490,6 +492,9 @@ public class CustomerVillagerEntity extends Villager {
         goalSelector.removeAllGoals(goal -> true);
         // Remove the standard targets
         targetSelector.removeAllGoals(goal -> true);
+
+        // Keep the customer afloat when submerged
+        goalSelector.addGoal(0, new FloatGoal(this));
 
         // Start with looking at the player
         goalSelector.addGoal(0, new LookAtTradingPlayerGoal(this));
