@@ -46,7 +46,6 @@ This project is a Minecraft mod built with the NeoForge mod loader.
 ## Documentation Standards
 
 - Add clear Javadocs above every new class.
-- Add clear Javadocs above every new method.
 - Keep Javadocs useful and behavior-focused. Avoid restating obvious implementation details.
 
 ## Review Expectations
