@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 public class SupplierMoveToSpawnGoal extends MobMoveToGoal {
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    private SupplierVillagerEntity supplier;
+    private final SupplierVillagerEntity supplier;
 
     public SupplierMoveToSpawnGoal(SupplierVillagerEntity supplier, double speedModifier) {
         super(supplier, supplier.getSpawnPos(), speedModifier);
@@ -20,9 +20,17 @@ public class SupplierMoveToSpawnGoal extends MobMoveToGoal {
     @Override
     public boolean canUse() {
         return super.canUse() &&
-                supplier.getState() == SupplierState.SELLING &&
                 supplier.getSpawnPos() != null &&
-                supplier.level().isNight();
+                supplier.level().isNight() &&
+                (
+                        // Happy path for state flow
+                        supplier.getState() == SupplierState.SELLING ||
+                        // Non-happy path where movement starts and the path is lost like with a server restart
+                        (
+                                supplier.getState() == SupplierState.MOVING_TO_DESPAWN &&
+                                supplier.getNavigation().getPath() == null
+                        )
+                );
     }
 
     @Override

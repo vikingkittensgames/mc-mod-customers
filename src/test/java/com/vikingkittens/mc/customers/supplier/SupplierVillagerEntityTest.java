@@ -3,6 +3,7 @@ package com.vikingkittens.mc.customers.supplier;
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 import com.vikingkittens.mc.customers.common.MobUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.pathfinder.Path;
@@ -14,9 +15,11 @@ import org.mockito.MockedStatic;
 import java.util.function.Predicate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
@@ -28,6 +31,20 @@ class SupplierVillagerEntityTest {
     @BeforeAll
     static void bootstrapMinecraft() {
         MinecraftTestBootstrap.bootstrap();
+    }
+
+    @Test
+    void ignoresFallDamage() {
+        SupplierVillagerEntity supplier = mock(
+                SupplierVillagerEntity.class,
+                CALLS_REAL_METHODS
+        );
+
+        assertFalse(supplier.causeFallDamage(
+                100.0F,
+                1.0F,
+                mock(DamageSource.class)
+        ));
     }
 
     @Test

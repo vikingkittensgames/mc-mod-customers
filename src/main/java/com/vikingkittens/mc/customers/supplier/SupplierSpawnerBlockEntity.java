@@ -82,7 +82,8 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
         }
     };
 
-    private long lastTimeOfDay = 0;
+    private boolean daytimeStateInitialized = false;
+    private boolean lastTickWasDaytime = false;
 
     public SupplierSpawnerBlockEntity(BlockPos pos, BlockState blockState) {
         super(SupplierSpawner.SUPPLIER_SPAWNER_ENTITY.get(), pos, blockState);
@@ -98,7 +99,8 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
             LOGGER.error("Failed to save inventory", t);
         }
 
-        tag.putLong("lastTimeOfDay", lastTimeOfDay);
+        tag.putBoolean("daytimeStateInitialized", daytimeStateInitialized);
+        tag.putBoolean("lastTickWasDaytime", lastTickWasDaytime);
     }
 
     @Override
@@ -113,9 +115,9 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
             }
         }
 
-        if (tag.contains("lastTimeOfDay")) {
-            lastTimeOfDay = tag.getLong("lastTimeOfDay");
-        }
+        daytimeStateInitialized =
+                tag.getBoolean("daytimeStateInitialized");
+        lastTickWasDaytime = tag.getBoolean("lastTickWasDaytime");
     }
 
     @Override
@@ -241,11 +243,37 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 return;
             }
 
-            long timeOfDay = (level.getDayTime() + 6000L) % 24000L;
-            if (timeOfDay < entity.lastTimeOfDay && !state.getValue(SupplierSpawnerBlock.STATE_DISABLED)) {
+            boolean isDaytime = level.isDay();
+            if (!entity.daytimeStateInitialized) {
+                entity.daytimeStateInitialized = true;
+                entity.lastTickWasDaytime = isDaytime;
+                entity.setChanged();
+                return;
+            }
+
+            if (
+                    shouldSpawnForDaytimeTransition(
+                            entity.daytimeStateInitialized,
+                            entity.lastTickWasDaytime,
+                            isDaytime
+                    ) &&
+                    !state.getValue(SupplierSpawnerBlock.STATE_DISABLED)
+            ) {
                 entity.spawnSupplier();
             }
-            entity.lastTimeOfDay = timeOfDay;
+
+            if (entity.lastTickWasDaytime != isDaytime) {
+                entity.lastTickWasDaytime = isDaytime;
+                entity.setChanged();
+            }
         }
+    }
+
+    static boolean shouldSpawnForDaytimeTransition(
+            boolean initialized,
+            boolean previousDaytime,
+            boolean currentDaytime
+    ) {
+        return initialized && !previousDaytime && currentDaytime;
     }
 }

@@ -13,6 +13,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -69,6 +70,7 @@ public class SupplierVillagerEntity extends Villager {
             BlockPos navigationTarget =
                     PositionUtils.findGroundedTargetPosition(level, spawnerPos);
             if (navigationTarget == null) {
+                LOGGER.error("Failed to spawn supplier, unable to find spawner ground position for spawner {}", spawnerPos);
                 return null;
             }
 
@@ -103,7 +105,11 @@ public class SupplierVillagerEntity extends Villager {
                     // Spawn the entity in the world
                     serverLevel.addFreshEntity(supplier);
 
+                    LOGGER.warn("Supplier spawned at {}", supplier.blockPosition());
+
                     return supplier;
+                } else {
+                    LOGGER.error("Failed to spawn supplier, unable to find good spawn position {}", spawnerPos);
                 }
             }
         }
@@ -149,6 +155,14 @@ public class SupplierVillagerEntity extends Villager {
                         );
                         boolean pathFound = path != null;
                         boolean canReachSpawner = pathFound && path.canReach();
+
+                        LOGGER.warn("Supplier attempt [{}]: pos={}, path-found={}, can-reach={}",
+                                attempt,
+                                candidatePos,
+                                pathFound,
+                                canReachSpawner
+                        );
+
                         return canReachSpawner;
                     }
             );
@@ -222,6 +236,15 @@ public class SupplierVillagerEntity extends Villager {
 
     @Override
     public boolean removeWhenFarAway(double distanceToClosestPlayer) {
+        return false;
+    }
+
+    @Override
+    public boolean causeFallDamage(
+            float fallDistance,
+            float multiplier,
+            DamageSource source
+    ) {
         return false;
     }
 
