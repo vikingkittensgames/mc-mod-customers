@@ -96,8 +96,8 @@ class PositionUtilsGroundedTargetTest {
         BlockState solid = mock(BlockState.class);
         when(air.isAir()).thenReturn(true);
         when(solid.isAir()).thenReturn(false);
-        when(level.getMinBuildHeight()).thenReturn(0);
-        when(level.getMaxBuildHeight()).thenReturn(256);
+        when(level.getMinY()).thenReturn(0);
+        when(level.getMaxY()).thenReturn(256);
         when(level.getBlockState(any(BlockPos.class))).thenAnswer(invocation ->
                 airAtY.test(invocation.<BlockPos>getArgument(0).getY())
                         ? air

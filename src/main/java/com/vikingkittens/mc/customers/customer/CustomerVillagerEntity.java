@@ -6,15 +6,13 @@ import com.vikingkittens.mc.customers.common.MobUtils;
 import com.vikingkittens.mc.customers.customer.ai.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtUtils;
-import net.minecraft.nbt.Tag;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
@@ -22,14 +20,14 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.LookAtTradingPlayerGoal;
-import net.minecraft.world.entity.npc.Villager;
-import net.minecraft.world.entity.npc.VillagerData;
-import net.minecraft.world.entity.npc.VillagerProfession;
-import net.minecraft.world.entity.npc.VillagerType;
+import net.minecraft.world.entity.npc.villager.Villager;
+import net.minecraft.world.entity.npc.villager.VillagerData;
+import net.minecraft.world.entity.npc.villager.VillagerProfession;
+import net.minecraft.world.entity.npc.villager.VillagerType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -39,6 +37,8 @@ import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.registries.datamaps.builtin.BiomeVillagerType;
 import net.neoforged.neoforge.registries.datamaps.builtin.NeoForgeDataMaps;
@@ -73,6 +73,7 @@ public class CustomerVillagerEntity extends Villager {
     private static final String TAG_TRADED_PLAYER_UUID = "UUID";
     private static final int MAX_SYNCED_DISPLAY_OFFERS = 3;
     private static final EntityDataAccessor<Integer> DATA_CUSTOMER_STATE = SynchedEntityData.defineId(CustomerVillagerEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> DATA_CUSTOMER_SITTING = SynchedEntityData.defineId(CustomerVillagerEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<ItemStack> DATA_OFFER_DISPLAY_ITEM_0 = SynchedEntityData.defineId(CustomerVillagerEntity.class, EntityDataSerializers.ITEM_STACK);
     private static final EntityDataAccessor<ItemStack> DATA_OFFER_DISPLAY_ITEM_1 = SynchedEntityData.defineId(CustomerVillagerEntity.class, EntityDataSerializers.ITEM_STACK);
     private static final EntityDataAccessor<ItemStack> DATA_OFFER_DISPLAY_ITEM_2 = SynchedEntityData.defineId(CustomerVillagerEntity.class, EntityDataSerializers.ITEM_STACK);
@@ -86,7 +87,7 @@ public class CustomerVillagerEntity extends Villager {
 
     public static final String NAME = "customer_villager";
 
-    private static VillagerType getVillagerTypeForLocation(Level level, BlockPos pos) {
+    private static ResourceKey<VillagerType> getVillagerTypeForLocation(Level level, BlockPos pos) {
         Holder<Biome> biomeHolder = level.getBiome(pos);
         BiomeVillagerType mapData = biomeHolder.getData(NeoForgeDataMaps.VILLAGER_TYPES);
         if (mapData != null) {
@@ -113,28 +114,29 @@ public class CustomerVillagerEntity extends Villager {
             BlockState counterBlockState,
             BlockState avoidBlockState
     ) {
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             ServerLevel serverLevel = (ServerLevel)level;
-            CustomerVillagerEntity customer = customerType.create(level);
+            CustomerVillagerEntity customer = customerType.create(level, EntitySpawnReason.COMMAND);
             if (customer != null) {
                 BlockPos safePos = MobUtils.getRandomSpawnPos(level, spawnerPos, 5, 3);
                 if (safePos != null) {
-                    customer.moveTo(safePos, 0, 0);
+                    customer.snapTo(safePos, 0, 0);
                     customer.setOnGround(true);
 
                     VillagerData data = customer.getVillagerData();
-                    VillagerProfession profession = Customer.CUSTOMER_PROFESSION.get();
+                    ResourceKey<VillagerProfession> profession = Customer.CUSTOMER_PROFESSION.getKey();
                     float professionVariantPercentage = level.random.nextFloat();
                     if (professionVariantPercentage < 0.20F) {
-                        profession = Customer.CUSTOMER_IMPATIENT_PROFESSION.get();
+                        profession = Customer.CUSTOMER_IMPATIENT_PROFESSION.getKey();
                     } else if (professionVariantPercentage < 0.50F) {
-                        profession = Customer.CUSTOMER_CASUAL_PROFESSION.get();
+                        profession = Customer.CUSTOMER_CASUAL_PROFESSION.getKey();
                     }
-                    customer.setVillagerData(new VillagerData(
-                            getVillagerTypeForLocation(level, spawnerPos),
-                            profession,
-                            data.getLevel()
-                    ));
+                    customer.setVillagerData(
+                            data.withType(
+                                    level.registryAccess(),
+                                    getVillagerTypeForLocation(level, spawnerPos)
+                            ).withProfession(level.registryAccess(), profession)
+                    );
 
                     customer.setSpawnerPos(spawnerPos);
                     customer.setSpawnPos(safePos);
@@ -145,7 +147,7 @@ public class CustomerVillagerEntity extends Villager {
                     customer.setState(CustomerState.INITIALIZING);
 
                     // Finalize spawn logic (sets default items, resets AI brain, etc.)
-                    customer.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(spawnerPos), MobSpawnType.COMMAND, null);
+                    customer.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(spawnerPos), EntitySpawnReason.COMMAND, null);
 
                     // Spawn the entity in the world
                     serverLevel.addFreshEntity(customer);
@@ -208,6 +210,7 @@ public class CustomerVillagerEntity extends Villager {
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(DATA_CUSTOMER_STATE, -1);
+        builder.define(DATA_CUSTOMER_SITTING, false);
         builder.define(DATA_OFFER_DISPLAY_ITEM_0, ItemStack.EMPTY);
         builder.define(DATA_OFFER_DISPLAY_ITEM_1, ItemStack.EMPTY);
         builder.define(DATA_OFFER_DISPLAY_ITEM_2, ItemStack.EMPTY);
@@ -220,6 +223,13 @@ public class CustomerVillagerEntity extends Villager {
             return states[syncedState];
         }
         return state;
+    }
+
+    /**
+     * Reports whether this customer is mounted on its counter seat.
+     */
+    public boolean isCustomerSitting() {
+        return entityData.get(DATA_CUSTOMER_SITTING);
     }
 
     public void setState(CustomerState state) {
@@ -319,7 +329,7 @@ public class CustomerVillagerEntity extends Villager {
             }
 
             ItemStack result = offer.assemble();
-            result.onCraftedBy(level(), player, result.getCount());
+            result.onCraftedBy(player, result.getCount());
             if (!player.getInventory().add(result)) {
                 player.drop(result, false);
             }
@@ -366,79 +376,66 @@ public class CustomerVillagerEntity extends Villager {
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag compound) {
-        super.readAdditionalSaveData(compound);
-        if (compound.contains(TAG_STATE)) {
-            String stateName = compound.getString(TAG_STATE);
+    protected void readAdditionalSaveData(ValueInput input) {
+        super.readAdditionalSaveData(input);
+        input.getString(TAG_STATE).ifPresent(stateName -> {
             try {
                 setState(CustomerState.valueOf(stateName));
             } catch (IllegalArgumentException exception) {
                 LOGGER.warn("Ignoring unknown customer state while loading: {}", stateName);
             }
-        }
-        NbtUtils.readBlockPos(compound, TAG_SPAWNER_POS).ifPresent(this::setSpawnerPos);
-        NbtUtils.readBlockPos(compound, TAG_SPAWN_POS).ifPresent(this::setSpawnPos);
-        readCounterTargetBlockPos(compound)
+        });
+        input.read(TAG_SPAWNER_POS, BlockPos.CODEC).ifPresent(this::setSpawnerPos);
+        input.read(TAG_SPAWN_POS, BlockPos.CODEC).ifPresent(this::setSpawnPos);
+        readCounterTargetBlockPos(input)
                 .ifPresent(this::setCounterTargetBlockPos);
-        if (compound.contains(TAG_COUNTER_BLOCK_STATE)) {
-            counterBlockState = NbtUtils.readBlockState(
-                    registryAccess().lookupOrThrow(Registries.BLOCK),
-                    compound.getCompound(TAG_COUNTER_BLOCK_STATE)
-            );
-        }
-        if (compound.contains(TAG_AVOID_BLOCK_STATE)) {
-            avoidBlockState = NbtUtils.readBlockState(
-                    registryAccess().lookupOrThrow(Registries.BLOCK),
-                    compound.getCompound(TAG_AVOID_BLOCK_STATE)
-            );
-        }
+        input.read(TAG_COUNTER_BLOCK_STATE, BlockState.CODEC)
+                .ifPresent(state -> counterBlockState = state);
+        input.read(TAG_AVOID_BLOCK_STATE, BlockState.CODEC)
+                .ifPresent(state -> avoidBlockState = state);
+
         tradedWithPlayers.clear();
-        if (compound.contains(TAG_TRADED_WITH_PLAYERS, Tag.TAG_LIST)) {
-            ListTag tradedPlayerTags = compound.getList(TAG_TRADED_WITH_PLAYERS, Tag.TAG_COMPOUND);
-            for (int i = 0; i < tradedPlayerTags.size(); i++) {
-                CompoundTag tradedPlayerTag = tradedPlayerTags.getCompound(i);
-                if (tradedPlayerTag.hasUUID(TAG_TRADED_PLAYER_UUID)) {
-                    tradedWithPlayers.add(tradedPlayerTag.getUUID(TAG_TRADED_PLAYER_UUID));
-                }
-            }
-        }
+        input.childrenListOrEmpty(TAG_TRADED_WITH_PLAYERS).forEach(
+                tradedPlayerInput -> tradedPlayerInput
+                        .read(TAG_TRADED_PLAYER_UUID, UUIDUtil.CODEC)
+                        .ifPresent(tradedWithPlayers::add)
+        );
+
         if (!level().isClientSide()) {
             updateOfferDisplayItems(getOffers());
         }
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag compound) {
-        super.addAdditionalSaveData(compound);
+    protected void addAdditionalSaveData(ValueOutput output) {
+        super.addAdditionalSaveData(output);
         if (state != null) {
-            compound.putString(TAG_STATE, state.name());
+            output.putString(TAG_STATE, state.name());
         }
         if (spawnerPos != null) {
-            compound.put(TAG_SPAWNER_POS, NbtUtils.writeBlockPos(spawnerPos));
+            output.store(TAG_SPAWNER_POS, BlockPos.CODEC, spawnerPos);
         }
         if (spawnPos != null) {
-            compound.put(TAG_SPAWN_POS, NbtUtils.writeBlockPos(spawnPos));
+            output.store(TAG_SPAWN_POS, BlockPos.CODEC, spawnPos);
         }
         if (counterTargetBlockPos != null) {
-            saveCounterTargetBlockPos(compound, counterTargetBlockPos);
+            saveCounterTargetBlockPos(output, counterTargetBlockPos);
         }
         if (counterBlockState != null) {
-            compound.put(TAG_COUNTER_BLOCK_STATE, NbtUtils.writeBlockState(counterBlockState));
+            output.store(TAG_COUNTER_BLOCK_STATE, BlockState.CODEC, counterBlockState);
         }
         if (avoidBlockState != null) {
-            compound.put(TAG_AVOID_BLOCK_STATE, NbtUtils.writeBlockState(avoidBlockState));
+            output.store(TAG_AVOID_BLOCK_STATE, BlockState.CODEC, avoidBlockState);
         }
         if (!tradedWithPlayers.isEmpty()) {
-            ListTag tradedPlayerTags = new ListTag();
+            ValueOutput.ValueOutputList tradedPlayerOutputs =
+                    output.childrenList(TAG_TRADED_WITH_PLAYERS);
             for (UUID playerUuid : tradedWithPlayers) {
-                CompoundTag tradedPlayerTag = new CompoundTag();
-                tradedPlayerTag.putUUID(TAG_TRADED_PLAYER_UUID, playerUuid);
-                tradedPlayerTags.add(tradedPlayerTag);
+                tradedPlayerOutputs.addChild()
+                        .store(TAG_TRADED_PLAYER_UUID, UUIDUtil.CODEC, playerUuid);
             }
-            compound.put(TAG_TRADED_WITH_PLAYERS, tradedPlayerTags);
         }
     }
-
     public List<ItemStack> getOfferDisplayItems() {
         List<ItemStack> items = new ArrayList<>(MAX_SYNCED_DISPLAY_OFFERS);
         addOfferDisplayItem(items, entityData.get(DATA_OFFER_DISPLAY_ITEM_0));
@@ -482,7 +479,7 @@ public class CustomerVillagerEntity extends Villager {
 
     @Override
     public boolean causeFallDamage(
-            float fallDistance,
+            double fallDistance,
             float multiplier,
             DamageSource source
     ) {
@@ -490,7 +487,7 @@ public class CustomerVillagerEntity extends Villager {
     }
 
     @Override
-    protected void customServerAiStep() {
+    protected void customServerAiStep(ServerLevel level) {
         // No behavior-based AI
     }
 
@@ -544,7 +541,9 @@ public class CustomerVillagerEntity extends Villager {
             }
         }
         if (getState() != CustomerState.BUYING) {
-            return InteractionResult.sidedSuccess(level().isClientSide());
+            return level().isClientSide()
+                    ? InteractionResult.SUCCESS
+                    : InteractionResult.SUCCESS_SERVER;
         }
         return super.mobInteract(player, hand);
     }
@@ -580,8 +579,9 @@ public class CustomerVillagerEntity extends Villager {
     }
 
     private static ItemStack getTradeRemainderItem(ItemStack soldStack) {
-        if (soldStack.hasCraftingRemainingItem()) {
-            return soldStack.getCraftingRemainingItem();
+        ItemStack craftingRemainder = soldStack.getCraftingRemainder();
+        if (!craftingRemainder.isEmpty()) {
+            return craftingRemainder;
         }
 
         Item fallbackItem = TRADE_REMAINDER_FALLBACKS.get(soldStack.getItem());
@@ -623,6 +623,10 @@ public class CustomerVillagerEntity extends Villager {
         super.tick();
 
         if (!level().isClientSide()) {
+            entityData.set(
+                    DATA_CUSTOMER_SITTING,
+                    isPassenger() && getVehicle() instanceof CustomerSeatEntity
+            );
             if (getState() == CustomerState.BUYING) {
                 MerchantOffers currentOffers = getOffers();
                 Player tradingPlayer = getTradingPlayer();
@@ -663,20 +667,21 @@ public class CustomerVillagerEntity extends Villager {
     /**
      * Reads a saved counter target position.
      */
-    static Optional<BlockPos> readCounterTargetBlockPos(CompoundTag compound) {
-        return NbtUtils.readBlockPos(compound, TAG_COUNTER_TARGET_BLOCK_POS);
+    static Optional<BlockPos> readCounterTargetBlockPos(ValueInput input) {
+        return input.read(TAG_COUNTER_TARGET_BLOCK_POS, BlockPos.CODEC);
     }
 
     /**
      * Saves a counter target position.
      */
     static void saveCounterTargetBlockPos(
-            CompoundTag compound,
+            ValueOutput output,
             BlockPos counterTargetBlockPos
     ) {
-        compound.put(
+        output.store(
                 TAG_COUNTER_TARGET_BLOCK_POS,
-                NbtUtils.writeBlockPos(counterTargetBlockPos)
+                BlockPos.CODEC,
+                counterTargetBlockPos
         );
     }
 

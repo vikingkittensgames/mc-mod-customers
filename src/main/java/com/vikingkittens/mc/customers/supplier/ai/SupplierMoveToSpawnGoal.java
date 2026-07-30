@@ -21,7 +21,7 @@ public class SupplierMoveToSpawnGoal extends MobMoveToGoal {
     public boolean canUse() {
         return super.canUse() &&
                 supplier.getSpawnPos() != null &&
-                supplier.level().isNight() &&
+                supplier.level().isDarkOutside() &&
                 (
                         // Happy path for state flow
                         supplier.getState() == SupplierState.SELLING ||

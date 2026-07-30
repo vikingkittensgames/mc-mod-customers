@@ -5,7 +5,7 @@ import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.customer.Customer;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.npc.villager.Villager;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;

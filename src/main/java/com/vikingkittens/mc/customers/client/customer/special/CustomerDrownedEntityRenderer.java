@@ -1,50 +1,65 @@
 package com.vikingkittens.mc.customers.client.customer.special;
 
 import com.vikingkittens.mc.customers.customer.special.CustomerDrownedEntity;
-import net.minecraft.client.model.AnimationUtils;
-import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelLayers;
-import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.model.monster.zombie.DrownedModel;
+import net.minecraft.client.renderer.entity.ArmorModelSet;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
+import net.minecraft.client.renderer.entity.layers.DrownedOuterLayer;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.entity.state.ZombieRenderState;
+import net.minecraft.resources.Identifier;
 
-public class CustomerDrownedEntityRenderer extends HumanoidMobRenderer<CustomerDrownedEntity, CustomerDrownedEntityRenderer.Model> {
-    private static final ResourceLocation DROWNED_LOCATION = ResourceLocation.withDefaultNamespace("textures/entity/zombie/drowned.png");
-    private static final ResourceLocation DROWNED_OUTER_LAYER_LOCATION = ResourceLocation.withDefaultNamespace("textures/entity/zombie/drowned_outer_layer.png");
-
+public class CustomerDrownedEntityRenderer extends HumanoidMobRenderer<
+        CustomerDrownedEntity,
+        ZombieRenderState,
+        DrownedModel
+> {
+    private static final Identifier DROWNED_LOCATION = Identifier.withDefaultNamespace("textures/entity/zombie/drowned.png");
 
     public CustomerDrownedEntityRenderer(EntityRendererProvider.Context context) {
-        super(context, new Model(context.bakeLayer(ModelLayers.DROWNED)), 0.5F);
+        super(
+                context,
+                new DrownedModel(context.bakeLayer(ModelLayers.DROWNED)),
+                new DrownedModel(context.bakeLayer(ModelLayers.DROWNED_BABY)),
+                0.5F
+        );
         this.addLayer(new HumanoidArmorLayer<>(
                 this,
-                new HumanoidModel<>(context.bakeLayer(ModelLayers.DROWNED_INNER_ARMOR)),
-                new HumanoidModel<>(context.bakeLayer(ModelLayers.DROWNED_OUTER_ARMOR)),
-                context.getModelManager()
+                ArmorModelSet.bake(
+                        ModelLayers.DROWNED_ARMOR,
+                        context.getModelSet(),
+                        DrownedModel::new
+                ),
+                ArmorModelSet.bake(
+                        ModelLayers.DROWNED_BABY_ARMOR,
+                        context.getModelSet(),
+                        DrownedModel::new
+                ),
+                context.getEquipmentRenderer()
         ));
-        this.addLayer(new CustomerHumanoidOverlayLayer<>(
-                this,
-                new Model(context.bakeLayer(ModelLayers.DROWNED_OUTER_LAYER)),
-                DROWNED_OUTER_LAYER_LOCATION
-        ));
+        this.addLayer(new DrownedOuterLayer(this, context.getModelSet()));
     }
 
     @Override
-    public ResourceLocation getTextureLocation(CustomerDrownedEntity entity) {
+    public Identifier getTextureLocation(ZombieRenderState renderState) {
         return DROWNED_LOCATION;
     }
 
-    public static class Model extends HumanoidModel<CustomerDrownedEntity> {
-        public Model(ModelPart root) {
-            super(root);
-        }
+    @Override
+    public ZombieRenderState createRenderState() {
+        return new ZombieRenderState();
+    }
 
-        @Override
-        public void setupAnim(CustomerDrownedEntity entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
-            super.setupAnim(entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
-            AnimationUtils.animateZombieArms(this.leftArm, this.rightArm, entity.isAggressive(), this.attackTime, ageInTicks);
-        }
+    @Override
+    public void extractRenderState(
+            CustomerDrownedEntity entity,
+            ZombieRenderState renderState,
+            float partialTick
+    ) {
+        super.extractRenderState(entity, renderState, partialTick);
+        renderState.isAggressive = entity.isAggressive();
+        renderState.isPassenger = entity.isPassenger();
     }
 }
-

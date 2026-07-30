@@ -9,7 +9,7 @@ import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
-import net.minecraft.util.profiling.InactiveProfiler;
+
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.GoalSelector;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
@@ -472,8 +472,7 @@ class CustomerGoalLifecycleTest {
         private final BlockState airState = mock(BlockState.class);
         private final BlockState groundState = mock(BlockState.class);
 
-        private final GoalSelector goalSelector =
-                new GoalSelector(() -> InactiveProfiler.INSTANCE);
+        private final GoalSelector goalSelector = new GoalSelector();
 
         private GoalFixture(CustomerState initialState) {
             state = new AtomicReference<>(initialState);
@@ -515,8 +514,8 @@ class CustomerGoalLifecycleTest {
             when(counterState.isAir()).thenReturn(false);
             when(airState.isAir()).thenReturn(true);
             when(groundState.isAir()).thenReturn(false);
-            when(level.getMinBuildHeight()).thenReturn(0);
-            when(level.getMaxBuildHeight()).thenReturn(256);
+            when(level.getMinY()).thenReturn(0);
+            when(level.getMaxY()).thenReturn(256);
             when(level.getBlockState(any(BlockPos.class))).thenAnswer(invocation -> {
                 BlockPos position = invocation.getArgument(0);
                 return position.equals(blockedPosition.get())

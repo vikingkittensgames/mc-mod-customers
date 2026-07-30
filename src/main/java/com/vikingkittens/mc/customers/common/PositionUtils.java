@@ -19,8 +19,8 @@ public class PositionUtils {
             LevelReader level,
             BlockPos initialPosition
     ) {
-        int minimumY = level.getMinBuildHeight();
-        int maximumY = level.getMaxBuildHeight();
+        int minimumY = level.getMinY();
+        int maximumY = level.getMaxY();
         BlockPos.MutableBlockPos position = initialPosition.mutable();
 
         while (

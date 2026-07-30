@@ -3,15 +3,18 @@ package com.vikingkittens.mc.customers.customer;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -34,7 +37,7 @@ public class CustomerSeatEntity extends Entity {
 
     public static boolean isSeat(Level level, BlockPos pos) {
         BlockState state = level.getBlockState(pos);
-        ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock());
+        Identifier blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock());
         if (state.getBlock() instanceof StairBlock
                 || blockId != null && isSeatName(blockId.getPath())) {
             return true;
@@ -94,7 +97,7 @@ public class CustomerSeatEntity extends Entity {
         if (existingSeats.isEmpty()) {
             Vec3 seatPosition = getSeatPosition(level, pos, passenger);
             seat = new CustomerSeatEntity(Customer.CUSTOMER_SEAT.get(), level);
-            seat.moveTo(
+            seat.snapTo(
                     seatPosition.x,
                     seatPosition.y,
                     seatPosition.z,
@@ -108,7 +111,8 @@ public class CustomerSeatEntity extends Entity {
             created = false;
         }
 
-        boolean startedRiding = passenger.startRiding(seat, true);
+        boolean startedRiding = passenger.startRiding(seat, true, true);
+
         if (!startedRiding && created) {
             seat.discard();
         }
@@ -206,6 +210,18 @@ public class CustomerSeatEntity extends Entity {
     public boolean isPushable() {
         return false;
     }
+
+    /**
+     * Prevents the invisible helper seat from taking damage.
+     */
+    @Override
+    public boolean hurtServer(
+            ServerLevel level,
+            DamageSource damageSource,
+            float amount
+    ) {
+        return false;
+    }
     @Override
     public boolean shouldRiderSit() {
         return true;
@@ -224,10 +240,10 @@ public class CustomerSeatEntity extends Entity {
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag tag) {
+    protected void readAdditionalSaveData(ValueInput input) {
     }
 
     @Override
-    protected void addAdditionalSaveData(CompoundTag tag) {
+    protected void addAdditionalSaveData(ValueOutput output) {
     }
 }

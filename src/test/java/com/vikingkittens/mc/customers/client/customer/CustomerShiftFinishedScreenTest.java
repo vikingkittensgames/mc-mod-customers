@@ -71,12 +71,12 @@ class CustomerShiftFinishedScreenTest {
     void selectsBlingForFilledStarsAndBonkForEmptyStars() {
         assertEquals("customers:bling", CustomerShiftFinishedScreen
                 .getStarSound(CustomerShiftFinishedScreen.StarState.FULL)
-                .getLocation().toString());
+                .location().toString());
         assertEquals("customers:bling", CustomerShiftFinishedScreen
                 .getStarSound(CustomerShiftFinishedScreen.StarState.HALF)
-                .getLocation().toString());
+                .location().toString());
         assertEquals("customers:bonk", CustomerShiftFinishedScreen
                 .getStarSound(CustomerShiftFinishedScreen.StarState.EMPTY)
-                .getLocation().toString());
+                .location().toString());
     }
 }

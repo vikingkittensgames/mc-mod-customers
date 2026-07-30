@@ -3,7 +3,7 @@ package com.vikingkittens.mc.customers.client.customer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
-import net.minecraft.client.model.VillagerModel;
+import net.minecraft.client.model.npc.VillagerModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
@@ -14,60 +14,91 @@ import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
+import net.minecraft.client.renderer.entity.VillagerRenderer;
 import net.minecraft.client.renderer.entity.layers.CrossedArmsItemLayer;
 import net.minecraft.client.renderer.entity.layers.CustomHeadLayer;
 import net.minecraft.client.renderer.entity.layers.VillagerProfessionLayer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.entity.state.HoldingEntityRenderState;
+import net.minecraft.client.renderer.entity.state.VillagerRenderState;
+import net.minecraft.resources.Identifier;
+
 
 public class CustomerVillagerEntityRenderer extends
-        MobRenderer<CustomerVillagerEntity, CustomerVillagerEntityRenderer.Model> {
+        MobRenderer<
+                CustomerVillagerEntity,
+                VillagerRenderState,
+                CustomerVillagerEntityRenderer.Model
+        > {
     public static final ModelLayerLocation MODEL_LAYER = new ModelLayerLocation(
-            ResourceLocation.fromNamespaceAndPath(
+            Identifier.fromNamespaceAndPath(
                     Customers.MODID,
                     "customer_villager"
             ),
             "main"
     );
-    private static final ResourceLocation VILLAGER_BASE_SKIN =
-            ResourceLocation.withDefaultNamespace("textures/entity/villager/villager.png");
+    private static final Identifier VILLAGER_BASE_SKIN =
+            Identifier.withDefaultNamespace("textures/entity/villager/villager.png");
 
     public CustomerVillagerEntityRenderer(EntityRendererProvider.Context context) {
         super(context, new Model(context.bakeLayer(MODEL_LAYER)), 0.5F);
         addLayer(new CustomHeadLayer<>(
                 this,
                 context.getModelSet(),
-                context.getItemInHandRenderer()
+                context.getPlayerSkinRenderCache(),
+                VillagerRenderer.CUSTOM_HEAD_TRANSFORMS
         ));
         addLayer(new VillagerProfessionLayer<>(
                 this,
                 context.getResourceManager(),
-                "villager"
+                "villager",
+                new Model(context.bakeLayer(MODEL_LAYER)),
+                new Model(context.bakeLayer(MODEL_LAYER))
         ));
-        addLayer(new CrossedArmsItemLayer<>(this, context.getItemInHandRenderer()));
+        addLayer(new CrossedArmsItemLayer<>(this));
     }
 
     @Override
-    public ResourceLocation getTextureLocation(CustomerVillagerEntity entity) {
+    public Identifier getTextureLocation(VillagerRenderState renderState) {
         return VILLAGER_BASE_SKIN;
     }
 
     @Override
     protected void scale(
-            CustomerVillagerEntity entity,
-            PoseStack poseStack,
-            float partialTick
+            VillagerRenderState renderState,
+            PoseStack poseStack
     ) {
-        float scale = 0.9375F * entity.getAgeScale();
+        float scale = 0.9375F * renderState.ageScale;
         poseStack.scale(scale, scale, scale);
     }
 
     @Override
-    protected float getShadowRadius(CustomerVillagerEntity entity) {
-        float shadowRadius = super.getShadowRadius(entity);
-        return entity.isBaby() ? shadowRadius * 0.5F : shadowRadius;
+    protected float getShadowRadius(VillagerRenderState renderState) {
+        float shadowRadius = super.getShadowRadius(renderState);
+        return renderState.isBaby ? shadowRadius * 0.5F : shadowRadius;
     }
 
-    public static class Model extends VillagerModel<CustomerVillagerEntity> {
+    @Override
+    public VillagerRenderState createRenderState() {
+        return new VillagerRenderState();
+    }
+
+    @Override
+    public void extractRenderState(
+            CustomerVillagerEntity entity,
+            VillagerRenderState renderState,
+            float partialTick
+    ) {
+        super.extractRenderState(entity, renderState, partialTick);
+        HoldingEntityRenderState.extractHoldingEntityRenderState(
+                entity,
+                renderState,
+                itemModelResolver
+        );
+        renderState.isUnhappy = entity.getUnhappyCounter() > 0;
+        renderState.villagerData = entity.getVillagerData();
+    }
+
+    public static class Model extends VillagerModel {
         private final ModelPart rightLeg;
         private final ModelPart leftLeg;
         private final ModelPart jacket;
@@ -121,21 +152,12 @@ public class CustomerVillagerEntityRenderer extends
         }
 
         @Override
-        public void setupAnim(
-                CustomerVillagerEntity entity,
-                float limbSwing,
-                float limbSwingAmount,
-                float ageInTicks,
-                float netHeadYaw,
-                float headPitch
-        ) {
-            super.setupAnim(
-                    entity,
-                    limbSwing,
-                    limbSwingAmount,
-                    ageInTicks,
-                    netHeadYaw,
-                    headPitch
+        public void setupAnim(VillagerRenderState renderState) {
+            super.setupAnim(renderState);
+            boolean riding = Boolean.TRUE.equals(
+                    renderState.getRenderData(
+                            CustomerClientEvents.CUSTOMER_SITTING_RENDER_DATA
+                    )
             );
             if (riding) {
                 applySittingLegPose(rightLeg, leftLeg);
@@ -149,7 +171,7 @@ public class CustomerVillagerEntityRenderer extends
             );
         }
 
-        static void applySittingLegPose(ModelPart rightLeg, ModelPart leftLeg) {
+        public static void applySittingLegPose(ModelPart rightLeg, ModelPart leftLeg) {
             rightLeg.xRot = -1.4137167F;
             rightLeg.yRot = (float) (Math.PI / 10.0D);
             rightLeg.zRot = 0.07853982F;

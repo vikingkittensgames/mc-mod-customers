@@ -90,7 +90,7 @@ public class CustomerLineUpGoal extends MobMoveToGoal {
     protected void onDone() {
         // Check for a forced state change
         if (customer.getState() == CustomerState.IN_LINE) {
-            mob.moveTo(targetPos.getBottomCenter(), mob.getYRot(), mob.getXRot());
+            mob.snapTo(targetPos.getBottomCenter(), mob.getYRot(), mob.getXRot());
             CustomerVillagerEntity followingCustomer = CustomerVillagerEntity.getActiveCustomer(
                     customer.level(),
                     followingCustomerId

@@ -14,6 +14,7 @@ This project is a Minecraft mod built with the NeoForge mod loader.
 ## Product Documentation
 
 - Keep `README.md` up to date when functionality, player mechanics, usage, or rules change.
+- Whenever a difference is found between supported Minecraft versions, document it in `Minecraft-1.21.1-to-{new-version}.md`.
 - Keep README wording focused on player-facing behavior.
 - Avoid exposing NeoForge, Minecraft internals, or implementation details in player-facing README text unless they directly affect usage.
 

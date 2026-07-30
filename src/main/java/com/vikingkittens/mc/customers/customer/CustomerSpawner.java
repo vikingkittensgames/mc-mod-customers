@@ -48,7 +48,7 @@ public class CustomerSpawner {
     public static final DeferredBlock<Block> CUSTOMER_SPAWNER_BLOCK = blocks.registerBlock(CustomerSpawnerBlock.NAME, CustomerSpawnerBlock::new);
 
     // -------------------- Block Entities --------------------
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CustomerSpawnerBlockEntity>> CUSTOMER_SPAWNER_ENTITY = blockEntities.register(CustomerSpawnerBlockEntity.NAME, () -> BlockEntityType.Builder.of(CustomerSpawnerBlockEntity::new, CUSTOMER_SPAWNER_BLOCK.get()).build(null));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CustomerSpawnerBlockEntity>> CUSTOMER_SPAWNER_ENTITY = blockEntities.register(CustomerSpawnerBlockEntity.NAME, () -> new BlockEntityType<>(CustomerSpawnerBlockEntity::new, CUSTOMER_SPAWNER_BLOCK.get()));
 
     // -------------------- Items --------------------
     public static final DeferredItem<BlockItem> CUSTOMER_SPAWNER_ITEM = items.registerSimpleBlockItem(CustomerSpawnerBlock.NAME, CUSTOMER_SPAWNER_BLOCK);

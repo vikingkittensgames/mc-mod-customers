@@ -3,14 +3,33 @@ package com.vikingkittens.mc.customers.client.customer;
 import com.vikingkittens.mc.customers.customer.CustomerCounterMarker;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CustomerCounterMarkerManagerTest {
+    @Test
+    void createsSixFacesForFilledBox() {
+        Vec3 center = new Vec3(4.0D, 5.0D, 6.0D);
+
+        List<Vec3[]> faces = CustomerCounterMarkerRenderer.getBoxFaces(center, 0.5D);
+
+        assertEquals(6, faces.size());
+        assertTrue(faces.stream().allMatch(face -> face.length == 4));
+        assertTrue(faces.stream()
+                .flatMap(face -> Arrays.stream(face))
+                .allMatch(vertex ->
+                        (vertex.x() == 3.75D || vertex.x() == 4.25D)
+                                && (vertex.y() == 4.75D || vertex.y() == 5.25D)
+                                && (vertex.z() == 5.75D || vertex.z() == 6.25D)
+                ));
+    }
     @AfterEach
     void clearMarkers() {
         CustomerCounterMarkerManager.clear();

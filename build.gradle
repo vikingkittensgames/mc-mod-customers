@@ -1,7 +1,7 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.141'
+    id 'net.neoforged.moddev' version '2.0.142'
     id 'idea'
 }
 
@@ -39,7 +39,7 @@ base {
     archivesName = "${mod_id}-neoforge-${minecraft_version}"
 }
 
-// Mojang ships Java 21 to end users in 1.21.1, so mods should target Java 21.
+// Mojang ships Java 21 to end users in 1.21.11, so mods should target Java 21.
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 neoForge {
@@ -90,6 +90,8 @@ neoForge {
 
         // applies to all the run configs above
         configureEach {
+            gameDirectory = project.file("run-${minecraft_version}")
+
             // Recommended logging data for a userdev environment
             // The markers can be added/remove as needed separated by commas.
             // "SCAN": For mods scan.

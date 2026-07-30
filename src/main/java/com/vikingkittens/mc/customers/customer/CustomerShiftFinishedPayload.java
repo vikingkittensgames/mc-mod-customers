@@ -6,7 +6,7 @@ import com.vikingkittens.mc.customers.client.customer.CustomerClientEvents;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
@@ -27,7 +27,7 @@ public record CustomerShiftFinishedPayload(
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public static final Type<CustomerShiftFinishedPayload> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(Customers.MODID, "customer_shift_finished")
+            Identifier.fromNamespaceAndPath(Customers.MODID, "customer_shift_finished")
     );
 
     public static final StreamCodec<FriendlyByteBuf, CustomerShiftFinishedPayload> STREAM_CODEC =
@@ -66,7 +66,7 @@ public record CustomerShiftFinishedPayload(
     }
 
     public static void handle(CustomerShiftFinishedPayload payload, IPayloadContext context) {
-        if (FMLEnvironment.dist == Dist.CLIENT) {
+        if (FMLEnvironment.getDist() == Dist.CLIENT) {
             CustomerClientEvents.showCustomerShiftFinishedScreen(payload);
         }
     }

@@ -40,7 +40,7 @@ public class SupplierSpawner {
     public static final DeferredBlock<Block> SUPPLIER_SPAWNER_BLOCK = blocks.registerBlock(SupplierSpawnerBlock.NAME, SupplierSpawnerBlock::new);
 
     // -------------------- Block Entities --------------------
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SupplierSpawnerBlockEntity>> SUPPLIER_SPAWNER_ENTITY = blockEntities.register(SupplierSpawnerBlockEntity.NAME, () -> BlockEntityType.Builder.of(SupplierSpawnerBlockEntity::new, SUPPLIER_SPAWNER_BLOCK.get()).build(null));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SupplierSpawnerBlockEntity>> SUPPLIER_SPAWNER_ENTITY = blockEntities.register(SupplierSpawnerBlockEntity.NAME, () -> new BlockEntityType<>(SupplierSpawnerBlockEntity::new, SUPPLIER_SPAWNER_BLOCK.get()));
 
     // -------------------- Items --------------------
     public static final DeferredItem<BlockItem> SUPPLIER_SPAWNER_ITEM = items.registerSimpleBlockItem(SupplierSpawnerBlock.NAME, SUPPLIER_SPAWNER_BLOCK);

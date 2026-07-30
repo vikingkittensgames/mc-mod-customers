@@ -51,7 +51,7 @@ public class SupplierMoveToSpawnerGoal extends MobMoveToGoal {
 
     @Override
     protected void onDone() {
-        mob.moveTo(targetPos.getBottomCenter(), mob.getYRot(), mob.getXRot());
+        mob.snapTo(targetPos.getBottomCenter(), mob.getYRot(), mob.getXRot());
         supplier.setState(SupplierState.SELLING);
         List<Player> players = SearchUtils.findEntitiesInSphere(supplier.level(), Player.class, supplier.blockPosition(), 32, (p, e) -> true);
         Component message = Component.translatable("messages.customers.supplies").withColor(0x36991C);

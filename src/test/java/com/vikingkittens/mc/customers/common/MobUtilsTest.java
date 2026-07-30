@@ -1,9 +1,12 @@
 package com.vikingkittens.mc.customers.common;
 
+import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.Heightmap;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
@@ -25,6 +28,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class MobUtilsTest {
+    /**
+     * Initializes Minecraft and NeoForge state before mocking levels.
+     */
+    @BeforeAll
+    static void bootstrapMinecraft() {
+        MinecraftTestBootstrap.bootstrap();
+    }
     @Test
     void returnsFirstPositionWithClearanceAndAValidSupportArea() {
         Level level = mock(Level.class);

@@ -14,11 +14,17 @@ import com.vikingkittens.mc.customers.customer.CustomerShiftFinishedPayload;
 import com.vikingkittens.mc.customers.customer.CustomerState;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 import com.vikingkittens.mc.customers.customer.special.CustomerWitchEntity;
-import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.NoopRenderer;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.TriState;
+import net.minecraft.util.Util;
+import net.minecraft.util.context.ContextKey;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
@@ -27,6 +33,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.ClientHooks;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RenderNameTagEvent;
+import net.neoforged.neoforge.client.renderstate.RegisterRenderStateModifiersEvent;
 
 import java.util.List;
 
@@ -34,6 +41,20 @@ import java.util.List;
 public class CustomerClientEvents {
     private static final float NAME_TAG_TEXT_SCALE = 0.025F;
     private static final float NAME_TAG_ITEM_GAP = 0.12F;
+    static final ContextKey<CustomerVillagerEntity> CUSTOMER_RENDER_DATA =
+            new ContextKey<>(
+                    Identifier.fromNamespaceAndPath(
+                            Customers.MODID,
+                            "customer_name_tag"
+                    )
+            );
+    public static final ContextKey<Boolean> CUSTOMER_SITTING_RENDER_DATA =
+            new ContextKey<>(
+                    Identifier.fromNamespaceAndPath(
+                            Customers.MODID,
+                            "customer_sitting"
+                    )
+            );
 
     public static void showCustomerShiftFinishedScreen(CustomerShiftFinishedPayload payload) {
         Minecraft.getInstance().setScreen(new CustomerShiftFinishedScreen(payload));
@@ -73,54 +94,134 @@ public class CustomerClientEvents {
     }
 
     @SubscribeEvent
-    public static void onRenderNameTag(RenderNameTagEvent event) {
-        // 1. Check if the entity is a villager (custom or vanilla)
+    public static void registerRenderStateModifiers(
+            RegisterRenderStateModifiersEvent event
+    ) {
+        event.registerEntityModifier(
+                CustomerVillagerEntityRenderer.class,
+                CustomerClientEvents::extractCustomerRenderData
+        );
+        event.registerEntityModifier(
+                CustomerZombieEntityRenderer.class,
+                CustomerClientEvents::extractCustomerRenderData
+        );
+        event.registerEntityModifier(
+                CustomerSkeletonEntityRenderer.class,
+                CustomerClientEvents::extractCustomerRenderData
+        );
+        event.registerEntityModifier(
+                CustomerWitchEntityRenderer.class,
+                CustomerClientEvents::extractCustomerRenderData
+        );
+        event.registerEntityModifier(
+                CustomerHuskEntityRenderer.class,
+                CustomerClientEvents::extractCustomerRenderData
+        );
+        event.registerEntityModifier(
+                CustomerDrownedEntityRenderer.class,
+                CustomerClientEvents::extractCustomerRenderData
+        );
+        event.registerEntityModifier(
+                CustomerStrayEntityRenderer.class,
+                CustomerClientEvents::extractCustomerRenderData
+        );
+    }
+
+    /**
+     * Stores customer data after NeoForge resets the reusable render state.
+     */
+    static void extractCustomerRenderData(
+            CustomerVillagerEntity customer,
+            EntityRenderState renderState
+    ) {
+        renderState.setRenderData(CUSTOMER_RENDER_DATA, customer);
+        renderState.setRenderData(
+                CUSTOMER_SITTING_RENDER_DATA,
+                customer.isCustomerSitting()
+        );
+    }
+    @SubscribeEvent
+    public static void onCanRenderNameTag(RenderNameTagEvent.CanRender event) {
         if (event.getEntity() instanceof CustomerVillagerEntity customer) {
             List<ItemStack> offerDisplayItems = customer.getState() == CustomerState.BUYING ? customer.getOfferDisplayItems() : List.of();
             if (!offerDisplayItems.isEmpty()) {
                 Minecraft minecraft = Minecraft.getInstance();
-                PoseStack poseStack = event.getPoseStack();
-                MultiBufferSource buffer = event.getMultiBufferSource();
-                float nameTagOffset = isNameTagRendered(event, customer, minecraft)
-                        ? minecraft.font.lineHeight * NAME_TAG_TEXT_SCALE + NAME_TAG_ITEM_GAP
-                        : 0.0F;
-
-                poseStack.pushPose();
-                // Translate above the head
-                float offset = 0.25F;
-                if (customer instanceof CustomerWitchEntity) {
-                    offset += 0.40F - nameTagOffset;
+                if (!isNameTagRendered(event, customer, minecraft)) {
+                    event.setContent(Component.empty());
                 }
-                poseStack.translate(0, customer.getBbHeight() + offset, 0);
-                poseStack.mulPose(minecraft.getEntityRenderDispatcher().cameraOrientation());
-                poseStack.translate(0.0F, nameTagOffset, 0.0F);
-
-                float iconSpacing = 0.5F;
-                float startX = -((offerDisplayItems.size() - 1) * iconSpacing) / 2.0F;
-                int index = 0;
-                for (ItemStack costA : offerDisplayItems) {
-                    poseStack.pushPose();
-                    poseStack.translate(startX + index * iconSpacing, 0, 0);
-                    minecraft.getItemRenderer().renderStatic(
-                            costA,
-                            ItemDisplayContext.GROUND,
-                            event.getPackedLight(),
-                            OverlayTexture.NO_OVERLAY,
-                            poseStack,
-                            buffer,
-                            customer.level(),
-                            0
-                    );
-                    poseStack.popPose();
-
-                    index++;
-                }
-                poseStack.popPose();
+                event.setCanRender(TriState.TRUE);
             }
         }
     }
 
-    private static boolean isNameTagRendered(RenderNameTagEvent event, CustomerVillagerEntity customer, Minecraft minecraft) {
+    @SubscribeEvent
+    public static void onRenderNameTag(RenderNameTagEvent.DoRender event) {
+        CustomerVillagerEntity customer =
+                event.getEntityRenderState().getRenderData(CUSTOMER_RENDER_DATA);
+        if (customer == null) {
+            return;
+        }
+
+        List<ItemStack> offerDisplayItems =
+                customer.getState() == CustomerState.BUYING
+                        ? customer.getOfferDisplayItems()
+                        : List.of();
+        if (offerDisplayItems.isEmpty()) {
+            return;
+        }
+
+        Minecraft minecraft = Minecraft.getInstance();
+        PoseStack poseStack = event.getPoseStack();
+        SubmitNodeCollector nodeCollector = event.getSubmitNodeCollector();
+        boolean nameTagRendered = !event.getContent().getString().isBlank();
+        float nameTagOffset = nameTagRendered
+                ? minecraft.font.lineHeight * NAME_TAG_TEXT_SCALE + NAME_TAG_ITEM_GAP
+                : 0.0F;
+
+        poseStack.pushPose();
+        float offset = 0.25F;
+        if (customer instanceof CustomerWitchEntity) {
+            offset += 0.40F - nameTagOffset;
+        }
+        poseStack.translate(0, customer.getBbHeight() + offset, 0);
+        poseStack.mulPose(event.getCameraRenderState().orientation);
+        poseStack.translate(0.0F, nameTagOffset, 0.0F);
+
+        float iconSpacing = 0.5F;
+        float startX = -((offerDisplayItems.size() - 1) * iconSpacing) / 2.0F;
+        int index = 0;
+        for (ItemStack costA : offerDisplayItems) {
+            poseStack.pushPose();
+            poseStack.translate(startX + index * iconSpacing, 0, 0);
+            ItemStackRenderState itemRenderState = new ItemStackRenderState();
+            minecraft.getItemModelResolver().updateForLiving(
+                    itemRenderState,
+                    costA,
+                    ItemDisplayContext.GROUND,
+                    customer
+            );
+            itemRenderState.submit(
+                    poseStack,
+                    nodeCollector,
+                    event.getEntityRenderState().lightCoords,
+                    OverlayTexture.NO_OVERLAY,
+                    event.getEntityRenderState().outlineColor
+            );
+            poseStack.popPose();
+            index++;
+        }
+        poseStack.popPose();
+
+        if (!nameTagRendered) {
+            event.setCanceled(true);
+        }
+    }
+
+    private static boolean isNameTagRendered(
+            RenderNameTagEvent.CanRender event,
+            CustomerVillagerEntity customer,
+            Minecraft minecraft
+    ) {
         if (event.getContent() == null || event.getContent().getString().isBlank()) {
             return false;
         }
@@ -137,5 +238,3 @@ public class CustomerClientEvents {
                 && (customer.shouldShowName() || customer.hasCustomName() && customer == minecraft.getEntityRenderDispatcher().crosshairPickEntity);
     }
 }
-
-

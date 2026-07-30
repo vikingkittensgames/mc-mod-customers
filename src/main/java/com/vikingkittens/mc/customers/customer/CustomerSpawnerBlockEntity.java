@@ -4,11 +4,7 @@ import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.common.SearchUtils;
 import com.vikingkittens.mc.customers.config.Config;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtUtils;
-import net.minecraft.nbt.Tag;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerLevel;
@@ -32,6 +28,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
@@ -190,96 +188,82 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
 
         try {
-            tag.put("inventory", this.inventory.serializeNBT(registries));
+            inventory.serialize(output.child("inventory"));
         } catch (Throwable t) {
             LOGGER.error("Failed to save inventory", t);
         }
 
         try {
-            ListTag customersTag = new ListTag();
+            ValueOutput.TypedOutputList<UUID> customerOutputs =
+                    output.list("customers", UUIDUtil.CODEC);
             for (UUID uuid : customerIds) {
                 try {
-                    customersTag.add(NbtUtils.createUUID(uuid));
+                    customerOutputs.add(uuid);
                 } catch (Throwable t) {
                     LOGGER.error("Couldn't add customer to saved list because of error", t);
                 }
             }
-            tag.put("customers", customersTag);
         } catch (Throwable t) {
             LOGGER.error("Failed to save customers", t);
         }
 
-        tag.put(
-                "reservedTargetCounterPositions",
-                saveReservedTargetCounterPositions(reservedTargetCounterPositions)
-        );
+        saveReservedTargetCounterPositions(output, reservedTargetCounterPositions);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        if (tag.contains("inventory")) {
-            try {
-                inventory.deserializeNBT(registries, tag.getCompound("inventory"));
-            } catch (Throwable t) {
-                LOGGER.error("Failed to load inventory because of error", t);
-            }
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        try {
+            inventory.deserialize(input.childOrEmpty("inventory"));
+        } catch (Throwable t) {
+            LOGGER.error("Failed to load inventory because of error", t);
         }
         onInventoryUpdate();
-        if (tag.contains("customers")) {
-            try {
-                customerIds.clear();
-                ListTag customersTag = tag.getList("customers", Tag.TAG_INT_ARRAY);
-                for (int i = 0; i < customersTag.size(); i++) {
-                    try {
-                        customerIds.add(NbtUtils.loadUUID(customersTag.get(i)));
-                    } catch (Throwable t) {
-                        LOGGER.warn("Failed to load one of the customers because of error", t);
-                    }
+        try {
+            customerIds.clear();
+            input.listOrEmpty("customers", UUIDUtil.CODEC).forEach(uuid -> {
+                try {
+                    customerIds.add(uuid);
+                } catch (Throwable t) {
+                    LOGGER.warn("Failed to load one of the customers because of error", t);
                 }
-            } catch (Throwable t) {
-                LOGGER.error("Failed to load customers because of error", t);
-            }
+            });
+        } catch (Throwable t) {
+            LOGGER.error("Failed to load customers because of error", t);
         }
         reservedTargetCounterPositions.clear();
-        if (tag.contains("reservedTargetCounterPositions", Tag.TAG_LIST)) {
-            reservedTargetCounterPositions.putAll(
-                    loadReservedTargetCounterPositions(
-                            tag.getList("reservedTargetCounterPositions", Tag.TAG_COMPOUND)
-                    )
-            );
-        }
+        reservedTargetCounterPositions.putAll(loadReservedTargetCounterPositions(input));
     }
 
-    static ListTag saveReservedTargetCounterPositions(Map<BlockPos, List<UUID>> reservations) {
-        ListTag reservationsTag = new ListTag();
+    static void saveReservedTargetCounterPositions(
+            ValueOutput output,
+            Map<BlockPos, List<UUID>> reservations
+    ) {
+        ValueOutput.ValueOutputList reservationOutputs =
+                output.childrenList("reservedTargetCounterPositions");
         reservations.forEach((position, customerIds) -> {
-            CompoundTag reservationTag = new CompoundTag();
-            reservationTag.put("targetPosition", NbtUtils.writeBlockPos(position));
-            ListTag customerIdsTag = new ListTag();
+            ValueOutput reservationOutput = reservationOutputs.addChild();
+            reservationOutput.store("targetPosition", BlockPos.CODEC, position);
+            ValueOutput.TypedOutputList<UUID> customerIdOutputs =
+                    reservationOutput.list("customerIds", UUIDUtil.CODEC);
             for (UUID customerId : customerIds) {
-                customerIdsTag.add(NbtUtils.createUUID(customerId));
+                customerIdOutputs.add(customerId);
             }
-            reservationTag.put("customerIds", customerIdsTag);
-            reservationsTag.add(reservationTag);
         });
-        return reservationsTag;
     }
 
-    static Map<BlockPos, List<UUID>> loadReservedTargetCounterPositions(ListTag reservationsTag) {
+    static Map<BlockPos, List<UUID>> loadReservedTargetCounterPositions(ValueInput input) {
         Map<BlockPos, List<UUID>> reservations = new HashMap<>();
-        for (int index = 0; index < reservationsTag.size(); index++) {
-            CompoundTag reservationTag = reservationsTag.getCompound(index);
+        for (ValueInput reservationInput :
+                input.childrenListOrEmpty("reservedTargetCounterPositions")) {
             List<UUID> customerIds = new ArrayList<>();
-            ListTag customerIdsTag = reservationTag.getList("customerIds", Tag.TAG_INT_ARRAY);
-            for (int customerIndex = 0; customerIndex < customerIdsTag.size(); customerIndex++) {
-                customerIds.add(NbtUtils.loadUUID(customerIdsTag.get(customerIndex)));
-            }
-            NbtUtils.readBlockPos(reservationTag, "targetPosition").ifPresent(position ->
+            reservationInput.listOrEmpty("customerIds", UUIDUtil.CODEC)
+                    .forEach(customerIds::add);
+            reservationInput.read("targetPosition", BlockPos.CODEC).ifPresent(position ->
                     reservations.put(position, customerIds)
             );
         }
@@ -388,13 +372,19 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     public net.minecraft.network.chat.Component getDisplayName() {
         return Component.translatable("block.customers.customer_spawner_block");
     }
-    public void beforeRemove() {
+    /**
+     * Drops inventory and removes tracked customers before this block entity is removed.
+     */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
         // Drop all items when block is broken
         SimpleContainer container = new SimpleContainer(inventory.getSlots());
         for (int i = 0; i < inventory.getSlots(); i++) {
             container.setItem(i, inventory.getStackInSlot(i));
         }
-        Containers.dropContents(level, worldPosition, container);
+        Containers.dropContents(level, pos, container);
+        level.updateNeighbourForOutputSignal(pos, state.getBlock());
 
         // Despawn customers
         for (UUID uuid : customerIds) {
@@ -683,7 +673,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             for (UUID playerId : playerIds) {
                 try {
                     Player player = level.getPlayerByUUID(playerId);
-                    player.sendSystemMessage(message);
+                    player.displayClientMessage(message, false);
                 } catch (Throwable t) {
                     LOGGER.warn("Unable to send chat to player because of error", t);
                 }

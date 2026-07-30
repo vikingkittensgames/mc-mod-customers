@@ -47,7 +47,7 @@ public class CustomerCommands {
             boolean includeCounters
     ) throws CommandSyntaxException {
         ServerPlayer player = source.getPlayerOrException();
-        ServerLevel level = player.serverLevel();
+        ServerLevel level = player.level();
         List<BlockPos> spawnerPositions = SearchUtils.findBlocksInBox(
                 level,
                 player.blockPosition(),

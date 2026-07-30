@@ -82,7 +82,7 @@ class SupplierVillagerEntityTest {
         }
 
         InOrder validationOrder = inOrder(supplier, navigation);
-        validationOrder.verify(supplier).moveTo(candidatePos, 0, 0);
+        validationOrder.verify(supplier).snapTo(candidatePos, 0, 0);
         validationOrder.verify(supplier).setOnGround(true);
         validationOrder.verify(navigation).createPath(navigationTarget, 0);
     }

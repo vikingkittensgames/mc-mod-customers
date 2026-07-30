@@ -12,6 +12,7 @@ rode-side farm stand.
 
 For now we support Minecraft versions:
 * 1.21.1
+* 1.21.11
 
 ## Mod Loader
 

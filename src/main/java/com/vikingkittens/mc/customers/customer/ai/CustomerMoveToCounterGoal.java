@@ -3,7 +3,7 @@ package com.vikingkittens.mc.customers.customer.ai;
 import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.common.ai.MobMoveToGoal;
 import com.vikingkittens.mc.customers.customer.*;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.util.RandomSource;
@@ -166,11 +166,12 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
     protected void onDone() {
         // Check for a forced state change
         if (customer.getState() == CustomerState.MOVING_TO_COUNTER) {
-            mob.moveTo(targetPos.getBottomCenter(), mob.getYRot(), mob.getXRot());
+            mob.snapTo(targetPos.getBottomCenter(), mob.getYRot(), mob.getXRot());
             if (counterPosition != null) {
                 customer.lookAt(EntityAnchorArgument.Anchor.EYES, counterPosition.getCenter());
             }
             CustomerSeatEntity.trySit(customer.level(), targetPos.below(), customer);
+
             customer.setState(CustomerState.BUYING);
         }
     }

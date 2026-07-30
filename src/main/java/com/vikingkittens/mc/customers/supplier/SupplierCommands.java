@@ -36,7 +36,7 @@ public class SupplierCommands {
 
     private static int listSpawners(CommandSourceStack source) throws CommandSyntaxException {
         ServerPlayer player = source.getPlayerOrException();
-        ServerLevel level = player.serverLevel();
+        ServerLevel level = player.level();
         List<BlockPos> spawnerPositions = SearchUtils.findBlocksInBox(
                 level,
                 player.blockPosition(),

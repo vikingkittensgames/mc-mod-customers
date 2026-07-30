@@ -6,9 +6,11 @@ import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.entity.npc.VillagerProfession;
+import net.minecraft.world.entity.npc.villager.VillagerProfession;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -33,15 +35,15 @@ public class Supplier {
 
     // -------------------- Entities --------------------
     public static final DeferredHolder<EntityType<?>, EntityType<SupplierVillagerEntity>> SUPPLIER_VILLAGER = entities.register(SupplierVillagerEntity.NAME,
-            () -> EntityType.Builder.of(SupplierVillagerEntity::new, MobCategory.CREATURE)
+            key -> EntityType.Builder.of(SupplierVillagerEntity::new, MobCategory.CREATURE)
                     .sized(0.6F, 1.95F) // Villager size
-                    .build(SupplierVillagerEntity.NAME)
+                    .build(ResourceKey.create(Registries.ENTITY_TYPE, key))
     );
 
     // -------------------- Professions --------------------
     public static final DeferredHolder<VillagerProfession, VillagerProfession> SUPPLIER_PROFESSION = professions.register("supplier",
             () -> new VillagerProfession(
-                    "supplier",
+                    Component.literal("supplier"),
                     holder -> false, // No POI
                     holder -> false, // No POI
                     ImmutableSet.of(),

@@ -3,15 +3,18 @@ package com.vikingkittens.mc.customers.customer;
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentMap;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.trading.MerchantOffers;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -22,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.OptionalInt;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -390,9 +394,15 @@ class CustomerSpawnerBlockEntityTest {
                 List.of(UUID.randomUUID())
         );
 
-        ListTag saved = CustomerSpawnerBlockEntity.saveReservedTargetCounterPositions(reservations);
+        TagValueOutput output = TagValueOutput.createWithoutContext(ProblemReporter.DISCARDING);
+        CustomerSpawnerBlockEntity.saveReservedTargetCounterPositions(output, reservations);
+        ValueInput input = TagValueInput.create(
+                ProblemReporter.DISCARDING,
+                HolderLookup.Provider.create(Stream.empty()),
+                output.buildResult()
+        );
         Map<BlockPos, List<UUID>> loaded =
-                CustomerSpawnerBlockEntity.loadReservedTargetCounterPositions(saved);
+                CustomerSpawnerBlockEntity.loadReservedTargetCounterPositions(input);
 
         assertEquals(reservations, loaded);
     }

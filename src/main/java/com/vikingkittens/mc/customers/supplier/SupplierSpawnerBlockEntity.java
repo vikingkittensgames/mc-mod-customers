@@ -3,8 +3,6 @@ package com.vikingkittens.mc.customers.supplier;
 import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.common.SearchUtils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.*;
@@ -21,6 +19,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -90,34 +90,32 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
 
         try {
-            tag.put("inventory", this.inventory.serializeNBT(registries));
+            inventory.serialize(output.child("inventory"));
         } catch (Throwable t) {
             LOGGER.error("Failed to save inventory", t);
         }
 
-        tag.putBoolean("daytimeStateInitialized", daytimeStateInitialized);
-        tag.putBoolean("lastTickWasDaytime", lastTickWasDaytime);
+        output.putBoolean("daytimeStateInitialized", daytimeStateInitialized);
+        output.putBoolean("lastTickWasDaytime", lastTickWasDaytime);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
 
-        if (tag.contains("inventory")) {
-            try {
-                inventory.deserializeNBT(registries, tag.getCompound("inventory"));
-            } catch (Throwable t) {
-                LOGGER.error("Failed to load inventory because of error", t);
-            }
+        try {
+            inventory.deserialize(input.childOrEmpty("inventory"));
+        } catch (Throwable t) {
+            LOGGER.error("Failed to load inventory because of error", t);
         }
 
         daytimeStateInitialized =
-                tag.getBoolean("daytimeStateInitialized");
-        lastTickWasDaytime = tag.getBoolean("lastTickWasDaytime");
+                input.getBooleanOr("daytimeStateInitialized", false);
+        lastTickWasDaytime = input.getBooleanOr("lastTickWasDaytime", false);
     }
 
     @Override
@@ -125,13 +123,19 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
         return Component.translatable("block.customers.supplier_spawner_block");
     }
 
-    public void beforeRemove() {
+    /**
+     * Drops inventory before this block entity is removed.
+     */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
         // Drop all items when block is broken
         SimpleContainer container = new SimpleContainer(inventory.getSlots());
         for (int i = 0; i < inventory.getSlots(); i++) {
             container.setItem(i, inventory.getStackInSlot(i));
         }
-        Containers.dropContents(level, worldPosition, container);
+        Containers.dropContents(level, pos, container);
+        level.updateNeighbourForOutputSignal(pos, state.getBlock());
     }
 
     @Nullable
@@ -243,7 +247,7 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 return;
             }
 
-            boolean isDaytime = level.isDay();
+            boolean isDaytime = level.isBrightOutside();
             if (!entity.daytimeStateInitialized) {
                 entity.daytimeStateInitialized = true;
                 entity.lastTickWasDaytime = isDaytime;
