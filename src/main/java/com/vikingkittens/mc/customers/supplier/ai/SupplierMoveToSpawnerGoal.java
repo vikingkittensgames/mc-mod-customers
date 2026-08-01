@@ -1,5 +1,10 @@
 package com.vikingkittens.mc.customers.supplier.ai;
 
+import com.vikingkittens.mc.customers.compatability.EntityCUtils;
+
+import com.vikingkittens.mc.customers.compatability.PlayerCUtils;
+
+
 import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.common.PositionUtils;
 import com.vikingkittens.mc.customers.common.SearchUtils;
@@ -51,12 +56,17 @@ public class SupplierMoveToSpawnerGoal extends MobMoveToGoal {
 
     @Override
     protected void onDone() {
-        mob.moveTo(targetPos.getBottomCenter(), mob.getYRot(), mob.getXRot());
+        EntityCUtils.snapTo(
+                    mob,
+                    targetPos.getBottomCenter(),
+                    mob.getYRot(),
+                    mob.getXRot()
+            );
         supplier.setState(SupplierState.SELLING);
         List<Player> players = SearchUtils.findEntitiesInSphere(supplier.level(), Player.class, supplier.blockPosition(), 32, (p, e) -> true);
         Component message = Component.translatable("messages.customers.supplies").withColor(0x36991C);
         for (Player player : players) {
-            player.displayClientMessage(message, true);
+            PlayerCUtils.sendActionBarMessage(player, message);
         }
     }
 }

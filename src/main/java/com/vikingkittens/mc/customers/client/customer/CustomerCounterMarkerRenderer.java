@@ -1,9 +1,10 @@
 package com.vikingkittens.mc.customers.client.customer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.client.compatability.DebugBoxC;
+import com.vikingkittens.mc.customers.client.compatability.RenderingCUtils;
 import com.vikingkittens.mc.customers.customer.CustomerCounterMarker;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlock;
 import net.minecraft.core.BlockPos;
@@ -11,9 +12,9 @@ import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -85,32 +86,32 @@ public class CustomerCounterMarkerRenderer {
             poseStack.popPose();
         }
 
-        VertexConsumer surroundingBuffer = bufferSource.getBuffer(RenderType.debugFilledBox());
-        for (BlockPos position : surroundingPositions) {
-            poseStack.pushPose();
-            poseStack.translate(
-                    position.getX() + 0.5D - cameraPosition.x(),
-                    position.getY() + HEIGHT_OFFSET + bob - cameraPosition.y(),
-                    position.getZ() + 0.5D - cameraPosition.z()
-            );
-            poseStack.scale(SURROUNDING_SCALE, SURROUNDING_SCALE, SURROUNDING_SCALE);
-            LevelRenderer.addChainedFilledBoxVertices(
-                    poseStack,
-                    surroundingBuffer,
-                    -0.5D,
-                    -0.5D,
-                    -0.5D,
-                    0.5D,
-                    0.5D,
-                    0.5D,
-                    SURROUNDING_RED,
-                    SURROUNDING_GREEN,
-                    SURROUNDING_BLUE,
-                    SURROUNDING_ALPHA
-            );
-            poseStack.popPose();
-        }
         bufferSource.endBatch();
+
+        int surroundingColor = ((int) (SURROUNDING_ALPHA * 255.0F) << 24)
+                | ((int) (SURROUNDING_RED * 255.0F) << 16)
+                | ((int) (SURROUNDING_GREEN * 255.0F) << 8)
+                | (int) (SURROUNDING_BLUE * 255.0F);
+        double halfScale = SURROUNDING_SCALE / 2.0D;
+        List<DebugBoxC> surroundingBoxes = surroundingPositions.stream()
+                .map(position -> {
+                    double centerX = position.getX() + 0.5D;
+                    double centerY = position.getY() + HEIGHT_OFFSET + bob;
+                    double centerZ = position.getZ() + 0.5D;
+                    return new DebugBoxC(
+                            new AABB(
+                                    centerX - halfScale,
+                                    centerY - halfScale,
+                                    centerZ - halfScale,
+                                    centerX + halfScale,
+                                    centerY + halfScale,
+                                    centerZ + halfScale
+                            ),
+                            surroundingColor
+                    );
+                })
+                .toList();
+        RenderingCUtils.renderDebugBoxes(event, surroundingBoxes);
     }
 
     @SubscribeEvent

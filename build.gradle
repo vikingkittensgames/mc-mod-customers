@@ -90,6 +90,8 @@ neoForge {
 
         // applies to all the run configs above
         configureEach {
+            gameDirectory = project.file("run-${minecraft_version}")
+
             // Recommended logging data for a userdev environment
             // The markers can be added/remove as needed separated by commas.
             // "SCAN": For mods scan.

@@ -1,5 +1,8 @@
 package com.vikingkittens.mc.customers.supplier.ai;
 
+import com.vikingkittens.mc.customers.compatability.LevelCUtils;
+
+
 import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.common.MobUtils;
 import com.vikingkittens.mc.customers.common.ai.MobMoveToGoal;
@@ -21,7 +24,7 @@ public class SupplierMoveToSpawnGoal extends MobMoveToGoal {
     public boolean canUse() {
         return super.canUse() &&
                 supplier.getSpawnPos() != null &&
-                supplier.level().isNight() &&
+                LevelCUtils.isNighttime(supplier.level()) &&
                 (
                         // Happy path for state flow
                         supplier.getState() == SupplierState.SELLING ||

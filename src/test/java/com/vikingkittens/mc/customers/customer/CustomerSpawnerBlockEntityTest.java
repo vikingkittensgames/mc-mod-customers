@@ -1,11 +1,13 @@
 package com.vikingkittens.mc.customers.customer;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
+import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
+import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
+import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
@@ -390,9 +392,12 @@ class CustomerSpawnerBlockEntityTest {
                 List.of(UUID.randomUUID())
         );
 
-        ListTag saved = CustomerSpawnerBlockEntity.saveReservedTargetCounterPositions(reservations);
+        CompoundTag tag = new CompoundTag();
+        DataWriter writer = PersistenceCUtils.writer(tag);
+        CustomerSpawnerBlockEntity.saveReservedTargetCounterPositions(writer, reservations);
+        DataReader reader = PersistenceCUtils.reader(tag);
         Map<BlockPos, List<UUID>> loaded =
-                CustomerSpawnerBlockEntity.loadReservedTargetCounterPositions(saved);
+                CustomerSpawnerBlockEntity.loadReservedTargetCounterPositions(reader);
 
         assertEquals(reservations, loaded);
     }

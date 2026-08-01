@@ -1,5 +1,10 @@
 package com.vikingkittens.mc.customers.supplier;
 
+import com.vikingkittens.mc.customers.compatability.LevelCUtils;
+import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
+import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
+import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
+
 import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.common.SearchUtils;
 import net.minecraft.core.BlockPos;
@@ -99,8 +104,15 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
             LOGGER.error("Failed to save inventory", t);
         }
 
-        tag.putBoolean("daytimeStateInitialized", daytimeStateInitialized);
-        tag.putBoolean("lastTickWasDaytime", lastTickWasDaytime);
+        writeSpawnerData(PersistenceCUtils.writer(tag));
+    }
+
+    /**
+     * Stores supplier spawner state shared across supported Minecraft versions.
+     */
+    void writeSpawnerData(DataWriter output) {
+        output.putBoolean("daytimeStateInitialized", daytimeStateInitialized);
+        output.putBoolean("lastTickWasDaytime", lastTickWasDaytime);
     }
 
     @Override
@@ -115,9 +127,15 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
             }
         }
 
-        daytimeStateInitialized =
-                tag.getBoolean("daytimeStateInitialized");
-        lastTickWasDaytime = tag.getBoolean("lastTickWasDaytime");
+        readSpawnerData(PersistenceCUtils.reader(tag));
+    }
+
+    /**
+     * Restores supplier spawner state shared across supported Minecraft versions.
+     */
+    void readSpawnerData(DataReader input) {
+        daytimeStateInitialized = input.getBoolean("daytimeStateInitialized");
+        lastTickWasDaytime = input.getBoolean("lastTickWasDaytime");
     }
 
     @Override
@@ -204,6 +222,7 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
     /* package private */ static BlockState updateState(Level level, BlockPos pos, BlockState currentState) {
         boolean disabled = level.hasNeighborSignal(pos);
 
+
         BlockState newState = currentState
                 .setValue(SupplierSpawnerBlock.STATE_DISABLED, disabled);
         return newState;
@@ -211,6 +230,7 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     /* package private */ void updateState() {
         BlockState newState = updateState(getLevel(), getBlockPos(), getBlockState());
+
         level.setBlock(getBlockPos(), newState, Block.UPDATE_ALL);
     }
 
@@ -229,7 +249,7 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, SupplierSpawnerBlockEntity entity) {
-        if (!level.isClientSide()) {
+        if (!LevelCUtils.isClientSide(level)) {
             if (entity.ticksSinceTicksDisabledCheck == 0 || entity.ticksSinceTicksDisabledCheck > 20) {
                 try {
                     entity.ticksDisabled = SearchUtils.findEntitiesInSphere(level, Player.class, pos, 64, (p, e) -> true).isEmpty();
@@ -243,7 +263,7 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 return;
             }
 
-            boolean isDaytime = level.isDay();
+            boolean isDaytime = LevelCUtils.isDaytime(level);
             if (!entity.daytimeStateInitialized) {
                 entity.daytimeStateInitialized = true;
                 entity.lastTickWasDaytime = isDaytime;

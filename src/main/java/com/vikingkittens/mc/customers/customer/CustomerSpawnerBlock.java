@@ -1,5 +1,8 @@
 package com.vikingkittens.mc.customers.customer;
 
+import com.vikingkittens.mc.customers.compatability.LevelCUtils;
+
+
 
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.MapCodec;
@@ -38,9 +41,13 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
             instance.group(propertiesCodec()).apply(instance, CustomerSpawnerBlock::new));
 
     /* package private */ static final EnumProperty<CustomerSpawnerMode> STATE_SPAWN_MODE = EnumProperty.create("spawn_mode", CustomerSpawnerMode.class);
+
     /* package private */ static final BooleanProperty STATE_DISABLED = BooleanProperty.create("disabled");
+
     /* package private */ static final BooleanProperty STATE_POWERED = BooleanProperty.create("powered");
+
     /* package private */ static final BooleanProperty STATE_SPECIAL_ENABLED = BooleanProperty.create("special_enabled");
+
 
     public CustomerSpawnerBlock(Properties properties) {
         super(properties);
@@ -99,7 +106,7 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
 
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!level.isClientSide() && !state.is(newState.getBlock())) {
+        if (!LevelCUtils.isClientSide(level) && !state.is(newState.getBlock())) {
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof CustomerSpawnerBlockEntity entity) {
                 entity.beforeRemove();
@@ -112,7 +119,7 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
     @Override
     @NotNull
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!level.isClientSide()) {
+        if (!LevelCUtils.isClientSide(level)) {
             // Open up container
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof CustomerSpawnerBlockEntity entity) {
@@ -128,7 +135,7 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         // Check if the player right-clicked with a clock
         if (stack.is(Items.CLOCK)) {
-            if (!level.isClientSide()) {
+            if (!LevelCUtils.isClientSide(level)) {
                 BlockEntity blockEntity = level.getBlockEntity(pos);
                 if (blockEntity instanceof CustomerSpawnerBlockEntity entity) {
                     entity.cycleSpawnMode();
@@ -159,7 +166,7 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        if (!level.isClientSide()) {
+        if (!LevelCUtils.isClientSide(level)) {
             return (l,p,s,e) -> {
                 CustomerSpawnerBlockEntity.tick(l, p, s, (CustomerSpawnerBlockEntity)e);
             };

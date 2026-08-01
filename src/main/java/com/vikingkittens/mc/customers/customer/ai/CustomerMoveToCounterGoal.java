@@ -1,5 +1,7 @@
 package com.vikingkittens.mc.customers.customer.ai;
 
+import com.vikingkittens.mc.customers.compatability.EntityCUtils;
+
 import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.common.ai.MobMoveToGoal;
 import com.vikingkittens.mc.customers.customer.*;
@@ -166,7 +168,12 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
     protected void onDone() {
         // Check for a forced state change
         if (customer.getState() == CustomerState.MOVING_TO_COUNTER) {
-            mob.moveTo(targetPos.getBottomCenter(), mob.getYRot(), mob.getXRot());
+            EntityCUtils.snapTo(
+                    mob,
+                    targetPos.getBottomCenter(),
+                    mob.getYRot(),
+                    mob.getXRot()
+            );
             if (counterPosition != null) {
                 customer.lookAt(EntityAnchorArgument.Anchor.EYES, counterPosition.getCenter());
             }
