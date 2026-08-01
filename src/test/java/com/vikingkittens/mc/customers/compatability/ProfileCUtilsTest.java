@@ -1,9 +1,10 @@
 package com.vikingkittens.mc.customers.compatability;
 
-import com.mojang.authlib.GameProfile;
+import java.util.UUID;
+
 import org.junit.jupiter.api.Test;
 
-import java.util.UUID;
+import com.mojang.authlib.GameProfile;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 class ProfileCUtilsTest {

@@ -1,34 +1,33 @@
 package com.vikingkittens.mc.customers.client.customer;
 
-import com.vikingkittens.mc.customers.compatability.ProfileCUtils;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.UUID;
 
-
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.authlib.GameProfile;
-import com.vikingkittens.mc.customers.Customers;
-import com.vikingkittens.mc.customers.client.compatability.GuiGraphicsCUtils;
-import com.vikingkittens.mc.customers.client.compatability.TextureC;
-import com.vikingkittens.mc.customers.customer.CustomerShiftFinishedPayload;
-import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
+import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.PlayerFaceRenderer;
-import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.client.resources.PlayerSkin;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.Util;
 import net.minecraft.util.Mth;
 
-import java.util.Arrays;
-import java.util.Map;
-import java.util.UUID;
+import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.client.compatability.GuiGraphicsCUtils;
+import com.vikingkittens.mc.customers.client.compatability.TextureC;
+import com.vikingkittens.mc.customers.compatability.ProfileCUtils;
+import com.vikingkittens.mc.customers.customer.CustomerShiftFinishedPayload;
+import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
 public class CustomerShiftFinishedScreen extends Screen {
     private static final int IMAGE_WIDTH = 256;

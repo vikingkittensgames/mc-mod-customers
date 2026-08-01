@@ -1,8 +1,8 @@
 package com.vikingkittens.mc.customers.client.compatability;
 
-import net.minecraft.world.phys.AABB;
-
 import java.util.Objects;
+
+import net.minecraft.world.phys.AABB;
 
 /**
  * Describes version-independent debug box geometry.

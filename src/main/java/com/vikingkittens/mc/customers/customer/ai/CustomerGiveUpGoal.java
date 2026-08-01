@@ -1,20 +1,22 @@
 package com.vikingkittens.mc.customers.customer.ai;
 
+import java.util.List;
+
+import org.slf4j.Logger;
+
 import com.mojang.logging.LogUtils;
-import com.vikingkittens.mc.customers.common.ai.MobTimedGoal;
-import com.vikingkittens.mc.customers.compatability.VillagerCUtils;
-import com.vikingkittens.mc.customers.config.Config;
-import com.vikingkittens.mc.customers.customer.Customer;
-import com.vikingkittens.mc.customers.customer.CustomerState;
-import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
-import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlockEntity;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.trading.MerchantOffer;
-import org.slf4j.Logger;
 
-import java.util.List;
+import com.vikingkittens.mc.customers.common.ai.MobTimedGoal;
+import com.vikingkittens.mc.customers.compatability.VillagerCUtils;
+import com.vikingkittens.mc.customers.config.Config;
+import com.vikingkittens.mc.customers.customer.Customer;
+import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlockEntity;
+import com.vikingkittens.mc.customers.customer.CustomerState;
+import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 
 public class CustomerGiveUpGoal extends MobTimedGoal {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -45,7 +47,6 @@ public class CustomerGiveUpGoal extends MobTimedGoal {
             giveUpTicks = 0;
         }
         return super.canUse() && (
-                // Happy path for state flow
                 (
                         (
                                 customer.getState() == CustomerState.BUYING &&
@@ -53,7 +54,6 @@ public class CustomerGiveUpGoal extends MobTimedGoal {
                         ) ||
                                 customer.getState() == CustomerState.FORCED_GIVING_UP
                 ) ||
-                        // Non-happy path where the state changed but timer never started like a server restart
                         (
                                 customer.getState() == CustomerState.GIVING_UP && !started
                         )
@@ -67,7 +67,6 @@ public class CustomerGiveUpGoal extends MobTimedGoal {
 
     @Override
     public void start() {
-        // LOGGER.debug("Giving up");
         if (customer.getState() == CustomerState.FORCED_GIVING_UP) {
             messageSent = true;
         }
@@ -100,7 +99,6 @@ public class CustomerGiveUpGoal extends MobTimedGoal {
 
     @Override
     protected void onDone() {
-        // LOGGER.debug("Done giving up");
         customer.setState(CustomerState.DONE);
     }
 

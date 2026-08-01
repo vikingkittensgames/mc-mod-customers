@@ -1,20 +1,21 @@
 package com.vikingkittens.mc.customers.customer.ai;
 
-import com.vikingkittens.mc.customers.compatability.EntityCUtils;
+import java.util.UUID;
+
+import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
-import com.vikingkittens.mc.customers.common.PositionUtils;
-import com.vikingkittens.mc.customers.common.ai.MobMoveToGoal;
-import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlockEntity;
-import com.vikingkittens.mc.customers.customer.CustomerState;
-import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.LevelReader;
-import org.slf4j.Logger;
 
-import java.util.UUID;
+import com.vikingkittens.mc.customers.common.PositionUtils;
+import com.vikingkittens.mc.customers.common.ai.MobMoveToGoal;
+import com.vikingkittens.mc.customers.compatability.EntityCUtils;
+import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlockEntity;
+import com.vikingkittens.mc.customers.customer.CustomerState;
+import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 
 public class CustomerLineUpGoal extends MobMoveToGoal {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -32,9 +33,7 @@ public class CustomerLineUpGoal extends MobMoveToGoal {
         return super.canUse() &&
                 customer.getCounterTargetBlockPos() != null &&
                 (
-                        // Happy path for state flow
                         customer.getState() == CustomerState.LINING_UP ||
-                        // Non-happy path where movement starts and the path is lost like with a server restart
                         (
                                 customer.getState() == CustomerState.IN_LINE &&
                                 customer.getNavigation().getPath() == null
@@ -44,7 +43,6 @@ public class CustomerLineUpGoal extends MobMoveToGoal {
 
     @Override
     protected boolean isValidTarget(LevelReader levelReader, BlockPos blockPos) {
-        // Use this to inject a forced state change check that should trigger ending the goal
         return super.isValidTarget(levelReader, blockPos) && (
                 customer.getState() == CustomerState.LINING_UP ||
                 customer.getState() == CustomerState.IN_LINE
@@ -53,7 +51,6 @@ public class CustomerLineUpGoal extends MobMoveToGoal {
 
     @Override
     public void start() {
-        // Reset state
         CustomerSpawnerBlockEntity spawner = customer.getSpawner();
         if (spawner != null) {
             followingCustomerId = spawner.getReservedTargetCounterPositionFollowingCustomerId(
@@ -90,7 +87,6 @@ public class CustomerLineUpGoal extends MobMoveToGoal {
 
     @Override
     protected void onDone() {
-        // Check for a forced state change
         if (customer.getState() == CustomerState.IN_LINE) {
             EntityCUtils.snapTo(
                     mob,

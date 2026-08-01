@@ -1,7 +1,9 @@
 package com.vikingkittens.mc.customers.customer;
 
-import com.vikingkittens.mc.customers.common.SearchUtils;
-import com.vikingkittens.mc.customers.config.Config;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
@@ -11,9 +13,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Supplier;
+import com.vikingkittens.mc.customers.common.SearchUtils;
+import com.vikingkittens.mc.customers.config.Config;
 
 /**
  * Finds customer counters and valid positions where customers can stand or sit.

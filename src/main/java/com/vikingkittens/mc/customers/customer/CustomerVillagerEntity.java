@@ -1,26 +1,25 @@
 package com.vikingkittens.mc.customers.customer;
 
-import com.vikingkittens.mc.customers.compatability.LevelCUtils;
-import com.vikingkittens.mc.customers.compatability.VillagerCUtils;
-import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
-import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
-import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
-import com.vikingkittens.mc.customers.compatability.EntityCUtils;
-import com.vikingkittens.mc.customers.compatability.InteractionCUtils;
-import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
-import com.vikingkittens.mc.customers.Customers;
-import com.vikingkittens.mc.customers.common.MobUtils;
-import com.vikingkittens.mc.customers.customer.ai.*;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.stats.Stats;
@@ -47,18 +46,21 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+
 import net.neoforged.neoforge.registries.datamaps.builtin.BiomeVillagerType;
 import net.neoforged.neoforge.registries.datamaps.builtin.NeoForgeDataMaps;
-import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
 
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.common.MobUtils;
+import com.vikingkittens.mc.customers.compatability.EntityCUtils;
+import com.vikingkittens.mc.customers.compatability.InteractionCUtils;
+import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
+import com.vikingkittens.mc.customers.compatability.LevelCUtils;
+import com.vikingkittens.mc.customers.compatability.VillagerCUtils;
+import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
+import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
+import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
+import com.vikingkittens.mc.customers.customer.ai.*;
 
 public class CustomerVillagerEntity extends Villager {
     @Override
@@ -154,10 +156,8 @@ public class CustomerVillagerEntity extends Villager {
 
                     customer.setState(CustomerState.INITIALIZING);
 
-                    // Finalize spawn logic (sets default items, resets AI brain, etc.)
                     customer.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(spawnerPos), MobSpawnType.COMMAND, null);
 
-                    // Spawn the entity in the world
                     serverLevel.addFreshEntity(customer);
 
                     return customer;
@@ -380,10 +380,6 @@ public class CustomerVillagerEntity extends Villager {
         super.readAdditionalSaveData(compound);
         readCustomerData(PersistenceCUtils.reader(compound));
     }
-
-    /**
-     * Restores customer state shared across supported Minecraft versions.
-     */
     void readCustomerData(DataReader input) {
         input.getString(TAG_STATE).ifPresent(stateName -> {
             try {
@@ -415,10 +411,6 @@ public class CustomerVillagerEntity extends Villager {
         super.addAdditionalSaveData(compound);
         writeCustomerData(PersistenceCUtils.writer(compound));
     }
-
-    /**
-     * Stores customer state shared across supported Minecraft versions.
-     */
     void writeCustomerData(DataWriter output) {
         if (state != null) {
             output.putString(TAG_STATE, state.name());
@@ -496,26 +488,19 @@ public class CustomerVillagerEntity extends Villager {
 
     @Override
     protected void customServerAiStep() {
-        // No behavior-based AI
     }
 
     @Override
     protected void registerGoals() {
-        // Setup the goal system
         super.registerGoals();
-        // Remove the standard goals
         goalSelector.removeAllGoals(goal -> true);
-        // Remove the standard targets
         targetSelector.removeAllGoals(goal -> true);
 
-        // Keep the customer afloat when submerged
         goalSelector.addGoal(0, new FloatGoal(this));
 
-        // Start with looking at the player
         goalSelector.addGoal(0, new LookAtTradingPlayerGoal(this));
         goalSelector.addGoal(1, new LookAtPlayerGoal(this, Player.class, 8));
 
-        // Customer specific goals
         goalSelector.addGoal(0, new CustomerMoveToCounterGoal(this, 0.5));
         goalSelector.addGoal(0, new CustomerLineUpGoal(this, 0.5));
         goalSelector.addGoal(0, new CustomerWaitOnLeaderGoal(this));
@@ -542,7 +527,6 @@ public class CustomerVillagerEntity extends Villager {
     @Override
     @NotNull
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
-        // Add all interacting players to the spawner
         if (!LevelCUtils.isClientSide(level())) {
             if (spawnerPos != null && level().getBlockEntity(spawnerPos) instanceof CustomerSpawnerBlockEntity spawner) {
                 spawner.addPlayer(player.getUUID());
@@ -653,7 +637,6 @@ public class CustomerVillagerEntity extends Villager {
             ticksInState++;
             ticksSinceTrade++;
 
-            // Look for near by players and add them to the spawner
             if (ticksSincePlayerScan == 0 || ticksSincePlayerScan > 20) {
                 ticksSincePlayerScan = 0;
                 if (spawnerPos != null && level().getBlockEntity(spawnerPos) instanceof CustomerSpawnerBlockEntity spawner) {
@@ -667,16 +650,9 @@ public class CustomerVillagerEntity extends Villager {
         }
     }
 
-    /**
-     * Reads a saved counter target position.
-     */
     static Optional<BlockPos> readCounterTargetBlockPos(DataReader input) {
         return input.getBlockPos(TAG_COUNTER_TARGET_BLOCK_POS);
     }
-
-    /**
-     * Saves a counter target position.
-     */
     static void saveCounterTargetBlockPos(
             DataWriter output,
             BlockPos counterTargetBlockPos

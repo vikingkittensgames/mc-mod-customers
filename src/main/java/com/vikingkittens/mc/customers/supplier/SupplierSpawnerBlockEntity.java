@@ -1,12 +1,11 @@
 package com.vikingkittens.mc.customers.supplier;
 
-import com.vikingkittens.mc.customers.compatability.LevelCUtils;
-import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
-import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
-import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
+import java.util.*;
+
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
-import com.vikingkittens.mc.customers.common.SearchUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -26,11 +25,14 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.items.ItemStackHandler;
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
 
-import java.util.*;
+import net.neoforged.neoforge.items.ItemStackHandler;
+
+import com.vikingkittens.mc.customers.common.SearchUtils;
+import com.vikingkittens.mc.customers.compatability.LevelCUtils;
+import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
+import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
+import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
 
 public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvider {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -106,10 +108,6 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
         writeSpawnerData(PersistenceCUtils.writer(tag));
     }
-
-    /**
-     * Stores supplier spawner state shared across supported Minecraft versions.
-     */
     void writeSpawnerData(DataWriter output) {
         output.putBoolean("daytimeStateInitialized", daytimeStateInitialized);
         output.putBoolean("lastTickWasDaytime", lastTickWasDaytime);
@@ -129,10 +127,6 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
         readSpawnerData(PersistenceCUtils.reader(tag));
     }
-
-    /**
-     * Restores supplier spawner state shared across supported Minecraft versions.
-     */
     void readSpawnerData(DataReader input) {
         daytimeStateInitialized = input.getBoolean("daytimeStateInitialized");
         lastTickWasDaytime = input.getBoolean("lastTickWasDaytime");
@@ -144,7 +138,6 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     public void beforeRemove() {
-        // Drop all items when block is broken
         SimpleContainer container = new SimpleContainer(inventory.getSlots());
         for (int i = 0; i < inventory.getSlots(); i++) {
             container.setItem(i, inventory.getStackInSlot(i));
@@ -155,7 +148,6 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
     @Nullable
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
-        // Direct anonymous bridge converting NeoForge's Handler to a Vanilla Container
         Container containerBridge = new Container() {
             @Override
             public int getContainerSize() {
@@ -215,20 +207,18 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
             }
         };
 
-        // NeoForge / Modern Mojang uses sixRows for the 54-slot UI (9x6)
         return ChestMenu.sixRows(containerId, playerInventory, containerBridge);
     }
 
-    /* package private */ static BlockState updateState(Level level, BlockPos pos, BlockState currentState) {
+    static BlockState updateState(Level level, BlockPos pos, BlockState currentState) {
         boolean disabled = level.hasNeighborSignal(pos);
-
 
         BlockState newState = currentState
                 .setValue(SupplierSpawnerBlock.STATE_DISABLED, disabled);
         return newState;
     }
 
-    /* package private */ void updateState() {
+    void updateState() {
         BlockState newState = updateState(getLevel(), getBlockPos(), getBlockState());
 
         level.setBlock(getBlockPos(), newState, Block.UPDATE_ALL);

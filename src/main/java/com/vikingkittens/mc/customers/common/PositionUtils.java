@@ -1,11 +1,10 @@
 package com.vikingkittens.mc.customers.common;
 
-import com.vikingkittens.mc.customers.compatability.LevelCUtils;
-
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.LevelReader;
+
+import com.vikingkittens.mc.customers.compatability.LevelCUtils;
 
 public class PositionUtils {
     public static Direction getClosestHorizontalDirection(BlockPos start, BlockPos end) {

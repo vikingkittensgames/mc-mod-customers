@@ -1,14 +1,15 @@
 package com.vikingkittens.mc.customers.common;
 
+import java.util.Arrays;
+import java.util.Set;
+
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.Heightmap;
-import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-
-import java.util.Arrays;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;

@@ -1,12 +1,14 @@
 package com.vikingkittens.mc.customers.customer;
 
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.damagesource.DamageSource;
+
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
 import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.damagesource.DamageSource;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -15,9 +17,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Verifies customer entity state persistence.
- */
 class CustomerVillagerEntityTest {
     @BeforeAll
     static void bootstrapMinecraft() {
@@ -37,10 +36,6 @@ class CustomerVillagerEntityTest {
                 mock(DamageSource.class)
         ));
     }
-
-    /**
-     * Verifies that a selected counter target survives entity save and load.
-     */
     @Test
     void roundTripsCounterTargetBlockPosition() {
         BlockPos targetPosition = new BlockPos(10, 64, -20);

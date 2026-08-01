@@ -1,23 +1,22 @@
 package com.vikingkittens.mc.customers.compatability.persistence;
 
-import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
-import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockState;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+
+import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-/**
- * Verifies the Minecraft 1.21.1 persistence adapters against real NBT data.
- */
 class PersistenceCUtilsTest {
     @BeforeAll
     static void bootstrapMinecraft() {

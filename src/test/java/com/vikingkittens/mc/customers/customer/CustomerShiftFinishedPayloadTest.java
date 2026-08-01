@@ -1,12 +1,13 @@
 package com.vikingkittens.mc.customers.customer;
 
-import io.netty.buffer.Unpooled;
-import net.minecraft.network.FriendlyByteBuf;
-import org.junit.jupiter.api.Test;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import io.netty.buffer.Unpooled;
+import org.junit.jupiter.api.Test;
+
+import net.minecraft.network.FriendlyByteBuf;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;

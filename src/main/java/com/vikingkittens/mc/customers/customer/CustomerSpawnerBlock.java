@@ -1,8 +1,8 @@
 package com.vikingkittens.mc.customers.customer;
 
-import com.vikingkittens.mc.customers.compatability.LevelCUtils;
-
-
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.MapCodec;
@@ -27,10 +27,8 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
 
+import com.vikingkittens.mc.customers.compatability.LevelCUtils;
 
 public class CustomerSpawnerBlock extends BaseEntityBlock {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -40,18 +38,16 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
     private static final MapCodec<CustomerSpawnerBlock> CODEC = RecordCodecBuilder.mapCodec(instance ->
             instance.group(propertiesCodec()).apply(instance, CustomerSpawnerBlock::new));
 
-    /* package private */ static final EnumProperty<CustomerSpawnerMode> STATE_SPAWN_MODE = EnumProperty.create("spawn_mode", CustomerSpawnerMode.class);
+    static final EnumProperty<CustomerSpawnerMode> STATE_SPAWN_MODE = EnumProperty.create("spawn_mode", CustomerSpawnerMode.class);
 
-    /* package private */ static final BooleanProperty STATE_DISABLED = BooleanProperty.create("disabled");
+    static final BooleanProperty STATE_DISABLED = BooleanProperty.create("disabled");
 
-    /* package private */ static final BooleanProperty STATE_POWERED = BooleanProperty.create("powered");
+    static final BooleanProperty STATE_POWERED = BooleanProperty.create("powered");
 
-    /* package private */ static final BooleanProperty STATE_SPECIAL_ENABLED = BooleanProperty.create("special_enabled");
-
+    static final BooleanProperty STATE_SPECIAL_ENABLED = BooleanProperty.create("special_enabled");
 
     public CustomerSpawnerBlock(Properties properties) {
         super(properties);
-        // Set the default spawn mode
         this.registerDefaultState(this.defaultBlockState()
                 .setValue(STATE_SPAWN_MODE, CustomerSpawnerMode.CONTINUOUS)
                 .setValue(STATE_DISABLED, false)
@@ -97,7 +93,6 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
         return new CustomerSpawnerBlockEntity(pos, state);
     }
 
-    // Required to prevent the block from being entirely invisible
     @Override
     @NotNull
     protected RenderShape getRenderShape(BlockState pState) {
@@ -120,7 +115,6 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
     @NotNull
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!LevelCUtils.isClientSide(level)) {
-            // Open up container
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof CustomerSpawnerBlockEntity entity) {
                 player.openMenu(entity);
@@ -133,7 +127,6 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
     @Override
     @NotNull
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
-        // Check if the player right-clicked with a clock
         if (stack.is(Items.CLOCK)) {
             if (!LevelCUtils.isClientSide(level)) {
                 BlockEntity blockEntity = level.getBlockEntity(pos);
