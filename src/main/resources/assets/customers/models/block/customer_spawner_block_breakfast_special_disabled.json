@@ -1,5 +1,6 @@
 {
   "loader": "neoforge:composite",
+  "render_type": "minecraft:cutout",
   "textures": {
     "particle": "customers:block/customer_spawner_block_top"
   },
