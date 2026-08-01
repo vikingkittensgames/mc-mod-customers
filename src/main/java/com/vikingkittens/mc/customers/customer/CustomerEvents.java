@@ -2,6 +2,7 @@ package com.vikingkittens.mc.customers.customer;
 
 import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.compatability.LevelCUtils;
 import com.vikingkittens.mc.customers.config.Config;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.InteractionHand;
@@ -41,7 +42,6 @@ public class CustomerEvents {
 
     @SubscribeEvent
     public static void registerAttributes(EntityAttributeCreationEvent event) {
-        // Add the default Villager attributes to the customer
         event.put(Customer.CUSTOMER_VILLAGER.get(), Villager.createAttributes().build());
         event.put(Customer.CUSTOMER_ZOMBIE.get(), Villager.createAttributes().build());
         event.put(Customer.CUSTOMER_SKELETON.get(), Villager.createAttributes().build());
@@ -53,7 +53,7 @@ public class CustomerEvents {
 
     @SubscribeEvent
     public static void onEntityLeaveLevel(EntityLeaveLevelEvent event) {
-        if (!event.getLevel().isClientSide()) {
+        if (!LevelCUtils.isClientSide(event.getLevel())) {
             if (event.getEntity() instanceof CustomerVillagerEntity customer) {
                 Entity.RemovalReason reason = customer.getRemovalReason();
                 if (reason == Entity.RemovalReason.CHANGED_DIMENSION) {
@@ -68,7 +68,7 @@ public class CustomerEvents {
         if (
                 Config.ENABLE_QUICK_SELL.get() &&
                 event.getHand() == InteractionHand.MAIN_HAND &&
-                !event.getEntity().level().isClientSide() &&
+                !LevelCUtils.isClientSide(event.getEntity().level()) &&
                 event.getTarget() instanceof CustomerVillagerEntity customer &&
                 customer.tryQuickSell(event.getEntity())
         ) {

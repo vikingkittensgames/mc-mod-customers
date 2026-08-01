@@ -20,9 +20,7 @@ public class CustomerMoveToSpawnGoal extends MobMoveToGoal {
     public boolean canUse() {
         return super.canUse() &&
                 (
-                        // Happy path for state flow
                         customer.getState() == CustomerState.DONE ||
-                        // Non-happy path where movement starts and the path is lost like with a server restart
                         (
                                 customer.getState() == CustomerState.MOVING_TO_SPAWN &&
                                 customer.getNavigation().getPath() == null
@@ -35,7 +33,6 @@ public class CustomerMoveToSpawnGoal extends MobMoveToGoal {
     public void start() {
         customer.stopRiding();
         targetPos = customer.getSpawnPos();
-        // LOGGER.debug("Target positions: {}", targetPos);
         customer.setState(CustomerState.MOVING_TO_SPAWN);
         customer.setCounterTargetBlockPos(null);
         super.start();
@@ -48,7 +45,6 @@ public class CustomerMoveToSpawnGoal extends MobMoveToGoal {
 
     @Override
     protected void onDone() {
-        // LOGGER.debug("Reached spawn");
         customer.setState(CustomerState.LEAVING);
     }
 }

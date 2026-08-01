@@ -1,6 +1,8 @@
 package com.vikingkittens.mc.customers.customer;
 
 import com.mojang.logging.LogUtils;
+import com.vikingkittens.mc.customers.compatability.EntityCUtils;
+import com.vikingkittens.mc.customers.compatability.LevelCUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -86,7 +88,7 @@ public class CustomerSeatEntity extends Entity {
     }
 
     public static boolean trySit(Level level, BlockPos pos, Entity passenger) {
-        if (level.isClientSide() || !canSit(level, pos, passenger)) {
+        if (LevelCUtils.isClientSide(level) || !canSit(level, pos, passenger)) {
             return false;
         }
 
@@ -97,10 +99,9 @@ public class CustomerSeatEntity extends Entity {
         if (existingSeats.isEmpty()) {
             Vec3 seatPosition = getSeatPosition(level, pos, passenger);
             seat = new CustomerSeatEntity(Customer.CUSTOMER_SEAT.get(), level);
-            seat.snapTo(
-                    seatPosition.x,
-                    seatPosition.y,
-                    seatPosition.z,
+            EntityCUtils.snapTo(
+                    seat,
+                    seatPosition,
                     passenger.getYRot(),
                     0.0F
             );
@@ -111,7 +112,11 @@ public class CustomerSeatEntity extends Entity {
             created = false;
         }
 
-        boolean startedRiding = passenger.startRiding(seat, true, true);
+        boolean startedRiding = EntityCUtils.startRiding(
+                passenger,
+                seat,
+                true
+        );
 
         if (!startedRiding && created) {
             seat.discard();
@@ -182,7 +187,7 @@ public class CustomerSeatEntity extends Entity {
     public void tick() {
         super.tick();
         setDeltaMovement(Vec3.ZERO);
-        if (level().isClientSide()) {
+        if (LevelCUtils.isClientSide(level())) {
             return;
         }
 
@@ -211,9 +216,6 @@ public class CustomerSeatEntity extends Entity {
         return false;
     }
 
-    /**
-     * Prevents the invisible helper seat from taking damage.
-     */
     @Override
     public boolean hurtServer(
             ServerLevel level,

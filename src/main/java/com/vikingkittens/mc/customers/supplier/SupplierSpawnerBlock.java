@@ -3,6 +3,7 @@ package com.vikingkittens.mc.customers.supplier;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.vikingkittens.mc.customers.compatability.LevelCUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -34,11 +35,10 @@ public class SupplierSpawnerBlock extends BaseEntityBlock {
     private static final MapCodec<SupplierSpawnerBlock> CODEC = RecordCodecBuilder.mapCodec(instance ->
             instance.group(propertiesCodec()).apply(instance, SupplierSpawnerBlock::new));
 
-    /* package private */ static final BooleanProperty STATE_DISABLED = BooleanProperty.create("disabled");
+    static final BooleanProperty STATE_DISABLED = BooleanProperty.create("disabled");
 
     public SupplierSpawnerBlock(Properties properties) {
         super(properties);
-        // Set the default spawn mode
         this.registerDefaultState(this.defaultBlockState()
                 .setValue(STATE_DISABLED, false)
         );
@@ -70,7 +70,6 @@ public class SupplierSpawnerBlock extends BaseEntityBlock {
         return new SupplierSpawnerBlockEntity(pos, state);
     }
 
-    // Required to prevent the block from being entirely invisible
     @Override
     @NotNull
     protected RenderShape getRenderShape(BlockState pState) {
@@ -81,8 +80,7 @@ public class SupplierSpawnerBlock extends BaseEntityBlock {
     @Override
     @NotNull
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!level.isClientSide()) {
-            // Open up container
+        if (!LevelCUtils.isClientSide(level)) {
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof SupplierSpawnerBlockEntity entity) {
                 player.openMenu(entity);
@@ -124,7 +122,7 @@ public class SupplierSpawnerBlock extends BaseEntityBlock {
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        if (!level.isClientSide()) {
+        if (!LevelCUtils.isClientSide(level)) {
             return (l,p,s,e) -> {
                 SupplierSpawnerBlockEntity.tick(l, p, s, (SupplierSpawnerBlockEntity)e);
             };

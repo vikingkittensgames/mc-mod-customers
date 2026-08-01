@@ -94,16 +94,7 @@ public final class MobUtils {
                             airCount++;
                         }
                     }
-                    /*
-                    LOGGER.debug(
-                            "Finding Safe Pos: attempt={}, target={}, pos={}, airCount={}, requiredAirBlocks={}",
-                            attempt,
-                            centerPos,
-                            safePos,
-                            airCount,
-                            requiredAirBlocks
-                    );
-                    */
+
                     if (
                             airCount >= requiredAirBlocks &&
                             hasValidSupportArea(level, safePos) &&

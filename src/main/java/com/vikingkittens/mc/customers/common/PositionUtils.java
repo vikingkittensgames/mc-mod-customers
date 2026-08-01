@@ -1,5 +1,7 @@
 package com.vikingkittens.mc.customers.common;
 
+import com.vikingkittens.mc.customers.compatability.LevelCUtils;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.LevelReader;
@@ -19,8 +21,8 @@ public class PositionUtils {
             LevelReader level,
             BlockPos initialPosition
     ) {
-        int minimumY = level.getMinY();
-        int maximumY = level.getMaxY();
+        int minimumY = LevelCUtils.getMinBuildHeight(level);
+        int maximumY = LevelCUtils.getMaxBuildHeight(level);
         BlockPos.MutableBlockPos position = initialPosition.mutable();
 
         while (

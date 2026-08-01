@@ -235,9 +235,6 @@ class CustomerGoalLifecycleTest {
         }
     }
 
-    /**
-     * Verifies that vertical leader movement does not restart the queue.
-     */
     @Test
     void waitingContinuesWhenFollowingCustomerJumps() {
         GoalFixture fixture = new GoalFixture(CustomerState.WAITING_ON_LEADER);
@@ -369,9 +366,6 @@ class CustomerGoalLifecycleTest {
     }
 
 
-    /**
-     * Verifies that customers select the shorter available counter line.
-     */
     @Test
     void selectsShorterReservedCounterLine() {
         GoalFixture fixture = new GoalFixture(CustomerState.INITIALIZING);

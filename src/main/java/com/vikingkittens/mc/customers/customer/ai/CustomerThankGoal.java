@@ -40,12 +40,10 @@ public class CustomerThankGoal extends MobTimedGoal {
                 );
 
         return super.canUse() && (
-                // Happy path for state flow
                 (
                         customer.getState() == CustomerState.BUYING &&
                         customer.getOffers().isEmpty()
                 ) ||
-                // Non-happy path where the state changed but timer never started like a server restart
                 (
                         customer.getState() == CustomerState.THANKING &&
                         !started

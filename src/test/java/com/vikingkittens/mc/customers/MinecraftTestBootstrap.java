@@ -21,9 +21,6 @@ public final class MinecraftTestBootstrap {
     private MinecraftTestBootstrap() {
     }
 
-    /**
-     * Initializes Minecraft once for the current test JVM.
-     */
     public static synchronized void bootstrap() {
         if (initialized) {
             return;

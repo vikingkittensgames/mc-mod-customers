@@ -4,6 +4,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.common.SearchUtils;
+import com.vikingkittens.mc.customers.compatability.PlayerCUtils;
 import com.vikingkittens.mc.customers.config.Config;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
@@ -36,7 +37,7 @@ public class SupplierCommands {
 
     private static int listSpawners(CommandSourceStack source) throws CommandSyntaxException {
         ServerPlayer player = source.getPlayerOrException();
-        ServerLevel level = player.level();
+        ServerLevel level = PlayerCUtils.getServerLevel(player);
         List<BlockPos> spawnerPositions = SearchUtils.findBlocksInBox(
                 level,
                 player.blockPosition(),

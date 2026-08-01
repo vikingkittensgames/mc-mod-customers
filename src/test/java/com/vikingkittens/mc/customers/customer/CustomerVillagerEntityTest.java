@@ -4,8 +4,8 @@ import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 import net.minecraft.core.BlockPos;
 
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
+import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -16,9 +16,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Verifies customer entity state persistence.
- */
 class CustomerVillagerEntityTest {
     @BeforeAll
     static void bootstrapMinecraft() {
@@ -39,25 +36,18 @@ class CustomerVillagerEntityTest {
         ));
     }
 
-    /**
-     * Verifies that a selected counter target survives entity save and load.
-     */
     @Test
     void roundTripsCounterTargetBlockPosition() {
         BlockPos targetPosition = new BlockPos(10, 64, -20);
-        ValueOutput output = mock(ValueOutput.class);
+        DataWriter output = mock(DataWriter.class);
         CustomerVillagerEntity.saveCounterTargetBlockPos(
                 output,
                 targetPosition
         );
-        verify(output).store(
-                "CounterTargetBlockPos",
-                BlockPos.CODEC,
-                targetPosition
-        );
+        verify(output).putBlockPos("CounterTargetBlockPos", targetPosition);
 
-        ValueInput input = mock(ValueInput.class);
-        when(input.read("CounterTargetBlockPos", BlockPos.CODEC))
+        DataReader input = mock(DataReader.class);
+        when(input.getBlockPos("CounterTargetBlockPos"))
                 .thenReturn(java.util.Optional.of(targetPosition));
 
         assertEquals(

@@ -22,16 +22,10 @@ public final class CustomerCounter {
     private CustomerCounter() {
     }
 
-    /**
-     * Finds counter blocks configured for a customer spawner.
-     */
     public static List<BlockPos> findCounterPositions(Level level, BlockPos spawnerPos, BlockState counterState) {
         return findCounterPositions(level, spawnerPos, counterState, CustomerSpawner.CUSTOMER_SPAWNER_BLOCK::get);
     }
 
-    /**
-     * Finds counter blocks using the supplied spawner block.
-     */
     static List<BlockPos> findCounterPositions(
             Level level,
             BlockPos spawnerPos,
@@ -47,9 +41,6 @@ public final class CustomerCounter {
         );
     }
 
-    /**
-     * Finds valid positions surrounding the supplied counters.
-     */
     public static List<SurroundingPosition> findValidSurroundingPositions(
             Level level,
             List<BlockPos> counterPositions,
@@ -183,31 +174,19 @@ public final class CustomerCounter {
         private final BlockPos center;
         private final BlockPos position;
 
-        /**
-         * Creates a surrounding-position result.
-         */
         public SurroundingPosition(BlockPos center, BlockPos position) {
             this.center = center;
             this.position = position;
         }
 
-        /**
-         * Returns the counter position.
-         */
         public BlockPos getCenter() {
             return center;
         }
 
-        /**
-         * Returns the customer position.
-         */
         public BlockPos getPosition() {
             return position;
         }
 
-        /**
-         * Returns the squared distance from the customer position to its counter.
-         */
         public double getDistanceSqr() {
             return position.distToCenterSqr(center.getCenter());
         }

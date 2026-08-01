@@ -21,9 +21,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-/**
- * Verifies counter surrounding-position discovery through its production code path.
- */
 class CustomerCounterTest {
     @BeforeAll
     static void bootstrapMinecraft() {

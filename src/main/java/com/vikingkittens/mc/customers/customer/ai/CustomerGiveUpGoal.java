@@ -2,6 +2,7 @@ package com.vikingkittens.mc.customers.customer.ai;
 
 import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.common.ai.MobTimedGoal;
+import com.vikingkittens.mc.customers.compatability.VillagerCUtils;
 import com.vikingkittens.mc.customers.config.Config;
 import com.vikingkittens.mc.customers.customer.Customer;
 import com.vikingkittens.mc.customers.customer.CustomerState;
@@ -32,14 +33,18 @@ public class CustomerGiveUpGoal extends MobTimedGoal {
     @Override
     public boolean canUse() {
         long giveUpTicks = 20L * Config.CUSTOMER_GIVE_UP_SECONDS.get();
-        var profession = customer.getVillagerData().profession();
-        if (profession.is(Customer.CUSTOMER_IMPATIENT_PROFESSION.getKey())) {
+        if (VillagerCUtils.hasProfession(
+                customer.getVillagerData(),
+                Customer.CUSTOMER_IMPATIENT_PROFESSION.getKey()
+        )) {
             giveUpTicks = Math.max(1, giveUpTicks / 2);
-        } else if (profession.is(Customer.CUSTOMER_CASUAL_PROFESSION.getKey())) {
+        } else if (VillagerCUtils.hasProfession(
+                customer.getVillagerData(),
+                Customer.CUSTOMER_CASUAL_PROFESSION.getKey()
+        )) {
             giveUpTicks = 0;
         }
         return super.canUse() && (
-                // Happy path for state flow
                 (
                         (
                                 customer.getState() == CustomerState.BUYING &&
@@ -47,7 +52,6 @@ public class CustomerGiveUpGoal extends MobTimedGoal {
                         ) ||
                                 customer.getState() == CustomerState.FORCED_GIVING_UP
                 ) ||
-                        // Non-happy path where the state changed but timer never started like a server restart
                         (
                                 customer.getState() == CustomerState.GIVING_UP && !started
                         )
@@ -61,7 +65,6 @@ public class CustomerGiveUpGoal extends MobTimedGoal {
 
     @Override
     public void start() {
-        // LOGGER.debug("Giving up");
         if (customer.getState() == CustomerState.FORCED_GIVING_UP) {
             messageSent = true;
         }
@@ -94,7 +97,6 @@ public class CustomerGiveUpGoal extends MobTimedGoal {
 
     @Override
     protected void onDone() {
-        // LOGGER.debug("Done giving up");
         customer.setState(CustomerState.DONE);
     }
 

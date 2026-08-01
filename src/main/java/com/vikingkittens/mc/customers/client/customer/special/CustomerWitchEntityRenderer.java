@@ -68,18 +68,12 @@ public class CustomerWitchEntityRenderer extends MobRenderer<
         private final ModelPart rightLeg;
         private final ModelPart leftLeg;
 
-        /**
-         * Creates a witch model backed by the baked model root.
-         */
         public Model(ModelPart root) {
             super(root);
             rightLeg = root.getChild("right_leg");
             leftLeg = root.getChild("left_leg");
         }
 
-        /**
-         * Applies standard witch animation and the customer sitting pose.
-         */
         @Override
         public void setupAnim(WitchRenderState renderState) {
             super.setupAnim(renderState);

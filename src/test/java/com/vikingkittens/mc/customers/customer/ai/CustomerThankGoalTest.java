@@ -22,9 +22,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Verifies customer thank-you message selection and final-item tracking.
- */
 class CustomerThankGoalTest {
     @BeforeAll
     static void bootstrapMinecraft() {

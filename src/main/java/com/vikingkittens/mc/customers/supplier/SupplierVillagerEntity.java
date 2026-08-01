@@ -3,6 +3,13 @@ package com.vikingkittens.mc.customers.supplier;
 import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.common.MobUtils;
 import com.vikingkittens.mc.customers.common.PositionUtils;
+import com.vikingkittens.mc.customers.compatability.EntityCUtils;
+import com.vikingkittens.mc.customers.compatability.InteractionCUtils;
+import com.vikingkittens.mc.customers.compatability.LevelCUtils;
+import com.vikingkittens.mc.customers.compatability.VillagerCUtils;
+import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
+import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
+import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
 import com.vikingkittens.mc.customers.supplier.ai.SupplierMoveToSpawnGoal;
 import com.vikingkittens.mc.customers.supplier.ai.SupplierMoveToSpawnerGoal;
 import net.minecraft.core.BlockPos;
@@ -66,7 +73,7 @@ public class SupplierVillagerEntity extends Villager {
             BlockPos spawnerPos,
             MerchantOffers offers
     ) {
-        if (!level.isClientSide()) {
+        if (!LevelCUtils.isClientSide(level)) {
             ServerLevel serverLevel = (ServerLevel)level;
             BlockPos navigationTarget =
                     PositionUtils.findGroundedTargetPosition(level, spawnerPos);
@@ -75,7 +82,10 @@ public class SupplierVillagerEntity extends Villager {
                 return null;
             }
 
-            SupplierVillagerEntity supplier = Supplier.SUPPLIER_VILLAGER.get().create(level, EntitySpawnReason.COMMAND);
+            SupplierVillagerEntity supplier = EntityCUtils.create(
+                    Supplier.SUPPLIER_VILLAGER.get(),
+                    level
+            );
             if (supplier != null) {
                 BlockPos safePos = findReachableSpawnPos(
                         level,
@@ -84,16 +94,18 @@ public class SupplierVillagerEntity extends Villager {
                         navigationTarget
                 );
                 if (safePos != null) {
-                    supplier.snapTo(safePos, 0, 0);
+                    EntityCUtils.snapTo(supplier, safePos, 0, 0);
                     supplier.setOnGround(true);
 
                     VillagerData data = supplier.getVillagerData();
                     supplier.setVillagerData(
-                            data.withType(
+                            VillagerCUtils.withTypeAndProfession(
+                                    data,
                                     level.registryAccess(),
-                                    getVillagerTypeForLocation(level, spawnerPos)
-                            ).withProfession(
-                                    level.registryAccess(),
+                                    getVillagerTypeForLocation(
+                                            level,
+                                            spawnerPos
+                                    ),
                                     Supplier.SUPPLIER_PROFESSION.getKey()
                             )
                     );
@@ -104,10 +116,8 @@ public class SupplierVillagerEntity extends Villager {
 
                     supplier.setState(SupplierState.INITIALIZING);
 
-                    // Finalize spawn logic (sets default items, resets AI brain, etc.)
                     supplier.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(spawnerPos), EntitySpawnReason.COMMAND, null);
 
-                    // Spawn the entity in the world
                     serverLevel.addFreshEntity(supplier);
 
                     LOGGER.warn("Supplier spawned at {}", supplier.blockPosition());
@@ -152,7 +162,7 @@ public class SupplierVillagerEntity extends Villager {
                     MAX_SPAWN_ATTEMPTS,
                     candidatePos -> {
                         int attempt = validationAttempt.incrementAndGet();
-                        supplier.snapTo(candidatePos, 0, 0);
+                        EntityCUtils.snapTo(supplier, candidatePos, 0, 0);
                         supplier.setOnGround(true);
                         Path path = supplier.getNavigation().createPath(
                                 navigationTarget,
@@ -213,6 +223,10 @@ public class SupplierVillagerEntity extends Villager {
     @Override
     protected void readAdditionalSaveData(ValueInput input) {
         super.readAdditionalSaveData(input);
+        readSupplierData(PersistenceCUtils.reader(input));
+    }
+
+    void readSupplierData(DataReader input) {
         input.getString(TAG_STATE).ifPresent(stateName -> {
             try {
                 setState(SupplierState.valueOf(stateName));
@@ -220,24 +234,27 @@ public class SupplierVillagerEntity extends Villager {
                 LOGGER.warn("Ignoring unknown supplier state while loading: {}", stateName);
             }
         });
-        input.read(TAG_SPAWNER_POS, BlockPos.CODEC).ifPresent(this::setSpawnerPos);
-        input.read(TAG_SPAWN_POS, BlockPos.CODEC).ifPresent(this::setSpawnPos);
+        input.getBlockPos(TAG_SPAWNER_POS).ifPresent(this::setSpawnerPos);
+        input.getBlockPos(TAG_SPAWN_POS).ifPresent(this::setSpawnPos);
     }
 
     @Override
     protected void addAdditionalSaveData(ValueOutput output) {
         super.addAdditionalSaveData(output);
+        writeSupplierData(PersistenceCUtils.writer(output));
+    }
+
+    void writeSupplierData(DataWriter output) {
         if (state != null) {
             output.putString(TAG_STATE, state.name());
         }
         if (spawnerPos != null) {
-            output.store(TAG_SPAWNER_POS, BlockPos.CODEC, spawnerPos);
+            output.putBlockPos(TAG_SPAWNER_POS, spawnerPos);
         }
         if (spawnPos != null) {
-            output.store(TAG_SPAWN_POS, BlockPos.CODEC, spawnPos);
+            output.putBlockPos(TAG_SPAWN_POS, spawnPos);
         }
     }
-
     @Override
     public boolean removeWhenFarAway(double distanceToClosestPlayer) {
         return false;
@@ -254,26 +271,19 @@ public class SupplierVillagerEntity extends Villager {
 
     @Override
     protected void customServerAiStep(ServerLevel level) {
-        // No behavior-based AI
     }
 
     @Override
     protected void registerGoals() {
-        // Setup the goal system
         super.registerGoals();
-        // Remove the standard goals
         goalSelector.removeAllGoals(goal -> true);
-        // Remove the standard targets
         targetSelector.removeAllGoals(goal -> true);
 
-        // Keep the supplier afloat when submerged
         goalSelector.addGoal(0, new FloatGoal(this));
 
-        // Start with looking at the player
         goalSelector.addGoal(0, new LookAtTradingPlayerGoal(this));
         goalSelector.addGoal(1, new LookAtPlayerGoal(this, Player.class, 8));
 
-        // Customer specific goals
         goalSelector.addGoal(0, new SupplierMoveToSpawnerGoal(this, 0.5));
         goalSelector.addGoal(0, new SupplierMoveToSpawnGoal(this, 0.5));
     }
@@ -293,9 +303,9 @@ public class SupplierVillagerEntity extends Villager {
     @NotNull
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         if (getState() != SupplierState.SELLING) {
-            return level().isClientSide()
-                    ? InteractionResult.SUCCESS
-                    : InteractionResult.SUCCESS_SERVER;
+            return InteractionCUtils.sidedSuccess(
+                    LevelCUtils.isClientSide(level())
+            );
         }
         return super.mobInteract(player, hand);
     }

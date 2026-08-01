@@ -2,6 +2,8 @@
 
 This document records differences discovered while maintaining support for both Minecraft 1.21.1 and 1.21.11.
 
+See `Compatability.md` for the compatibility classes and methods used to keep functionality code consistent between supported Minecraft versions.
+
 ## Build Configuration
 
 | Setting | Minecraft 1.21.1 | Minecraft 1.21.11 |
@@ -42,6 +44,7 @@ This document records differences discovered while maintaining support for both 
 | Block entity persistence overrides use `saveAdditional(CompoundTag, HolderLookup.Provider)` and `loadAdditional(CompoundTag, HolderLookup.Provider)` | Block entity persistence overrides use `saveAdditional(ValueOutput)` and `loadAdditional(ValueInput)` | Block entities use the same structured persistence API as entities. |
 | `ItemStackHandler.serializeNBT(...)` and `deserializeNBT(...)` | `ItemStackHandler.serialize(ValueOutput)` and `deserialize(ValueInput)` | Store handlers in a named child value container. |
 | Manual `NbtUtils` serialization for block positions, block states, and UUIDs | `ValueInput.read` and `ValueOutput.store` with `BlockPos.CODEC`, `BlockState.CODEC`, and `UUIDUtil.CODEC` | Structured persistence uses codecs while existing field names and nested list structure can be preserved. |
+| A `ListTag` can be retained and appended directly | Repeatedly calling `ValueOutput.childrenList(key)` can replace previously written entries | Obtain the `ValueOutput.ValueOutputList` once and append every child through that handle; `ValueOutputDataWriter` caches it for `DataWriter.addChild(key)`. |
 | `Entity.causeFallDamage(float, float, DamageSource)` | `Entity.causeFallDamage(double, float, DamageSource)` | Fall distance now uses double precision. |
 | `Mob.customServerAiStep()` | `Mob.customServerAiStep(ServerLevel)` | Server AI hooks now receive the server level explicitly. |
 | `GuiGraphics.blit(Identifier, ...)` | `GuiGraphics.blit(RenderPipeline, Identifier, ...)` | GUI texture draws require an explicit pipeline such as `RenderPipelines.GUI_TEXTURED`. |

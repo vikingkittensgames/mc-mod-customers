@@ -2,6 +2,9 @@ package com.vikingkittens.mc.customers.client.customer;
 
 import com.mojang.authlib.GameProfile;
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.client.compatability.GuiGraphicsCUtils;
+import com.vikingkittens.mc.customers.client.compatability.TextureC;
+import com.vikingkittens.mc.customers.compatability.ProfileCUtils;
 import com.vikingkittens.mc.customers.customer.CustomerShiftFinishedPayload;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 import net.minecraft.client.Minecraft;
@@ -13,7 +16,6 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.client.resources.DefaultPlayerSkin;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.world.entity.player.PlayerSkin;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -42,15 +44,15 @@ public class CustomerShiftFinishedScreen extends Screen {
             Identifier.fromNamespaceAndPath(Customers.MODID, "bonk")
     );
 
-    private static final Identifier RECEIPT_TEXTURE = texture("reciept.png");
-    private static final Identifier STAR_TEXTURE = texture("star.png");
-    private static final Identifier HALF_STAR_TEXTURE = texture("halfstar.png");
-    private static final Identifier NO_STAR_TEXTURE = texture("nostar.png");
-    private static final Identifier BREAKFAST_SHIFT_TEXTURE = texture("shift_breakfast.png");
-    private static final Identifier DAY_SHIFT_TEXTURE = texture("shift_day.png");
-    private static final Identifier DINNER_SHIFT_TEXTURE = texture("shift_dinner.png");
-    private static final Identifier LUNCH_SHIFT_TEXTURE = texture("shift_lunch.png");
-    private static final Identifier NIGHT_SHIFT_TEXTURE = texture("shift_night.png");
+    private static final TextureC RECEIPT_TEXTURE = texture("reciept.png");
+    private static final TextureC STAR_TEXTURE = texture("star.png");
+    private static final TextureC HALF_STAR_TEXTURE = texture("halfstar.png");
+    private static final TextureC NO_STAR_TEXTURE = texture("nostar.png");
+    private static final TextureC BREAKFAST_SHIFT_TEXTURE = texture("shift_breakfast.png");
+    private static final TextureC DAY_SHIFT_TEXTURE = texture("shift_day.png");
+    private static final TextureC DINNER_SHIFT_TEXTURE = texture("shift_dinner.png");
+    private static final TextureC LUNCH_SHIFT_TEXTURE = texture("shift_lunch.png");
+    private static final TextureC NIGHT_SHIFT_TEXTURE = texture("shift_night.png");
 
     private final CustomerShiftFinishedPayload payload;
     private int leftPos;
@@ -63,8 +65,11 @@ public class CustomerShiftFinishedScreen extends Screen {
         this.payload = payload;
     }
 
-    private static Identifier texture(String fileName) {
-        return Identifier.fromNamespaceAndPath(Customers.MODID, "textures/gui/" + fileName);
+    private static TextureC texture(String fileName) {
+        return new TextureC(
+                Customers.MODID,
+                "textures/gui/" + fileName
+        );
     }
 
     @Override
@@ -87,8 +92,8 @@ public class CustomerShiftFinishedScreen extends Screen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        graphics.blit(
-                RenderPipelines.GUI_TEXTURED,
+        GuiGraphicsCUtils.blit(
+                graphics,
                 RECEIPT_TEXTURE,
                 leftPos,
                 topPos,
@@ -117,9 +122,18 @@ public class CustomerShiftFinishedScreen extends Screen {
                 .append(" - ")
                 .append(Math.round(payload.percentComplete() * 100.0F) + "%");
         graphics.drawString(font, summary, leftPos + 12, topPos + 12, TEXT_COLOR, false);
-        graphics.blit(RenderPipelines.GUI_TEXTURED, getShiftTexture(payload.spawnerMode()),
-                leftPos + 225, topPos + 12,
-                0.0F, 0.0F, 16, 16, 16, 16);
+        GuiGraphicsCUtils.blit(
+                graphics,
+                getShiftTexture(payload.spawnerMode()),
+                leftPos + 225,
+                topPos + 12,
+                0.0F,
+                0.0F,
+                16,
+                16,
+                16,
+                16
+        );
     }
 
     private void renderStars(GuiGraphics graphics) {
@@ -135,12 +149,12 @@ public class CustomerShiftFinishedScreen extends Screen {
             float centerY = y + STAR_SIZE / 2.0F;
             float scale = getStarScale(elapsedMillis, index);
 
-            graphics.pose().pushMatrix();
-            graphics.pose().translate(centerX, centerY);
-            graphics.pose().scale(scale, scale);
-            graphics.pose().translate(-centerX, -centerY);
-            graphics.blit(
-                    RenderPipelines.GUI_TEXTURED,
+            GuiGraphicsCUtils.pushTransform(graphics);
+            GuiGraphicsCUtils.translate(graphics, centerX, centerY);
+            GuiGraphicsCUtils.scale(graphics, scale, scale);
+            GuiGraphicsCUtils.translate(graphics, -centerX, -centerY);
+            GuiGraphicsCUtils.blit(
+                    graphics,
                     getStarTexture(getStarState(payload.percentComplete(), index)),
                     starX,
                     y,
@@ -151,7 +165,7 @@ public class CustomerShiftFinishedScreen extends Screen {
                     STAR_SIZE,
                     STAR_SIZE
             );
-            graphics.pose().popMatrix();
+            GuiGraphicsCUtils.popTransform(graphics);
         }
     }
 
@@ -240,7 +254,9 @@ public class CustomerShiftFinishedScreen extends Screen {
         PlayerInfo playerInfo = connection == null ? null : connection.getPlayerInfo(playerId);
         GameProfile profile = playerInfo == null ? null : playerInfo.getProfile();
         PlayerSkin skin = playerInfo == null ? DefaultPlayerSkin.get(playerId) : playerInfo.getSkin();
-        String playerName = profile == null ? playerId.toString().substring(0, 8) : profile.name();
+        String playerName = profile == null
+                ? playerId.toString().substring(0, 8)
+                : ProfileCUtils.getName(profile);
         String visibleName = font.plainSubstrByWidth(playerName, entryWidth - 2);
 
         PlayerFaceRenderer.draw(graphics, skin, x + (entryWidth - PLAYER_HEAD_SIZE) / 2,
@@ -264,7 +280,7 @@ public class CustomerShiftFinishedScreen extends Screen {
                 topPos + 174, TEXT_COLOR, false);
     }
 
-    private static Identifier getShiftTexture(CustomerSpawnerMode spawnerMode) {
+    private static TextureC getShiftTexture(CustomerSpawnerMode spawnerMode) {
         return switch (spawnerMode) {
             case BREAKFAST -> BREAKFAST_SHIFT_TEXTURE;
             case DAY -> DAY_SHIFT_TEXTURE;
@@ -288,7 +304,7 @@ public class CustomerShiftFinishedScreen extends Screen {
         return StarState.EMPTY;
     }
 
-    private static Identifier getStarTexture(StarState state) {
+    private static TextureC getStarTexture(StarState state) {
         return switch (state) {
             case FULL -> STAR_TEXTURE;
             case HALF -> HALF_STAR_TEXTURE;

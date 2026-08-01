@@ -15,17 +15,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 
 class MobMoveToGoalTest {
-    /**
-     * Initializes Minecraft registries required to mock entity classes.
-     */
     @BeforeAll
     static void bootstrapMinecraft() {
         MinecraftTestBootstrap.bootstrap();
     }
 
-    /**
-     * Verifies movement goals leave jumping available to independent goals.
-     */
     @Test
     void reservesMovementWithoutReservingJumping() {
         MobMoveToGoal goal = new MobMoveToGoal(

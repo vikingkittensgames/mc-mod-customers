@@ -20,12 +20,10 @@ public class SupplierSpawner {
 
     private static final String modid = Customers.MODID;
 
-    // -------------------- Registries --------------------
     private static final DeferredRegister.Blocks blocks = DeferredRegister.createBlocks(modid);
     private static final DeferredRegister<BlockEntityType<?>> blockEntities = DeferredRegister.create(BuiltInRegistries.BLOCK_ENTITY_TYPE, modid);
     private static final DeferredRegister.Items items = DeferredRegister.createItems(Customers.MODID);
 
-    // -------------------- Registries --------------------
     public static void register(IEventBus modEventBus) {
         LOGGER.info("Registering components");
 
@@ -36,16 +34,12 @@ public class SupplierSpawner {
         modEventBus.addListener(SupplierSpawner::addCreative);
     }
 
-    // -------------------- Blocks --------------------
     public static final DeferredBlock<Block> SUPPLIER_SPAWNER_BLOCK = blocks.registerBlock(SupplierSpawnerBlock.NAME, SupplierSpawnerBlock::new);
 
-    // -------------------- Block Entities --------------------
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SupplierSpawnerBlockEntity>> SUPPLIER_SPAWNER_ENTITY = blockEntities.register(SupplierSpawnerBlockEntity.NAME, () -> new BlockEntityType<>(SupplierSpawnerBlockEntity::new, SUPPLIER_SPAWNER_BLOCK.get()));
 
-    // -------------------- Items --------------------
     public static final DeferredItem<BlockItem> SUPPLIER_SPAWNER_ITEM = items.registerSimpleBlockItem(SupplierSpawnerBlock.NAME, SUPPLIER_SPAWNER_BLOCK);
 
-    // Add each item to the right creative tab
     private static void addCreative(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.FUNCTIONAL_BLOCKS) {
             event.accept(SUPPLIER_SPAWNER_ITEM);

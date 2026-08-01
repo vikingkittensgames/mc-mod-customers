@@ -34,11 +34,9 @@ public class Customer {
 
     private static final String modid = Customers.MODID;
 
-    // -------------------- Registries --------------------
     private static final DeferredRegister<EntityType<?>> entities = DeferredRegister.create(Registries.ENTITY_TYPE, modid);
     private static final DeferredRegister<VillagerProfession> professions = DeferredRegister.create(BuiltInRegistries.VILLAGER_PROFESSION, modid);
 
-    // -------------------- Registries --------------------
     public static void register(IEventBus modEventBus) {
         LOGGER.info("Registering components");
 
@@ -46,7 +44,6 @@ public class Customer {
         professions.register(modEventBus);
     }
 
-    // -------------------- Entities --------------------
     public static final DeferredHolder<EntityType<?>, EntityType<CustomerVillagerEntity>> CUSTOMER_VILLAGER = entities.register(CustomerVillagerEntity.NAME,
             key -> EntityType.Builder.of(CustomerVillagerEntity::new, MobCategory.CREATURE)
                     .sized(0.6F, 1.95F) // Villager size
@@ -96,7 +93,6 @@ public class Customer {
                     .sized(0.6F, 1.95F)
                     .build(ResourceKey.create(Registries.ENTITY_TYPE, key))
     );
-    // -------------------- Professions --------------------
     public static final DeferredHolder<VillagerProfession, VillagerProfession> CUSTOMER_PROFESSION = professions.register("customer",
             () -> new VillagerProfession(
                     Component.literal("customer"),

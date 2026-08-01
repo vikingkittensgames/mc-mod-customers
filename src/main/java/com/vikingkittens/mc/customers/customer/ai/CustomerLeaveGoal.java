@@ -23,9 +23,7 @@ public class CustomerLeaveGoal extends MobMoveToGoal {
     public boolean canUse() {
         return super.canUse() &&
                 (
-                        // Happy path for state flow
                         customer.getState() == CustomerState.LEAVING ||
-                        // Non-happy path where movement starts and the path is lost like with a server restart
                         (
                                 customer.getState() == CustomerState.MOVING_TO_DESPAWN &&
                                 customer.getNavigation().getPath() == null
@@ -41,7 +39,6 @@ public class CustomerLeaveGoal extends MobMoveToGoal {
         } else {
             targetPos = mob.blockPosition();
         }
-        // LOGGER.debug("Target positions: {}", targetPos);
         customer.setState(CustomerState.MOVING_TO_DESPAWN);
         super.start();
     }
@@ -53,7 +50,6 @@ public class CustomerLeaveGoal extends MobMoveToGoal {
 
     @Override
     protected void onDone() {
-        // LOGGER.debug("Reached despawn");
         customer.discard();
     }
 }

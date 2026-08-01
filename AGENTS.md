@@ -15,6 +15,8 @@ This project is a Minecraft mod built with the NeoForge mod loader.
 
 - Keep `README.md` up to date when functionality, player mechanics, usage, or rules change.
 - Whenever a difference is found between supported Minecraft versions, document it in `Minecraft-1.21.1-to-{new-version}.md`.
+- Review every change against `Compatability.md` and use the documented compatibility methods whenever possible to reduce differences in functionality code between supported Minecraft versions.
+- Keep `Compatability.md` up to date when compatibility classes, methods, implementations, or supported version differences change.
 - Keep README wording focused on player-facing behavior.
 - Avoid exposing NeoForge, Minecraft internals, or implementation details in player-facing README text unless they directly affect usage.
 
@@ -46,8 +48,10 @@ This project is a Minecraft mod built with the NeoForge mod loader.
 
 ## Documentation Standards
 
-- Add clear Javadocs above every new class.
+- Add Javadocs only above classes and methods whose purpose, parameters, or behavior are complex enough to require explanation.
 - Keep Javadocs useful and behavior-focused. Avoid restating obvious implementation details.
+- Do not add comments within methods. Write self-explanatory code instead.
+- Remove redundant or implementation-obvious comments when modifying existing code.
 
 ## Review Expectations
 

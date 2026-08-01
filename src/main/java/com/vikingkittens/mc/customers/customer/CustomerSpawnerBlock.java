@@ -4,6 +4,7 @@ package com.vikingkittens.mc.customers.customer;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.vikingkittens.mc.customers.compatability.LevelCUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -37,14 +38,13 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
     private static final MapCodec<CustomerSpawnerBlock> CODEC = RecordCodecBuilder.mapCodec(instance ->
             instance.group(propertiesCodec()).apply(instance, CustomerSpawnerBlock::new));
 
-    /* package private */ static final EnumProperty<CustomerSpawnerMode> STATE_SPAWN_MODE = EnumProperty.create("spawn_mode", CustomerSpawnerMode.class);
-    /* package private */ static final BooleanProperty STATE_DISABLED = BooleanProperty.create("disabled");
-    /* package private */ static final BooleanProperty STATE_POWERED = BooleanProperty.create("powered");
-    /* package private */ static final BooleanProperty STATE_SPECIAL_ENABLED = BooleanProperty.create("special_enabled");
+    static final EnumProperty<CustomerSpawnerMode> STATE_SPAWN_MODE = EnumProperty.create("spawn_mode", CustomerSpawnerMode.class);
+    static final BooleanProperty STATE_DISABLED = BooleanProperty.create("disabled");
+    static final BooleanProperty STATE_POWERED = BooleanProperty.create("powered");
+    static final BooleanProperty STATE_SPECIAL_ENABLED = BooleanProperty.create("special_enabled");
 
     public CustomerSpawnerBlock(Properties properties) {
         super(properties);
-        // Set the default spawn mode
         this.registerDefaultState(this.defaultBlockState()
                 .setValue(STATE_SPAWN_MODE, CustomerSpawnerMode.CONTINUOUS)
                 .setValue(STATE_DISABLED, false)
@@ -90,7 +90,6 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
         return new CustomerSpawnerBlockEntity(pos, state);
     }
 
-    // Required to prevent the block from being entirely invisible
     @Override
     @NotNull
     protected RenderShape getRenderShape(BlockState pState) {
@@ -101,8 +100,7 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
     @Override
     @NotNull
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!level.isClientSide()) {
-            // Open up container
+        if (!LevelCUtils.isClientSide(level)) {
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof CustomerSpawnerBlockEntity entity) {
                 player.openMenu(entity);
@@ -115,9 +113,8 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
     @Override
     @NotNull
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
-        // Check if the player right-clicked with a clock
         if (stack.is(Items.CLOCK)) {
-            if (!level.isClientSide()) {
+            if (!LevelCUtils.isClientSide(level)) {
                 BlockEntity blockEntity = level.getBlockEntity(pos);
                 if (blockEntity instanceof CustomerSpawnerBlockEntity entity) {
                     entity.cycleSpawnMode();
@@ -155,7 +152,7 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        if (!level.isClientSide()) {
+        if (!LevelCUtils.isClientSide(level)) {
             return (l,p,s,e) -> {
                 CustomerSpawnerBlockEntity.tick(l, p, s, (CustomerSpawnerBlockEntity)e);
             };

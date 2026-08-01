@@ -11,9 +11,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-/** Verifies customer shift result payload serialization and snapshot behavior. */
 class CustomerShiftFinishedPayloadTest {
-    /** Verifies every shift result field survives a network round trip. */
     @Test
     void roundTripsAllShiftResults() {
         UUID playerId = UUID.fromString("11111111-1111-1111-1111-111111111111");
@@ -27,7 +25,6 @@ class CustomerShiftFinishedPayloadTest {
 
         assertEquals(original, decoded);
     }
-    /** Verifies the payload retains a stable immutable snapshot of player results. */
     @Test
     void copiesPlayerResults() {
         UUID playerId = UUID.fromString("33333333-3333-3333-3333-333333333333");

@@ -2,6 +2,10 @@ package com.vikingkittens.mc.customers.supplier;
 
 import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.common.SearchUtils;
+import com.vikingkittens.mc.customers.compatability.LevelCUtils;
+import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
+import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
+import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.RandomSource;
@@ -99,6 +103,10 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
             LOGGER.error("Failed to save inventory", t);
         }
 
+        writeSpawnerData(PersistenceCUtils.writer(output));
+    }
+
+    void writeSpawnerData(DataWriter output) {
         output.putBoolean("daytimeStateInitialized", daytimeStateInitialized);
         output.putBoolean("lastTickWasDaytime", lastTickWasDaytime);
     }
@@ -113,9 +121,12 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
             LOGGER.error("Failed to load inventory because of error", t);
         }
 
-        daytimeStateInitialized =
-                input.getBooleanOr("daytimeStateInitialized", false);
-        lastTickWasDaytime = input.getBooleanOr("lastTickWasDaytime", false);
+        readSpawnerData(PersistenceCUtils.reader(input));
+    }
+
+    void readSpawnerData(DataReader input) {
+        daytimeStateInitialized = input.getBoolean("daytimeStateInitialized");
+        lastTickWasDaytime = input.getBoolean("lastTickWasDaytime");
     }
 
     @Override
@@ -123,13 +134,9 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
         return Component.translatable("block.customers.supplier_spawner_block");
     }
 
-    /**
-     * Drops inventory before this block entity is removed.
-     */
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         super.preRemoveSideEffects(pos, state);
-        // Drop all items when block is broken
         SimpleContainer container = new SimpleContainer(inventory.getSlots());
         for (int i = 0; i < inventory.getSlots(); i++) {
             container.setItem(i, inventory.getStackInSlot(i));
@@ -141,7 +148,6 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
     @Nullable
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
-        // Direct anonymous bridge converting NeoForge's Handler to a Vanilla Container
         Container containerBridge = new Container() {
             @Override
             public int getContainerSize() {
@@ -201,11 +207,10 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
             }
         };
 
-        // NeoForge / Modern Mojang uses sixRows for the 54-slot UI (9x6)
         return ChestMenu.sixRows(containerId, playerInventory, containerBridge);
     }
 
-    /* package private */ static BlockState updateState(Level level, BlockPos pos, BlockState currentState) {
+    static BlockState updateState(Level level, BlockPos pos, BlockState currentState) {
         boolean disabled = level.hasNeighborSignal(pos);
 
         BlockState newState = currentState
@@ -213,7 +218,7 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
         return newState;
     }
 
-    /* package private */ void updateState() {
+    void updateState() {
         BlockState newState = updateState(getLevel(), getBlockPos(), getBlockState());
         level.setBlock(getBlockPos(), newState, Block.UPDATE_ALL);
     }
@@ -233,7 +238,7 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, SupplierSpawnerBlockEntity entity) {
-        if (!level.isClientSide()) {
+        if (!LevelCUtils.isClientSide(level)) {
             if (entity.ticksSinceTicksDisabledCheck == 0 || entity.ticksSinceTicksDisabledCheck > 20) {
                 try {
                     entity.ticksDisabled = SearchUtils.findEntitiesInSphere(level, Player.class, pos, 64, (p, e) -> true).isEmpty();
@@ -247,7 +252,7 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 return;
             }
 
-            boolean isDaytime = level.isBrightOutside();
+            boolean isDaytime = LevelCUtils.isDaytime(level);
             if (!entity.daytimeStateInitialized) {
                 entity.daytimeStateInitialized = true;
                 entity.lastTickWasDaytime = isDaytime;

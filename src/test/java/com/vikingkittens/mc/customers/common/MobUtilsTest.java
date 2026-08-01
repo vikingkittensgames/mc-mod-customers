@@ -28,9 +28,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class MobUtilsTest {
-    /**
-     * Initializes Minecraft and NeoForge state before mocking levels.
-     */
     @BeforeAll
     static void bootstrapMinecraft() {
         MinecraftTestBootstrap.bootstrap();
