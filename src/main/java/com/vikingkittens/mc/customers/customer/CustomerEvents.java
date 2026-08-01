@@ -1,5 +1,8 @@
 package com.vikingkittens.mc.customers.customer;
 
+import com.vikingkittens.mc.customers.compatability.LevelCUtils;
+
+
 import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.config.Config;
@@ -53,7 +56,7 @@ public class CustomerEvents {
 
     @SubscribeEvent
     public static void onEntityLeaveLevel(EntityLeaveLevelEvent event) {
-        if (!event.getLevel().isClientSide()) {
+        if (!LevelCUtils.isClientSide(event.getLevel())) {
             if (event.getEntity() instanceof CustomerVillagerEntity customer) {
                 Entity.RemovalReason reason = customer.getRemovalReason();
                 if (reason == Entity.RemovalReason.CHANGED_DIMENSION) {
@@ -68,7 +71,7 @@ public class CustomerEvents {
         if (
                 Config.ENABLE_QUICK_SELL.get() &&
                 event.getHand() == InteractionHand.MAIN_HAND &&
-                !event.getEntity().level().isClientSide() &&
+                !LevelCUtils.isClientSide(event.getEntity().level()) &&
                 event.getTarget() instanceof CustomerVillagerEntity customer &&
                 customer.tryQuickSell(event.getEntity())
         ) {

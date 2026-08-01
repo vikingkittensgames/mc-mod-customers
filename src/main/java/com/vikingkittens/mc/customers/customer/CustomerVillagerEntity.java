@@ -1,20 +1,27 @@
 package com.vikingkittens.mc.customers.customer;
 
+import com.vikingkittens.mc.customers.compatability.LevelCUtils;
+import com.vikingkittens.mc.customers.compatability.VillagerCUtils;
+import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
+import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
+import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
+import com.vikingkittens.mc.customers.compatability.EntityCUtils;
+import com.vikingkittens.mc.customers.compatability.InteractionCUtils;
+import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
+
 import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.common.MobUtils;
 import com.vikingkittens.mc.customers.customer.ai.*;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtUtils;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
@@ -86,13 +93,13 @@ public class CustomerVillagerEntity extends Villager {
 
     public static final String NAME = "customer_villager";
 
-    private static VillagerType getVillagerTypeForLocation(Level level, BlockPos pos) {
+    private static ResourceKey<VillagerType> getVillagerTypeForLocation(Level level, BlockPos pos) {
         Holder<Biome> biomeHolder = level.getBiome(pos);
         BiomeVillagerType mapData = biomeHolder.getData(NeoForgeDataMaps.VILLAGER_TYPES);
         if (mapData != null) {
-            return mapData.type();
+            return BuiltInRegistries.VILLAGER_TYPE.getResourceKey(mapData.type()).orElseThrow();
         }
-        return VillagerType.PLAINS;
+        return BuiltInRegistries.VILLAGER_TYPE.getResourceKey(VillagerType.PLAINS).orElseThrow();
     }
 
     public static CustomerVillagerEntity spawn(
@@ -113,28 +120,31 @@ public class CustomerVillagerEntity extends Villager {
             BlockState counterBlockState,
             BlockState avoidBlockState
     ) {
-        if (!level.isClientSide) {
+        if (!LevelCUtils.isClientSide(level)) {
             ServerLevel serverLevel = (ServerLevel)level;
-            CustomerVillagerEntity customer = customerType.create(level);
+            CustomerVillagerEntity customer = EntityCUtils.create(customerType, level);
             if (customer != null) {
                 BlockPos safePos = MobUtils.getRandomSpawnPos(level, spawnerPos, 5, 3);
                 if (safePos != null) {
-                    customer.moveTo(safePos, 0, 0);
+                    EntityCUtils.snapTo(customer, safePos, 0, 0);
                     customer.setOnGround(true);
 
                     VillagerData data = customer.getVillagerData();
-                    VillagerProfession profession = Customer.CUSTOMER_PROFESSION.get();
+                    ResourceKey<VillagerProfession> profession = Customer.CUSTOMER_PROFESSION.getKey();
                     float professionVariantPercentage = level.random.nextFloat();
                     if (professionVariantPercentage < 0.20F) {
-                        profession = Customer.CUSTOMER_IMPATIENT_PROFESSION.get();
+                        profession = Customer.CUSTOMER_IMPATIENT_PROFESSION.getKey();
                     } else if (professionVariantPercentage < 0.50F) {
-                        profession = Customer.CUSTOMER_CASUAL_PROFESSION.get();
+                        profession = Customer.CUSTOMER_CASUAL_PROFESSION.getKey();
                     }
-                    customer.setVillagerData(new VillagerData(
-                            getVillagerTypeForLocation(level, spawnerPos),
-                            profession,
-                            data.getLevel()
-                    ));
+                    customer.setVillagerData(
+                            VillagerCUtils.withTypeAndProfession(
+                                    data,
+                                    level.registryAccess(),
+                                    getVillagerTypeForLocation(level, spawnerPos),
+                                    profession
+                            )
+                    );
 
                     customer.setSpawnerPos(spawnerPos);
                     customer.setSpawnPos(safePos);
@@ -299,7 +309,7 @@ public class CustomerVillagerEntity extends Villager {
 
     public boolean tryQuickSell(Player player) {
         if (
-                level().isClientSide() ||
+                LevelCUtils.isClientSide(level()) ||
                 getState() != CustomerState.BUYING ||
                 getTradingPlayer() != null
         ) {
@@ -319,7 +329,7 @@ public class CustomerVillagerEntity extends Villager {
             }
 
             ItemStack result = offer.assemble();
-            result.onCraftedBy(level(), player, result.getCount());
+            ItemStackCUtils.onCraftedBy(result, player, result.getCount());
             if (!player.getInventory().add(result)) {
                 player.drop(result, false);
             }
@@ -360,7 +370,7 @@ public class CustomerVillagerEntity extends Villager {
     @Override
     public void notifyTrade(MerchantOffer offer) {
         super.notifyTrade(offer);
-        if (!level().isClientSide()) {
+        if (!LevelCUtils.isClientSide(level())) {
             updateOfferDisplayItems(getOffers());
         }
     }
@@ -368,41 +378,34 @@ public class CustomerVillagerEntity extends Villager {
     @Override
     public void readAdditionalSaveData(CompoundTag compound) {
         super.readAdditionalSaveData(compound);
-        if (compound.contains(TAG_STATE)) {
-            String stateName = compound.getString(TAG_STATE);
+        readCustomerData(PersistenceCUtils.reader(compound));
+    }
+
+    /**
+     * Restores customer state shared across supported Minecraft versions.
+     */
+    void readCustomerData(DataReader input) {
+        input.getString(TAG_STATE).ifPresent(stateName -> {
             try {
                 setState(CustomerState.valueOf(stateName));
             } catch (IllegalArgumentException exception) {
                 LOGGER.warn("Ignoring unknown customer state while loading: {}", stateName);
             }
-        }
-        NbtUtils.readBlockPos(compound, TAG_SPAWNER_POS).ifPresent(this::setSpawnerPos);
-        NbtUtils.readBlockPos(compound, TAG_SPAWN_POS).ifPresent(this::setSpawnPos);
-        readCounterTargetBlockPos(compound)
-                .ifPresent(this::setCounterTargetBlockPos);
-        if (compound.contains(TAG_COUNTER_BLOCK_STATE)) {
-            counterBlockState = NbtUtils.readBlockState(
-                    registryAccess().lookupOrThrow(Registries.BLOCK),
-                    compound.getCompound(TAG_COUNTER_BLOCK_STATE)
-            );
-        }
-        if (compound.contains(TAG_AVOID_BLOCK_STATE)) {
-            avoidBlockState = NbtUtils.readBlockState(
-                    registryAccess().lookupOrThrow(Registries.BLOCK),
-                    compound.getCompound(TAG_AVOID_BLOCK_STATE)
-            );
-        }
+        });
+        input.getBlockPos(TAG_SPAWNER_POS).ifPresent(this::setSpawnerPos);
+        input.getBlockPos(TAG_SPAWN_POS).ifPresent(this::setSpawnPos);
+        readCounterTargetBlockPos(input).ifPresent(this::setCounterTargetBlockPos);
+        input.getBlockState(TAG_COUNTER_BLOCK_STATE)
+                .ifPresent(savedState -> counterBlockState = savedState);
+        input.getBlockState(TAG_AVOID_BLOCK_STATE)
+                .ifPresent(savedState -> avoidBlockState = savedState);
         tradedWithPlayers.clear();
-        if (compound.contains(TAG_TRADED_WITH_PLAYERS, Tag.TAG_LIST)) {
-            ListTag tradedPlayerTags = compound.getList(TAG_TRADED_WITH_PLAYERS, Tag.TAG_COMPOUND);
-            for (int i = 0; i < tradedPlayerTags.size(); i++) {
-                CompoundTag tradedPlayerTag = tradedPlayerTags.getCompound(i);
-                if (tradedPlayerTag.hasUUID(TAG_TRADED_PLAYER_UUID)) {
-                    tradedWithPlayers.add(tradedPlayerTag.getUUID(TAG_TRADED_PLAYER_UUID));
-                }
-            }
-        }
-        if (!level().isClientSide()) {
+        input.getChildren(TAG_TRADED_WITH_PLAYERS).forEach(
+                tradedPlayerInput -> tradedPlayerInput
+                        .getUuid(TAG_TRADED_PLAYER_UUID)
+                        .ifPresent(tradedWithPlayers::add)
+        );
+        if (!LevelCUtils.isClientSide(level())) {
             updateOfferDisplayItems(getOffers());
         }
     }
@@ -410,32 +413,34 @@ public class CustomerVillagerEntity extends Villager {
     @Override
     public void addAdditionalSaveData(CompoundTag compound) {
         super.addAdditionalSaveData(compound);
+        writeCustomerData(PersistenceCUtils.writer(compound));
+    }
+
+    /**
+     * Stores customer state shared across supported Minecraft versions.
+     */
+    void writeCustomerData(DataWriter output) {
         if (state != null) {
-            compound.putString(TAG_STATE, state.name());
+            output.putString(TAG_STATE, state.name());
         }
         if (spawnerPos != null) {
-            compound.put(TAG_SPAWNER_POS, NbtUtils.writeBlockPos(spawnerPos));
+            output.putBlockPos(TAG_SPAWNER_POS, spawnerPos);
         }
         if (spawnPos != null) {
-            compound.put(TAG_SPAWN_POS, NbtUtils.writeBlockPos(spawnPos));
+            output.putBlockPos(TAG_SPAWN_POS, spawnPos);
         }
         if (counterTargetBlockPos != null) {
-            saveCounterTargetBlockPos(compound, counterTargetBlockPos);
+            saveCounterTargetBlockPos(output, counterTargetBlockPos);
         }
         if (counterBlockState != null) {
-            compound.put(TAG_COUNTER_BLOCK_STATE, NbtUtils.writeBlockState(counterBlockState));
+            output.putBlockState(TAG_COUNTER_BLOCK_STATE, counterBlockState);
         }
         if (avoidBlockState != null) {
-            compound.put(TAG_AVOID_BLOCK_STATE, NbtUtils.writeBlockState(avoidBlockState));
+            output.putBlockState(TAG_AVOID_BLOCK_STATE, avoidBlockState);
         }
-        if (!tradedWithPlayers.isEmpty()) {
-            ListTag tradedPlayerTags = new ListTag();
-            for (UUID playerUuid : tradedWithPlayers) {
-                CompoundTag tradedPlayerTag = new CompoundTag();
-                tradedPlayerTag.putUUID(TAG_TRADED_PLAYER_UUID, playerUuid);
-                tradedPlayerTags.add(tradedPlayerTag);
-            }
-            compound.put(TAG_TRADED_WITH_PLAYERS, tradedPlayerTags);
+        for (UUID playerUuid : tradedWithPlayers) {
+            output.addChild(TAG_TRADED_WITH_PLAYERS)
+                    .putUuid(TAG_TRADED_PLAYER_UUID, playerUuid);
         }
     }
 
@@ -538,13 +543,13 @@ public class CustomerVillagerEntity extends Villager {
     @NotNull
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         // Add all interacting players to the spawner
-        if (!level().isClientSide()) {
+        if (!LevelCUtils.isClientSide(level())) {
             if (spawnerPos != null && level().getBlockEntity(spawnerPos) instanceof CustomerSpawnerBlockEntity spawner) {
                 spawner.addPlayer(player.getUUID());
             }
         }
         if (getState() != CustomerState.BUYING) {
-            return InteractionResult.sidedSuccess(level().isClientSide());
+            return InteractionCUtils.sidedSuccess(LevelCUtils.isClientSide(level()));
         }
         return super.mobInteract(player, hand);
     }
@@ -553,7 +558,7 @@ public class CustomerVillagerEntity extends Villager {
     protected void rewardTradeXp(MerchantOffer offer) {
         super.rewardTradeXp(offer);
 
-        if (!level().isClientSide()) {
+        if (!LevelCUtils.isClientSide(level())) {
             ticksSinceTrade = 0;
             Player tradingPlayer = getTradingPlayer();
             if (tradingPlayer != null) {
@@ -580,8 +585,10 @@ public class CustomerVillagerEntity extends Villager {
     }
 
     private static ItemStack getTradeRemainderItem(ItemStack soldStack) {
-        if (soldStack.hasCraftingRemainingItem()) {
-            return soldStack.getCraftingRemainingItem();
+        ItemStack craftingRemainder =
+                ItemStackCUtils.getCraftingRemainder(soldStack);
+        if (!craftingRemainder.isEmpty()) {
+            return craftingRemainder;
         }
 
         Item fallbackItem = TRADE_REMAINDER_FALLBACKS.get(soldStack.getItem());
@@ -589,31 +596,31 @@ public class CustomerVillagerEntity extends Villager {
     }
 
     public void playHappy() {
-        if (!level().isClientSide()) {
+        if (!LevelCUtils.isClientSide(level())) {
             level().broadcastEntityEvent(this, (byte) 14);
         }
     }
 
     public void playLove() {
-        if (!level().isClientSide()) {
+        if (!LevelCUtils.isClientSide(level())) {
             level().broadcastEntityEvent(this, (byte) 12);
         }
     }
 
     public void playAngry() {
-        if (!level().isClientSide()) {
+        if (!LevelCUtils.isClientSide(level())) {
             level().broadcastEntityEvent(this, (byte) 13);
         }
     }
 
     public void sentPlayersMessage(Component message) {
-        if (!level().isClientSide() && level().getBlockEntity(spawnerPos) instanceof CustomerSpawnerBlockEntity spawner) {
+        if (!LevelCUtils.isClientSide(level()) && level().getBlockEntity(spawnerPos) instanceof CustomerSpawnerBlockEntity spawner) {
             spawner.sentPlayersMessage(message);
         }
     }
 
     public void sentPlayersChat(Component message) {
-        if (!level().isClientSide() && level().getBlockEntity(spawnerPos) instanceof CustomerSpawnerBlockEntity spawner) {
+        if (!LevelCUtils.isClientSide(level()) && level().getBlockEntity(spawnerPos) instanceof CustomerSpawnerBlockEntity spawner) {
             spawner.sentPlayersChat(message);
         }
     }
@@ -622,7 +629,7 @@ public class CustomerVillagerEntity extends Villager {
     public void tick() {
         super.tick();
 
-        if (!level().isClientSide()) {
+        if (!LevelCUtils.isClientSide(level())) {
             if (getState() == CustomerState.BUYING) {
                 MerchantOffers currentOffers = getOffers();
                 Player tradingPlayer = getTradingPlayer();
@@ -663,21 +670,18 @@ public class CustomerVillagerEntity extends Villager {
     /**
      * Reads a saved counter target position.
      */
-    static Optional<BlockPos> readCounterTargetBlockPos(CompoundTag compound) {
-        return NbtUtils.readBlockPos(compound, TAG_COUNTER_TARGET_BLOCK_POS);
+    static Optional<BlockPos> readCounterTargetBlockPos(DataReader input) {
+        return input.getBlockPos(TAG_COUNTER_TARGET_BLOCK_POS);
     }
 
     /**
      * Saves a counter target position.
      */
     static void saveCounterTargetBlockPos(
-            CompoundTag compound,
+            DataWriter output,
             BlockPos counterTargetBlockPos
     ) {
-        compound.put(
-                TAG_COUNTER_TARGET_BLOCK_POS,
-                NbtUtils.writeBlockPos(counterTargetBlockPos)
-        );
+        output.putBlockPos(TAG_COUNTER_TARGET_BLOCK_POS, counterTargetBlockPos);
     }
 
 }

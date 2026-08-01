@@ -1,15 +1,24 @@
 package com.vikingkittens.mc.customers.supplier;
 
+import com.vikingkittens.mc.customers.compatability.LevelCUtils;
+import com.vikingkittens.mc.customers.compatability.VillagerCUtils;
+import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
+import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
+import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
+import com.vikingkittens.mc.customers.compatability.EntityCUtils;
+import com.vikingkittens.mc.customers.compatability.InteractionCUtils;
+
 import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.common.MobUtils;
 import com.vikingkittens.mc.customers.common.PositionUtils;
 import com.vikingkittens.mc.customers.supplier.ai.SupplierMoveToSpawnGoal;
 import com.vikingkittens.mc.customers.supplier.ai.SupplierMoveToSpawnerGoal;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -51,13 +60,13 @@ public class SupplierVillagerEntity extends Villager {
 
     public static final String NAME = "supplier_villager";
 
-    private static VillagerType getVillagerTypeForLocation(Level level, BlockPos pos) {
+    private static ResourceKey<VillagerType> getVillagerTypeForLocation(Level level, BlockPos pos) {
         Holder<Biome> biomeHolder = level.getBiome(pos);
         BiomeVillagerType mapData = biomeHolder.getData(NeoForgeDataMaps.VILLAGER_TYPES);
         if (mapData != null) {
-            return mapData.type();
+            return BuiltInRegistries.VILLAGER_TYPE.getResourceKey(mapData.type()).orElseThrow();
         }
-        return VillagerType.PLAINS;
+        return BuiltInRegistries.VILLAGER_TYPE.getResourceKey(VillagerType.PLAINS).orElseThrow();
     }
 
     public static SupplierVillagerEntity spawn(
@@ -65,7 +74,7 @@ public class SupplierVillagerEntity extends Villager {
             BlockPos spawnerPos,
             MerchantOffers offers
     ) {
-        if (!level.isClientSide) {
+        if (!LevelCUtils.isClientSide(level)) {
             ServerLevel serverLevel = (ServerLevel)level;
             BlockPos navigationTarget =
                     PositionUtils.findGroundedTargetPosition(level, spawnerPos);
@@ -74,7 +83,7 @@ public class SupplierVillagerEntity extends Villager {
                 return null;
             }
 
-            SupplierVillagerEntity supplier = Supplier.SUPPLIER_VILLAGER.get().create(level);
+            SupplierVillagerEntity supplier = EntityCUtils.create(Supplier.SUPPLIER_VILLAGER.get(), level);
             if (supplier != null) {
                 BlockPos safePos = findReachableSpawnPos(
                         level,
@@ -83,15 +92,18 @@ public class SupplierVillagerEntity extends Villager {
                         navigationTarget
                 );
                 if (safePos != null) {
-                    supplier.moveTo(safePos, 0, 0);
+                    EntityCUtils.snapTo(supplier, safePos, 0, 0);
                     supplier.setOnGround(true);
 
                     VillagerData data = supplier.getVillagerData();
-                    supplier.setVillagerData(new VillagerData(
-                            getVillagerTypeForLocation(level, spawnerPos),
-                            Supplier.SUPPLIER_PROFESSION.get(),
-                            data.getLevel()
-                    ));
+                    supplier.setVillagerData(
+                            VillagerCUtils.withTypeAndProfession(
+                                    data,
+                                    level.registryAccess(),
+                                    getVillagerTypeForLocation(level, spawnerPos),
+                                    Supplier.SUPPLIER_PROFESSION.getKey()
+                            )
+                    );
 
                     supplier.setSpawnerPos(spawnerPos);
                     supplier.setSpawnPos(safePos);
@@ -147,7 +159,7 @@ public class SupplierVillagerEntity extends Villager {
                     MAX_SPAWN_ATTEMPTS,
                     candidatePos -> {
                         int attempt = validationAttempt.incrementAndGet();
-                        supplier.moveTo(candidatePos, 0, 0);
+                        EntityCUtils.snapTo(supplier, candidatePos, 0, 0);
                         supplier.setOnGround(true);
                         Path path = supplier.getNavigation().createPath(
                                 navigationTarget,
@@ -208,29 +220,42 @@ public class SupplierVillagerEntity extends Villager {
     @Override
     public void readAdditionalSaveData(CompoundTag compound) {
         super.readAdditionalSaveData(compound);
-        if (compound.contains(TAG_STATE)) {
-            String stateName = compound.getString(TAG_STATE);
+        readSupplierData(PersistenceCUtils.reader(compound));
+    }
+
+    /**
+     * Restores supplier state shared across supported Minecraft versions.
+     */
+    void readSupplierData(DataReader input) {
+        input.getString(TAG_STATE).ifPresent(stateName -> {
             try {
                 setState(SupplierState.valueOf(stateName));
             } catch (IllegalArgumentException exception) {
                 LOGGER.warn("Ignoring unknown supplier state while loading: {}", stateName);
             }
-        }
-        NbtUtils.readBlockPos(compound, TAG_SPAWNER_POS).ifPresent(this::setSpawnerPos);
-        NbtUtils.readBlockPos(compound, TAG_SPAWN_POS).ifPresent(this::setSpawnPos);
+        });
+        input.getBlockPos(TAG_SPAWNER_POS).ifPresent(this::setSpawnerPos);
+        input.getBlockPos(TAG_SPAWN_POS).ifPresent(this::setSpawnPos);
     }
 
     @Override
     public void addAdditionalSaveData(CompoundTag compound) {
         super.addAdditionalSaveData(compound);
+        writeSupplierData(PersistenceCUtils.writer(compound));
+    }
+
+    /**
+     * Stores supplier state shared across supported Minecraft versions.
+     */
+    void writeSupplierData(DataWriter output) {
         if (state != null) {
-            compound.putString(TAG_STATE, state.name());
+            output.putString(TAG_STATE, state.name());
         }
         if (spawnerPos != null) {
-            compound.put(TAG_SPAWNER_POS, NbtUtils.writeBlockPos(spawnerPos));
+            output.putBlockPos(TAG_SPAWNER_POS, spawnerPos);
         }
         if (spawnPos != null) {
-            compound.put(TAG_SPAWN_POS, NbtUtils.writeBlockPos(spawnPos));
+            output.putBlockPos(TAG_SPAWN_POS, spawnPos);
         }
     }
 
@@ -289,7 +314,7 @@ public class SupplierVillagerEntity extends Villager {
     @NotNull
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         if (getState() != SupplierState.SELLING) {
-            return InteractionResult.sidedSuccess(level().isClientSide());
+            return InteractionCUtils.sidedSuccess(LevelCUtils.isClientSide(level()));
         }
         return super.mobInteract(player, hand);
     }

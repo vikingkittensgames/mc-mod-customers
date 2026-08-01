@@ -1,5 +1,8 @@
 package com.vikingkittens.mc.customers.customer;
 
+import com.vikingkittens.mc.customers.compatability.PlayerCUtils;
+
+
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.vikingkittens.mc.customers.Customers;
@@ -47,7 +50,7 @@ public class CustomerCommands {
             boolean includeCounters
     ) throws CommandSyntaxException {
         ServerPlayer player = source.getPlayerOrException();
-        ServerLevel level = player.serverLevel();
+        ServerLevel level = PlayerCUtils.getServerLevel(player);
         List<BlockPos> spawnerPositions = SearchUtils.findBlocksInBox(
                 level,
                 player.blockPosition(),

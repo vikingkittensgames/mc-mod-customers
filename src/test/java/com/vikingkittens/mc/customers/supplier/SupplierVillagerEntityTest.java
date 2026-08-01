@@ -2,6 +2,8 @@ package com.vikingkittens.mc.customers.supplier;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 import com.vikingkittens.mc.customers.common.MobUtils;
+import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
+import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
@@ -12,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.MockedStatic;
 
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,6 +34,54 @@ class SupplierVillagerEntityTest {
     @BeforeAll
     static void bootstrapMinecraft() {
         MinecraftTestBootstrap.bootstrap();
+    }
+
+    /**
+     * Verifies that shared persistence data restores supplier state and positions.
+     */
+    @Test
+    void readsSupplierPersistenceData() {
+        SupplierVillagerEntity supplier = mock(
+                SupplierVillagerEntity.class,
+                CALLS_REAL_METHODS
+        );
+        DataReader input = mock(DataReader.class);
+        BlockPos spawnerPos = new BlockPos(10, 64, 20);
+        BlockPos spawnPos = new BlockPos(50, 65, 40);
+
+        when(input.getString("SupplierState"))
+                .thenReturn(Optional.of(SupplierState.SELLING.name()));
+        when(input.getBlockPos("SpawnerPos")).thenReturn(Optional.of(spawnerPos));
+        when(input.getBlockPos("SpawnPos")).thenReturn(Optional.of(spawnPos));
+
+        supplier.readSupplierData(input);
+
+        assertEquals(SupplierState.SELLING, supplier.getState());
+        assertEquals(spawnerPos, supplier.getSpawnerPos());
+        assertEquals(spawnPos, supplier.getSpawnPos());
+    }
+
+    /**
+     * Verifies that shared persistence data stores supplier state and positions.
+     */
+    @Test
+    void writesSupplierPersistenceData() {
+        SupplierVillagerEntity supplier = mock(
+                SupplierVillagerEntity.class,
+                CALLS_REAL_METHODS
+        );
+        DataWriter output = mock(DataWriter.class);
+        BlockPos spawnerPos = new BlockPos(10, 64, 20);
+        BlockPos spawnPos = new BlockPos(50, 65, 40);
+        supplier.setState(SupplierState.SELLING);
+        supplier.setSpawnerPos(spawnerPos);
+        supplier.setSpawnPos(spawnPos);
+
+        supplier.writeSupplierData(output);
+
+        verify(output).putString("SupplierState", SupplierState.SELLING.name());
+        verify(output).putBlockPos("SpawnerPos", spawnerPos);
+        verify(output).putBlockPos("SpawnPos", spawnPos);
     }
 
     @Test

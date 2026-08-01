@@ -1,5 +1,7 @@
 package com.vikingkittens.mc.customers.customer.ai;
 
+import com.vikingkittens.mc.customers.compatability.EntityCUtils;
+
 import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.common.PositionUtils;
 import com.vikingkittens.mc.customers.common.ai.MobMoveToGoal;
@@ -90,7 +92,12 @@ public class CustomerLineUpGoal extends MobMoveToGoal {
     protected void onDone() {
         // Check for a forced state change
         if (customer.getState() == CustomerState.IN_LINE) {
-            mob.moveTo(targetPos.getBottomCenter(), mob.getYRot(), mob.getXRot());
+            EntityCUtils.snapTo(
+                    mob,
+                    targetPos.getBottomCenter(),
+                    mob.getYRot(),
+                    mob.getXRot()
+            );
             CustomerVillagerEntity followingCustomer = CustomerVillagerEntity.getActiveCustomer(
                     customer.level(),
                     followingCustomerId

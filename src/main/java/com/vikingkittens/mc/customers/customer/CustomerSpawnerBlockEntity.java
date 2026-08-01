@@ -1,14 +1,17 @@
 package com.vikingkittens.mc.customers.customer;
 
+import com.vikingkittens.mc.customers.compatability.LevelCUtils;
+import com.vikingkittens.mc.customers.compatability.PlayerCUtils;
+import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
+import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
+import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
+
 import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.common.SearchUtils;
 import com.vikingkittens.mc.customers.config.Config;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtUtils;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerLevel;
@@ -199,24 +202,19 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             LOGGER.error("Failed to save inventory", t);
         }
 
+        writeSpawnerData(PersistenceCUtils.writer(tag));
+    }
+
+    /**
+     * Stores customer spawner state shared across supported Minecraft versions.
+     */
+    void writeSpawnerData(DataWriter output) {
         try {
-            ListTag customersTag = new ListTag();
-            for (UUID uuid : customerIds) {
-                try {
-                    customersTag.add(NbtUtils.createUUID(uuid));
-                } catch (Throwable t) {
-                    LOGGER.error("Couldn't add customer to saved list because of error", t);
-                }
-            }
-            tag.put("customers", customersTag);
+            output.putUuids("customers", customerIds);
         } catch (Throwable t) {
             LOGGER.error("Failed to save customers", t);
         }
-
-        tag.put(
-                "reservedTargetCounterPositions",
-                saveReservedTargetCounterPositions(reservedTargetCounterPositions)
-        );
+        saveReservedTargetCounterPositions(output, reservedTargetCounterPositions);
     }
 
     @Override
@@ -230,56 +228,51 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             }
         }
         onInventoryUpdate();
-        if (tag.contains("customers")) {
-            try {
-                customerIds.clear();
-                ListTag customersTag = tag.getList("customers", Tag.TAG_INT_ARRAY);
-                for (int i = 0; i < customersTag.size(); i++) {
-                    try {
-                        customerIds.add(NbtUtils.loadUUID(customersTag.get(i)));
-                    } catch (Throwable t) {
-                        LOGGER.warn("Failed to load one of the customers because of error", t);
-                    }
+        readSpawnerData(PersistenceCUtils.reader(tag));
+    }
+
+    /**
+     * Restores customer spawner state shared across supported Minecraft versions.
+     */
+    void readSpawnerData(DataReader input) {
+        try {
+            customerIds.clear();
+            input.getUuids("customers").forEach(uuid -> {
+                try {
+                    customerIds.add(uuid);
+                } catch (Throwable t) {
+                    LOGGER.warn("Failed to load one of the customers because of error", t);
                 }
-            } catch (Throwable t) {
-                LOGGER.error("Failed to load customers because of error", t);
-            }
+            });
+        } catch (Throwable t) {
+            LOGGER.error("Failed to load customers because of error", t);
         }
         reservedTargetCounterPositions.clear();
-        if (tag.contains("reservedTargetCounterPositions", Tag.TAG_LIST)) {
-            reservedTargetCounterPositions.putAll(
-                    loadReservedTargetCounterPositions(
-                            tag.getList("reservedTargetCounterPositions", Tag.TAG_COMPOUND)
-                    )
-            );
-        }
+        reservedTargetCounterPositions.putAll(loadReservedTargetCounterPositions(input));
     }
 
-    static ListTag saveReservedTargetCounterPositions(Map<BlockPos, List<UUID>> reservations) {
-        ListTag reservationsTag = new ListTag();
+    /**
+     * Stores reserved counter queues through the shared persistence writer.
+     */
+    static void saveReservedTargetCounterPositions(
+            DataWriter output,
+            Map<BlockPos, List<UUID>> reservations
+    ) {
         reservations.forEach((position, customerIds) -> {
-            CompoundTag reservationTag = new CompoundTag();
-            reservationTag.put("targetPosition", NbtUtils.writeBlockPos(position));
-            ListTag customerIdsTag = new ListTag();
-            for (UUID customerId : customerIds) {
-                customerIdsTag.add(NbtUtils.createUUID(customerId));
-            }
-            reservationTag.put("customerIds", customerIdsTag);
-            reservationsTag.add(reservationTag);
+            DataWriter reservationOutput = output.addChild("reservedTargetCounterPositions");
+            reservationOutput.putBlockPos("targetPosition", position);
+            reservationOutput.putUuids("customerIds", customerIds);
         });
-        return reservationsTag;
     }
 
-    static Map<BlockPos, List<UUID>> loadReservedTargetCounterPositions(ListTag reservationsTag) {
+    /**
+     * Restores reserved counter queues through the shared persistence reader.
+     */
+    static Map<BlockPos, List<UUID>> loadReservedTargetCounterPositions(DataReader input) {
         Map<BlockPos, List<UUID>> reservations = new HashMap<>();
-        for (int index = 0; index < reservationsTag.size(); index++) {
-            CompoundTag reservationTag = reservationsTag.getCompound(index);
-            List<UUID> customerIds = new ArrayList<>();
-            ListTag customerIdsTag = reservationTag.getList("customerIds", Tag.TAG_INT_ARRAY);
-            for (int customerIndex = 0; customerIndex < customerIdsTag.size(); customerIndex++) {
-                customerIds.add(NbtUtils.loadUUID(customerIdsTag.get(customerIndex)));
-            }
-            NbtUtils.readBlockPos(reservationTag, "targetPosition").ifPresent(position ->
+        for (DataReader reservationInput : input.getChildren("reservedTargetCounterPositions")) {
+            List<UUID> customerIds = new ArrayList<>(reservationInput.getUuids("customerIds"));
+            reservationInput.getBlockPos("targetPosition").ifPresent(position ->
                     reservations.put(position, customerIds)
             );
         }
@@ -475,6 +468,8 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     /* package private */ static BlockState updateState(Level level, BlockPos pos, BlockState currentState) {
         CustomerSpawnerMode spawnerMode = currentState.getValue(CustomerSpawnerBlock.STATE_SPAWN_MODE);
+
+
         boolean wasDisabled = currentState.getValue(CustomerSpawnerBlock.STATE_DISABLED);
         boolean wasPowered = currentState.getValue(CustomerSpawnerBlock.STATE_POWERED);
         boolean wasSpecialEnabled = currentState.getValue(CustomerSpawnerBlock.STATE_SPECIAL_ENABLED);
@@ -506,6 +501,8 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     /* package private */ void updateState() {
         boolean wasDisabled = getBlockState().getValue(CustomerSpawnerBlock.STATE_DISABLED);
+
+
         BlockState newState = updateState(getLevel(), getBlockPos(), getBlockState());
         level.setBlock(getBlockPos(), newState, Block.UPDATE_ALL);
 
@@ -520,6 +517,8 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     /* package private */ static BlockState cycleSpawnMode(Level level, BlockPos pos, BlockState currentState) {
         CustomerSpawnerMode spawnerMode = currentState.getValue(CustomerSpawnerBlock.STATE_SPAWN_MODE);
+
+
         CustomerSpawnerMode nextSpawnerMode = switch (spawnerMode) {
             case CONTINUOUS -> CustomerSpawnerMode.DAY;
             case DAY -> CustomerSpawnerMode.NIGHT;
@@ -539,6 +538,8 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     /* package private */ void cycleSpawnMode() {
         BlockState newState = cycleSpawnMode(getLevel(), getBlockPos(), getBlockState());
+
+
         level.setBlock(getBlockPos(), newState, Block.UPDATE_ALL);
     }
 
@@ -666,11 +667,11 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     public void sentPlayersMessage(Component message) {
-        if (!level.isClientSide()) {
+        if (!LevelCUtils.isClientSide(level)) {
             for (UUID playerId : playerIds) {
                 try {
                     Player player = level.getPlayerByUUID(playerId);
-                    player.displayClientMessage(message, true);
+                    PlayerCUtils.sendActionBarMessage(player, message);
                 } catch (Throwable t) {
                     LOGGER.warn("Unable to send message to player because of error", t);
                 }
@@ -679,11 +680,11 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     public void sentPlayersChat(Component message) {
-        if (!level.isClientSide()) {
+        if (!LevelCUtils.isClientSide(level)) {
             for (UUID playerId : playerIds) {
                 try {
                     Player player = level.getPlayerByUUID(playerId);
-                    player.sendSystemMessage(message);
+                    PlayerCUtils.sendSystemMessage(player, message);
                 } catch (Throwable t) {
                     LOGGER.warn("Unable to send chat to player because of error", t);
                 }
@@ -804,7 +805,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, CustomerSpawnerBlockEntity entity) {
-        if (!level.isClientSide()) {
+        if (!LevelCUtils.isClientSide(level)) {
             if (entity.reservationCleanupLoadTicks < RESERVATION_CLEANUP_LOAD_GRACE_TICKS) {
                 entity.reservationCleanupLoadTicks++;
             }

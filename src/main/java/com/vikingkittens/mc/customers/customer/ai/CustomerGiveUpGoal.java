@@ -2,6 +2,7 @@ package com.vikingkittens.mc.customers.customer.ai;
 
 import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.common.ai.MobTimedGoal;
+import com.vikingkittens.mc.customers.compatability.VillagerCUtils;
 import com.vikingkittens.mc.customers.config.Config;
 import com.vikingkittens.mc.customers.customer.Customer;
 import com.vikingkittens.mc.customers.customer.CustomerState;
@@ -10,7 +11,6 @@ import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlockEntity;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.item.trading.MerchantOffer;
 import org.slf4j.Logger;
 
@@ -33,10 +33,15 @@ public class CustomerGiveUpGoal extends MobTimedGoal {
     @Override
     public boolean canUse() {
         long giveUpTicks = 20L * Config.CUSTOMER_GIVE_UP_SECONDS.get();
-        VillagerProfession profession = customer.getVillagerData().getProfession();
-        if (profession == Customer.CUSTOMER_IMPATIENT_PROFESSION.get()) {
+        if (VillagerCUtils.hasProfession(
+                customer.getVillagerData(),
+                Customer.CUSTOMER_IMPATIENT_PROFESSION.getKey()
+        )) {
             giveUpTicks = Math.max(1, giveUpTicks / 2);
-        } else if (profession == Customer.CUSTOMER_CASUAL_PROFESSION.get()) {
+        } else if (VillagerCUtils.hasProfession(
+                customer.getVillagerData(),
+                Customer.CUSTOMER_CASUAL_PROFESSION.getKey()
+        )) {
             giveUpTicks = 0;
         }
         return super.canUse() && (

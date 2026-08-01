@@ -1,5 +1,8 @@
 package com.vikingkittens.mc.customers.supplier;
 
+import com.vikingkittens.mc.customers.compatability.LevelCUtils;
+
+
 import com.mojang.logging.LogUtils;
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.customer.Customer;
@@ -24,7 +27,7 @@ public class SupplierEvents {
 
     @SubscribeEvent
     public static void onEntityLeaveLevel(EntityLeaveLevelEvent event) {
-        if (!event.getLevel().isClientSide()) {
+        if (!LevelCUtils.isClientSide(event.getLevel())) {
             if (event.getEntity() instanceof SupplierVillagerEntity supplier) {
                 Entity.RemovalReason reason = supplier.getRemovalReason();
                 if (reason == Entity.RemovalReason.CHANGED_DIMENSION) {

@@ -1,5 +1,8 @@
 package com.vikingkittens.mc.customers.supplier;
 
+import com.vikingkittens.mc.customers.compatability.LevelCUtils;
+
+
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -35,6 +38,7 @@ public class SupplierSpawnerBlock extends BaseEntityBlock {
             instance.group(propertiesCodec()).apply(instance, SupplierSpawnerBlock::new));
 
     /* package private */ static final BooleanProperty STATE_DISABLED = BooleanProperty.create("disabled");
+
 
     public SupplierSpawnerBlock(Properties properties) {
         super(properties);
@@ -79,7 +83,7 @@ public class SupplierSpawnerBlock extends BaseEntityBlock {
 
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!level.isClientSide() && !state.is(newState.getBlock())) {
+        if (!LevelCUtils.isClientSide(level) && !state.is(newState.getBlock())) {
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof SupplierSpawnerBlockEntity entity) {
                 entity.beforeRemove();
@@ -92,7 +96,7 @@ public class SupplierSpawnerBlock extends BaseEntityBlock {
     @Override
     @NotNull
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!level.isClientSide()) {
+        if (!LevelCUtils.isClientSide(level)) {
             // Open up container
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof SupplierSpawnerBlockEntity entity) {
@@ -128,7 +132,7 @@ public class SupplierSpawnerBlock extends BaseEntityBlock {
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        if (!level.isClientSide()) {
+        if (!LevelCUtils.isClientSide(level)) {
             return (l,p,s,e) -> {
                 SupplierSpawnerBlockEntity.tick(l, p, s, (SupplierSpawnerBlockEntity)e);
             };
