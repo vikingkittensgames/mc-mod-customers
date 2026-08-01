@@ -1,17 +1,19 @@
 package com.vikingkittens.mc.customers.customer.ai;
 
+import java.util.*;
+
+import org.slf4j.Logger;
+
 import com.mojang.logging.LogUtils;
+import net.minecraft.commands.arguments.EntityAnchorArgument;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.RandomSource;
+import net.minecraft.util.Util;
+import net.minecraft.world.level.LevelReader;
+
 import com.vikingkittens.mc.customers.common.ai.MobMoveToGoal;
 import com.vikingkittens.mc.customers.compatability.EntityCUtils;
 import com.vikingkittens.mc.customers.customer.*;
-import net.minecraft.util.Util;
-import net.minecraft.core.BlockPos;
-import net.minecraft.commands.arguments.EntityAnchorArgument;
-import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.LevelReader;
-import org.slf4j.Logger;
-
-import java.util.*;
 
 public class CustomerMoveToCounterGoal extends MobMoveToGoal {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -167,4 +169,3 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
         }
     }
 }
-

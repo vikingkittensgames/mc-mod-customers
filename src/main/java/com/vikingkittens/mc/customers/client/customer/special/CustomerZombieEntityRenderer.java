@@ -1,6 +1,5 @@
 package com.vikingkittens.mc.customers.client.customer.special;
 
-import com.vikingkittens.mc.customers.customer.special.CustomerZombieEntity;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.monster.zombie.ZombieModel;
 import net.minecraft.client.renderer.entity.ArmorModelSet;
@@ -9,6 +8,8 @@ import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.client.renderer.entity.state.ZombieRenderState;
 import net.minecraft.resources.Identifier;
+
+import com.vikingkittens.mc.customers.customer.special.CustomerZombieEntity;
 
 public class CustomerZombieEntityRenderer extends HumanoidMobRenderer<
         CustomerZombieEntity,

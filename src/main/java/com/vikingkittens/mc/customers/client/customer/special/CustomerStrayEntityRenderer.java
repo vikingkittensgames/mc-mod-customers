@@ -1,15 +1,16 @@
 package com.vikingkittens.mc.customers.client.customer.special;
 
-import com.vikingkittens.mc.customers.customer.special.CustomerStrayEntity;
-import net.minecraft.client.model.monster.skeleton.SkeletonModel;
 import net.minecraft.client.model.geom.ModelLayers;
+import net.minecraft.client.model.monster.skeleton.SkeletonModel;
+import net.minecraft.client.renderer.entity.ArmorModelSet;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.client.renderer.entity.layers.SkeletonClothingLayer;
 import net.minecraft.client.renderer.entity.state.SkeletonRenderState;
-import net.minecraft.client.renderer.entity.ArmorModelSet;
 import net.minecraft.resources.Identifier;
+
+import com.vikingkittens.mc.customers.customer.special.CustomerStrayEntity;
 
 public class CustomerStrayEntityRenderer extends HumanoidMobRenderer<CustomerStrayEntity, SkeletonRenderState, SkeletonModel<SkeletonRenderState>> {
     private static final Identifier STRAY_LOCATION = Identifier.withDefaultNamespace("textures/entity/skeleton/stray.png");

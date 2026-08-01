@@ -1,11 +1,12 @@
 package com.vikingkittens.mc.customers.client.customer;
 
-import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
-
-import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
-import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
+
+import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
+import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;

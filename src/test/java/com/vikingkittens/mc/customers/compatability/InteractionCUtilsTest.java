@@ -1,7 +1,8 @@
 package com.vikingkittens.mc.customers.compatability;
 
-import net.minecraft.world.InteractionResult;
 import org.junit.jupiter.api.Test;
+
+import net.minecraft.world.InteractionResult;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
 class InteractionCUtilsTest {

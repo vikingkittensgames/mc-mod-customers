@@ -1,10 +1,11 @@
 package com.vikingkittens.mc.customers.common;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.Level;
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;

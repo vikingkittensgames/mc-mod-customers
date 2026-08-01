@@ -1,13 +1,14 @@
 package com.vikingkittens.mc.customers.customer;
 
-import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
-import net.minecraft.core.BlockPos;
-
-import net.minecraft.world.damagesource.DamageSource;
-import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
-import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.damagesource.DamageSource;
+
+import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
+import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
+import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;

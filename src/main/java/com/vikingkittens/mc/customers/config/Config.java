@@ -2,6 +2,7 @@ package com.vikingkittens.mc.customers.config;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
+
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 public class Config {
@@ -36,7 +37,3 @@ public class Config {
         return obj instanceof String itemName && BuiltInRegistries.ITEM.containsKey(Identifier.parse(itemName));
     }
 }
-
-
-
-

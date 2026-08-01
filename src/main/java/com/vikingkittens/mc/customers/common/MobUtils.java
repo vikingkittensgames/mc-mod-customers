@@ -1,5 +1,10 @@
 package com.vikingkittens.mc.customers.common;
 
+import java.util.function.Predicate;
+
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
@@ -8,11 +13,6 @@ import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
-
-import java.util.function.Predicate;
-
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
 
 public final class MobUtils {
     private static final Logger LOGGER = LogUtils.getLogger();

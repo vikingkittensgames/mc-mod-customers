@@ -1,13 +1,15 @@
 package com.vikingkittens.mc.customers;
 
+import java.util.List;
+
+import org.mockito.MockedStatic;
+
 import net.minecraft.SharedConstants;
 import net.minecraft.server.Bootstrap;
+
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.LoadingModList;
-import org.mockito.MockedStatic;
-
-import java.util.List;
 
 import static org.mockito.Mockito.*;
 

@@ -1,10 +1,12 @@
 package com.vikingkittens.mc.customers.customer.ai;
 
+import org.slf4j.Logger;
+
 import com.mojang.logging.LogUtils;
+
 import com.vikingkittens.mc.customers.common.ai.MobMoveToGoal;
 import com.vikingkittens.mc.customers.customer.CustomerState;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
-import org.slf4j.Logger;
 
 public class CustomerMoveToSpawnGoal extends MobMoveToGoal {
     private static final Logger LOGGER = LogUtils.getLogger();

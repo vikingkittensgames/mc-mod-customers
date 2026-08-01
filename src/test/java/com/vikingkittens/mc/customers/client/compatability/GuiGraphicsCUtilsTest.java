@@ -1,12 +1,14 @@
 package com.vikingkittens.mc.customers.client.compatability;
 
-import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.resources.Identifier;
 import org.joml.Matrix3x2fStack;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.resources.Identifier;
+
+import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;

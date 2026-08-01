@@ -1,14 +1,9 @@
 package com.vikingkittens.mc.customers.customer;
 
 import com.google.common.collect.ImmutableSet;
+import org.slf4j.Logger;
+
 import com.mojang.logging.LogUtils;
-import com.vikingkittens.mc.customers.Customers;
-import com.vikingkittens.mc.customers.customer.special.CustomerWitchEntity;
-import com.vikingkittens.mc.customers.customer.special.CustomerStrayEntity;
-import com.vikingkittens.mc.customers.customer.special.CustomerSkeletonEntity;
-import com.vikingkittens.mc.customers.customer.special.CustomerHuskEntity;
-import com.vikingkittens.mc.customers.customer.special.CustomerDrownedEntity;
-import com.vikingkittens.mc.customers.customer.special.CustomerZombieEntity;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -16,10 +11,18 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.npc.villager.VillagerProfession;
+
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
-import org.slf4j.Logger;
+
+import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.customer.special.CustomerDrownedEntity;
+import com.vikingkittens.mc.customers.customer.special.CustomerHuskEntity;
+import com.vikingkittens.mc.customers.customer.special.CustomerSkeletonEntity;
+import com.vikingkittens.mc.customers.customer.special.CustomerStrayEntity;
+import com.vikingkittens.mc.customers.customer.special.CustomerWitchEntity;
+import com.vikingkittens.mc.customers.customer.special.CustomerZombieEntity;
 
 /***
  * Customer main feature class that covers registering the pieces
@@ -124,5 +127,3 @@ public class Customer {
             )
     );
 }
-
-

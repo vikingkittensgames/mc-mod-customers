@@ -1,20 +1,23 @@
 package com.vikingkittens.mc.customers.customer;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import org.slf4j.Logger;
+
 import com.mojang.logging.LogUtils;
-import com.vikingkittens.mc.customers.Customers;
-import com.vikingkittens.mc.customers.client.customer.CustomerClientEvents;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
+
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
-import org.slf4j.Logger;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.client.customer.CustomerClientEvents;
 
 public record CustomerShiftFinishedPayload(
         CustomerSpawnerMode spawnerMode,

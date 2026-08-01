@@ -1,9 +1,6 @@
 package com.vikingkittens.mc.customers.client.customer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.vikingkittens.mc.customers.Customers;
-import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
-import net.minecraft.client.model.npc.VillagerModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
@@ -12,6 +9,7 @@ import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
+import net.minecraft.client.model.npc.VillagerModel;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.client.renderer.entity.VillagerRenderer;
@@ -21,6 +19,9 @@ import net.minecraft.client.renderer.entity.layers.VillagerProfessionLayer;
 import net.minecraft.client.renderer.entity.state.HoldingEntityRenderState;
 import net.minecraft.client.renderer.entity.state.VillagerRenderState;
 import net.minecraft.resources.Identifier;
+
+import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 
 
 public class CustomerVillagerEntityRenderer extends

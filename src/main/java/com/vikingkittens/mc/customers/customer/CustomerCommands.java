@@ -1,12 +1,13 @@
 package com.vikingkittens.mc.customers.customer;
 
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.vikingkittens.mc.customers.Customers;
-import com.vikingkittens.mc.customers.common.SearchUtils;
-import com.vikingkittens.mc.customers.compatability.PlayerCUtils;
-import com.vikingkittens.mc.customers.config.Config;
-import com.vikingkittens.mc.customers.customer.CustomerCounter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -15,16 +16,17 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.state.BlockState;
+
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.common.SearchUtils;
+import com.vikingkittens.mc.customers.compatability.PlayerCUtils;
+import com.vikingkittens.mc.customers.config.Config;
+import com.vikingkittens.mc.customers.customer.CustomerCounter;
 
 @EventBusSubscriber(modid = Customers.MODID)
 public class CustomerCommands {

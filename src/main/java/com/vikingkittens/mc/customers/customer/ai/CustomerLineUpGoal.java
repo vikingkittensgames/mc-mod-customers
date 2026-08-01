@@ -1,19 +1,21 @@
 package com.vikingkittens.mc.customers.customer.ai;
 
+import java.util.UUID;
+
+import org.slf4j.Logger;
+
 import com.mojang.logging.LogUtils;
+import net.minecraft.commands.arguments.EntityAnchorArgument;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.LevelReader;
+
 import com.vikingkittens.mc.customers.common.PositionUtils;
 import com.vikingkittens.mc.customers.common.ai.MobMoveToGoal;
 import com.vikingkittens.mc.customers.compatability.EntityCUtils;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlockEntity;
 import com.vikingkittens.mc.customers.customer.CustomerState;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
-import net.minecraft.commands.arguments.EntityAnchorArgument;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.world.level.LevelReader;
-import org.slf4j.Logger;
-
-import java.util.UUID;
 
 public class CustomerLineUpGoal extends MobMoveToGoal {
     private static final Logger LOGGER = LogUtils.getLogger();

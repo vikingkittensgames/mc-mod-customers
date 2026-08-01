@@ -1,8 +1,10 @@
 package com.vikingkittens.mc.customers.customer;
 
+import java.util.List;
+
+import org.slf4j.Logger;
+
 import com.mojang.logging.LogUtils;
-import com.vikingkittens.mc.customers.compatability.EntityCUtils;
-import com.vikingkittens.mc.customers.compatability.LevelCUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -21,9 +23,9 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.slf4j.Logger;
 
-import java.util.List;
+import com.vikingkittens.mc.customers.compatability.EntityCUtils;
+import com.vikingkittens.mc.customers.compatability.LevelCUtils;
 
 public class CustomerSeatEntity extends Entity {
     private static final Logger LOGGER = LogUtils.getLogger();

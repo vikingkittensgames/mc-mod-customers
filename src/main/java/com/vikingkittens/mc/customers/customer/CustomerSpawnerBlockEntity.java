@@ -1,13 +1,13 @@
 package com.vikingkittens.mc.customers.customer;
 
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+
 import com.mojang.logging.LogUtils;
-import com.vikingkittens.mc.customers.common.SearchUtils;
-import com.vikingkittens.mc.customers.compatability.LevelCUtils;
-import com.vikingkittens.mc.customers.compatability.PlayerCUtils;
-import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
-import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
-import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
-import com.vikingkittens.mc.customers.config.Config;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerBossEvent;
@@ -34,14 +34,17 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
 
-import java.util.*;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import com.vikingkittens.mc.customers.common.SearchUtils;
+import com.vikingkittens.mc.customers.compatability.LevelCUtils;
+import com.vikingkittens.mc.customers.compatability.PlayerCUtils;
+import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
+import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
+import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
+import com.vikingkittens.mc.customers.config.Config;
 
 public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvider {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -883,6 +886,3 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         }
     }
 }
-
-
-

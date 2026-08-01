@@ -1,9 +1,10 @@
 package com.vikingkittens.mc.customers.supplier;
 
+import org.junit.jupiter.api.Test;
+
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.TextColor;
-import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

@@ -1,13 +1,15 @@
 package com.vikingkittens.mc.customers.customer.ai;
 
+import org.slf4j.Logger;
+
 import com.mojang.logging.LogUtils;
-import com.vikingkittens.mc.customers.common.ai.MobMoveToGoal;
-import com.vikingkittens.mc.customers.customer.CustomerState;
-import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.ai.util.DefaultRandomPos;
 import net.minecraft.world.phys.Vec3;
-import org.slf4j.Logger;
+
+import com.vikingkittens.mc.customers.common.ai.MobMoveToGoal;
+import com.vikingkittens.mc.customers.customer.CustomerState;
+import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 
 public class CustomerLeaveGoal extends MobMoveToGoal {
     private static final Logger LOGGER = LogUtils.getLogger();

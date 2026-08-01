@@ -1,17 +1,13 @@
 package com.vikingkittens.mc.customers.supplier;
 
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+
 import com.mojang.logging.LogUtils;
-import com.vikingkittens.mc.customers.common.MobUtils;
-import com.vikingkittens.mc.customers.common.PositionUtils;
-import com.vikingkittens.mc.customers.compatability.EntityCUtils;
-import com.vikingkittens.mc.customers.compatability.InteractionCUtils;
-import com.vikingkittens.mc.customers.compatability.LevelCUtils;
-import com.vikingkittens.mc.customers.compatability.VillagerCUtils;
-import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
-import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
-import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
-import com.vikingkittens.mc.customers.supplier.ai.SupplierMoveToSpawnGoal;
-import com.vikingkittens.mc.customers.supplier.ai.SupplierMoveToSpawnerGoal;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
@@ -20,8 +16,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
@@ -36,14 +32,21 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+
 import net.neoforged.neoforge.registries.datamaps.builtin.BiomeVillagerType;
 import net.neoforged.neoforge.registries.datamaps.builtin.NeoForgeDataMaps;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
 
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import com.vikingkittens.mc.customers.common.MobUtils;
+import com.vikingkittens.mc.customers.common.PositionUtils;
+import com.vikingkittens.mc.customers.compatability.EntityCUtils;
+import com.vikingkittens.mc.customers.compatability.InteractionCUtils;
+import com.vikingkittens.mc.customers.compatability.LevelCUtils;
+import com.vikingkittens.mc.customers.compatability.VillagerCUtils;
+import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
+import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
+import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
+import com.vikingkittens.mc.customers.supplier.ai.SupplierMoveToSpawnGoal;
+import com.vikingkittens.mc.customers.supplier.ai.SupplierMoveToSpawnerGoal;
 
 public class SupplierVillagerEntity extends Villager {
     private static final Logger LOGGER = LogUtils.getLogger();

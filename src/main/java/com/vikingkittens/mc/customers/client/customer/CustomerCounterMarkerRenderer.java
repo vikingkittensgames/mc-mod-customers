@@ -1,30 +1,32 @@
 package com.vikingkittens.mc.customers.client.customer;
 
+import java.util.List;
+
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import com.vikingkittens.mc.customers.Customers;
-import com.vikingkittens.mc.customers.client.compatability.DebugBoxC;
-import com.vikingkittens.mc.customers.client.compatability.RenderingCUtils;
-import com.vikingkittens.mc.customers.customer.CustomerCounterMarker;
-import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlock;
-import net.minecraft.core.BlockPos;
-import net.minecraft.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.BlockPos;
 import net.minecraft.util.ARGB;
+import net.minecraft.util.Util;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 
-import java.util.List;
+import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.client.compatability.DebugBoxC;
+import com.vikingkittens.mc.customers.client.compatability.RenderingCUtils;
+import com.vikingkittens.mc.customers.customer.CustomerCounterMarker;
+import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlock;
 
 @EventBusSubscriber(modid = Customers.MODID, value = Dist.CLIENT)
 public class CustomerCounterMarkerRenderer {

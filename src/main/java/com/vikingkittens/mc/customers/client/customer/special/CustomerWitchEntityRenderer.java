@@ -1,9 +1,6 @@
 package com.vikingkittens.mc.customers.client.customer.special;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.vikingkittens.mc.customers.client.customer.CustomerClientEvents;
-import com.vikingkittens.mc.customers.client.customer.CustomerVillagerEntityRenderer;
-import com.vikingkittens.mc.customers.customer.special.CustomerWitchEntity;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.monster.witch.WitchModel;
@@ -15,6 +12,10 @@ import net.minecraft.client.renderer.entity.state.WitchRenderState;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+
+import com.vikingkittens.mc.customers.client.customer.CustomerClientEvents;
+import com.vikingkittens.mc.customers.client.customer.CustomerVillagerEntityRenderer;
+import com.vikingkittens.mc.customers.customer.special.CustomerWitchEntity;
 
 public class CustomerWitchEntityRenderer extends MobRenderer<
         CustomerWitchEntity,

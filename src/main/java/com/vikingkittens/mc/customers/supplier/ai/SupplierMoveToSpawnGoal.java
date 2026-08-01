@@ -1,12 +1,14 @@
 package com.vikingkittens.mc.customers.supplier.ai;
 
+import org.slf4j.Logger;
+
 import com.mojang.logging.LogUtils;
+
 import com.vikingkittens.mc.customers.common.MobUtils;
 import com.vikingkittens.mc.customers.common.ai.MobMoveToGoal;
 import com.vikingkittens.mc.customers.compatability.LevelCUtils;
 import com.vikingkittens.mc.customers.supplier.SupplierState;
 import com.vikingkittens.mc.customers.supplier.SupplierVillagerEntity;
-import org.slf4j.Logger;
 
 public class SupplierMoveToSpawnGoal extends MobMoveToGoal {
     private static final Logger LOGGER = LogUtils.getLogger();

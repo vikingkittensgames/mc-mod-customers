@@ -1,11 +1,11 @@
 package com.vikingkittens.mc.customers.supplier;
 
+import java.util.*;
+
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+
 import com.mojang.logging.LogUtils;
-import com.vikingkittens.mc.customers.common.SearchUtils;
-import com.vikingkittens.mc.customers.compatability.LevelCUtils;
-import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
-import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
-import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.RandomSource;
@@ -25,11 +25,14 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import net.neoforged.neoforge.items.ItemStackHandler;
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
 
-import java.util.*;
+import net.neoforged.neoforge.items.ItemStackHandler;
+
+import com.vikingkittens.mc.customers.common.SearchUtils;
+import com.vikingkittens.mc.customers.compatability.LevelCUtils;
+import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
+import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
+import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
 
 public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvider {
     private static final Logger LOGGER = LogUtils.getLogger();

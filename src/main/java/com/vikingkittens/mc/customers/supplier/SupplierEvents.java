@@ -1,17 +1,20 @@
 package com.vikingkittens.mc.customers.supplier;
 
+import org.slf4j.Logger;
+
 import com.mojang.logging.LogUtils;
-import com.vikingkittens.mc.customers.Customers;
-import com.vikingkittens.mc.customers.compatability.LevelCUtils;
-import com.vikingkittens.mc.customers.customer.Customer;
-import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.npc.villager.Villager;
+
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
-import org.slf4j.Logger;
+
+import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.compatability.LevelCUtils;
+import com.vikingkittens.mc.customers.customer.Customer;
+import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 
 @EventBusSubscriber(modid = Customers.MODID)
 public class SupplierEvents {
