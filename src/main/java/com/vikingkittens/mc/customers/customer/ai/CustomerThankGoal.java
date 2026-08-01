@@ -1,17 +1,19 @@
 package com.vikingkittens.mc.customers.customer.ai;
 
+import java.util.EnumSet;
+
+import org.slf4j.Logger;
+
 import com.mojang.logging.LogUtils;
-import com.vikingkittens.mc.customers.common.ai.MobTimedGoal;
-import com.vikingkittens.mc.customers.customer.CustomerState;
-import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
-import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlockEntity;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.ai.goal.Goal;
-import org.slf4j.Logger;
 
-import java.util.EnumSet;
+import com.vikingkittens.mc.customers.common.ai.MobTimedGoal;
+import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlockEntity;
+import com.vikingkittens.mc.customers.customer.CustomerState;
+import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 
 public class CustomerThankGoal extends MobTimedGoal {
     private static final Logger LOGGER = LogUtils.getLogger();

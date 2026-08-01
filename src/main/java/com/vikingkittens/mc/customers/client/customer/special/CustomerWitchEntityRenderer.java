@@ -1,7 +1,6 @@
 package com.vikingkittens.mc.customers.client.customer.special;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.vikingkittens.mc.customers.customer.special.CustomerWitchEntity;
 import net.minecraft.client.model.WitchModel;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -9,6 +8,8 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.client.renderer.entity.layers.WitchItemLayer;
 import net.minecraft.resources.ResourceLocation;
+
+import com.vikingkittens.mc.customers.customer.special.CustomerWitchEntity;
 
 public class CustomerWitchEntityRenderer extends MobRenderer<CustomerWitchEntity, WitchModel<CustomerWitchEntity>> {
     private static final ResourceLocation WITCH_LOCATION = ResourceLocation.withDefaultNamespace("textures/entity/witch.png");

@@ -1,12 +1,13 @@
 package com.vikingkittens.mc.customers.client.customer.special;
 
-import com.vikingkittens.mc.customers.customer.special.CustomerSkeletonEntity;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.resources.ResourceLocation;
+
+import com.vikingkittens.mc.customers.customer.special.CustomerSkeletonEntity;
 
 public class CustomerSkeletonEntityRenderer extends HumanoidMobRenderer<CustomerSkeletonEntity, HumanoidModel<CustomerSkeletonEntity>> {
     private static final ResourceLocation SKELETON_LOCATION = ResourceLocation.withDefaultNamespace("textures/entity/skeleton/skeleton.png");

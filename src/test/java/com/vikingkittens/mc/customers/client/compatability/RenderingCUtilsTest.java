@@ -1,11 +1,12 @@
 package com.vikingkittens.mc.customers.client.compatability;
 
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
-import org.junit.jupiter.api.Test;
-
 import java.util.Arrays;
 import java.util.List;
+
+import org.junit.jupiter.api.Test;
+
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;

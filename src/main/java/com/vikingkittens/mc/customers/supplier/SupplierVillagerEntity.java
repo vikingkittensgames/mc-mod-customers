@@ -1,21 +1,16 @@
 package com.vikingkittens.mc.customers.supplier;
 
-import com.vikingkittens.mc.customers.compatability.LevelCUtils;
-import com.vikingkittens.mc.customers.compatability.VillagerCUtils;
-import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
-import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
-import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
-import com.vikingkittens.mc.customers.compatability.EntityCUtils;
-import com.vikingkittens.mc.customers.compatability.InteractionCUtils;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
-import com.vikingkittens.mc.customers.common.MobUtils;
-import com.vikingkittens.mc.customers.common.PositionUtils;
-import com.vikingkittens.mc.customers.supplier.ai.SupplierMoveToSpawnGoal;
-import com.vikingkittens.mc.customers.supplier.ai.SupplierMoveToSpawnerGoal;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -37,14 +32,21 @@ import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.pathfinder.Path;
+
 import net.neoforged.neoforge.registries.datamaps.builtin.BiomeVillagerType;
 import net.neoforged.neoforge.registries.datamaps.builtin.NeoForgeDataMaps;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
 
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import com.vikingkittens.mc.customers.common.MobUtils;
+import com.vikingkittens.mc.customers.common.PositionUtils;
+import com.vikingkittens.mc.customers.compatability.EntityCUtils;
+import com.vikingkittens.mc.customers.compatability.InteractionCUtils;
+import com.vikingkittens.mc.customers.compatability.LevelCUtils;
+import com.vikingkittens.mc.customers.compatability.VillagerCUtils;
+import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
+import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
+import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
+import com.vikingkittens.mc.customers.supplier.ai.SupplierMoveToSpawnGoal;
+import com.vikingkittens.mc.customers.supplier.ai.SupplierMoveToSpawnerGoal;
 
 public class SupplierVillagerEntity extends Villager {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -111,10 +113,8 @@ public class SupplierVillagerEntity extends Villager {
 
                     supplier.setState(SupplierState.INITIALIZING);
 
-                    // Finalize spawn logic (sets default items, resets AI brain, etc.)
                     supplier.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(spawnerPos), MobSpawnType.COMMAND, null);
 
-                    // Spawn the entity in the world
                     serverLevel.addFreshEntity(supplier);
 
                     LOGGER.warn("Supplier spawned at {}", supplier.blockPosition());
@@ -222,10 +222,6 @@ public class SupplierVillagerEntity extends Villager {
         super.readAdditionalSaveData(compound);
         readSupplierData(PersistenceCUtils.reader(compound));
     }
-
-    /**
-     * Restores supplier state shared across supported Minecraft versions.
-     */
     void readSupplierData(DataReader input) {
         input.getString(TAG_STATE).ifPresent(stateName -> {
             try {
@@ -243,10 +239,6 @@ public class SupplierVillagerEntity extends Villager {
         super.addAdditionalSaveData(compound);
         writeSupplierData(PersistenceCUtils.writer(compound));
     }
-
-    /**
-     * Stores supplier state shared across supported Minecraft versions.
-     */
     void writeSupplierData(DataWriter output) {
         if (state != null) {
             output.putString(TAG_STATE, state.name());
@@ -275,26 +267,19 @@ public class SupplierVillagerEntity extends Villager {
 
     @Override
     protected void customServerAiStep() {
-        // No behavior-based AI
     }
 
     @Override
     protected void registerGoals() {
-        // Setup the goal system
         super.registerGoals();
-        // Remove the standard goals
         goalSelector.removeAllGoals(goal -> true);
-        // Remove the standard targets
         targetSelector.removeAllGoals(goal -> true);
 
-        // Keep the supplier afloat when submerged
         goalSelector.addGoal(0, new FloatGoal(this));
 
-        // Start with looking at the player
         goalSelector.addGoal(0, new LookAtTradingPlayerGoal(this));
         goalSelector.addGoal(1, new LookAtPlayerGoal(this, Player.class, 8));
 
-        // Customer specific goals
         goalSelector.addGoal(0, new SupplierMoveToSpawnerGoal(this, 0.5));
         goalSelector.addGoal(0, new SupplierMoveToSpawnGoal(this, 0.5));
     }

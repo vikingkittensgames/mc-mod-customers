@@ -1,12 +1,13 @@
 package com.vikingkittens.mc.customers.customer.ai;
 
+import java.util.UUID;
+
+import net.minecraft.core.BlockPos;
+
 import com.vikingkittens.mc.customers.common.ai.MobTimedGoal;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlockEntity;
 import com.vikingkittens.mc.customers.customer.CustomerState;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
-import net.minecraft.core.BlockPos;
-
-import java.util.UUID;
 
 public class CustomerWaitOnLeaderGoal extends MobTimedGoal {
     private final CustomerVillagerEntity customer;

@@ -1,7 +1,8 @@
 package com.vikingkittens.mc.customers.supplier;
 
-import com.vikingkittens.mc.customers.compatability.LevelCUtils;
-
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.MapCodec;
@@ -25,9 +26,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
+
+import com.vikingkittens.mc.customers.compatability.LevelCUtils;
 
 public class SupplierSpawnerBlock extends BaseEntityBlock {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -37,12 +37,10 @@ public class SupplierSpawnerBlock extends BaseEntityBlock {
     private static final MapCodec<SupplierSpawnerBlock> CODEC = RecordCodecBuilder.mapCodec(instance ->
             instance.group(propertiesCodec()).apply(instance, SupplierSpawnerBlock::new));
 
-    /* package private */ static final BooleanProperty STATE_DISABLED = BooleanProperty.create("disabled");
-
+    static final BooleanProperty STATE_DISABLED = BooleanProperty.create("disabled");
 
     public SupplierSpawnerBlock(Properties properties) {
         super(properties);
-        // Set the default spawn mode
         this.registerDefaultState(this.defaultBlockState()
                 .setValue(STATE_DISABLED, false)
         );
@@ -74,7 +72,6 @@ public class SupplierSpawnerBlock extends BaseEntityBlock {
         return new SupplierSpawnerBlockEntity(pos, state);
     }
 
-    // Required to prevent the block from being entirely invisible
     @Override
     @NotNull
     protected RenderShape getRenderShape(BlockState pState) {
@@ -97,7 +94,6 @@ public class SupplierSpawnerBlock extends BaseEntityBlock {
     @NotNull
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!LevelCUtils.isClientSide(level)) {
-            // Open up container
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof SupplierSpawnerBlockEntity entity) {
                 player.openMenu(entity);

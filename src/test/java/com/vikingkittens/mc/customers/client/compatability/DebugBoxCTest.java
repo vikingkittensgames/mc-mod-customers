@@ -1,7 +1,8 @@
 package com.vikingkittens.mc.customers.client.compatability;
 
-import net.minecraft.world.phys.AABB;
 import org.junit.jupiter.api.Test;
+
+import net.minecraft.world.phys.AABB;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;

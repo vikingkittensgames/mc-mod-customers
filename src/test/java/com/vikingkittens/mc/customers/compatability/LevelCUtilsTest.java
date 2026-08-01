@@ -1,14 +1,16 @@
 package com.vikingkittens.mc.customers.compatability;
 
-import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelHeightAccessor;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelHeightAccessor;
+
+import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 class LevelCUtilsTest {

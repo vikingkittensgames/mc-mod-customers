@@ -1,8 +1,6 @@
 package com.vikingkittens.mc.customers.client.customer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.vikingkittens.mc.customers.Customers;
-import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 import net.minecraft.client.model.VillagerModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
@@ -18,6 +16,9 @@ import net.minecraft.client.renderer.entity.layers.CrossedArmsItemLayer;
 import net.minecraft.client.renderer.entity.layers.CustomHeadLayer;
 import net.minecraft.client.renderer.entity.layers.VillagerProfessionLayer;
 import net.minecraft.resources.ResourceLocation;
+
+import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 
 public class CustomerVillagerEntityRenderer extends
         MobRenderer<CustomerVillagerEntity, CustomerVillagerEntityRenderer.Model> {

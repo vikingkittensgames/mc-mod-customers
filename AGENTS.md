@@ -27,6 +27,9 @@ This project is a Minecraft mod built with the NeoForge mod loader.
 - Do not change tests only to make them pass.
 - Change tests only when they no longer match the expected functionality described in `README.md` or an approved requirement change.
 - When possible, run the relevant Gradle tests before presenting changes for review.
+- Follow the Java import order defined by `.editorconfig` and Spotless.
+- Run `gradlew spotlessApply` after changing Java files.
+- Run `gradlew spotlessCheck` before presenting changes for review.
 - Explain every change made and present the diff for review and approval.
 - Before changing any file, present the exact diff or patch and wait for explicit approval.
 - Ignore the `logs/` directory. Do not modify, delete, clean up, summarize, or treat it as part of the working changes unless explicitly requested.

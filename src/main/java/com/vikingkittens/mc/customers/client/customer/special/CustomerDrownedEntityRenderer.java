@@ -1,6 +1,5 @@
 package com.vikingkittens.mc.customers.client.customer.special;
 
-import com.vikingkittens.mc.customers.customer.special.CustomerDrownedEntity;
 import net.minecraft.client.model.AnimationUtils;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelLayers;
@@ -9,6 +8,8 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.resources.ResourceLocation;
+
+import com.vikingkittens.mc.customers.customer.special.CustomerDrownedEntity;
 
 public class CustomerDrownedEntityRenderer extends HumanoidMobRenderer<CustomerDrownedEntity, CustomerDrownedEntityRenderer.Model> {
     private static final ResourceLocation DROWNED_LOCATION = ResourceLocation.withDefaultNamespace("textures/entity/zombie/drowned.png");
@@ -47,4 +48,3 @@ public class CustomerDrownedEntityRenderer extends HumanoidMobRenderer<CustomerD
         }
     }
 }
-

@@ -1,9 +1,10 @@
 package com.vikingkittens.mc.customers.common.ai;
 
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.ai.goal.Goal;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.goal.Goal;
 
 public class MobTimedGoal extends Goal {
     protected static final Logger LOGGER = LogManager.getLogger();

@@ -3,6 +3,7 @@ package com.vikingkittens.mc.customers.config;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+
 import net.neoforged.neoforge.common.conditions.ICondition;
 
 public record RecipeEnabledCondition(String recipe) implements ICondition {
@@ -29,4 +30,3 @@ public record RecipeEnabledCondition(String recipe) implements ICondition {
         return CODEC;
     }
 }
-

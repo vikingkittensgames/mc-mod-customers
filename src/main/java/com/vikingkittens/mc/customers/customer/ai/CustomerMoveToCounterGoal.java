@@ -1,18 +1,19 @@
 package com.vikingkittens.mc.customers.customer.ai;
 
-import com.vikingkittens.mc.customers.compatability.EntityCUtils;
+import java.util.*;
 
-import com.mojang.logging.LogUtils;
-import com.vikingkittens.mc.customers.common.ai.MobMoveToGoal;
-import com.vikingkittens.mc.customers.customer.*;
-import net.minecraft.Util;
-import net.minecraft.core.BlockPos;
-import net.minecraft.commands.arguments.EntityAnchorArgument;
-import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.LevelReader;
 import org.slf4j.Logger;
 
-import java.util.*;
+import com.mojang.logging.LogUtils;
+import net.minecraft.Util;
+import net.minecraft.commands.arguments.EntityAnchorArgument;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.LevelReader;
+
+import com.vikingkittens.mc.customers.common.ai.MobMoveToGoal;
+import com.vikingkittens.mc.customers.compatability.EntityCUtils;
+import com.vikingkittens.mc.customers.customer.*;
 
 public class CustomerMoveToCounterGoal extends MobMoveToGoal {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -30,7 +31,6 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
         CustomerSpawnerBlockEntity spawner = customer.getSpawner();
         return super.canUse() && spawner != null &&
                 (
-                        // Happy path for state flow
                         customer.getState() == CustomerState.INITIALIZING ||
                         (
                                 (
@@ -39,7 +39,6 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
                                 ) &&
                                 customer.getCounterTargetBlockPos() == null
                         ) ||
-                        // Secondary state flow
                         (
                                 customer.getState() == CustomerState.IN_LINE &&
                                 customer.getCounterTargetBlockPos() != null &&
@@ -48,7 +47,6 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
                                         customer.getUUID()
                                 ) == null
                         ) ||
-                        // Non-happy path where movement starts and the path is lost like with a server restart
                         (
                                 customer.getState() == CustomerState.MOVING_TO_COUNTER &&
                                 customer.getNavigation().getPath() == null
@@ -60,7 +58,6 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
 
     @Override
     protected boolean isValidTarget(LevelReader levelReader, BlockPos blockPos) {
-        // Use this to inject a forced state change check that should trigger ending the goal
         return super.isValidTarget(levelReader, blockPos) && (
                 customer.getState() == CustomerState.INITIALIZING ||
                 customer.getState() == CustomerState.MOVING_TO_COUNTER
@@ -72,23 +69,19 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
         targetPos = null;
         CustomerSpawnerBlockEntity spawner = customer.getSpawner();
         if (spawner != null) {
-            // The customer may already have a target position picked
             targetPos = customer.getCounterTargetBlockPos();
-            // LOGGER.debug("Target positions: {}", targetPos);
 
             List<BlockPos> counterPositions = CustomerCounter.findCounterPositions(
                     customer.level(),
                     customer.getSpawnerPos(),
                     customer.getCounterBlockState()
             );
-            // LOGGER.debug("Counter positions: {}", counterPositions);
             List<CustomerCounter.SurroundingPosition> validPositions = CustomerCounter.findValidSurroundingPositions(
                     customer.level(),
                     counterPositions,
                     customer,
                     customer.getAvoidBlockState()
             );
-            // LOGGER.debug("Valid positions: {}", validPositions);
 
             if (!validPositions.isEmpty()) {
                 CustomerCounter.SurroundingPosition surroundingPos = validPositions.stream()
@@ -96,12 +89,10 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
                         .findFirst()
                         .orElse(null);
                 if (surroundingPos == null) {
-                    // All valid positions
                     RandomSource random = customer.level().getRandom();
                     Util.shuffle(validPositions, random);
                     Map<BlockPos, List<UUID>> reservedTargetCounterPositions =
                             spawner.getReservedTargetCounterPositions();
-                    // LOGGER.debug("Valid positions shuffled: {}", validPositions);
                     validPositions.sort(
                             Comparator
                                     .comparingInt((CustomerCounter.SurroundingPosition position) ->
@@ -116,9 +107,7 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
                                             !CustomerSeatEntity.canSit(customer.level(), position.getPosition().below(), customer))
                                     .thenComparingDouble(CustomerCounter.SurroundingPosition::getDistanceSqr)
                     );
-                    // LOGGER.debug("Valid positions sorted: {}", validPositions);
 
-                    // Valid positions not targeted by other customers
                     List<CustomerCounter.SurroundingPosition> untargetedPositions = new ArrayList<>();
                     List<CustomerCounter.SurroundingPosition> untargetedNotTooClosePositions = new ArrayList<>();
                     Set<BlockPos> otherCustomersTargetPositions =
@@ -137,8 +126,6 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
                             }
                         }
                     }
-                    // LOGGER.debug("Untargeted positions: {}", untargetedPositions);
-                    // LOGGER.debug("Untargeted & not close positions: {}", untargetedNotTooClosePositions);
 
                     if (!untargetedNotTooClosePositions.isEmpty()) {
                         surroundingPos = untargetedNotTooClosePositions.getFirst();
@@ -166,7 +153,6 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
 
     @Override
     protected void onDone() {
-        // Check for a forced state change
         if (customer.getState() == CustomerState.MOVING_TO_COUNTER) {
             EntityCUtils.snapTo(
                     mob,
@@ -182,4 +168,3 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
         }
     }
 }
-

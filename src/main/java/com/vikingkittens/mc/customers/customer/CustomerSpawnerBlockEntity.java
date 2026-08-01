@@ -1,14 +1,13 @@
 package com.vikingkittens.mc.customers.customer;
 
-import com.vikingkittens.mc.customers.compatability.LevelCUtils;
-import com.vikingkittens.mc.customers.compatability.PlayerCUtils;
-import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
-import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
-import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
-import com.vikingkittens.mc.customers.common.SearchUtils;
-import com.vikingkittens.mc.customers.config.Config;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -35,14 +34,17 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
 
-import java.util.*;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import com.vikingkittens.mc.customers.common.SearchUtils;
+import com.vikingkittens.mc.customers.compatability.LevelCUtils;
+import com.vikingkittens.mc.customers.compatability.PlayerCUtils;
+import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
+import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
+import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
+import com.vikingkittens.mc.customers.config.Config;
 
 public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvider {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -173,7 +175,6 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     private final Set<UUID> playerIds = new HashSet<>();
     private long ticksSinceUpdateSpawned = 0;
     private long ticksSinceUpdatePlayers = 0;
-    // Scoreboard
     private int totalCustomers = 0;
     private int numCustomersServed = 0;
     private int totalItemsWanted = 0;
@@ -204,10 +205,6 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
         writeSpawnerData(PersistenceCUtils.writer(tag));
     }
-
-    /**
-     * Stores customer spawner state shared across supported Minecraft versions.
-     */
     void writeSpawnerData(DataWriter output) {
         try {
             output.putUuids("customers", customerIds);
@@ -230,10 +227,6 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         onInventoryUpdate();
         readSpawnerData(PersistenceCUtils.reader(tag));
     }
-
-    /**
-     * Restores customer spawner state shared across supported Minecraft versions.
-     */
     void readSpawnerData(DataReader input) {
         try {
             customerIds.clear();
@@ -250,10 +243,6 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         reservedTargetCounterPositions.clear();
         reservedTargetCounterPositions.putAll(loadReservedTargetCounterPositions(input));
     }
-
-    /**
-     * Stores reserved counter queues through the shared persistence writer.
-     */
     static void saveReservedTargetCounterPositions(
             DataWriter output,
             Map<BlockPos, List<UUID>> reservations
@@ -264,10 +253,6 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             reservationOutput.putUuids("customerIds", customerIds);
         });
     }
-
-    /**
-     * Restores reserved counter queues through the shared persistence reader.
-     */
     static Map<BlockPos, List<UUID>> loadReservedTargetCounterPositions(DataReader input) {
         Map<BlockPos, List<UUID>> reservations = new HashMap<>();
         for (DataReader reservationInput : input.getChildren("reservedTargetCounterPositions")) {
@@ -382,14 +367,12 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         return Component.translatable("block.customers.customer_spawner_block");
     }
     public void beforeRemove() {
-        // Drop all items when block is broken
         SimpleContainer container = new SimpleContainer(inventory.getSlots());
         for (int i = 0; i < inventory.getSlots(); i++) {
             container.setItem(i, inventory.getStackInSlot(i));
         }
         Containers.dropContents(level, worldPosition, container);
 
-        // Despawn customers
         for (UUID uuid : customerIds) {
             Entity customerEntity = ((ServerLevel)level).getEntity(uuid);
             if (customerEntity instanceof CustomerVillagerEntity) {
@@ -402,7 +385,6 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     @Nullable
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
-        // Direct anonymous bridge converting NeoForge's Handler to a Vanilla Container
         Container containerBridge = new Container() {
             @Override
             public int getContainerSize() {
@@ -462,13 +444,11 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             }
         };
 
-        // NeoForge / Modern Mojang uses sixRows for the 54-slot UI (9x6)
         return ChestMenu.sixRows(containerId, playerInventory, containerBridge);
     }
 
-    /* package private */ static BlockState updateState(Level level, BlockPos pos, BlockState currentState) {
+    static BlockState updateState(Level level, BlockPos pos, BlockState currentState) {
         CustomerSpawnerMode spawnerMode = currentState.getValue(CustomerSpawnerBlock.STATE_SPAWN_MODE);
-
 
         boolean wasDisabled = currentState.getValue(CustomerSpawnerBlock.STATE_DISABLED);
         boolean wasPowered = currentState.getValue(CustomerSpawnerBlock.STATE_POWERED);
@@ -499,9 +479,8 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         return newState;
     }
 
-    /* package private */ void updateState() {
+    void updateState() {
         boolean wasDisabled = getBlockState().getValue(CustomerSpawnerBlock.STATE_DISABLED);
-
 
         BlockState newState = updateState(getLevel(), getBlockPos(), getBlockState());
         level.setBlock(getBlockPos(), newState, Block.UPDATE_ALL);
@@ -515,9 +494,8 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         }
     }
 
-    /* package private */ static BlockState cycleSpawnMode(Level level, BlockPos pos, BlockState currentState) {
+    static BlockState cycleSpawnMode(Level level, BlockPos pos, BlockState currentState) {
         CustomerSpawnerMode spawnerMode = currentState.getValue(CustomerSpawnerBlock.STATE_SPAWN_MODE);
-
 
         CustomerSpawnerMode nextSpawnerMode = switch (spawnerMode) {
             case CONTINUOUS -> CustomerSpawnerMode.DAY;
@@ -536,9 +514,8 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         return newState;
     }
 
-    /* package private */ void cycleSpawnMode() {
+    void cycleSpawnMode() {
         BlockState newState = cycleSpawnMode(getLevel(), getBlockPos(), getBlockState());
-
 
         level.setBlock(getBlockPos(), newState, Block.UPDATE_ALL);
     }
@@ -623,7 +600,6 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         }
     }
     public void updatePlayers() {
-        // Since the customers will add players our job here is to remove them
         Set<UUID> playerIdsToRemove = new HashSet<>();
         for (UUID playerId : playerIds) {
             try {
@@ -884,7 +860,6 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                         entity.progressBar.setVisible(false);
                     }
                 } else {
-                    // All customers still buying or arriving should give up
                     if (CustomerSpawnerMode.shouldRemoveCustomers(spawnerMode)) {
                         for (UUID customerId : entity.customerIds) {
                             Entity customerEntity = ((ServerLevel)level).getEntity(customerId);
@@ -910,6 +885,3 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         }
     }
 }
-
-
-

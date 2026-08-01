@@ -1,17 +1,17 @@
 package com.vikingkittens.mc.customers.customer;
 
-import com.vikingkittens.mc.customers.compatability.LevelCUtils;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
-import com.vikingkittens.mc.customers.Customers;
-import com.vikingkittens.mc.customers.config.Config;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.npc.Villager;
+
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
@@ -19,9 +19,10 @@ import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
-import org.slf4j.Logger;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.compatability.LevelCUtils;
+import com.vikingkittens.mc.customers.config.Config;
 
 @EventBusSubscriber(modid = Customers.MODID)
 public class CustomerEvents {
@@ -44,7 +45,6 @@ public class CustomerEvents {
 
     @SubscribeEvent
     public static void registerAttributes(EntityAttributeCreationEvent event) {
-        // Add the default Villager attributes to the customer
         event.put(Customer.CUSTOMER_VILLAGER.get(), Villager.createAttributes().build());
         event.put(Customer.CUSTOMER_ZOMBIE.get(), Villager.createAttributes().build());
         event.put(Customer.CUSTOMER_SKELETON.get(), Villager.createAttributes().build());
@@ -80,5 +80,3 @@ public class CustomerEvents {
         }
     }
 }
-
-

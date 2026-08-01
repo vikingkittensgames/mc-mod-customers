@@ -1,21 +1,20 @@
 package com.vikingkittens.mc.customers.supplier.ai;
 
-import com.vikingkittens.mc.customers.compatability.EntityCUtils;
+import java.util.List;
 
-import com.vikingkittens.mc.customers.compatability.PlayerCUtils;
-
+import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
+
 import com.vikingkittens.mc.customers.common.PositionUtils;
 import com.vikingkittens.mc.customers.common.SearchUtils;
 import com.vikingkittens.mc.customers.common.ai.MobMoveToGoal;
+import com.vikingkittens.mc.customers.compatability.EntityCUtils;
+import com.vikingkittens.mc.customers.compatability.PlayerCUtils;
 import com.vikingkittens.mc.customers.supplier.SupplierState;
 import com.vikingkittens.mc.customers.supplier.SupplierVillagerEntity;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.player.Player;
-import org.slf4j.Logger;
-
-import java.util.List;
 
 public class SupplierMoveToSpawnerGoal extends MobMoveToGoal {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -32,9 +31,7 @@ public class SupplierMoveToSpawnerGoal extends MobMoveToGoal {
         return super.canUse() &&
                 supplier.getSpawnerPos() != null &&
                 (
-                        // Happy path for state flow
                         supplier.getState() == SupplierState.INITIALIZING ||
-                        // Non-happy path where movement starts and the path is lost like with a server restart
                         (
                             supplier.getState() == SupplierState.MOVING_TO_SPAWNER &&
                             supplier.getNavigation().getPath() == null

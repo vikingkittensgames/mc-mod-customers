@@ -1,12 +1,14 @@
 package com.vikingkittens.mc.customers.client.customer;
 
-import com.vikingkittens.mc.customers.customer.CustomerCounterMarker;
-import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
-import net.minecraft.core.BlockPos;
+import java.util.List;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
+import net.minecraft.core.BlockPos;
+
+import com.vikingkittens.mc.customers.customer.CustomerCounterMarker;
+import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

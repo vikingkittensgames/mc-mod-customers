@@ -1,7 +1,6 @@
 package com.vikingkittens.mc.customers.client.customer.special;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.vikingkittens.mc.customers.customer.special.CustomerHuskEntity;
 import net.minecraft.client.model.AnimationUtils;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelLayers;
@@ -10,6 +9,8 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.resources.ResourceLocation;
+
+import com.vikingkittens.mc.customers.customer.special.CustomerHuskEntity;
 
 public class CustomerHuskEntityRenderer extends HumanoidMobRenderer<CustomerHuskEntity, CustomerHuskEntityRenderer.Model> {
     private static final ResourceLocation HUSK_LOCATION = ResourceLocation.withDefaultNamespace("textures/entity/zombie/husk.png");

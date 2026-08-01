@@ -1,19 +1,8 @@
 package com.vikingkittens.mc.customers.client.customer;
 
+import java.util.List;
+
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.vikingkittens.mc.customers.Customers;
-import com.vikingkittens.mc.customers.client.customer.special.CustomerZombieEntityRenderer;
-import com.vikingkittens.mc.customers.client.customer.special.CustomerWitchEntityRenderer;
-import com.vikingkittens.mc.customers.client.customer.special.CustomerStrayEntityRenderer;
-import com.vikingkittens.mc.customers.client.customer.special.CustomerSkeletonEntityRenderer;
-import com.vikingkittens.mc.customers.client.customer.special.CustomerHuskEntityRenderer;
-import com.vikingkittens.mc.customers.client.customer.special.CustomerDrownedEntityRenderer;
-import com.vikingkittens.mc.customers.customer.Customer;
-import com.vikingkittens.mc.customers.customer.CustomerCounterMarkersPayload;
-import com.vikingkittens.mc.customers.customer.CustomerShiftFinishedPayload;
-import com.vikingkittens.mc.customers.customer.CustomerState;
-import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
-import com.vikingkittens.mc.customers.customer.special.CustomerWitchEntity;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -21,6 +10,7 @@ import net.minecraft.client.renderer.entity.NoopRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -28,7 +18,19 @@ import net.neoforged.neoforge.client.ClientHooks;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RenderNameTagEvent;
 
-import java.util.List;
+import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.client.customer.special.CustomerDrownedEntityRenderer;
+import com.vikingkittens.mc.customers.client.customer.special.CustomerHuskEntityRenderer;
+import com.vikingkittens.mc.customers.client.customer.special.CustomerSkeletonEntityRenderer;
+import com.vikingkittens.mc.customers.client.customer.special.CustomerStrayEntityRenderer;
+import com.vikingkittens.mc.customers.client.customer.special.CustomerWitchEntityRenderer;
+import com.vikingkittens.mc.customers.client.customer.special.CustomerZombieEntityRenderer;
+import com.vikingkittens.mc.customers.customer.Customer;
+import com.vikingkittens.mc.customers.customer.CustomerCounterMarkersPayload;
+import com.vikingkittens.mc.customers.customer.CustomerShiftFinishedPayload;
+import com.vikingkittens.mc.customers.customer.CustomerState;
+import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
+import com.vikingkittens.mc.customers.customer.special.CustomerWitchEntity;
 
 @EventBusSubscriber(modid = Customers.MODID, value = Dist.CLIENT)
 public class CustomerClientEvents {
@@ -137,5 +139,3 @@ public class CustomerClientEvents {
                 && (customer.shouldShowName() || customer.hasCustomName() && customer == minecraft.getEntityRenderDispatcher().crosshairPickEntity);
     }
 }
-
-

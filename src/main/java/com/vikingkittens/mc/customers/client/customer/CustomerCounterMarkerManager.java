@@ -1,9 +1,10 @@
 package com.vikingkittens.mc.customers.client.customer;
 
-import com.vikingkittens.mc.customers.customer.CustomerCounterMarker;
+import java.util.List;
+
 import net.minecraft.core.BlockPos;
 
-import java.util.List;
+import com.vikingkittens.mc.customers.customer.CustomerCounterMarker;
 
 final class CustomerCounterMarkerManager {
     static final long DURATION_MILLIS = 90_000L;

@@ -1,23 +1,24 @@
 package com.vikingkittens.mc.customers;
 
-import com.vikingkittens.mc.customers.config.Config;
-import com.vikingkittens.mc.customers.config.RecipeConditions;
-import com.vikingkittens.mc.customers.customer.Customer;
-import com.vikingkittens.mc.customers.customer.CustomerSpawner;
-import com.vikingkittens.mc.customers.supplier.Supplier;
-import com.vikingkittens.mc.customers.supplier.SupplierSpawner;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
-import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
+
+import com.vikingkittens.mc.customers.config.Config;
+import com.vikingkittens.mc.customers.config.RecipeConditions;
+import com.vikingkittens.mc.customers.customer.Customer;
+import com.vikingkittens.mc.customers.customer.CustomerSpawner;
+import com.vikingkittens.mc.customers.supplier.Supplier;
+import com.vikingkittens.mc.customers.supplier.SupplierSpawner;
 
 // The value here should match an entry in the META-INF/neoforge.mods.toml file
 @Mod(Customers.MODID)
@@ -56,5 +57,3 @@ public class Customers {
     public void onServerStarting(ServerStartingEvent event) {
     }
 }
-
-

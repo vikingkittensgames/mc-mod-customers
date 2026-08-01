@@ -3,7 +3,7 @@ package com.vikingkittens.mc.customers.compatability.persistence;
 import net.minecraft.nbt.CompoundTag;
 
 /**
- * Creates shared persistence interfaces from Minecraft 1.21.1 NBT data.
+ * Creates shared persistence interfaces from version-specific storage objects.
  */
 public final class PersistenceCUtils {
     private PersistenceCUtils() {
