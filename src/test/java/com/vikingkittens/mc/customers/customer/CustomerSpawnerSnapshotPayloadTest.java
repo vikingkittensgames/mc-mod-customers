@@ -50,7 +50,9 @@ class CustomerSpawnerSnapshotPayloadTest {
                 List.of(new CustomerSpawnerSnapshot.Customer(
                         customerId,
                         CustomerSpawnerSnapshot.Customer.Type.CASUAL,
-                        List.of(cost)
+                        List.of(cost),
+                        60,
+                        120
                 ))
         );
         CustomerSpawnerSnapshotPayload original =
@@ -80,6 +82,8 @@ class CustomerSpawnerSnapshotPayloadTest {
         );
         assertEquals(7, decodedCost.getCount());
         assertTrue(ItemStack.isSameItemSameComponents(cost, decodedCost));
+        assertEquals(60, decodedCustomer.ticksSinceTrade());
+        assertEquals(120, decodedCustomer.giveUpTicks());
     }
 
     @Test

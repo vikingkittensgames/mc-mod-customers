@@ -13,6 +13,8 @@ public final class CustomerBossBarLayout {
     private static final int ICON_SIZE = 12;
     private static final int PADDING = 2;
     private static final int GAP = 2;
+    private static final int WARNING_EXTRA_WIDTH = 4;
+    private static final int WARNING_TICKS = 15 * 20;
     private static final int GROUP_HEIGHT = ICON_SIZE + PADDING * 2;
 
     private CustomerBossBarLayout() {
@@ -38,7 +40,11 @@ public final class CustomerBossBarLayout {
             int x = centerX - rowWidth / 2;
             for (Customer customer : row) {
                 int width = groupWidth(customer);
-                groups.add(new Group(customer, new Bounds(x, y, width, GROUP_HEIGHT)));
+                groups.add(new Group(
+                        customer,
+                        new Bounds(x, y, width, GROUP_HEIGHT),
+                        includesWarning(customer)
+                ));
                 x += width + GAP;
             }
             y += GROUP_HEIGHT + GAP;
@@ -94,7 +100,18 @@ public final class CustomerBossBarLayout {
     }
 
     private static int groupWidth(Customer customer) {
-        return PADDING * 2 + customer.offerCostItems().size() * ICON_SIZE;
+        int warningWidth = includesWarning(customer)
+                ? WARNING_EXTRA_WIDTH
+                : 0;
+        return PADDING * 2
+                + customer.offerCostItems().size() * ICON_SIZE
+                + warningWidth;
+    }
+
+    private static boolean includesWarning(Customer customer) {
+        return customer.giveUpTicks() > 0
+                && customer.giveUpTicks()
+                        - customer.ticksSinceTrade() <= WARNING_TICKS;
     }
 
     /**
@@ -114,8 +131,13 @@ public final class CustomerBossBarLayout {
      *
      * @param customer customer represented by the group
      * @param bounds group bounds
+     * @param includeWarning whether the group includes a give-up warning
      */
-    public record Group(Customer customer, Bounds bounds) {
+    public record Group(
+            Customer customer,
+            Bounds bounds,
+            boolean includeWarning
+    ) {
     }
 
     /**

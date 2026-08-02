@@ -38,7 +38,9 @@ class CustomerSpawnerSnapshotManagerTest {
                 new CustomerSpawnerSnapshot.Customer(
                 customerId,
                 CustomerSpawnerSnapshot.Customer.Type.NORMAL,
-                List.of()
+                List.of(),
+                0,
+                0
         );
         CustomerSpawnerSnapshot snapshot = new CustomerSpawnerSnapshot(
                 spawnerPos,
@@ -77,7 +79,9 @@ class CustomerSpawnerSnapshotManagerTest {
                 List.of(new CustomerSpawnerSnapshot.Customer(
                         oldCustomerId,
                         CustomerSpawnerSnapshot.Customer.Type.IMPATIENT,
-                        List.of()
+                        List.of(),
+                        0,
+                        0
                 ))
         );
         UUID newCustomerId = UUID.randomUUID();
@@ -89,7 +93,9 @@ class CustomerSpawnerSnapshotManagerTest {
                 List.of(new CustomerSpawnerSnapshot.Customer(
                         newCustomerId,
                         CustomerSpawnerSnapshot.Customer.Type.CASUAL,
-                        List.of()
+                        List.of(),
+                        0,
+                        0
                 ))
         );
 
@@ -127,7 +133,9 @@ class CustomerSpawnerSnapshotManagerTest {
                 List.of(new CustomerSpawnerSnapshot.Customer(
                         customerId,
                         CustomerSpawnerSnapshot.Customer.Type.NORMAL,
-                        List.of()
+                        List.of(),
+                        0,
+                        0
                 ))
         );
         CustomerSpawnerSnapshotManager.replace(snapshot);
@@ -162,7 +170,9 @@ class CustomerSpawnerSnapshotManagerTest {
                 List.of(new CustomerSpawnerSnapshot.Customer(
                         customerId,
                         CustomerSpawnerSnapshot.Customer.Type.NORMAL,
-                        List.of(first, second, third, fourth)
+                        List.of(first, second, third, fourth),
+                        0,
+                        0
                 ))
         );
         CustomerSpawnerSnapshotManager.replace(snapshot);

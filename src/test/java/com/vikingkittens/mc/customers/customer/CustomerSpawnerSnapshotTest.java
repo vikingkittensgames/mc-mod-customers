@@ -35,7 +35,9 @@ class CustomerSpawnerSnapshotTest {
                 new CustomerSpawnerSnapshot.Customer(
                 UUID.randomUUID(),
                 CustomerSpawnerSnapshot.Customer.Type.IMPATIENT,
-                List.of(first, second, third, fourth)
+                List.of(first, second, third, fourth),
+                0,
+                0
         );
 
         assertEquals(4, snapshot.offerCostItems().size());
@@ -52,7 +54,9 @@ class CustomerSpawnerSnapshotTest {
                 new CustomerSpawnerSnapshot.Customer(
                 UUID.randomUUID(),
                 CustomerSpawnerSnapshot.Customer.Type.NORMAL,
-                mutableItems
+                mutableItems,
+                0,
+                0
         );
         mutableItems.clear();
 
@@ -70,7 +74,9 @@ class CustomerSpawnerSnapshotTest {
         mutableCustomers.add(new CustomerSpawnerSnapshot.Customer(
                 UUID.randomUUID(),
                 CustomerSpawnerSnapshot.Customer.Type.CASUAL,
-                List.of()
+                List.of(),
+                0,
+                0
         ));
 
         CustomerSpawnerSnapshot snapshot = new CustomerSpawnerSnapshot(

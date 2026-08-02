@@ -37,4 +37,12 @@ class CustomerBossBarRendererTest {
     void keepsTheLayoutWidthPositiveOnVeryNarrowScreens() {
         assertEquals(1, CustomerBossBarRenderer.calculateLayoutWidth(15));
     }
+    @Test
+    void blinksWarningsEveryHalfSecond() {
+        assertTrue(CustomerBossBarRenderer.isWarningBlinkOn(0));
+        assertTrue(CustomerBossBarRenderer.isWarningBlinkOn(499));
+        assertFalse(CustomerBossBarRenderer.isWarningBlinkOn(500));
+        assertFalse(CustomerBossBarRenderer.isWarningBlinkOn(999));
+        assertTrue(CustomerBossBarRenderer.isWarningBlinkOn(1000));
+    }
 }

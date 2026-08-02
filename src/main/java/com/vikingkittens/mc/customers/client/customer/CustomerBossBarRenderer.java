@@ -1,5 +1,6 @@
 package com.vikingkittens.mc.customers.client.customer;
 
+import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
@@ -7,8 +8,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.item.ItemStack;
 
+import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.client.compatability.BossBarCUtils;
 import com.vikingkittens.mc.customers.client.compatability.GuiGraphicsCUtils;
+import com.vikingkittens.mc.customers.client.compatability.TextureC;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerSnapshot;
 
 /**
@@ -22,6 +25,12 @@ public final class CustomerBossBarRenderer {
     private static final int ICON_PADDING = 2;
     private static final int ICON_SIZE = 12;
     private static final float ICON_SCALE = 0.75F;
+
+    private static final TextureC WARNING_TEXTURE = texture("warning.png");
+
+    private static TextureC texture(String fileName) {
+        return new TextureC(Customers.MODID, "textures/gui/" + fileName);
+    }
 
     private CustomerBossBarRenderer() {
     }
@@ -126,6 +135,20 @@ public final class CustomerBossBarRenderer {
                 );
                 itemX += ICON_SIZE;
             }
+
+            if (group.includeWarning()
+                    && isWarningBlinkOn(Util.getMillis())) {
+
+                GuiGraphicsCUtils.blit(
+                        graphics,
+                        WARNING_TEXTURE,
+                        bounds.x() + bounds.width() - 10,
+                        bounds.y() - 2,
+                        0, 0,
+                        16, 16,
+                        16, 16
+                );
+            }
         }
 
         int barY = layout.height() == 0
@@ -133,6 +156,10 @@ public final class CustomerBossBarRenderer {
                 : y + layout.height() + BAR_GAP;
         BossBarCUtils.render(graphics, x, barY, bossEvent);
         return calculateIncrement(vanillaIncrement, layout.height());
+    }
+
+    static boolean isWarningBlinkOn(long timeMillis) {
+        return timeMillis / 500L % 2L == 0L;
     }
 
     /**

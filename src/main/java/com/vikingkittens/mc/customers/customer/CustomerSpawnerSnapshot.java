@@ -48,17 +48,25 @@ public record CustomerSpawnerSnapshot(
                 .filter(offer -> !offer.isOutOfStock())
                 .map(offer -> offer.getCostA().copy())
                 .toList();
+        long giveUpTicks = customer.getGiveUpTicks();
+        if (customer.getState() != CustomerState.BUYING && customer.getState() != CustomerState.GIVING_UP) {
+            giveUpTicks = 0;
+        }
         return new Customer(
                 customer.getUUID(),
                 customer.getSnapshotType(),
-                offerCostItems
+                offerCostItems,
+                customer.getTicksSinceTrade(),
+                giveUpTicks
         );
     }
 
     public record Customer(
             UUID customerId,
             Type type,
-            List<ItemStack> offerCostItems
+            List<ItemStack> offerCostItems,
+            long ticksSinceTrade,
+            long giveUpTicks
     ) {
         public Customer {
             Objects.requireNonNull(customerId);

@@ -65,6 +65,8 @@ public record CustomerSpawnerSnapshotPayload(
         for (ItemStack offerCostItem : customer.offerCostItems()) {
             ItemStack.STREAM_CODEC.encode(buffer, offerCostItem);
         }
+        buffer.writeLong(customer.ticksSinceTrade());
+        buffer.writeLong(customer.giveUpTicks());
     }
 
     private static CustomerSpawnerSnapshotPayload read(
@@ -112,10 +114,14 @@ public record CustomerSpawnerSnapshotPayload(
         for (int index = 0; index < offerCount; index++) {
             offerCostItems.add(ItemStack.STREAM_CODEC.decode(buffer));
         }
+        long ticksSinceTrade = buffer.readLong();
+        long giveUpTicks = buffer.readLong();
         return new CustomerSpawnerSnapshot.Customer(
                 customerId,
                 type,
-                offerCostItems
+                offerCostItems,
+                ticksSinceTrade,
+                giveUpTicks
         );
     }
 

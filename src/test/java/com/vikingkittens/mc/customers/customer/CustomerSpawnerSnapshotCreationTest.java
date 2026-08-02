@@ -48,6 +48,9 @@ class CustomerSpawnerSnapshotCreationTest {
         when(customer.getOffers()).thenReturn(offers);
         BlockPos spawnerPos = new BlockPos(10, 64, -20);
         UUID bossEventId = UUID.randomUUID();
+        when(customer.getTicksSinceTrade()).thenReturn(60L);
+        when(customer.getGiveUpTicks()).thenReturn(120L);
+        when(customer.getState()).thenReturn(CustomerState.BUYING);
 
         CustomerSpawnerSnapshot snapshot =
                 CustomerSpawnerSnapshot.create(
@@ -88,6 +91,8 @@ class CustomerSpawnerSnapshotCreationTest {
         assertFalse(customerSnapshot.offerCostItems().contains(
                 completedOffer.getCostA()
         ));
+        assertEquals(60L, customerSnapshot.ticksSinceTrade());
+        assertEquals(120L, customerSnapshot.giveUpTicks());
     }
 
     private static MerchantOffer offer(

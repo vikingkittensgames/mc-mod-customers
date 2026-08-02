@@ -14,6 +14,8 @@ import com.vikingkittens.mc.customers.customer.CustomerSpawnerSnapshot.Customer;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerSnapshot.Customer.Type;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 class CustomerBossBarLayoutTest {
@@ -64,8 +66,61 @@ class CustomerBossBarLayoutTest {
         assertEquals(16, layout.height());
     }
 
-    private static Customer customer(Type type, int itemCount) {
+    @Test
+    void includesWarningAndExtraWidthDuringTheFinalFifteenSeconds() {
+        Customer warning = customer(Type.NORMAL, 1, 2100, 2400);
+        Customer notYetWarning = customer(
+                Type.NORMAL,
+                1,
+                2099,
+                2400
+        );
+        Customer unlimited = customer(Type.CASUAL, 1, 2400, 0);
+
+        CustomerBossBarLayout.Layout warningLayout =
+                CustomerBossBarLayout.create(
+                        List.of(warning),
+                        100,
+                        20,
+                        182
+                );
+        CustomerBossBarLayout.Layout notYetWarningLayout =
+                CustomerBossBarLayout.create(
+                        List.of(notYetWarning),
+                        100,
+                        20,
+                        182
+                );
+        CustomerBossBarLayout.Layout unlimitedLayout =
+                CustomerBossBarLayout.create(
+                        List.of(unlimited),
+                        100,
+                        20,
+                        182
+                );
+
+        assertTrue(warningLayout.groups().getFirst().includeWarning());
+        assertEquals(
+                new CustomerBossBarLayout.Bounds(90, 20, 20, 16),
+                warningLayout.groups().getFirst().bounds()
+        );
+        assertFalse(
+                notYetWarningLayout.groups().getFirst().includeWarning()
+        );
+        assertEquals(
+                new CustomerBossBarLayout.Bounds(92, 20, 16, 16),
+                notYetWarningLayout.groups().getFirst().bounds()
+        );
+        assertFalse(
+                unlimitedLayout.groups().getFirst().includeWarning()
+        );
+    }
+    private static Customer customer(Type type, int itemCount, long ticksSinceTrade, long giveUpTicks) {
         List<ItemStack> items = IntStream.range(0, itemCount).mapToObj(ignored -> mock(ItemStack.class)).toList();
-        return new Customer(UUID.randomUUID(), type, items);
+        return new Customer(UUID.randomUUID(), type, items, ticksSinceTrade, giveUpTicks);
+    }
+
+    private static Customer customer(Type type, int itemCount) {
+        return customer(type, itemCount, 0, 0);
     }
 }

@@ -59,6 +59,7 @@ import com.vikingkittens.mc.customers.compatability.VillagerCUtils;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
 import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
 import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
+import com.vikingkittens.mc.customers.config.Config;
 import com.vikingkittens.mc.customers.customer.ai.*;
 
 public class CustomerVillagerEntity extends Villager {
@@ -557,6 +558,22 @@ public class CustomerVillagerEntity extends Villager {
         if (!LevelCUtils.isClientSide(level()) && level().getBlockEntity(spawnerPos) instanceof CustomerSpawnerBlockEntity spawner) {
             spawner.sentPlayersChat(message);
         }
+    }
+
+    public long getGiveUpTicks() {
+        long giveUpTicks = 20L * Config.CUSTOMER_GIVE_UP_SECONDS.get();
+        if (VillagerCUtils.hasProfession(
+                getVillagerData(),
+                Customer.CUSTOMER_IMPATIENT_PROFESSION.getKey()
+        )) {
+            giveUpTicks = Math.max(1, giveUpTicks / 2);
+        } else if (VillagerCUtils.hasProfession(
+                getVillagerData(),
+                Customer.CUSTOMER_CASUAL_PROFESSION.getKey()
+        )) {
+            giveUpTicks = 0;
+        }
+        return giveUpTicks;
     }
 
     @Override
