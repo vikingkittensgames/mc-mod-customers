@@ -1,6 +1,5 @@
 package com.vikingkittens.mc.customers.customer;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -80,11 +79,7 @@ public class CustomerVillagerEntity extends Villager {
     private static final String TAG_AVOID_BLOCK_STATE = "AvoidBlockState";
     private static final String TAG_TRADED_WITH_PLAYERS = "TradedWithPlayers";
     private static final String TAG_TRADED_PLAYER_UUID = "UUID";
-    private static final int MAX_SYNCED_DISPLAY_OFFERS = 3;
     private static final EntityDataAccessor<Integer> DATA_CUSTOMER_STATE = SynchedEntityData.defineId(CustomerVillagerEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<ItemStack> DATA_OFFER_DISPLAY_ITEM_0 = SynchedEntityData.defineId(CustomerVillagerEntity.class, EntityDataSerializers.ITEM_STACK);
-    private static final EntityDataAccessor<ItemStack> DATA_OFFER_DISPLAY_ITEM_1 = SynchedEntityData.defineId(CustomerVillagerEntity.class, EntityDataSerializers.ITEM_STACK);
-    private static final EntityDataAccessor<ItemStack> DATA_OFFER_DISPLAY_ITEM_2 = SynchedEntityData.defineId(CustomerVillagerEntity.class, EntityDataSerializers.ITEM_STACK);
     private static final Map<Item, Item> TRADE_REMAINDER_FALLBACKS = Map.of(
             Items.MUSHROOM_STEW, Items.BOWL,
             Items.RABBIT_STEW, Items.BOWL,
@@ -218,9 +213,6 @@ public class CustomerVillagerEntity extends Villager {
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(DATA_CUSTOMER_STATE, -1);
-        builder.define(DATA_OFFER_DISPLAY_ITEM_0, ItemStack.EMPTY);
-        builder.define(DATA_OFFER_DISPLAY_ITEM_1, ItemStack.EMPTY);
-        builder.define(DATA_OFFER_DISPLAY_ITEM_2, ItemStack.EMPTY);
     }
 
     public CustomerState getState() {
@@ -230,6 +222,23 @@ public class CustomerVillagerEntity extends Villager {
             return states[syncedState];
         }
         return state;
+    }
+
+    public CustomerSpawnerSnapshot.Customer.Type getSnapshotType() {
+        VillagerData data = getVillagerData();
+        if (VillagerCUtils.hasProfession(
+                data,
+                Customer.CUSTOMER_IMPATIENT_PROFESSION.getKey()
+        )) {
+            return CustomerSpawnerSnapshot.Customer.Type.IMPATIENT;
+        }
+        if (VillagerCUtils.hasProfession(
+                data,
+                Customer.CUSTOMER_CASUAL_PROFESSION.getKey()
+        )) {
+            return CustomerSpawnerSnapshot.Customer.Type.CASUAL;
+        }
+        return CustomerSpawnerSnapshot.Customer.Type.NORMAL;
     }
 
     public void setState(CustomerState state) {
@@ -356,26 +365,6 @@ public class CustomerVillagerEntity extends Villager {
     }
 
     @Override
-    public void setOffers(MerchantOffers offers) {
-        super.setOffers(offers);
-        updateOfferDisplayItems(offers);
-    }
-
-    @Override
-    public void overrideOffers(MerchantOffers offers) {
-        super.overrideOffers(offers);
-        updateOfferDisplayItems(offers);
-    }
-
-    @Override
-    public void notifyTrade(MerchantOffer offer) {
-        super.notifyTrade(offer);
-        if (!LevelCUtils.isClientSide(level())) {
-            updateOfferDisplayItems(getOffers());
-        }
-    }
-
-    @Override
     public void readAdditionalSaveData(CompoundTag compound) {
         super.readAdditionalSaveData(compound);
         readCustomerData(PersistenceCUtils.reader(compound));
@@ -401,9 +390,6 @@ public class CustomerVillagerEntity extends Villager {
                         .getUuid(TAG_TRADED_PLAYER_UUID)
                         .ifPresent(tradedWithPlayers::add)
         );
-        if (!LevelCUtils.isClientSide(level())) {
-            updateOfferDisplayItems(getOffers());
-        }
     }
 
     @Override
@@ -433,42 +419,6 @@ public class CustomerVillagerEntity extends Villager {
         for (UUID playerUuid : tradedWithPlayers) {
             output.addChild(TAG_TRADED_WITH_PLAYERS)
                     .putUuid(TAG_TRADED_PLAYER_UUID, playerUuid);
-        }
-    }
-
-    public List<ItemStack> getOfferDisplayItems() {
-        List<ItemStack> items = new ArrayList<>(MAX_SYNCED_DISPLAY_OFFERS);
-        addOfferDisplayItem(items, entityData.get(DATA_OFFER_DISPLAY_ITEM_0));
-        addOfferDisplayItem(items, entityData.get(DATA_OFFER_DISPLAY_ITEM_1));
-        addOfferDisplayItem(items, entityData.get(DATA_OFFER_DISPLAY_ITEM_2));
-        return items;
-    }
-
-    private void updateOfferDisplayItems(MerchantOffers offers) {
-        ItemStack[] displayItems = new ItemStack[MAX_SYNCED_DISPLAY_OFFERS];
-        for (int i = 0; i < displayItems.length; i++) {
-            displayItems[i] = ItemStack.EMPTY;
-        }
-
-        int displayIndex = 0;
-        for (MerchantOffer offer : offers) {
-            if (!offer.isOutOfStock()) {
-                displayItems[displayIndex] = offer.getBaseCostA().copy();
-                displayIndex++;
-                if (displayIndex >= MAX_SYNCED_DISPLAY_OFFERS) {
-                    break;
-                }
-            }
-        }
-
-        entityData.set(DATA_OFFER_DISPLAY_ITEM_0, displayItems[0]);
-        entityData.set(DATA_OFFER_DISPLAY_ITEM_1, displayItems[1]);
-        entityData.set(DATA_OFFER_DISPLAY_ITEM_2, displayItems[2]);
-    }
-
-    private static void addOfferDisplayItem(List<ItemStack> items, ItemStack itemStack) {
-        if (!itemStack.isEmpty()) {
-            items.add(itemStack);
         }
     }
 

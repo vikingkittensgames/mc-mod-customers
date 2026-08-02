@@ -41,6 +41,11 @@ public class CustomerEvents {
                 CustomerCounterMarkersPayload.STREAM_CODEC,
                 CustomerCounterMarkersPayload::handle
         );
+        registrar.playToClient(
+                CustomerSpawnerSnapshotPayload.TYPE,
+                CustomerSpawnerSnapshotPayload.STREAM_CODEC,
+                CustomerSpawnerSnapshotPayload::handle
+        );
     }
 
     @SubscribeEvent

@@ -15,6 +15,8 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.ClientHooks;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.client.event.CustomizeGuiOverlayEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RenderNameTagEvent;
 
@@ -28,12 +30,14 @@ import com.vikingkittens.mc.customers.client.customer.special.CustomerZombieEnti
 import com.vikingkittens.mc.customers.customer.Customer;
 import com.vikingkittens.mc.customers.customer.CustomerCounterMarkersPayload;
 import com.vikingkittens.mc.customers.customer.CustomerShiftFinishedPayload;
+import com.vikingkittens.mc.customers.customer.CustomerSpawnerSnapshotPayload;
 import com.vikingkittens.mc.customers.customer.CustomerState;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 import com.vikingkittens.mc.customers.customer.special.CustomerWitchEntity;
 
 @EventBusSubscriber(modid = Customers.MODID, value = Dist.CLIENT)
 public class CustomerClientEvents {
+    private static final int MAX_OVERHEAD_ITEMS = 3;
     private static final float NAME_TAG_TEXT_SCALE = 0.025F;
     private static final float NAME_TAG_ITEM_GAP = 0.12F;
 
@@ -47,6 +51,58 @@ public class CustomerClientEvents {
                 payload.surroundingPositions(),
                 Util.getMillis()
         );
+    }
+
+    public static void updateCustomerSpawnerSnapshot(
+            CustomerSpawnerSnapshotPayload payload
+    ) {
+        payload.snapshot().ifPresentOrElse(
+                CustomerSpawnerSnapshotManager::replace,
+                () -> CustomerSpawnerSnapshotManager.remove(
+                        payload.spawnerPos()
+                )
+        );
+    }
+    /**
+     * Renders customer request groups for customer spawner boss bars.
+     *
+     * @param event boss bar rendering event
+     */
+    @SubscribeEvent
+    public static void onBossEventProgress(
+            CustomizeGuiOverlayEvent.BossEventProgress event
+    ) {
+        CustomerSpawnerSnapshotManager.findByBossEvent(
+                event.getBossEvent().getId()
+        ).ifPresent(snapshot -> {
+            event.setCanceled(true);
+            Minecraft minecraft = Minecraft.getInstance();
+            if (minecraft.player == null
+                    || !CustomerBossBarRenderer.isInRange(
+                            minecraft.player,
+                            snapshot.spawnerPos()
+                    )) {
+                return;
+            }
+            event.setIncrement(CustomerBossBarRenderer.render(
+                    event.getGuiGraphics(),
+                    event.getBossEvent(),
+                    snapshot,
+                    event.getX(),
+                    event.getY(),
+                    event.getIncrement()
+            ));
+        });
+    }
+
+    /**
+     * Clears synchronized customer spawner data when leaving a world.
+     *
+     * @param event client logout event
+     */
+    @SubscribeEvent
+    public static void onClientLogout(ClientPlayerNetworkEvent.LoggingOut event) {
+        CustomerSpawnerSnapshotManager.clear();
     }
 
     @SubscribeEvent
@@ -78,7 +134,13 @@ public class CustomerClientEvents {
     public static void onRenderNameTag(RenderNameTagEvent event) {
         // 1. Check if the entity is a villager (custom or vanilla)
         if (event.getEntity() instanceof CustomerVillagerEntity customer) {
-            List<ItemStack> offerDisplayItems = customer.getState() == CustomerState.BUYING ? customer.getOfferDisplayItems() : List.of();
+            List<ItemStack> offerDisplayItems =
+                    customer.getState() == CustomerState.BUYING
+                            ? CustomerSpawnerSnapshotManager.findOfferCostItems(
+                                    customer.getUUID(),
+                                    MAX_OVERHEAD_ITEMS
+                            )
+                            : List.of();
             if (!offerDisplayItems.isEmpty()) {
                 Minecraft minecraft = Minecraft.getInstance();
                 PoseStack poseStack = event.getPoseStack();

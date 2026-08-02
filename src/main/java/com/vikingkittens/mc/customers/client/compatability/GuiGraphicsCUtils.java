@@ -1,7 +1,9 @@
 package com.vikingkittens.mc.customers.client.compatability;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * Provides version-compatible GUI texture and transform operations.
@@ -57,6 +59,30 @@ public final class GuiGraphicsCUtils {
             float y
     ) {
         graphics.pose().scale(x, y, 1.0F);
+    }
+
+    /**
+     * Renders an item and its count at a scaled GUI position.
+     *
+     * @param graphics GUI rendering context
+     * @param stack item stack to render
+     * @param x left coordinate
+     * @param y top coordinate
+     * @param scale item rendering scale
+     */
+    public static void renderItem(
+            GuiGraphics graphics,
+            ItemStack stack,
+            int x,
+            int y,
+            float scale
+    ) {
+        pushTransform(graphics);
+        translate(graphics, x, y);
+        scale(graphics, scale, scale);
+        graphics.renderItem(stack, 0, 0);
+        graphics.renderItemDecorations(Minecraft.getInstance().font, stack, 0, 0);
+        popTransform(graphics);
     }
 
     private static ResourceLocation toResourceLocation(TextureC texture) {

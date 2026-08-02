@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.OptionalInt;
+import java.util.Set;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -15,6 +16,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -425,6 +427,95 @@ class CustomerSpawnerBlockEntityTest {
 
         assertFalse(CustomerVillagerEntity.isActiveCustomer(level, customerId));
     }
+    @Test
+    void findsOnlyActiveCustomersForClientSnapshots() {
+        ServerLevel level = mock(ServerLevel.class);
+        UUID activeId = UUID.randomUUID();
+        UUID doneId = UUID.randomUUID();
+        CustomerVillagerEntity active = mock(CustomerVillagerEntity.class);
+        CustomerVillagerEntity done = mock(CustomerVillagerEntity.class);
+        when(level.getEntity(activeId)).thenReturn(active);
+        when(level.getEntity(doneId)).thenReturn(done);
+        when(active.isAlive()).thenReturn(true);
+        when(active.getState()).thenReturn(CustomerState.BUYING);
+        when(done.isAlive()).thenReturn(true);
+        when(done.getState()).thenReturn(CustomerState.DONE);
+
+        List<CustomerVillagerEntity> customers =
+                CustomerSpawnerBlockEntity.getActiveCustomers(
+                        level,
+                        Set.of(activeId, doneId)
+                );
+
+        assertEquals(List.of(active), customers);
+    }
+
+    @Test
+    void findsOnlyPlayersWithinSpawnerViewRange() {
+        BlockPos spawnerPos = BlockPos.ZERO;
+        UUID nearbyId = UUID.randomUUID();
+        UUID boundaryId = UUID.randomUUID();
+        UUID distantId = UUID.randomUUID();
+        ServerPlayer nearby = mock(ServerPlayer.class);
+        ServerPlayer boundary = mock(ServerPlayer.class);
+        ServerPlayer distant = mock(ServerPlayer.class);
+        when(nearby.getUUID()).thenReturn(nearbyId);
+        when(nearby.blockPosition()).thenReturn(new BlockPos(10, 0, 0));
+        when(boundary.getUUID()).thenReturn(boundaryId);
+        when(boundary.blockPosition()).thenReturn(new BlockPos(64, 0, 0));
+        when(distant.getUUID()).thenReturn(distantId);
+        when(distant.blockPosition()).thenReturn(new BlockPos(65, 0, 0));
+
+        assertEquals(
+                Set.of(nearbyId, boundaryId),
+                CustomerSpawnerBlockEntity.getPlayerIdsInRange(
+                        spawnerPos,
+                        List.of(nearby, boundary, distant),
+                        64.0D
+                )
+        );
+    }
+    @Test
+    void identifiesPlayersEnteringAndLeavingSpawnerViewRange() {
+        UUID leavingId = UUID.randomUUID();
+        UUID retainedId = UUID.randomUUID();
+        UUID enteringId = UUID.randomUUID();
+
+        CustomerSpawnerBlockEntity.PlayerRangeChanges changes =
+                CustomerSpawnerBlockEntity.getPlayerRangeChanges(
+                        Set.of(leavingId, retainedId),
+                        Set.of(retainedId, enteringId)
+                );
+
+        assertEquals(Set.of(enteringId), changes.entering());
+        assertEquals(Set.of(leavingId), changes.leaving());
+    }
+    @Test
+    void addsTrackedPlayersWhenABossBarIsCreatedAfterRangeTracking() {
+        UUID trackedPlayer = UUID.randomUUID();
+
+        Set<UUID> playersToAdd =
+                CustomerSpawnerBlockEntity.getPlayerIdsToAddToBossBar(
+                        Set.of(),
+                        Set.of(trackedPlayer)
+                );
+
+        assertEquals(Set.of(trackedPlayer), playersToAdd);
+    }
+
+    @Test
+    void doesNotReaddPlayersAlreadyAttachedToTheBossBar() {
+        UUID attachedPlayer = UUID.randomUUID();
+
+        Set<UUID> playersToAdd =
+                CustomerSpawnerBlockEntity.getPlayerIdsToAddToBossBar(
+                        Set.of(attachedPlayer),
+                        Set.of(attachedPlayer)
+                );
+
+        assertEquals(Set.of(), playersToAdd);
+    }
+
     private static MerchantOffers getOffers(
             RandomSource random,
             ItemStackHandler inventory,

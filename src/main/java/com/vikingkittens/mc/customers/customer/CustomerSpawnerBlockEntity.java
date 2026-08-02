@@ -3,6 +3,7 @@ package com.vikingkittens.mc.customers.customer;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -52,6 +53,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     private static final int INVENTORY_ROW_SIZE = 9;
     private static final int SPAWN_CHECK_MAX_TICKS = 4;
     private static final int RESERVATION_CLEANUP_LOAD_GRACE_TICKS = 20 * 30;
+    private static final double PLAYER_VIEW_RANGE = 64.0D;
 
     static Item getPaymentItem() {
         return Items.EMERALD;
@@ -593,55 +595,188 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 .count();
     }
 
+    static Set<UUID> getPlayerIdsInRange(
+            BlockPos spawnerPos,
+            Collection<ServerPlayer> players,
+            double range
+    ) {
+        double rangeSquared = range * range;
+        Set<UUID> playerIds = new HashSet<>();
+        for (ServerPlayer player : players) {
+            if (
+                    player.blockPosition().distToCenterSqr(
+                            spawnerPos.getCenter()
+                    ) <= rangeSquared
+            ) {
+                playerIds.add(player.getUUID());
+            }
+        }
+        return playerIds;
+    }
+    static List<CustomerVillagerEntity> getActiveCustomers(
+            ServerLevel serverLevel,
+            Collection<UUID> customerIds
+    ) {
+        return customerIds.stream()
+                .filter(customerId ->
+                        CustomerVillagerEntity.isActiveCustomer(
+                                serverLevel,
+                                customerId
+                        ))
+                .map(serverLevel::getEntity)
+                .map(CustomerVillagerEntity.class::cast)
+                .toList();
+    }
+
+    static PlayerRangeChanges getPlayerRangeChanges(
+            Set<UUID> currentPlayerIds,
+            Set<UUID> nextPlayerIds
+    ) {
+        Set<UUID> entering = new HashSet<>(nextPlayerIds);
+        entering.removeAll(currentPlayerIds);
+        Set<UUID> leaving = new HashSet<>(currentPlayerIds);
+        leaving.removeAll(nextPlayerIds);
+        return new PlayerRangeChanges(entering, leaving);
+    }
+
+    static Set<UUID> getPlayerIdsToAddToBossBar(
+            Set<UUID> bossBarPlayerIds,
+            Set<UUID> inRangePlayerIds
+    ) {
+        Set<UUID> playerIdsToAdd = new HashSet<>(inRangePlayerIds);
+        playerIdsToAdd.removeAll(bossBarPlayerIds);
+        return Set.copyOf(playerIdsToAdd);
+    }
+
+    record PlayerRangeChanges(
+            Set<UUID> entering,
+            Set<UUID> leaving
+    ) {
+        PlayerRangeChanges {
+            entering = Set.copyOf(entering);
+            leaving = Set.copyOf(leaving);
+        }
+    }
     public void addPlayer(UUID playerId) {
         if (!playerIds.contains(playerId)) {
-            playerIds.add(playerId);
             updatePlayers();
         }
     }
     public void updatePlayers() {
-        Set<UUID> playerIdsToRemove = new HashSet<>();
-        for (UUID playerId : playerIds) {
-            try {
-                Player player = level.getPlayerByUUID(playerId);
-                if (player != null) {
-                    if (player.blockPosition().distToCenterSqr(getBlockPos().getCenter()) > 64 * 64) {
-                        playerIdsToRemove.add(playerId);
-                    }
-                } else {
-                    playerIdsToRemove.add(playerId);
+        if (!(level instanceof ServerLevel serverLevel)) {
+            return;
+        }
+
+        List<ServerPlayer> levelPlayers = serverLevel.players();
+        Set<UUID> nextPlayerIds = getPlayerIdsInRange(
+                getBlockPos(),
+                levelPlayers,
+                PLAYER_VIEW_RANGE
+        );
+        PlayerRangeChanges changes = getPlayerRangeChanges(
+                playerIds,
+                nextPlayerIds
+        );
+
+        for (UUID playerId : changes.leaving()) {
+            ServerPlayer player = serverLevel.getServer()
+                    .getPlayerList()
+                    .getPlayer(playerId);
+            if (player != null) {
+                if (progressBar != null) {
+                    progressBar.removePlayer(player);
                 }
-            } catch (Throwable t) {
-                LOGGER.warn("Removing player because of error", t);
-                playerIdsToRemove.add(playerId);
+                sendSnapshotRemoval(player);
             }
         }
-        playerIds.removeAll(playerIdsToRemove);
+
+        playerIds.clear();
+        playerIds.addAll(nextPlayerIds);
+
+        Map<UUID, ServerPlayer> playersById = new HashMap<>();
+        for (ServerPlayer player : levelPlayers) {
+            playersById.put(player.getUUID(), player);
+        }
 
         if (progressBar != null) {
-            for (UUID playerId : playerIdsToRemove) {
-                try {
-                    Player player = level.getPlayerByUUID(playerId);
-                    if (player != null) {
-                        progressBar.removePlayer((ServerPlayer) player);
-                    }
-                } catch (Throwable t) {
-                    LOGGER.warn("Failed to remove player from progress bar because of error", t);
+            Set<UUID> bossBarPlayerIds = progressBar.getPlayers()
+                    .stream()
+                    .map(ServerPlayer::getUUID)
+                    .collect(Collectors.toSet());
+            Set<UUID> playerIdsToAdd = getPlayerIdsToAddToBossBar(
+                    bossBarPlayerIds,
+                    playerIds
+            );
+            for (UUID playerId : playerIdsToAdd) {
+                ServerPlayer player = playersById.get(playerId);
+                if (player != null) {
+                    progressBar.addPlayer(player);
                 }
             }
-            for (UUID playerId : playerIds) {
-                try {
-                    Player player = level.getPlayerByUUID(playerId);
-                    if (player != null) {
-                        progressBar.addPlayer((ServerPlayer)player);
-                    }
-                } catch (Throwable t) {
-                    LOGGER.warn("Unable to add player to progress bar", t);
-                }
+        }
+
+        CustomerSpawnerSnapshot snapshot = createSnapshot(serverLevel);
+        for (UUID playerId : playerIds) {
+            ServerPlayer player = playersById.get(playerId);
+            if (player != null) {
+                PacketDistributor.sendToPlayer(
+                        player,
+                        new CustomerSpawnerSnapshotPayload(
+                                getBlockPos(),
+                                Optional.of(snapshot)
+                        )
+                );
             }
         }
     }
 
+    private CustomerSpawnerSnapshot createSnapshot(ServerLevel serverLevel) {
+        List<CustomerVillagerEntity> customers = getActiveCustomers(
+                serverLevel,
+                customerIds
+        );
+        BlockState state = getBlockState();
+        Optional<UUID> bossEventId =
+                progressBar != null && progressBar.isVisible()
+                        ? Optional.of(progressBar.getId())
+                        : Optional.empty();
+        return CustomerSpawnerSnapshot.create(
+                getBlockPos(),
+                state.getValue(CustomerSpawnerBlock.STATE_SPAWN_MODE),
+                state.getValue(CustomerSpawnerBlock.STATE_SPECIAL_ENABLED),
+                bossEventId,
+                customers
+        );
+    }
+
+    private void sendSnapshotRemoval(ServerPlayer player) {
+        PacketDistributor.sendToPlayer(
+                player,
+                new CustomerSpawnerSnapshotPayload(
+                        getBlockPos(),
+                        Optional.empty()
+                )
+        );
+    }
+
+    @Override
+    public void setRemoved() {
+        if (level instanceof ServerLevel serverLevel) {
+            for (UUID playerId : playerIds) {
+                ServerPlayer player = serverLevel.getServer()
+                        .getPlayerList()
+                        .getPlayer(playerId);
+                if (player != null) {
+                    sendSnapshotRemoval(player);
+                }
+            }
+            if (progressBar != null) {
+                progressBar.removeAllPlayers();
+            }
+            playerIds.clear();
+        }
+        super.setRemoved();
+    }
     public void sentPlayersMessage(Component message) {
         if (!LevelCUtils.isClientSide(level)) {
             for (UUID playerId : playerIds) {
@@ -806,7 +941,10 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 entity.updateDelayTicks--;
             }
 
-            if (entity.ticksSinceUpdatePlayers == 0 || entity.ticksSinceUpdatePlayers > 20 * 5) {
+            if (
+                    entity.ticksSinceUpdatePlayers == 0 ||
+                    entity.ticksSinceUpdatePlayers >= 20
+            ) {
                 entity.ticksSinceUpdatePlayers = 0;
                 entity.updatePlayers();
             }

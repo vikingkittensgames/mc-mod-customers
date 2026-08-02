@@ -393,6 +393,14 @@ public static void scale(
         float x,
         float y
 );
+
+public static void renderItem(
+        GuiGraphics graphics,
+        ItemStack stack,
+        int x,
+        int y,
+        float scale
+);
 ```
 
 | Behavior | Minecraft 1.21.1 | Minecraft 1.21.11 |
@@ -401,6 +409,33 @@ public static void scale(
 | Push and pop | Use `pushPose` and `popPose` | Use `pushMatrix` and `popMatrix` |
 | Translation | Use the 3D pose-stack translation with a zero Z value | Use the 2D matrix-stack translation |
 | Scaling | Use the 3D pose-stack scale with a Z scale of `1.0F` | Use the 2D matrix-stack scale |
+| GUI item rendering | Render the item and decorations through `GuiGraphics` after applying the compatibility transform | Render the item and decorations through the current GUI item submission API after applying the compatibility transform |
+
+### BossBarCUtils
+
+Package:
+
+```text
+com.vikingkittens.mc.customers.client.compatability.BossBarCUtils
+```
+
+Method:
+
+```java
+public static void render(
+        GuiGraphics graphics,
+        int x,
+        int y,
+        BossEvent bossEvent
+);
+```
+
+This method renders a vanilla-style boss bar at a caller-selected position while
+keeping the sprite and GUI submission differences out of shared feature code.
+
+| Minecraft 1.21.1 | Minecraft 1.21.11 |
+| --- | --- |
+| Use `ResourceLocation` boss-bar sprites and the 1.21.1 `GuiGraphics.blitSprite` overload | Use `Identifier` boss-bar sprites and the 1.21.11 GUI sprite rendering API |
 
 ### RenderingCUtils
 

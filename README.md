@@ -61,7 +61,9 @@ block texture.
 
 For the time restricted shift modes, the players within 64 blocks of the spawner will get
 shift messages, progress bars, and a results screen showing the final score, customer totals,
-and each participating player's served item count.
+and each participating player's served item count. The progress bar shows every item currently
+requested, grouped by customer with yellow for normal customers, red for impatient customers,
+and green for casual customers.
 
 ### Redstone and Customer Spawner
 
