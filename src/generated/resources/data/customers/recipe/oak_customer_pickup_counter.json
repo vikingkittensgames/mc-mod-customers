@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "V": {
+      "item": "minecraft:stripped_oak_log"
+    }
+  },
+  "pattern": [
+    "IVV"
+  ],
+  "result": {
+    "count": 1,
+    "id": "customers:oak_customer_pickup_counter"
+  }
+}

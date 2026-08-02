@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "customers:block/bamboo_customer_pickup_counter"
+    }
+  }
+}

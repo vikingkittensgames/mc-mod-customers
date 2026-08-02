@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "V": {
+      "item": "minecraft:bamboo_block"
+    }
+  },
+  "pattern": [
+    "IVV"
+  ],
+  "result": {
+    "count": 1,
+    "id": "customers:bamboo_customer_pickup_counter"
+  }
+}

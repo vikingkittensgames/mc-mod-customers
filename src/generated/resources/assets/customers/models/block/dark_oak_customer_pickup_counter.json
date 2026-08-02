@@ -1,0 +1,95 @@
+{
+  "children": {
+    "base": {
+      "elements": [
+        {
+          "faces": {
+            "down": {
+              "texture": "#base"
+            },
+            "east": {
+              "texture": "#base"
+            },
+            "north": {
+              "texture": "#base"
+            },
+            "south": {
+              "texture": "#base"
+            },
+            "up": {
+              "texture": "#base"
+            },
+            "west": {
+              "texture": "#base"
+            }
+          },
+          "from": [
+            0,
+            0,
+            0
+          ],
+          "to": [
+            16,
+            1,
+            16
+          ]
+        }
+      ],
+      "render_type": "minecraft:solid",
+      "textures": {
+        "base": "minecraft:block/stripped_dark_oak_log",
+        "particle": "minecraft:block/stripped_dark_oak_log"
+      }
+    },
+    "overlay": {
+      "elements": [
+        {
+          "faces": {
+            "down": {
+              "texture": "#bottom_side_overlay"
+            },
+            "east": {
+              "texture": "#bottom_side_overlay"
+            },
+            "north": {
+              "texture": "#bottom_side_overlay"
+            },
+            "south": {
+              "texture": "#bottom_side_overlay"
+            },
+            "up": {
+              "texture": "#top_overlay"
+            },
+            "west": {
+              "texture": "#bottom_side_overlay"
+            }
+          },
+          "from": [
+            -0.001,
+            -0.001,
+            -0.001
+          ],
+          "to": [
+            16.001,
+            1.001,
+            16.001
+          ]
+        }
+      ],
+      "render_type": "minecraft:translucent",
+      "textures": {
+        "bottom_side_overlay": "customers:block/customer_pickup_counter_bottom_side_overlay",
+        "top_overlay": "customers:block/customer_pickup_counter_top_overlay"
+      }
+    }
+  },
+  "item_render_order": [
+    "base",
+    "overlay"
+  ],
+  "loader": "neoforge:composite",
+  "render_type": "minecraft:translucent",
+  "textures": {
+    "particle": "minecraft:block/stripped_dark_oak_log"
+  }
+}

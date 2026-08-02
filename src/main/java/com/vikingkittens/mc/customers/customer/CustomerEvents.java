@@ -14,6 +14,7 @@ import net.minecraft.world.entity.npc.Villager;
 
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.common.util.TriState;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
@@ -27,6 +28,26 @@ import com.vikingkittens.mc.customers.config.Config;
 @EventBusSubscriber(modid = Customers.MODID)
 public class CustomerEvents {
     private static final Logger LOGGER = LogUtils.getLogger();
+
+    /**
+     * Routes sneaking pickup-counter interactions to the block instead of
+     * allowing the held item to handle them.
+     *
+     * @param event block interaction event
+     */
+    @SubscribeEvent
+    public static void onPickupCounterInteract(
+            PlayerInteractEvent.RightClickBlock event
+    ) {
+        if (event.getEntity().isSecondaryUseActive()
+                && event.getLevel()
+                        .getBlockState(event.getPos())
+                        .getBlock()
+                        instanceof CustomerPickupCounterBlock) {
+            event.setUseBlock(TriState.TRUE);
+            event.setUseItem(TriState.FALSE);
+        }
+    }
 
     @SubscribeEvent
     public static void registerPayloads(RegisterPayloadHandlersEvent event) {

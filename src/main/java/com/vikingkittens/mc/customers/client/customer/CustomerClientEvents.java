@@ -29,6 +29,7 @@ import com.vikingkittens.mc.customers.client.customer.special.CustomerWitchEntit
 import com.vikingkittens.mc.customers.client.customer.special.CustomerZombieEntityRenderer;
 import com.vikingkittens.mc.customers.customer.Customer;
 import com.vikingkittens.mc.customers.customer.CustomerCounterMarkersPayload;
+import com.vikingkittens.mc.customers.customer.CustomerPickupCounter;
 import com.vikingkittens.mc.customers.customer.CustomerShiftFinishedPayload;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerSnapshotPayload;
 import com.vikingkittens.mc.customers.customer.CustomerState;
@@ -117,6 +118,10 @@ public class CustomerClientEvents {
 
     @SubscribeEvent
     public static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerBlockEntityRenderer(
+                CustomerPickupCounter.BLOCK_ENTITY.get(),
+                CustomerPickupCounterBlockEntityRenderer::new
+        );
         event.registerEntityRenderer(Customer.CUSTOMER_SEAT.get(), NoopRenderer::new);
         event.registerEntityRenderer(
                 Customer.CUSTOMER_VILLAGER.get(),

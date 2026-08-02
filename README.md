@@ -23,7 +23,7 @@ A customer spawner block is the starting point for this mod.  Where you place it
 customers will spawn and what you place inside of it determines what your customers will want to
 buy from you.
 
-Customers only spawn where they have enough vertical clearance and a 2×2 surface made from solid
+Customers only spawn where they have enough vertical clearance and a 2ÃƒÆ’Ã¢â‚¬â€2 surface made from solid
 blocks, slabs, carpet, or stairs.
 
 Similar to a regular mob spawner block, each customer block will try to keep up to 4 customers
@@ -152,6 +152,68 @@ you only want the customers to go to one side of it because the other side if th
 On the other side of the counter use a different block for the kitchen tiles and put that
 same kitchen floor block under the customer spawner.
 
+## Customer Pickup Counter Blocks
+
+Customer Pickup Counter Blocks let players split up the work of preparing and serving
+customer orders. One player can prepare food or other requested items and place them on
+a pickup counter while another player takes those items and serves the waiting customers.
+
+Each pickup counter holds up to 9 item stacks. The stored items are displayed on top
+of the block, so players can see what is ready without opening an inventory screen. Items
+are handled in first-in, first-out order: the item that has been waiting the longest is
+the first one taken from the counter.
+
+### Crafting Customer Pickup Counter Blocks
+
+Craft a pickup counter with a horizontal row containing one iron ingot followed by two
+matching variant ingredients:
+
+```text
+Iron Ingot | Variant Ingredient | Variant Ingredient
+```
+
+The following variants are available:
+
+* Iron, made with two additional iron ingots
+* Copper, made with two copper ingots
+* Gold, made with two gold ingots
+* Oak, spruce, birch, jungle, acacia, dark oak, mangrove, and cherry, made with two
+  matching stripped logs
+* Crimson and warped, made with two matching stripped stems
+* Bamboo and stripped bamboo, made with two matching full bamboo blocks
+
+Each variant uses the matching block texture, so pickup counters can be coordinated with
+the materials and decoration used in a kitchen, restaurant, shop, or market stand.
+
+### Placing and Taking Items
+
+Right-click a pickup counter while holding an item stack to place the entire held stack
+onto the counter. Sneak-right-click while holding a stack to place only one item. Right-click
+with an empty hand to take the entire oldest stack, whether or not you are sneaking. The counter
+does not open an inventory screen; all item handling happens directly through these
+interactions.
+
+If all 9 spaces are occupied, the item remains in the player's hand and a message explains
+that the pickup counter is full.
+
+Breaking a pickup counter drops all of the items stored on it, so prepared items are not
+lost when a counter is moved.
+
+### Connecting Pickup Counters
+
+Pickup counters that touch on their north, south, east, or west sides work together as one
+larger pickup area. Diagonally placed counters and counters above or below each other are
+not connected.
+
+When a player places an item on a full counter, the item is passed to an available connected
+counter. This continues through an entire connected row or group of counters until a space
+is found. If every connected counter is full, the item stays in the player's hand.
+
+When a player tries to take an item from an empty counter, it searches its connected
+neighbors and returns the oldest available item it finds. This lets players add and collect
+prepared items from a convenient end of a long pickup counter without interacting with
+each individual block.
+
 ## Villager Customers
 
 The Customer Spawner will spawn Customer Villagers that are just normal villagers with
@@ -242,7 +304,7 @@ container and in the next slot put 5 emeralds, the supplier will sell you 32 raw
 The Supplier will spawn each morning up to 64 blocks away from the spawner at a position
 from which it can walk back to the spawner. Once the Supplier is there you can start buying items.
 
-Suppliers only spawn where they have enough vertical clearance and a 2×2 surface made from solid
+Suppliers only spawn where they have enough vertical clearance and a 2ÃƒÆ’Ã¢â‚¬â€2 surface made from solid
 blocks, slabs, carpet, or stairs.
 
 Once it is dark the Supplier will walk away and despawn.
@@ -252,9 +314,9 @@ Once it is dark the Supplier will walk away and despawn.
 Build commands provide information about customer and supplier spawners near the player. They are
 disabled by default and can be enabled with the `enableBuildCommands` configuration option.
 
-* `/suppliers spawners` lists supplier spawners in a 64×64×64 area centered on the player and
+* `/suppliers spawners` lists supplier spawners in a 64ÃƒÆ’Ã¢â‚¬â€64ÃƒÆ’Ã¢â‚¬â€64 area centered on the player and
   shows whether each spawner is enabled.
-* `/customers spawners` lists customer spawners in a 64×64×64 area centered on the player and
+* `/customers spawners` lists customer spawners in a 64ÃƒÆ’Ã¢â‚¬â€64ÃƒÆ’Ã¢â‚¬â€64 area centered on the player and
   shows whether each spawner is enabled and its spawning mode.
 * `/customers spawners counters` also lists the matching counter blocks found for each customer
   spawner and displays a rotating mode icon above each counter for 90 seconds.
