@@ -1,5 +1,7 @@
 # Customers Minecraft Mod for NeoForge
 
+![resturant.png](screenshots/resturant.png)
+
 ## Overview
 
 This mod provides Customer Villagers that will spawn, decide they want to buy some items from you,
@@ -34,6 +36,8 @@ Customers that are done buying and are leaving do not count toward this maximum.
 During timed shifts, the customer maximum starts low, ramps up to the configured or
 inventory-defined maximum, and ramps down over the final portion of the shift. The longer
 Day and Night Shifts ramp up more gradually than the shorter meal shifts.
+
+![customer-spawners.png](screenshots/customer-spawners.png)
 
 ### Crafting Customer Spawner Blocks
 
@@ -76,6 +80,8 @@ when the shifts are on.
 
 If a Customer Spawner is in Manual mode, a redstone pulse like with a button will spawn a
 customer.  This will let you completely customize the spawning with your redstone contraption.
+
+![redstone.png](screenshots/redstone.png)
 
 ### Controlling Items For Purchase
 
@@ -125,6 +131,8 @@ Examples:
   it will randomly pick which row to buy from.  If it decides to buy 2, it will buy one
   item from each row.
 
+![customer-spawner-inventory.png](screenshots/customer-spawner-inventory.png)
+
 ### Counter or Table-Top Blocks
 
 Once a customer spawns, it needs to know where to go to buy the items it picked.  This is
@@ -172,6 +180,8 @@ of the block, so players can see what is ready without opening an inventory scre
 are handled in first-in, first-out order: the item that has been waiting the longest is
 the first one taken from the counter.
 
+![pickup-counter-usage.png](screenshots/pickup-counter-usage.png)
+
 ### Crafting Customer Pickup Counter Blocks
 
 Craft a pickup counter with a horizontal row containing one iron ingot followed by two
@@ -180,6 +190,7 @@ matching variant ingredients:
 ```text
 Iron Ingot | Variant Ingredient | Variant Ingredient
 ```
+![pickup-counter-crafting.png](screenshots/pickup-counter-crafting.png)
 
 The following variants are available:
 
@@ -193,6 +204,8 @@ The following variants are available:
 
 Each variant uses the matching block texture, so pickup counters can be coordinated with
 the materials and decoration used in a kitchen, restaurant, shop, or market stand.
+
+![pickup-counter-types.png](screenshots/pickup-counter-types.png)
 
 ### Placing and Taking Items
 
@@ -259,12 +272,12 @@ If you want your customers to have names, think about using the [Villager Names 
 
 ### Special Night Shift Customers
 
-(Not done yet)
-
 If the Customer Spawner Block has a lit jack-o-lantern block next to it and the spawner
 mode is on Night Shift, it will also randomly spawn the monster customers which are just
 like the villager customers but on the client side will show up and sound like friendly
 zombies, skeletons, witches, pillagers, vindicators, evokers, and illusioners.
+
+![customers-sitting-special.png](screenshots/customers-sitting-special.png)
 
 ### Picking Items to Buy
 
@@ -281,6 +294,8 @@ the first one which should be a random block with the fewest number of other cus
 near it.  This should give a nice pattern of filling our a counter or restaurant full
 of tables.
 Customers prioritize available stairs and seat-like blocks near counters and will sit while waiting to be served.
+
+![customers-sitting.png](screenshots/customers-sitting.png)
 
 ### Serving and Selling to the Customer
 
@@ -308,6 +323,8 @@ of the day will new supplies to buy for your restaurant or stand when you can't 
 want to gather them your self.  Lets say your Customers want steaks, but you don't want
 to harvest a bunch of cows.  That's where a Supplier can help you out.
 
+![supplier.png](screenshots/supplier.png)
+
 ### Crafting Supplier Spawner Blocks
 
 You can craft a supplier spawner block from a barrel surrounded by 8 emeralds.
@@ -322,6 +339,8 @@ but if you put a stack of emeralds after each of the items in the container, tha
 the price to the count of emeralds.  For example if you put a stack of 32 raw steaks in the
 container and in the next slot put 5 emeralds, the supplier will sell you 32 raw steaks for
 5 emeralds.
+
+![supplier-spawner-inventory.png](screenshots/supplier-spawner-inventory.png)
 
 ### Supplier Spawning
 
@@ -338,12 +357,14 @@ Once it is dark the Supplier will walk away and despawn.
 Build commands provide information about customer and supplier spawners near the player. They are
 disabled by default and can be enabled with the `enableBuildCommands` configuration option.
 
-* `/suppliers spawners` lists supplier spawners in a 64ÃƒÆ’Ã¢â‚¬â€64ÃƒÆ’Ã¢â‚¬â€64 area centered on the player and
+* `/suppliers spawners` lists supplier spawners in a 64x64 area centered on the player and
   shows whether each spawner is enabled.
-* `/customers spawners` lists customer spawners in a 64ÃƒÆ’Ã¢â‚¬â€64ÃƒÆ’Ã¢â‚¬â€64 area centered on the player and
+* `/customers spawners` lists customer spawners in a 64x64 area centered on the player and
   shows whether each spawner is enabled and its spawning mode.
 * `/customers spawners counters` also lists the matching counter blocks found for each customer
   spawner and displays a rotating mode icon above each counter for 90 seconds.
+
+![command-spawners-counters.png](screenshots/command-spawners-counters.png)
 
 ## Configuration
 
