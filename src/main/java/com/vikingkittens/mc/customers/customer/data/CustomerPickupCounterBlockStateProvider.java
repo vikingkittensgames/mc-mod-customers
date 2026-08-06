@@ -9,7 +9,6 @@ import net.minecraft.world.item.ItemDisplayContext;
 
 import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
-import net.neoforged.neoforge.client.model.generators.loaders.CompositeModelBuilder;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 import com.vikingkittens.mc.customers.Customers;
@@ -23,12 +22,6 @@ public class CustomerPickupCounterBlockStateProvider
                     Customers.MODID,
                     "block/customer_pickup_counter_top_overlay"
             );
-    private static final ResourceLocation BOTTOM_SIDE_OVERLAY =
-            ResourceLocation.fromNamespaceAndPath(
-                    Customers.MODID,
-                    "block/customer_pickup_counter_bottom_side_overlay"
-            );
-
     public CustomerPickupCounterBlockStateProvider(
             PackOutput output,
             ExistingFileHelper existingFileHelper
@@ -51,10 +44,20 @@ public class CustomerPickupCounterBlockStateProvider
             BlockModelBuilder model = models()
                     .getBuilder(name)
                     .texture("particle", variant.sideTexture())
+                    .texture("base", variant.sideTexture())
+                    .texture("top_overlay", TOP_OVERLAY)
                     .renderType("minecraft:translucent");
-            model.customLoader(CompositeModelBuilder::begin)
-                    .child("base", createBaseModel(variant))
-                    .child("overlay", createOverlayModel())
+            model.element()
+                    .from(0.0F, 0.0F, 0.0F)
+                    .to(16.0F, 1.0F, 16.0F)
+                    .textureAll("#base")
+                    .end();
+            model.element()
+                    .from(0.0F, 0.0F, 0.0F)
+                    .to(16.0F, 1.001F, 16.0F)
+                    .face(Direction.UP)
+                    .texture("#top_overlay")
+                    .end()
                     .end();
 
             simpleBlock(block, model);
@@ -71,46 +74,4 @@ public class CustomerPickupCounterBlockStateProvider
         }
     }
 
-    private BlockModelBuilder createBaseModel(
-            CustomerPickupCounterVariant variant
-    ) {
-        return models().nested()
-                .renderType("minecraft:solid")
-                .texture("particle", variant.sideTexture())
-                .texture("base", variant.sideTexture())
-                .element()
-                .from(0.0F, 0.0F, 0.0F)
-                .to(16.0F, 1.0F, 16.0F)
-                .textureAll("#base")
-                .end();
-    }
-
-    private BlockModelBuilder createOverlayModel() {
-        return models().nested()
-                .renderType("minecraft:translucent")
-                .texture("top_overlay", TOP_OVERLAY)
-                .texture("bottom_side_overlay", BOTTOM_SIDE_OVERLAY)
-                .element()
-                .from(-0.001F, -0.001F, -0.001F)
-                .to(16.001F, 1.001F, 16.001F)
-                .face(Direction.UP)
-                .texture("#top_overlay")
-                .end()
-                .face(Direction.DOWN)
-                .texture("#bottom_side_overlay")
-                .end()
-                .face(Direction.NORTH)
-                .texture("#bottom_side_overlay")
-                .end()
-                .face(Direction.SOUTH)
-                .texture("#bottom_side_overlay")
-                .end()
-                .face(Direction.WEST)
-                .texture("#bottom_side_overlay")
-                .end()
-                .face(Direction.EAST)
-                .texture("#bottom_side_overlay")
-                .end()
-                .end();
-    }
 }

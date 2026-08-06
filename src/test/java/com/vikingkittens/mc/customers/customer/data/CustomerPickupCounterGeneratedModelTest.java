@@ -6,8 +6,10 @@ import java.nio.file.Path;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 import com.vikingkittens.mc.customers.customer.CustomerPickupCounter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,6 +18,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CustomerPickupCounterGeneratedModelTest {
     private static final Path GENERATED =
             Path.of("src/generated/resources");
+
+    /** Initializes Minecraft item registries used by pickup-counter variants. */
+    @BeforeAll
+    static void bootstrapMinecraft() {
+        MinecraftTestBootstrap.bootstrap();
+    }
 
     @Test
     void generatesLayeredModelsForEveryVariant() throws IOException {
@@ -60,45 +68,46 @@ class CustomerPickupCounterGeneratedModelTest {
                     3.0F,
                     gui.getAsJsonArray("translation").get(1).getAsFloat()
             );
-            assertEquals(
-                    "neoforge:composite",
-                    model.get("loader").getAsString()
-            );
+            assertTrue(!model.has("loader"));
             assertEquals(
                     "minecraft:translucent",
                     model.get("render_type").getAsString()
             );
-            JsonObject children = model.getAsJsonObject("children");
-            assertEquals(
-                    "minecraft:solid",
-                    children.getAsJsonObject("base")
-                            .get("render_type")
-                            .getAsString()
-            );
-            assertEquals(
-                    "minecraft:translucent",
-                    children.getAsJsonObject("overlay")
-                            .get("render_type")
-                            .getAsString()
-            );
             assertEquals(
                     variant.sideTexture().toString(),
-                    children.getAsJsonObject("base")
-                            .getAsJsonObject("textures")
+                    model.getAsJsonObject("textures")
                             .get("base")
                             .getAsString()
             );
-            JsonObject overlay = children
-                    .getAsJsonObject("overlay")
-                    .getAsJsonObject("textures");
+            assertEquals(2, model.getAsJsonArray("elements").size());
+            JsonObject baseFaces = model.getAsJsonArray("elements")
+                    .get(0)
+                    .getAsJsonObject()
+                    .getAsJsonObject("faces");
+            assertEquals(6, baseFaces.size());
             assertEquals(
-                    "customers:block/customer_pickup_counter_top_overlay",
-                    overlay.get("top_overlay").getAsString()
+                    "#base",
+                    baseFaces.getAsJsonObject("north")
+                            .get("texture")
+                            .getAsString()
+            );
+            JsonObject overlayFaces = model
+                    .getAsJsonArray("elements")
+                    .get(1)
+                    .getAsJsonObject()
+                    .getAsJsonObject("faces");
+            assertEquals(1, overlayFaces.size());
+            assertEquals(
+                    "#top_overlay",
+                    overlayFaces.getAsJsonObject("up")
+                            .get("texture")
+                            .getAsString()
             );
             assertEquals(
-                    "customers:block/"
-                            + "customer_pickup_counter_bottom_side_overlay",
-                    overlay.get("bottom_side_overlay").getAsString()
+                    "customers:block/customer_pickup_counter_top_overlay",
+                    model.getAsJsonObject("textures")
+                            .get("top_overlay")
+                            .getAsString()
             );
         }
     }
