@@ -297,6 +297,11 @@ Customers prioritize available stairs and seat-like blocks near counters and wil
 
 ![customers-sitting.png](screenshots/customers-sitting.png)
 
+If there are more customers than there are counters, the customers will line up and
+wait their turn:
+
+![customers-line.png](screenshots/customers-line.png)
+
 ### Serving and Selling to the Customer
 
 You will serve the customer what they want or sell them what they want to buy just like
@@ -315,6 +320,20 @@ chat and walk back to the spawner that created them.  Once they reach the spawne
 will pick a random block to walk to 32 blocks away that has 2 air blocks above it and
 that they can actually path to.  They will then walk to this block and once they get
 there despawn.
+
+## Gameplay and Shifts
+
+If your Customer Spawner Block is ser to a mode other than Continuous and Manual,
+you and other players will be working within shifts that have a start and end.  You
+will get a progress bar that shows the shift, a progress bar that ticks down to the
+end, and a heads up view of what all active customers want for that shift.
+
+![orders-in-progress-bar.png](screenshots/orders-in-progress-bar.png)
+
+At the end of the shift you and the other players will get a scoreboard showing
+how well you did:
+
+![scoreboard.png](screenshots/scoreboard.png)
 
 ## Supplier Spawner Block
 
