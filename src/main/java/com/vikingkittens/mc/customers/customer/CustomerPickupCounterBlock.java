@@ -1,5 +1,7 @@
 package com.vikingkittens.mc.customers.customer;
 
+import org.jetbrains.annotations.Nullable;
+
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -15,6 +17,8 @@ import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -48,6 +52,24 @@ public class CustomerPickupCounterBlock extends BaseEntityBlock {
         return CustomerPickupCounter.BLOCK_ENTITY.get().create(pos, state);
     }
 
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(
+            Level level,
+            BlockState state,
+            BlockEntityType<T> blockEntityType
+    ) {
+        if (!LevelCUtils.isClientSide(level)) {
+            return (tickerLevel, pos, tickerState, entity) ->
+                    CustomerPickupCounterBlockEntity.tick(
+                            tickerLevel,
+                            pos,
+                            tickerState,
+                            (CustomerPickupCounterBlockEntity) entity
+                    );
+        }
+        return null;
+    }
     @Override
     protected ItemInteractionResult useItemOn(
             ItemStack stack,
@@ -72,8 +94,13 @@ public class CustomerPickupCounterBlock extends BaseEntityBlock {
                 requested = source.copy();
                 requested.setCount(1);
             }
+            boolean wanted =
+                    counter.hasAssignableCraftedItemConnected(requested);
             ItemStack requestedRemainder =
-                    counter.insertStackConnected(requested);
+                    counter.insertCraftedStackConnected(
+                            player,
+                            requested
+                    );
             boolean inserted =
                     requestedRemainder.getCount() < requested.getCount();
             ItemStack remainder = requestedRemainder;
@@ -90,7 +117,9 @@ public class CustomerPickupCounterBlock extends BaseEntityBlock {
                 PlayerCUtils.sendActionBarMessage(
                         player,
                         Component.translatable(
-                                "messages.customers.pickup_counter.full"
+                                wanted
+                                        ? "messages.customers.pickup_counter.full"
+                                        : "messages.customers.pickup_counter.not_wanted"
                         )
                 );
             }

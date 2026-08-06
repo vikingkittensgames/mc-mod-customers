@@ -19,7 +19,7 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     private final CustomerVillagerEntity customer;
-    private BlockPos counterPosition;
+    BlockPos counterPosition;
 
     public CustomerMoveToCounterGoal(CustomerVillagerEntity customer, double speedModifier) {
         super(customer, null, speedModifier);

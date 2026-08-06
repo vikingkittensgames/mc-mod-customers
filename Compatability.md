@@ -137,14 +137,23 @@ public static void onCraftedBy(
 );
 
 public static ItemStack getCraftingRemainder(ItemStack stack);
+
+public static ItemCost createItemCost(
+        ItemStack stack,
+        int count
+);
 ```
 
 | Method | Minecraft 1.21.1 | Minecraft 1.21.11 |
 | --- | --- | --- |
 | `onCraftedBy` | `stack.onCraftedBy(player.level(), player, count)` | `stack.onCraftedBy(player, count)` |
 | `getCraftingRemainder` | Check `hasCraftingRemainingItem()`, then call `getCraftingRemainingItem()` | Call `stack.getCraftingRemainder()` |
+| `createItemCost` | Construct with `DataComponentPredicate.allOf(stack.getComponents())` | Construct with `DataComponentExactPredicate.allOf(stack.getComponents())` |
 
 Both implementations return an empty `ItemStack` when no crafting remainder exists.
+
+`createItemCost` preserves component-bearing variants such as potions while
+centralizing the renamed component-predicate type used by supported versions.
 
 ### PlayerCUtils
 
@@ -287,6 +296,8 @@ Optional<UUID> getUuid(String key);
 
 List<UUID> getUuids(String key);
 
+List<ItemStack> getItemStacks(String key);
+
 DataReader childOrEmpty(String key);
 
 List<DataReader> getChildren(String key);
@@ -307,6 +318,8 @@ void putUuid(String key, UUID value);
 
 void putUuids(String key, Collection<UUID> values);
 
+void putItemStacks(String key, List<ItemStack> values);
+
 DataWriter child(String key);
 
 DataWriter addChild(String key);
@@ -315,6 +328,11 @@ DataWriter addChild(String key);
 | Minecraft 1.21.1 | Minecraft 1.21.11 |
 | --- | --- |
 | Adapters read and write `CompoundTag`, `ListTag`, and `NbtUtils` values | Adapters read and write `ValueInput`, `ValueOutput`, and codec-backed values |
+
+Registry-backed factory overloads preserve complete item stacks, including
+counts and data components. Minecraft 1.21.1 adapters use
+`ItemStackHandler.serializeNBT` and `deserializeNBT`; Minecraft 1.21.11
+adapters use `ItemStackHandler.serialize` and `deserialize`.
 
 Entity and block-entity override signatures cannot be hidden by static methods. Each branch keeps thin version-specific overrides that create an adapter and delegate to shared persistence logic.
 
@@ -329,7 +347,10 @@ Completed shared persistence coverage:
 
 `DataWriter.addChild(key)` appends a child to the list identified by `key`. The Minecraft 1.21.11 adapter must reuse the same `ValueOutput.ValueOutputList` handle for repeated calls with a key because requesting the list again can replace previously written entries.
 
-`ItemStackHandler` inventory serialization remains in the thin version-specific block-entity overrides because 1.21.1 uses `serializeNBT` and `deserializeNBT`, while 1.21.11 uses `serialize` and `deserialize`. Customer UUIDs, counter reservations, and supplier daytime flags use `DataReader` and `DataWriter` in shared persistence logic.
+Existing `ItemStackHandler` inventory serialization remains in thin
+version-specific block-entity overrides. Shared item-stack lists use
+`DataReader` and `DataWriter` so functionality code can remain the same across
+versions.
 
 ## Client Compatibility
 

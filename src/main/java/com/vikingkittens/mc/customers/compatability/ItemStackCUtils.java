@@ -1,7 +1,9 @@
 package com.vikingkittens.mc.customers.compatability;
 
+import net.minecraft.core.component.DataComponentPredicate;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.trading.ItemCost;
 
 /**
  * Provides version-compatible item stack lifecycle operations.
@@ -20,5 +22,19 @@ public final class ItemStackCUtils {
         return stack.hasCraftingRemainingItem()
                 ? stack.getCraftingRemainingItem()
                 : ItemStack.EMPTY;
+    }
+    /**
+     * Creates an offer cost retaining the supplied stack's data components.
+     *
+     * @param stack stack defining the item and required components
+     * @param count required item count
+     * @return component-aware offer cost
+     */
+    public static ItemCost createItemCost(ItemStack stack, int count) {
+        return new ItemCost(
+                stack.getItem().builtInRegistryHolder(),
+                count,
+                DataComponentPredicate.allOf(stack.getComponents())
+        );
     }
 }

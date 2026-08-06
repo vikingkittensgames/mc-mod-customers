@@ -71,10 +71,14 @@
   "messages.customers.scoreboard.detail.player_served_items": "%s served %s out of %s items",
   "screen.customers.shift_finished": "Shift Results",
   "screen.customers.shift_finished.items_served": "%s items",
+  "screen.customers.shift_finished.total_items_served": "%s items served",
+  "screen.customers.shift_finished.total_items_crafted": "%s items crafted",
   "screen.customers.shift_finished.close": "Close",
 
   "messages.customers.supplies": "I have your supplies for the day.",
   "messages.customers.pickup_counter.full": "The pickup counter is full.",
+  "messages.customers.pickup_counter.not_wanted": "No active customer wants that item.",
+  "messages.customers.pickup_counter.items_returned": "Items that customers no longer need were dropped on the pickup counter because your inventory is full.",
 
   "customers.configuration.title": "Customers Configs",
   "customers.configuration.section.customers.common.toml": "Customers Configs",

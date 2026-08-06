@@ -61,7 +61,9 @@ block texture.
 
 For the time restricted shift modes, the players within 64 blocks of the spawner will get
 shift messages, progress bars, and a results screen showing the final score, customer totals,
-and each participating player's served item count. The progress bar shows every item currently
+total items crafted and served, and each participating player's crafted and served item counts.
+The star beside a player is their served item count, while the spoon is their crafted item count.
+The progress bar shows every item currently
 requested, grouped by customer with yellow for normal customers, red for impatient customers,
 and green for casual customers.
 
@@ -156,7 +158,14 @@ same kitchen floor block under the customer spawner.
 
 Customer Pickup Counter Blocks let players split up the work of preparing and serving
 customer orders. One player can prepare food or other requested items and place them on
-a pickup counter while another player takes those items and serves the waiting customers.
+a pickup counter while another player serves the waiting customers, or customers stationed
+at pickup counters can collect their prepared items directly.
+
+Placing a requested item on a pickup counter gives crafting credit to the player who
+prepared it when a Customer Spawner is within a 64 by 64 by 64 area. If the full stack is
+not currently needed, the counter remembers who prepared the remaining items. Those items
+are checked again when another matching stack is added, and any later crafting credit
+still goes to the original crafter.
 
 Each pickup counter holds up to 9 item stacks. The stored items are displayed on top
 of the block, so players can see what is ready without opening an inventory screen. Items
@@ -193,9 +202,24 @@ with an empty hand to take the entire oldest stack, whether or not you are sneak
 does not open an inventory screen; all item handling happens directly through these
 interactions.
 
+Pickup counters accept only items currently wanted by active customers. If customers want
+only part of a held stack, that portion is placed on the counter and the rest remains in the
+player's hand. Items that no active customer wants remain in the player's hand.
+
+Once each second, a waiting customer at a pickup counter tries to collect one of their
+remaining requested items. The counter must contain the full requested amount in a single
+stack. The customer takes only the requested amount when the stored stack contains more,
+and the player who originally placed that stack receives credit for serving those items.
+Empty containers such as bottles, buckets, and bowls are returned to that player. If the
+player is offline, the containers are dropped on top of the pickup counter.
+
 If all 9 spaces are occupied, the item remains in the player's hand and a message explains
 that the pickup counter is full.
 
+Pickup counters regularly check whether their stored items are still needed. Items that are
+no longer needed are returned to the player who placed them. If that player's inventory is
+full, the remaining items are dropped on top of the pickup counter and the player receives
+a message. The player keeps the crafted-item credit earned when the items were first accepted.
 Breaking a pickup counter drops all of the items stored on it, so prepared items are not
 lost when a counter is moved.
 

@@ -5,6 +5,10 @@ import org.junit.jupiter.api.Test;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.alchemy.Potions;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
@@ -35,6 +39,32 @@ class CustomerVillagerEntityTest {
                 1.0F,
                 mock(DamageSource.class)
         ));
+    }
+    /** Returns one empty container for each consumed item. */
+    @Test
+    void createsPickupCounterTradeRemainders() {
+        ItemStack water =
+                PotionContents.createItemStack(Items.POTION, Potions.WATER);
+
+        assertEquals(
+                Items.GLASS_BOTTLE,
+                CustomerVillagerEntity
+                        .getTradeRemainderStack(water)
+                        .getItem()
+        );
+        assertEquals(
+                Items.BUCKET,
+                CustomerVillagerEntity
+                        .getTradeRemainderStack(
+                                new ItemStack(Items.MILK_BUCKET)
+                        )
+                        .getItem()
+        );
+        ItemStack bowls = CustomerVillagerEntity.getTradeRemainderStack(
+                new ItemStack(Items.MUSHROOM_STEW, 3)
+        );
+        assertEquals(Items.BOWL, bowls.getItem());
+        assertEquals(3, bowls.getCount());
     }
     @Test
     void roundTripsCounterTargetBlockPosition() {

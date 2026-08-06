@@ -25,7 +25,8 @@ public record CustomerShiftFinishedPayload(
         int totalCustomers,
         int numCustomersServed,
         int numCustomersGaveUp,
-        Map<UUID, Integer> numItemsServedByPlayer
+        Map<UUID, Integer> numItemsServedByPlayer,
+        Map<UUID, Integer> numItemsCraftedByPlayer
 ) implements CustomPacketPayload {
     private static final Logger LOGGER = LogUtils.getLogger();
 
@@ -38,6 +39,29 @@ public record CustomerShiftFinishedPayload(
 
     public CustomerShiftFinishedPayload {
         numItemsServedByPlayer = Map.copyOf(numItemsServedByPlayer);
+        numItemsCraftedByPlayer = Map.copyOf(numItemsCraftedByPlayer);
+    }
+
+    /**
+     * Returns the total item units served during the shift.
+     *
+     * @return served item total
+     */
+    public int totalItemsServed() {
+        return numItemsServedByPlayer.values().stream()
+                .mapToInt(Integer::intValue)
+                .sum();
+    }
+
+    /**
+     * Returns the total item units crafted during the shift.
+     *
+     * @return crafted item total
+     */
+    public int totalItemsCrafted() {
+        return numItemsCraftedByPlayer.values().stream()
+                .mapToInt(Integer::intValue)
+                .sum();
     }
 
     private static void write(FriendlyByteBuf buffer, CustomerShiftFinishedPayload payload) {
@@ -51,6 +75,11 @@ public record CustomerShiftFinishedPayload(
                 (target, playerId) -> target.writeUUID(playerId),
                 (target, itemCount) -> target.writeVarInt(itemCount)
         );
+        buffer.writeMap(
+                payload.numItemsCraftedByPlayer(),
+                (target, playerId) -> target.writeUUID(playerId),
+                (target, itemCount) -> target.writeVarInt(itemCount)
+        );
     }
 
     private static CustomerShiftFinishedPayload read(FriendlyByteBuf buffer) {
@@ -60,6 +89,11 @@ public record CustomerShiftFinishedPayload(
                 buffer.readVarInt(),
                 buffer.readVarInt(),
                 buffer.readVarInt(),
+                buffer.readMap(
+                        HashMap::new,
+                        source -> source.readUUID(),
+                        source -> source.readVarInt()
+                ),
                 buffer.readMap(
                         HashMap::new,
                         source -> source.readUUID(),

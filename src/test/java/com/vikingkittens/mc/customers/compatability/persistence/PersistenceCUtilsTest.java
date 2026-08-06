@@ -8,7 +8,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -16,6 +19,7 @@ import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PersistenceCUtilsTest {
     @BeforeAll
@@ -70,5 +74,24 @@ class PersistenceCUtilsTest {
         assertEquals(List.of(), reader.getUuids("uuids"));
         assertEquals(Optional.empty(), reader.childOrEmpty("child").getString("nested"));
         assertEquals(List.of(), reader.getChildren("children"));
+    }
+    /** Preserves item identity, components, and counts. */
+    @Test
+    void readsAndWritesItemStacks() {
+        CompoundTag tag = new CompoundTag();
+        ItemStack bread = new ItemStack(Items.BREAD, 25);
+
+        PersistenceCUtils.writer(tag, RegistryAccess.EMPTY)
+                .putItemStacks("stacks", List.of(bread));
+        List<ItemStack> restored =
+                PersistenceCUtils.reader(tag, RegistryAccess.EMPTY)
+                        .getItemStacks("stacks");
+
+        assertEquals(1, restored.size());
+        assertTrue(ItemStack.isSameItemSameComponents(
+                bread,
+                restored.getFirst()
+        ));
+        assertEquals(25, restored.getFirst().getCount());
     }
 }

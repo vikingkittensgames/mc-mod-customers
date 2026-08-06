@@ -24,12 +24,12 @@ class CustomerPickupCounterBlockEntityRendererTest {
                 List.of(
                         new Vec3(0.5D, 0.08D, 0.5D),
                         new Vec3(0.25D, 0.08D, 0.25D),
-                        new Vec3(0.5D, 0.08D, 0.25D),
+                        new Vec3(0.5D, 0.082D, 0.25D),
                         new Vec3(0.75D, 0.08D, 0.25D),
-                        new Vec3(0.25D, 0.08D, 0.5D),
-                        new Vec3(0.75D, 0.08D, 0.5D),
+                        new Vec3(0.25D, 0.082D, 0.5D),
+                        new Vec3(0.75D, 0.082D, 0.5D),
                         new Vec3(0.25D, 0.08D, 0.75D),
-                        new Vec3(0.5D, 0.08D, 0.75D),
+                        new Vec3(0.5D, 0.082D, 0.75D),
                         new Vec3(0.75D, 0.08D, 0.75D)
                 ),
                 CustomerPickupCounterBlockEntityRenderer

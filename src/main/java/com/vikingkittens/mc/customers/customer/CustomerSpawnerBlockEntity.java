@@ -40,6 +40,7 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import com.vikingkittens.mc.customers.common.SearchUtils;
+import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
 import com.vikingkittens.mc.customers.compatability.LevelCUtils;
 import com.vikingkittens.mc.customers.compatability.PlayerCUtils;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
@@ -107,7 +108,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             ItemStack itemStack = rowItems.get(row).get(itemNum);
             int count = itemStack.getCount() > 1 ? random.nextIntBetweenInclusive(1, itemStack.getCount()) : 1;
             offers.add(new MerchantOffer(
-                    new ItemCost(itemStack.getItem(), count),
+                    ItemStackCUtils.createItemCost(itemStack, count),
                     Optional.empty(),
                     new ItemStack(paymentItem.get(), rowCost.get(row) * count),
                     1,
@@ -182,6 +183,189 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     private int totalItemsWanted = 0;
     private int numCustomersGaveUp = 0;
     private final Map<UUID, Integer> numItemsServedByPlayer = new HashMap<>();
+    private final Map<UUID, Integer> numItemsCraftedByPlayer = new HashMap<>();
+
+    /**
+     * Assigns crafted items to active customers tracked by this spawner.
+     *
+     * @param player player who crafted the items
+     * @param stack items available for assignment
+     * @return null when fully assigned, an unassigned remainder when partially
+     *         assigned, or the original stack when nothing matched
+     */
+    public @Nullable ItemStack tryAssignCraftedItem(
+            Player player,
+            ItemStack stack
+    ) {
+        return tryAssignCraftedItem(player.getUUID(), stack);
+    }
+
+    /**
+     * Assigns crafted items to active customers and credits the supplied
+     * crafting-player UUID, including when that player is offline.
+     *
+     * @param playerId player who crafted the items
+     * @param stack items available for assignment
+     * @return null when fully assigned, an unassigned remainder when partially
+     *         assigned, or the original stack when nothing matched
+     */
+    public @Nullable ItemStack tryAssignCraftedItem(
+            UUID playerId,
+            ItemStack stack
+    ) {
+        if (!(level instanceof ServerLevel serverLevel)) {
+            return stack;
+        }
+        return tryAssignCraftedItem(
+                getActiveCustomers(serverLevel, customerIds),
+                numItemsCraftedByPlayer,
+                playerId,
+                stack
+        );
+    }
+
+    /**
+     * Returns how many items active customers could accept without changing
+     * customer assignments or player scores.
+     *
+     * @param stack items being considered
+     * @return number of items that could be assigned
+     */
+    public int getAssignableCraftedItemCount(ItemStack stack) {
+        if (!(level instanceof ServerLevel serverLevel)) {
+            return 0;
+        }
+        return getAssignableCraftedItemCount(
+                getActiveCustomers(serverLevel, customerIds),
+                stack
+        );
+    }
+
+    /**
+     * Reserves items for active customers without changing crafted scores.
+     *
+     * @param stack items being reserved
+     * @return null when fully reserved, otherwise the unreserved remainder
+     */
+    public @Nullable ItemStack tryReserveCraftedItem(ItemStack stack) {
+        if (!(level instanceof ServerLevel serverLevel)) {
+            return stack;
+        }
+        return tryReserveCraftedItem(
+                getActiveCustomers(serverLevel, customerIds),
+                stack
+        );
+    }
+
+    public int releaseCraftedItemAssignment(ItemStack stack) {
+        if (!(level instanceof ServerLevel serverLevel)) {
+            return 0;
+        }
+        return releaseCraftedItemAssignment(
+                getActiveCustomers(serverLevel, customerIds),
+                stack
+        );
+    }
+    /**
+     * Calculates assignable demand across customers without changing state.
+     *
+     * @param customers active customers eligible for assignment
+     * @param stack items being considered
+     * @return number of items that could be assigned
+     */
+    static int getAssignableCraftedItemCount(
+            List<CustomerVillagerEntity> customers,
+            ItemStack stack
+    ) {
+        int assignableCount = 0;
+        for (CustomerVillagerEntity customer : customers) {
+            int remainingCount = stack.getCount() - assignableCount;
+            if (remainingCount == 0) {
+                break;
+            }
+            ItemStack remaining = stack.copy();
+            remaining.setCount(remainingCount);
+            assignableCount +=
+                    customer.getAssignableCraftedItemCount(remaining);
+        }
+        return assignableCount;
+    }
+
+    /**
+     * Reserves a crafted stack across customers without changing player scores.
+     *
+     * @param customers active customers eligible for reservation
+     * @param stack crafted items being reserved
+     * @return null when fully reserved, otherwise the unreserved remainder
+     */
+    static @Nullable ItemStack tryReserveCraftedItem(
+            List<CustomerVillagerEntity> customers,
+            ItemStack stack
+    ) {
+        ItemStack remainder = stack;
+        for (CustomerVillagerEntity customer : customers) {
+            remainder = customer.tryAssignCraftedOffer(remainder);
+            if (remainder == null) {
+                break;
+            }
+        }
+        return remainder;
+    }
+
+    static int releaseCraftedItemAssignment(
+            List<CustomerVillagerEntity> customers,
+            ItemStack stack
+    ) {
+        int releasedCount = 0;
+        for (CustomerVillagerEntity customer : customers) {
+            int remainingCount = stack.getCount() - releasedCount;
+            if (remainingCount == 0) {
+                break;
+            }
+            ItemStack remaining = stack.copy();
+            remaining.setCount(remainingCount);
+            releasedCount +=
+                    customer.releaseCraftedOfferAssignment(remaining);
+        }
+        return releasedCount;
+    }
+    /**
+     * Assigns a crafted stack across customers and records the number of item
+     * units assigned to the crafting player.
+     *
+     * @param customers active customers eligible for assignment
+     * @param craftedByPlayer crafted item counts keyed by player
+     * @param playerId crafting player
+     * @param stack items available for assignment
+     * @return null when fully assigned, an unassigned remainder when partially
+     *         assigned, or the original stack when nothing matched
+     */
+    static @Nullable ItemStack tryAssignCraftedItem(
+            List<CustomerVillagerEntity> customers,
+            Map<UUID, Integer> craftedByPlayer,
+            UUID playerId,
+            ItemStack stack
+    ) {
+        ItemStack remainder = stack;
+        int assignedCount = 0;
+        for (CustomerVillagerEntity customer : customers) {
+            int countBefore = remainder.getCount();
+            ItemStack nextRemainder =
+                    customer.tryAssignCraftedOffer(remainder);
+            int countAfter =
+                    nextRemainder == null ? 0 : nextRemainder.getCount();
+            assignedCount += countBefore - countAfter;
+            if (nextRemainder == null) {
+                remainder = null;
+                break;
+            }
+            remainder = nextRemainder;
+        }
+        if (assignedCount > 0) {
+            craftedByPlayer.merge(playerId, assignedCount, Integer::sum);
+        }
+        return remainder;
+    }
 
     public CustomerSpawnerBlockEntity(BlockPos pos, BlockState blockState) {
         super(CustomerSpawner.CUSTOMER_SPAWNER_ENTITY.get(), pos, blockState);
@@ -813,6 +997,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         totalItemsWanted = 0;
         numCustomersGaveUp = 0;
         numItemsServedByPlayer.clear();
+        numItemsCraftedByPlayer.clear();
     }
 
     private float scoreboardGetPercentage() {
@@ -828,7 +1013,8 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 totalCustomers,
                 numCustomersServed,
                 numCustomersGaveUp,
-                numItemsServedByPlayer
+                numItemsServedByPlayer,
+                numItemsCraftedByPlayer
         );
         for (UUID playerId : playerIds) {
             try {
@@ -911,8 +1097,21 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         numCustomersGaveUp++;
     }
 
-    public void scoreboardAddItemServed(UUID playerId) {
-        numItemsServedByPlayer.put(playerId, numItemsServedByPlayer.getOrDefault(playerId, 0) + 1);
+    /**
+     * Credits the actual number of item units served by a player.
+     *
+     * @param playerId serving player
+     * @param itemCount item units served
+     */
+    public void scoreboardAddItemsServed(
+            UUID playerId,
+            int itemCount
+    ) {
+        numItemsServedByPlayer.merge(
+                playerId,
+                itemCount,
+                Integer::sum
+        );
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, CustomerSpawnerBlockEntity entity) {
@@ -964,7 +1163,17 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                             progress
                     );
                     if (entity.countActiveCustomers() < maxCustomers) {
-                        entity.spawnCustomer();
+                        BlockState counterBlockState = entity.level.getBlockState(entity.getBlockPos().above());
+                        if (!counterBlockState.isEmpty() && !counterBlockState.isAir()) {
+                            List<BlockPos> counterPositions = CustomerCounter.findCounterPositions(
+                                    entity.level,
+                                    entity.getBlockPos(),
+                                    counterBlockState
+                            );
+                            if (!counterPositions.isEmpty()) {
+                                entity.spawnCustomer();
+                            }
+                        }
                     }
 
                     if (CustomerSpawnerMode.shouldShowProgress(spawnerMode)) {

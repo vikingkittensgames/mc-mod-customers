@@ -19,7 +19,13 @@ class CustomerShiftFinishedPayloadTest {
     void roundTripsAllShiftResults() {
         UUID playerId = UUID.fromString("11111111-1111-1111-1111-111111111111");
         CustomerShiftFinishedPayload original = new CustomerShiftFinishedPayload(
-                CustomerSpawnerMode.LUNCH, 0.75F, 12, 8, 3, Map.of(playerId, 14)
+                CustomerSpawnerMode.LUNCH,
+                0.75F,
+                12,
+                8,
+                3,
+                Map.of(playerId, 14),
+                Map.of(playerId, 21)
         );
         FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
 
@@ -35,7 +41,13 @@ class CustomerShiftFinishedPayloadTest {
         Map<UUID, Integer> mutableResults = new HashMap<>();
         mutableResults.put(playerId, 5);
         CustomerShiftFinishedPayload payload = new CustomerShiftFinishedPayload(
-                CustomerSpawnerMode.DINNER, 0.5F, 10, 5, 2, mutableResults
+                CustomerSpawnerMode.DINNER,
+                0.5F,
+                10,
+                5,
+                2,
+                mutableResults,
+                mutableResults
         );
 
         mutableResults.put(playerId, 9);
@@ -43,5 +55,30 @@ class CustomerShiftFinishedPayloadTest {
         assertEquals(5, payload.numItemsServedByPlayer().get(playerId));
         assertThrows(UnsupportedOperationException.class,
                 () -> payload.numItemsServedByPlayer().put(playerId, 10));
+        assertEquals(5, payload.numItemsCraftedByPlayer().get(playerId));
+        assertThrows(UnsupportedOperationException.class,
+                () -> payload.numItemsCraftedByPlayer().put(playerId, 10));
     }
-}
+    /** Calculates total served and crafted item units from player results. */
+    @Test
+    void calculatesItemTotals() {
+        CustomerShiftFinishedPayload payload =
+                new CustomerShiftFinishedPayload(
+                        CustomerSpawnerMode.BREAKFAST,
+                        1.0F,
+                        3,
+                        3,
+                        0,
+                        Map.of(
+                                UUID.randomUUID(), 8,
+                                UUID.randomUUID(), 5
+                        ),
+                        Map.of(
+                                UUID.randomUUID(), 12,
+                                UUID.randomUUID(), 7
+                        )
+                );
+
+        assertEquals(13, payload.totalItemsServed());
+        assertEquals(19, payload.totalItemsCrafted());
+    }}
