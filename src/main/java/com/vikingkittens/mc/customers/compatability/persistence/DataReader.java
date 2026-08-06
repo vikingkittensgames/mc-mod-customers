@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -22,6 +23,8 @@ public interface DataReader {
     Optional<UUID> getUuid(String key);
 
     List<UUID> getUuids(String key);
+
+    List<ItemStack> getItemStacks(String key);
 
     DataReader childOrEmpty(String key);
 

@@ -5,10 +5,16 @@ import org.junit.jupiter.api.Test;
 
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.alchemy.Potions;
+import net.minecraft.world.item.trading.ItemCost;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -33,5 +39,18 @@ class ItemStackCUtilsTest {
         when(stack.getCraftingRemainder()).thenReturn(remainder);
 
         assertSame(remainder, ItemStackCUtils.getCraftingRemainder(stack));
+    }
+    /** Preserves stack components when creating an offer cost. */
+    @Test
+    void createsItemCostWithStackComponents() {
+        ItemStack water =
+                PotionContents.createItemStack(Items.POTION, Potions.WATER);
+        ItemStack awkward =
+                PotionContents.createItemStack(Items.POTION, Potions.AWKWARD);
+
+        ItemCost cost = ItemStackCUtils.createItemCost(water, 1);
+
+        assertTrue(cost.test(water));
+        assertFalse(cost.test(awkward));
     }
 }

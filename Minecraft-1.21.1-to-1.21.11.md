@@ -17,6 +17,7 @@ See `Compatability.md` for the compatibility classes and methods used to keep fu
 
 | Minecraft 1.21.1 | Minecraft 1.21.11 | Notes |
 | --- | --- | --- |
+| `DataComponentPredicate` | `DataComponentExactPredicate` | Use `ItemStackCUtils.createItemCost` when creating component-aware trade costs. |
 | `net.minecraft.Util` | `net.minecraft.util.Util` | The utility class moved into the `util` package. |
 | `net.minecraft.resources.ResourceLocation` | `net.minecraft.resources.Identifier` | Resource identifiers were renamed. Factory methods such as `fromNamespaceAndPath` and `withDefaultNamespace` remain available. |
 | `net.minecraft.world.entity.MobSpawnType` | `net.minecraft.world.entity.EntitySpawnReason` | Entity spawn reasons were renamed. Constants such as `COMMAND` remain available. |
@@ -82,3 +83,10 @@ See `Compatability.md` for the compatibility classes and methods used to keep fu
 | `neoforge:composite` model children retain their individual render types | A composite model JSON applies the composite root's single render type to all child geometry | Put a shared `render_type` on the composite root, or use a `type: "neoforge:composite"` blockstate model when children require different render types. |
 | Custom data added during `RenderNameTagEvent.CanRender` remains available while rendering | NeoForge resets render-state extension data after extraction completes | Register a post-extraction modifier with `RegisterRenderStateModifiersEvent` before consuming the data during deferred rendering. |
 | Entity-driven models read riding state directly from the entity | Render-state models require sitting or passenger state to be extracted explicitly | Store sitting state for villager-style models and populate `HumanoidRenderState.isPassenger` for humanoid customer models. |
+
+## Item-stack list persistence
+
+Use `DataReader.getItemStacks` and `DataWriter.putItemStacks` for shared
+functionality that persists item-stack lists. The Minecraft 1.21.1 adapter uses
+`ItemStackHandler.serializeNBT` and `deserializeNBT`; the Minecraft 1.21.11
+adapter uses `ItemStackHandler.serialize` and `deserialize`.

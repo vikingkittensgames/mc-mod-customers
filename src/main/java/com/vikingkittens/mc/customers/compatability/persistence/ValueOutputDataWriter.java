@@ -2,11 +2,13 @@ package com.vikingkittens.mc.customers.compatability.persistence;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.UUIDUtil;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueOutput;
 
@@ -49,6 +51,12 @@ final class ValueOutputDataWriter implements DataWriter {
     @Override
     public void putUuids(String key, Collection<UUID> values) {
         ValueOutput.TypedOutputList<UUID> list = output.list(key, UUIDUtil.CODEC);
+        values.forEach(list::add);
+    }
+
+    @Override
+    public void putItemStacks(String key, List<ItemStack> values) {
+        ValueOutput.TypedOutputList<ItemStack> list = output.list(key, ItemStack.CODEC);
         values.forEach(list::add);
     }
 

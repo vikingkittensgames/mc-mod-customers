@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.UUIDUtil;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 
@@ -47,6 +48,11 @@ final class ValueInputDataReader implements DataReader {
     @Override
     public List<UUID> getUuids(String key) {
         return input.listOrEmpty(key, UUIDUtil.CODEC).stream().toList();
+    }
+
+    @Override
+    public List<ItemStack> getItemStacks(String key) {
+        return input.listOrEmpty(key, ItemStack.CODEC).stream().toList();
     }
 
     @Override

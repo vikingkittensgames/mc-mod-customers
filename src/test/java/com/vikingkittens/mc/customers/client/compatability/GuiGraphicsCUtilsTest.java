@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.ItemStack;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 
@@ -69,6 +70,21 @@ class GuiGraphicsCUtilsTest {
         verify(pose).pushMatrix();
         verify(pose).translate(3.0F, 4.0F);
         verify(pose).scale(1.5F, 2.0F);
+        verify(pose).popMatrix();
+    }
+    @Test
+    void rendersScaledItem() {
+        GuiGraphics graphics = mock(GuiGraphics.class);
+        Matrix3x2fStack pose = mock(Matrix3x2fStack.class);
+        ItemStack stack = mock(ItemStack.class);
+        when(graphics.pose()).thenReturn(pose);
+
+        GuiGraphicsCUtils.renderItem(graphics, stack, 4, 5, 0.5F);
+
+        verify(pose).pushMatrix();
+        verify(pose).translate(4.0F, 5.0F);
+        verify(pose).scale(0.5F, 0.5F);
+        verify(graphics).renderItem(stack, 0, 0);
         verify(pose).popMatrix();
     }
 }

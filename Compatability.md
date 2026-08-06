@@ -137,14 +137,23 @@ public static void onCraftedBy(
 );
 
 public static ItemStack getCraftingRemainder(ItemStack stack);
+
+public static ItemCost createItemCost(
+        ItemStack stack,
+        int count
+);
 ```
 
 | Method | Minecraft 1.21.1 | Minecraft 1.21.11 |
 | --- | --- | --- |
 | `onCraftedBy` | `stack.onCraftedBy(player.level(), player, count)` | `stack.onCraftedBy(player, count)` |
 | `getCraftingRemainder` | Check `hasCraftingRemainingItem()`, then call `getCraftingRemainingItem()` | Call `stack.getCraftingRemainder()` |
+| `createItemCost` | Construct with `DataComponentPredicate.allOf(stack.getComponents())` | Construct with `DataComponentExactPredicate.allOf(stack.getComponents())` |
 
 Both implementations return an empty `ItemStack` when no crafting remainder exists.
+
+`createItemCost` preserves component-bearing variants such as potions while
+centralizing the renamed component-predicate type used by supported versions.
 
 ### PlayerCUtils
 
@@ -262,8 +271,15 @@ PersistenceCUtils
 ```
 
 Minecraft 1.21.11 uses the package-private `ValueInputDataReader` and
-`ValueOutputDataWriter` adapters. Minecraft 1.21.1 uses equivalent adapters
-backed by `CompoundTag`.
+`ValueOutputDataWriter` adapters. Minecraft 1.21.1 uses the package-private
+`CompoundTagDataReader` and `CompoundTagDataWriter` adapters.
+
+Factory methods:
+
+| Operation | Minecraft 1.21.1 | Minecraft 1.21.11 |
+| --- | --- | --- |
+| Create reader | `PersistenceCUtils.reader(CompoundTag)` | `PersistenceCUtils.reader(ValueInput)` |
+| Create writer | `PersistenceCUtils.writer(CompoundTag)` | `PersistenceCUtils.writer(ValueOutput)` |
 
 Reader operations:
 
@@ -279,6 +295,8 @@ Optional<BlockState> getBlockState(String key);
 Optional<UUID> getUuid(String key);
 
 List<UUID> getUuids(String key);
+
+List<ItemStack> getItemStacks(String key);
 
 DataReader childOrEmpty(String key);
 
@@ -300,6 +318,8 @@ void putUuid(String key, UUID value);
 
 void putUuids(String key, Collection<UUID> values);
 
+void putItemStacks(String key, List<ItemStack> values);
+
 DataWriter child(String key);
 
 DataWriter addChild(String key);
@@ -308,6 +328,11 @@ DataWriter addChild(String key);
 | Minecraft 1.21.1 | Minecraft 1.21.11 |
 | --- | --- |
 | Adapters read and write `CompoundTag`, `ListTag`, and `NbtUtils` values | Adapters read and write `ValueInput`, `ValueOutput`, and codec-backed values |
+
+Registry-backed factory overloads preserve complete item stacks, including
+counts and data components. Minecraft 1.21.1 adapters use
+`ItemStackHandler.serializeNBT` and `deserializeNBT`; Minecraft 1.21.11
+adapters use `ItemStackHandler.serialize` and `deserialize`.
 
 Entity and block-entity override signatures cannot be hidden by static methods. Each branch keeps thin version-specific overrides that create an adapter and delegate to shared persistence logic.
 
@@ -322,7 +347,10 @@ Completed shared persistence coverage:
 
 `DataWriter.addChild(key)` appends a child to the list identified by `key`. The Minecraft 1.21.11 adapter must reuse the same `ValueOutput.ValueOutputList` handle for repeated calls with a key because requesting the list again can replace previously written entries.
 
-`ItemStackHandler` inventory serialization remains in the thin version-specific block-entity overrides because 1.21.1 uses `serializeNBT` and `deserializeNBT`, while 1.21.11 uses `serialize` and `deserialize`. Customer UUIDs, counter reservations, and supplier daytime flags use `DataReader` and `DataWriter` in shared persistence logic.
+Existing `ItemStackHandler` inventory serialization remains in thin
+version-specific block-entity overrides. Shared item-stack lists use
+`DataReader` and `DataWriter` so functionality code can remain the same across
+versions.
 
 ## Client Compatibility
 
@@ -386,6 +414,14 @@ public static void scale(
         float x,
         float y
 );
+
+public static void renderItem(
+        GuiGraphics graphics,
+        ItemStack stack,
+        int x,
+        int y,
+        float scale
+);
 ```
 
 | Behavior | Minecraft 1.21.1 | Minecraft 1.21.11 |
@@ -394,6 +430,33 @@ public static void scale(
 | Push and pop | Use `pushPose` and `popPose` | Use `pushMatrix` and `popMatrix` |
 | Translation | Use the 3D pose-stack translation with a zero Z value | Use the 2D matrix-stack translation |
 | Scaling | Use the 3D pose-stack scale with a Z scale of `1.0F` | Use the 2D matrix-stack scale |
+| GUI item rendering | Render the item and decorations through `GuiGraphics` after applying the compatibility transform | Render the item and decorations through the current GUI item submission API after applying the compatibility transform |
+
+### BossBarCUtils
+
+Package:
+
+```text
+com.vikingkittens.mc.customers.client.compatability.BossBarCUtils
+```
+
+Method:
+
+```java
+public static void render(
+        GuiGraphics graphics,
+        int x,
+        int y,
+        BossEvent bossEvent
+);
+```
+
+This method renders a vanilla-style boss bar at a caller-selected position while
+keeping the sprite and GUI submission differences out of shared feature code.
+
+| Minecraft 1.21.1 | Minecraft 1.21.11 |
+| --- | --- |
+| Use `ResourceLocation` boss-bar sprites and the 1.21.1 `GuiGraphics.blitSprite` overload | Use `Identifier` boss-bar sprites and the 1.21.11 GUI sprite rendering API |
 
 ### RenderingCUtils
 
