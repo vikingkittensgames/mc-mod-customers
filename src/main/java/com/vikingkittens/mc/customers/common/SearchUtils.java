@@ -33,6 +33,32 @@ public class SearchUtils {
 
         return matchingBlocks;
     }
+
+    public static <T extends Entity> List<T> findEntitiesInBox(
+            Level level,
+            Class<T> entityClass,
+            BlockPos center,
+            int size,
+            Predicate<T> predicate
+    ) {
+        int minOffset = -(size / 2);
+        int maxOffset = minOffset + size;
+        BlockPos minPos = center.offset(minOffset, minOffset, minOffset);
+        BlockPos maxPos = center.offset(maxOffset, maxOffset, maxOffset);
+        return level.getEntitiesOfClass(
+                entityClass,
+                new AABB(
+                        minPos.getX(),
+                        minPos.getY(),
+                        minPos.getZ(),
+                        maxPos.getX(),
+                        maxPos.getY(),
+                        maxPos.getZ()
+                ),
+                predicate
+        );
+    }
+
     public static List<BlockPos> findBlocksInSphere(Level level, BlockPos center, int radius, BiPredicate<BlockPos, BlockState> predicate) {
         List<BlockPos> matchingBlocks = new ArrayList<>();
         double radiusSq = radius * radius;

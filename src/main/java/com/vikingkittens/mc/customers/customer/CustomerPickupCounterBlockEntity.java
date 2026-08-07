@@ -3,6 +3,7 @@ package com.vikingkittens.mc.customers.customer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -518,18 +519,18 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
         ) > 0;
     }
     /**
-     * Finds customer spawner block entities inside a 64 by 64 by 64 cube
-     * centered on the pickup counter.
+     * Finds spawners or their customers inside a 64 by 64 by 64 cube centered
+     * on the pickup counter.
      *
      * @param level counter level
      * @param pos counter position
-     * @return nearby customer spawner block entities
+     * @return distinct customer spawner block entities
      */
     static List<CustomerSpawnerBlockEntity> findCustomerSpawners(
             Level level,
             BlockPos pos
     ) {
-        List<BlockPos> positions = SearchUtils.findBlocksInBox(
+        List<BlockPos> spawnerPositions = SearchUtils.findBlocksInBox(
                 level,
                 pos,
                 CUSTOMER_SPAWNER_SEARCH_SIZE,
@@ -540,9 +541,36 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
                                         .get()
                         )
         );
+        List<CustomerVillagerEntity> customers =
+                SearchUtils.findEntitiesInBox(
+                        level,
+                        CustomerVillagerEntity.class,
+                        pos,
+                        CUSTOMER_SPAWNER_SEARCH_SIZE,
+                        customer -> customer.getSpawnerPos() != null
+                );
+        return findCustomerSpawners(
+                level,
+                spawnerPositions,
+                customers
+        );
+    }
+
+    static List<CustomerSpawnerBlockEntity> findCustomerSpawners(
+            Level level,
+            List<BlockPos> nearbySpawnerPositions,
+            List<CustomerVillagerEntity> nearbyCustomers
+    ) {
+        Set<BlockPos> spawnerPositions =
+                new LinkedHashSet<>(nearbySpawnerPositions);
+        nearbyCustomers.stream()
+                .map(CustomerVillagerEntity::getSpawnerPos)
+                .filter(java.util.Objects::nonNull)
+                .forEach(spawnerPositions::add);
+
         List<CustomerSpawnerBlockEntity> spawners =
-                new ArrayList<>(positions.size());
-        for (BlockPos spawnerPos : positions) {
+                new ArrayList<>(spawnerPositions.size());
+        for (BlockPos spawnerPos : spawnerPositions) {
             if (level.getBlockEntity(spawnerPos)
                     instanceof CustomerSpawnerBlockEntity spawner) {
                 spawners.add(spawner);

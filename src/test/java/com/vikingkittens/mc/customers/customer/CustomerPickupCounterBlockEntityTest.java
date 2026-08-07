@@ -555,6 +555,52 @@ class CustomerPickupCounterBlockEntityTest {
     }
 
     @Test
+    void findsSpawnerReferencedByNearbyCustomer() {
+        Level level = mock(Level.class);
+        CustomerVillagerEntity customer =
+                mock(CustomerVillagerEntity.class);
+        CustomerSpawnerBlockEntity spawner =
+                mock(CustomerSpawnerBlockEntity.class);
+        BlockPos spawnerPos = new BlockPos(40, 0, 0);
+        when(customer.getSpawnerPos()).thenReturn(spawnerPos);
+        when(level.getBlockEntity(spawnerPos)).thenReturn(spawner);
+
+        List<CustomerSpawnerBlockEntity> spawners =
+                CustomerPickupCounterBlockEntity.findCustomerSpawners(
+                        level,
+                        List.of(),
+                        List.of(customer)
+                );
+
+        assertEquals(List.of(spawner), spawners);
+    }
+
+    @Test
+    void findsEachCustomerSpawnerOnlyOnce() {
+        Level level = mock(Level.class);
+        CustomerVillagerEntity firstCustomer =
+                mock(CustomerVillagerEntity.class);
+        CustomerVillagerEntity secondCustomer =
+                mock(CustomerVillagerEntity.class);
+        CustomerSpawnerBlockEntity spawner =
+                mock(CustomerSpawnerBlockEntity.class);
+        BlockPos spawnerPos = BlockPos.ZERO;
+        when(firstCustomer.getSpawnerPos()).thenReturn(spawnerPos);
+        when(secondCustomer.getSpawnerPos()).thenReturn(spawnerPos);
+        when(level.getBlockEntity(spawnerPos)).thenReturn(spawner);
+
+        List<CustomerSpawnerBlockEntity> spawners =
+                CustomerPickupCounterBlockEntity.findCustomerSpawners(
+                        level,
+                        List.of(spawnerPos),
+                        List.of(firstCustomer, secondCustomer)
+                );
+
+        assertEquals(List.of(spawner), spawners);
+        verify(level, times(1)).getBlockEntity(spawnerPos);
+    }
+
+    @Test
     void synchronizesInventoryChangesToClients() {
         Level level = mock(Level.class);
         BlockEntityType<?> type = mock(BlockEntityType.class);

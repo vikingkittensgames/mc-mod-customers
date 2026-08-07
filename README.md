@@ -170,10 +170,12 @@ a pickup counter while another player serves the waiting customers, or customers
 at pickup counters can collect their prepared items directly.
 
 Placing a requested item on a pickup counter gives crafting credit to the player who
-prepared it when a Customer Spawner is within a 64 by 64 by 64 area. If the full stack is
-not currently needed, the counter remembers who prepared the remaining items. Those items
-are checked again when another matching stack is added, and any later crafting credit
-still goes to the original crafter.
+prepared it when a Customer Spawner or one of its customers is within a 64 by 64 by 64
+area. The pickup counter includes all active customers belonging to each matching spawner,
+even when the spawner itself is outside that area. If the full stack is not currently
+needed, the counter remembers who prepared the remaining items. Those items are checked
+again when another matching stack is added, and any later crafting credit still goes to
+the original crafter.
 
 Each pickup counter holds up to 9 item stacks. The stored items are displayed on top
 of the block, so players can see what is ready without opening an inventory screen. Items
