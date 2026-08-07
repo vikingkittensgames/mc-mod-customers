@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "V": "minecraft:copper_ingot"
+  },
+  "pattern": [
+    "IVV"
+  ],
+  "result": {
+    "count": 1,
+    "id": "customers:copper_customer_pickup_counter"
+  }
+}

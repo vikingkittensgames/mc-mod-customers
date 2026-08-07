@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "customers:item/cherry_customer_pickup_counter"
+  }
+}

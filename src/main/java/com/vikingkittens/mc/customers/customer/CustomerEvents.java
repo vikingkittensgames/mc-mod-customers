@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import com.mojang.logging.LogUtils;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.TriState;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -28,6 +29,26 @@ import com.vikingkittens.mc.customers.config.Config;
 public class CustomerEvents {
     private static final Logger LOGGER = LogUtils.getLogger();
 
+    /**
+     * Routes sneaking pickup-counter interactions to the block instead of
+     * allowing the held item to handle them.
+     *
+     * @param event block interaction event
+     */
+    @SubscribeEvent
+    public static void onPickupCounterInteract(
+            PlayerInteractEvent.RightClickBlock event
+    ) {
+        if (event.getEntity().isSecondaryUseActive()
+                && event.getLevel()
+                        .getBlockState(event.getPos())
+                        .getBlock()
+                        instanceof CustomerPickupCounterBlock) {
+            event.setUseBlock(TriState.TRUE);
+            event.setUseItem(TriState.FALSE);
+        }
+    }
+
     @SubscribeEvent
     public static void registerPayloads(RegisterPayloadHandlersEvent event) {
         var registrar = event.registrar("1");
@@ -40,6 +61,11 @@ public class CustomerEvents {
                 CustomerCounterMarkersPayload.TYPE,
                 CustomerCounterMarkersPayload.STREAM_CODEC,
                 CustomerCounterMarkersPayload::handle
+        );
+        registrar.playToClient(
+                CustomerSpawnerSnapshotPayload.TYPE,
+                CustomerSpawnerSnapshotPayload.STREAM_CODEC,
+                CustomerSpawnerSnapshotPayload::handle
         );
     }
 

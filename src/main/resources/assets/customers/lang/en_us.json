@@ -5,7 +5,21 @@
 
   "block.customers.customer_spawner_block": "Customer Spawner",
   "block.customers.supplier_spawner_block": "Supplier Spawner",
-
+  "block.customers.iron_customer_pickup_counter": "Iron Customer Pickup Counter",
+  "block.customers.copper_customer_pickup_counter": "Copper Customer Pickup Counter",
+  "block.customers.gold_customer_pickup_counter": "Gold Customer Pickup Counter",
+  "block.customers.oak_customer_pickup_counter": "Oak Customer Pickup Counter",
+  "block.customers.spruce_customer_pickup_counter": "Spruce Customer Pickup Counter",
+  "block.customers.birch_customer_pickup_counter": "Birch Customer Pickup Counter",
+  "block.customers.jungle_customer_pickup_counter": "Jungle Customer Pickup Counter",
+  "block.customers.acacia_customer_pickup_counter": "Acacia Customer Pickup Counter",
+  "block.customers.dark_oak_customer_pickup_counter": "Dark Oak Customer Pickup Counter",
+  "block.customers.mangrove_customer_pickup_counter": "Mangrove Customer Pickup Counter",
+  "block.customers.cherry_customer_pickup_counter": "Cherry Customer Pickup Counter",
+  "block.customers.crimson_customer_pickup_counter": "Crimson Customer Pickup Counter",
+  "block.customers.warped_customer_pickup_counter": "Warped Customer Pickup Counter",
+  "block.customers.bamboo_customer_pickup_counter": "Bamboo Customer Pickup Counter",
+  "block.customers.stripped_bamboo_customer_pickup_counter": "Stripped Bamboo Customer Pickup Counter",
   "item.customers.customer_spawner_block": "Customer Spawner",
   "item.customers.supplier_spawner_block": "Supplier Spawner",
 
@@ -57,9 +71,14 @@
   "messages.customers.scoreboard.detail.player_served_items": "%s served %s out of %s items",
   "screen.customers.shift_finished": "Shift Results",
   "screen.customers.shift_finished.items_served": "%s items",
+  "screen.customers.shift_finished.total_items_served": "%s items served",
+  "screen.customers.shift_finished.total_items_crafted": "%s items crafted",
   "screen.customers.shift_finished.close": "Close",
 
   "messages.customers.supplies": "I have your supplies for the day.",
+  "messages.customers.pickup_counter.full": "The pickup counter is full.",
+  "messages.customers.pickup_counter.not_wanted": "No active customer wants that item.",
+  "messages.customers.pickup_counter.items_returned": "Items that customers no longer need were dropped on the pickup counter because your inventory is full.",
 
   "customers.configuration.title": "Customers Configs",
   "customers.configuration.section.customers.common.toml": "Customers Configs",

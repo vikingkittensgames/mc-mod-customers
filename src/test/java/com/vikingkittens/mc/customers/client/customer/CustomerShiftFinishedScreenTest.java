@@ -1,5 +1,9 @@
 package com.vikingkittens.mc.customers.client.customer;
 
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -78,5 +82,140 @@ class CustomerShiftFinishedScreenTest {
         assertEquals("customers:bonk", CustomerShiftFinishedScreen
                 .getStarSound(CustomerShiftFinishedScreen.StarState.EMPTY)
                 .location().toString());
+    }
+    /** Includes players who only crafted or only served in shift results. */
+    @Test
+    void combinesCraftedAndServedPlayerIds() {
+        UUID servedOnly =
+                UUID.fromString("11111111-1111-1111-1111-111111111111");
+        UUID craftedOnly =
+                UUID.fromString("22222222-2222-2222-2222-222222222222");
+        UUID both =
+                UUID.fromString("33333333-3333-3333-3333-333333333333");
+
+        List<UUID> playerIds =
+                CustomerShiftFinishedScreen.getScoredPlayerIds(
+                        Map.of(servedOnly, 4, both, 3),
+                        Map.of(craftedOnly, 8, both, 7)
+                );
+
+        assertEquals(
+                List.of(servedOnly, craftedOnly, both),
+                playerIds
+        );
+    }
+
+    /** Excludes players without a positive served or crafted contribution. */
+    @Test
+    void excludesPlayersWithoutAContribution() {
+        UUID inactive =
+                UUID.fromString("11111111-1111-1111-1111-111111111111");
+        UUID active =
+                UUID.fromString("22222222-2222-2222-2222-222222222222");
+
+        assertEquals(
+                List.of(active),
+                CustomerShiftFinishedScreen.getScoredPlayerIds(
+                        Map.of(inactive, 0, active, 1),
+                        Map.of(inactive, 0)
+                )
+        );
+    }
+
+    /** Omits score icons whose count is zero. */
+    @Test
+    void rendersOnlyPositiveScores() {
+        assertEquals(false,
+                CustomerShiftFinishedScreen.shouldRenderScore(0));
+        assertEquals(false,
+                CustomerShiftFinishedScreen.shouldRenderScore(-1));
+        assertEquals(true,
+                CustomerShiftFinishedScreen.shouldRenderScore(1));
+    }
+
+    @Test
+    void scalesScoreIconsToTheTextHeight() {
+        assertEquals(
+                9.0F / 32.0F,
+                CustomerShiftFinishedScreen.getScoreIconScale(9)
+        );
+    }
+
+    @Test
+    void duplicatesPlayersForLayoutTesting() {
+        UUID first =
+                UUID.fromString("11111111-1111-1111-1111-111111111111");
+        UUID second =
+                UUID.fromString("22222222-2222-2222-2222-222222222222");
+
+        assertEquals(
+                List.of(first, second, first, second, first, second),
+                CustomerShiftFinishedScreen.duplicatePlayers(
+                        List.of(first, second),
+                        3
+                )
+        );
+    }
+
+    @Test
+    void calculatesPlayerCardWidthFromHeadAndName() {
+        assertEquals(
+                56,
+                CustomerShiftFinishedScreen.getPlayerCardWidth(42)
+        );
+    }
+
+    @Test
+    void packsAsManyPlayerCardsAsFitOnEachRow() {
+        assertEquals(
+                List.of(
+                        List.of(60, 70),
+                        List.of(80)
+                ),
+                CustomerShiftFinishedScreen.getPlayerCardRows(
+                        List.of(60, 70, 80),
+                        150,
+                        4
+                )
+        );
+    }
+
+    @Test
+    void keepsAnOversizedPlayerCardInItsOwnRow() {
+        assertEquals(
+                List.of(
+                        List.of(250),
+                        List.of(60)
+                ),
+                CustomerShiftFinishedScreen.getPlayerCardRows(
+                        List.of(250, 60),
+                        224,
+                        4
+                )
+        );
+    }
+
+    @Test
+    void calculatesPlayerCardRowWidthIncludingGaps() {
+        assertEquals(
+                138,
+                CustomerShiftFinishedScreen.getPlayerCardRowWidth(
+                        List.of(60, 70),
+                        8
+                )
+        );
+    }
+
+    @Test
+    void centersEachPlayerCardRowBetweenTheMargins() {
+        assertEquals(
+                128,
+                CustomerShiftFinishedScreen.getCenteredPlayerCardRowX(
+                        100,
+                        16,
+                        224,
+                        200
+                )
+        );
     }
 }

@@ -527,6 +527,8 @@ The following changes should not be hidden behind static compatibility methods b
 - entity and block-entity persistence override signatures
 - `RenderLevelStageEvent.Stage` versus render-stage event subclasses
 - entity-driven renderers versus render-state renderers
+- direct block-entity renderers versus extracted block-entity render states
+- client/server data-generation event and provider architecture
 - `MobRenderer` generic signatures
 - villager render-layer constructors
 - zombie, husk, drowned, skeleton, stray, and witch renderer architecture

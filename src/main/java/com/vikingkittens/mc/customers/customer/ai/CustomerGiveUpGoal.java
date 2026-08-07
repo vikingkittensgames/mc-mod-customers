@@ -11,9 +11,6 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.trading.MerchantOffer;
 
 import com.vikingkittens.mc.customers.common.ai.MobTimedGoal;
-import com.vikingkittens.mc.customers.compatability.VillagerCUtils;
-import com.vikingkittens.mc.customers.config.Config;
-import com.vikingkittens.mc.customers.customer.Customer;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlockEntity;
 import com.vikingkittens.mc.customers.customer.CustomerState;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
@@ -34,23 +31,11 @@ public class CustomerGiveUpGoal extends MobTimedGoal {
 
     @Override
     public boolean canUse() {
-        long giveUpTicks = 20L * Config.CUSTOMER_GIVE_UP_SECONDS.get();
-        if (VillagerCUtils.hasProfession(
-                customer.getVillagerData(),
-                Customer.CUSTOMER_IMPATIENT_PROFESSION.getKey()
-        )) {
-            giveUpTicks = Math.max(1, giveUpTicks / 2);
-        } else if (VillagerCUtils.hasProfession(
-                customer.getVillagerData(),
-                Customer.CUSTOMER_CASUAL_PROFESSION.getKey()
-        )) {
-            giveUpTicks = 0;
-        }
         return super.canUse() && (
                 (
                         (
                                 customer.getState() == CustomerState.BUYING &&
-                                (giveUpTicks > 0 && customer.getTicksSinceTrade() > giveUpTicks)
+                                (customer.getGiveUpTicks() > 0 && customer.getTicksSinceTrade() > customer.getGiveUpTicks())
                         ) ||
                                 customer.getState() == CustomerState.FORCED_GIVING_UP
                 ) ||

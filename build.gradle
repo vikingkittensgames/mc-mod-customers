@@ -99,14 +99,14 @@ neoForge {
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
-        data {
-            data()
+        clientData {
+            clientData()
+            programArguments.addAll '--mod', project.mod_id, '--output', file('build/generated/clientData/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
+        }
 
-            // example of overriding the workingDirectory set in configureEach above, uncomment if you want to use it
-            // gameDirectory = project.file('run-data')
-
-            // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
-            programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
+        serverData {
+            serverData()
+            programArguments.addAll '--mod', project.mod_id, '--output', file('build/generated/serverData/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
         }
 
         // applies to all the run configs above
@@ -135,6 +135,22 @@ neoForge {
             sourceSet(sourceSets.main)
         }
     }
+}
+
+tasks.named('runServerData') {
+    mustRunAfter tasks.named('runClientData')
+}
+
+tasks.register('syncGeneratedData', Sync) {
+    dependsOn tasks.named('runClientData'), tasks.named('runServerData')
+    from file('build/generated/clientData/')
+    from file('build/generated/serverData/')
+    exclude '**/.cache/**'
+    into file('src/generated/resources/')
+}
+
+tasks.register('runData') {
+    dependsOn tasks.named('syncGeneratedData')
 }
 
 // Sets up a dependency configuration called 'localRuntime'.

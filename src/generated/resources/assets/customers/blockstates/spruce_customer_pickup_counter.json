@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "customers:block/spruce_customer_pickup_counter"
+    }
+  }
+}

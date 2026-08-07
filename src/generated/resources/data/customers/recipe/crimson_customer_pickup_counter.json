@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "V": "minecraft:stripped_crimson_stem"
+  },
+  "pattern": [
+    "IVV"
+  ],
+  "result": {
+    "count": 1,
+    "id": "customers:crimson_customer_pickup_counter"
+  }
+}

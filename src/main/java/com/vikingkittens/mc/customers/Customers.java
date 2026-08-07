@@ -16,7 +16,9 @@ import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import com.vikingkittens.mc.customers.config.Config;
 import com.vikingkittens.mc.customers.config.RecipeConditions;
 import com.vikingkittens.mc.customers.customer.Customer;
+import com.vikingkittens.mc.customers.customer.CustomerPickupCounter;
 import com.vikingkittens.mc.customers.customer.CustomerSpawner;
+import com.vikingkittens.mc.customers.customer.data.CustomersData;
 import com.vikingkittens.mc.customers.supplier.Supplier;
 import com.vikingkittens.mc.customers.supplier.SupplierSpawner;
 
@@ -30,10 +32,13 @@ public class Customers {
         modEventBus.addListener(this::commonSetup);
 
         CustomerSpawner.register(modEventBus);
+        CustomerPickupCounter.register(modEventBus);
         Customer.register(modEventBus);
         SupplierSpawner.register(modEventBus);
         Supplier.register(modEventBus);
         RecipeConditions.register(modEventBus);
+        modEventBus.addListener(CustomersData::gatherClientData);
+        modEventBus.addListener(CustomersData::gatherServerData);
 
         NeoForge.EVENT_BUS.register(this);
 

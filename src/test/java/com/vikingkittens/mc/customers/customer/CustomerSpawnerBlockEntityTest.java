@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.OptionalInt;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -16,10 +17,12 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.storage.TagValueInput;
@@ -34,16 +37,159 @@ import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtil
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class CustomerSpawnerBlockEntityTest {
     @BeforeAll
     static void bootstrapMinecraft() {
         MinecraftTestBootstrap.bootstrap();
+    }
+
+    /** Assigns a crafted stack across multiple active customers. */
+    @Test
+    void assignsCraftedItemsAcrossCustomersAndCreditsEveryItem() {
+        UUID playerId = UUID.randomUUID();
+        CustomerVillagerEntity first = mock(CustomerVillagerEntity.class);
+        CustomerVillagerEntity second = mock(CustomerVillagerEntity.class);
+        ItemStack input = new ItemStack(Items.BREAD, 10);
+        ItemStack firstRemainder = new ItemStack(Items.BREAD, 4);
+        Map<UUID, Integer> craftedByPlayer = new HashMap<>();
+        when(first.tryAssignCraftedOffer(input)).thenReturn(firstRemainder);
+        when(second.tryAssignCraftedOffer(firstRemainder)).thenReturn(null);
+
+        ItemStack result = CustomerSpawnerBlockEntity.tryAssignCraftedItem(
+                List.of(first, second),
+                craftedByPlayer,
+                playerId,
+                input
+        );
+
+        assertNull(result);
+        assertEquals(10, craftedByPlayer.get(playerId));
+    }
+
+    /** Returns the unmatched portion and credits only assigned item units. */
+    @Test
+    void partiallyAssignsCraftedItems() {
+        UUID playerId = UUID.randomUUID();
+        CustomerVillagerEntity customer = mock(CustomerVillagerEntity.class);
+        ItemStack input = new ItemStack(Items.BREAD, 10);
+        ItemStack remainder = new ItemStack(Items.BREAD, 3);
+        Map<UUID, Integer> craftedByPlayer = new HashMap<>();
+        when(customer.tryAssignCraftedOffer(input)).thenReturn(remainder);
+
+        ItemStack result = CustomerSpawnerBlockEntity.tryAssignCraftedItem(
+                List.of(customer),
+                craftedByPlayer,
+                playerId,
+                input
+        );
+
+        assertSame(remainder, result);
+        assertEquals(7, craftedByPlayer.get(playerId));
+    }
+
+    /** Leaves the score unchanged when no customer wants the item. */
+    @Test
+    void doesNotCreditUnassignedCraftedItems() {
+        UUID playerId = UUID.randomUUID();
+        CustomerVillagerEntity customer = mock(CustomerVillagerEntity.class);
+        ItemStack input = new ItemStack(Items.IRON_INGOT, 8);
+        Map<UUID, Integer> craftedByPlayer = new HashMap<>();
+        when(customer.tryAssignCraftedOffer(input)).thenReturn(input);
+
+        ItemStack result = CustomerSpawnerBlockEntity.tryAssignCraftedItem(
+                List.of(customer),
+                craftedByPlayer,
+                playerId,
+                input
+        );
+
+        assertSame(input, result);
+        assertFalse(craftedByPlayer.containsKey(playerId));
+    }
+    /** Previews assignable demand across customers without changing scores. */
+    @Test
+    void previewsCraftedAssignmentAcrossCustomers() {
+        CustomerVillagerEntity first =
+                mock(CustomerVillagerEntity.class);
+        CustomerVillagerEntity second =
+                mock(CustomerVillagerEntity.class);
+        when(first.getAssignableCraftedItemCount(any(ItemStack.class)))
+                .thenReturn(6);
+        when(second.getAssignableCraftedItemCount(any(ItemStack.class)))
+                .thenReturn(4);
+
+        int assignable =
+                CustomerSpawnerBlockEntity
+                        .getAssignableCraftedItemCount(
+                                List.of(first, second),
+                                new ItemStack(Items.BREAD, 10)
+                        );
+
+        assertEquals(10, assignable);
+    }
+
+    /** Rebuilds reservations without requiring or changing player scores. */
+    @Test
+    void reservesCraftedItemsWithoutAwardingMoreCredit() {
+        CustomerVillagerEntity first =
+                mock(CustomerVillagerEntity.class);
+        CustomerVillagerEntity second =
+                mock(CustomerVillagerEntity.class);
+        ItemStack input = new ItemStack(Items.BREAD, 10);
+        ItemStack firstRemainder = new ItemStack(Items.BREAD, 4);
+        when(first.tryAssignCraftedOffer(input))
+                .thenReturn(firstRemainder);
+        when(second.tryAssignCraftedOffer(firstRemainder))
+                .thenReturn(null);
+
+        ItemStack result =
+                CustomerSpawnerBlockEntity.tryReserveCraftedItem(
+                        List.of(first, second),
+                        input
+                );
+
+        assertNull(result);
+        verify(first).tryAssignCraftedOffer(input);
+        verify(second).tryAssignCraftedOffer(firstRemainder);
+    }
+
+    @Test
+    void releasesCraftedReservationsAcrossCustomers() {
+        CustomerVillagerEntity first =
+                mock(CustomerVillagerEntity.class);
+        CustomerVillagerEntity second =
+                mock(CustomerVillagerEntity.class);
+        when(first.releaseCraftedOfferAssignment(
+                any(ItemStack.class)
+        )).thenReturn(6);
+        when(second.releaseCraftedOfferAssignment(
+                any(ItemStack.class)
+        )).thenReturn(4);
+
+        int released =
+                CustomerSpawnerBlockEntity
+                        .releaseCraftedItemAssignment(
+                                List.of(first, second),
+                                new ItemStack(Items.BREAD, 10)
+                        );
+
+        assertEquals(10, released);
+        verify(first).releaseCraftedOfferAssignment(
+                argThat(stack -> stack.getCount() == 10)
+        );
+        verify(second).releaseCraftedOfferAssignment(
+                argThat(stack -> stack.getCount() == 4)
+        );
     }
     @Test
     void usesFirstMaximumCustomerStackAndIgnoresLaterStacks() {
@@ -434,6 +580,95 @@ class CustomerSpawnerBlockEntityTest {
 
         assertFalse(CustomerVillagerEntity.isActiveCustomer(level, customerId));
     }
+    @Test
+    void findsOnlyActiveCustomersForClientSnapshots() {
+        ServerLevel level = mock(ServerLevel.class);
+        UUID activeId = UUID.randomUUID();
+        UUID doneId = UUID.randomUUID();
+        CustomerVillagerEntity active = mock(CustomerVillagerEntity.class);
+        CustomerVillagerEntity done = mock(CustomerVillagerEntity.class);
+        when(level.getEntity(activeId)).thenReturn(active);
+        when(level.getEntity(doneId)).thenReturn(done);
+        when(active.isAlive()).thenReturn(true);
+        when(active.getState()).thenReturn(CustomerState.BUYING);
+        when(done.isAlive()).thenReturn(true);
+        when(done.getState()).thenReturn(CustomerState.DONE);
+
+        List<CustomerVillagerEntity> customers =
+                CustomerSpawnerBlockEntity.getActiveCustomers(
+                        level,
+                        Set.of(activeId, doneId)
+                );
+
+        assertEquals(List.of(active), customers);
+    }
+
+    @Test
+    void findsOnlyPlayersWithinSpawnerViewRange() {
+        BlockPos spawnerPos = BlockPos.ZERO;
+        UUID nearbyId = UUID.randomUUID();
+        UUID boundaryId = UUID.randomUUID();
+        UUID distantId = UUID.randomUUID();
+        ServerPlayer nearby = mock(ServerPlayer.class);
+        ServerPlayer boundary = mock(ServerPlayer.class);
+        ServerPlayer distant = mock(ServerPlayer.class);
+        when(nearby.getUUID()).thenReturn(nearbyId);
+        when(nearby.blockPosition()).thenReturn(new BlockPos(10, 0, 0));
+        when(boundary.getUUID()).thenReturn(boundaryId);
+        when(boundary.blockPosition()).thenReturn(new BlockPos(64, 0, 0));
+        when(distant.getUUID()).thenReturn(distantId);
+        when(distant.blockPosition()).thenReturn(new BlockPos(65, 0, 0));
+
+        assertEquals(
+                Set.of(nearbyId, boundaryId),
+                CustomerSpawnerBlockEntity.getPlayerIdsInRange(
+                        spawnerPos,
+                        List.of(nearby, boundary, distant),
+                        64.0D
+                )
+        );
+    }
+    @Test
+    void identifiesPlayersEnteringAndLeavingSpawnerViewRange() {
+        UUID leavingId = UUID.randomUUID();
+        UUID retainedId = UUID.randomUUID();
+        UUID enteringId = UUID.randomUUID();
+
+        CustomerSpawnerBlockEntity.PlayerRangeChanges changes =
+                CustomerSpawnerBlockEntity.getPlayerRangeChanges(
+                        Set.of(leavingId, retainedId),
+                        Set.of(retainedId, enteringId)
+                );
+
+        assertEquals(Set.of(enteringId), changes.entering());
+        assertEquals(Set.of(leavingId), changes.leaving());
+    }
+    @Test
+    void addsTrackedPlayersWhenABossBarIsCreatedAfterRangeTracking() {
+        UUID trackedPlayer = UUID.randomUUID();
+
+        Set<UUID> playersToAdd =
+                CustomerSpawnerBlockEntity.getPlayerIdsToAddToBossBar(
+                        Set.of(),
+                        Set.of(trackedPlayer)
+                );
+
+        assertEquals(Set.of(trackedPlayer), playersToAdd);
+    }
+
+    @Test
+    void doesNotReaddPlayersAlreadyAttachedToTheBossBar() {
+        UUID attachedPlayer = UUID.randomUUID();
+
+        Set<UUID> playersToAdd =
+                CustomerSpawnerBlockEntity.getPlayerIdsToAddToBossBar(
+                        Set.of(attachedPlayer),
+                        Set.of(attachedPlayer)
+                );
+
+        assertEquals(Set.of(), playersToAdd);
+    }
+
     private static MerchantOffers getOffers(
             RandomSource random,
             ItemStackHandler inventory,

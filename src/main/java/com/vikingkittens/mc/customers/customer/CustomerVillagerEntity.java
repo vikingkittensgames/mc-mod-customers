@@ -2,6 +2,7 @@ package com.vikingkittens.mc.customers.customer;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -9,6 +10,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -22,6 +24,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.stats.Stats;
+import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
@@ -61,6 +64,7 @@ import com.vikingkittens.mc.customers.compatability.VillagerCUtils;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
 import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
 import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
+import com.vikingkittens.mc.customers.config.Config;
 import com.vikingkittens.mc.customers.customer.ai.*;
 
 public class CustomerVillagerEntity extends Villager {
@@ -80,9 +84,10 @@ public class CustomerVillagerEntity extends Villager {
     private static final String TAG_COUNTER_BLOCK_STATE = "CounterBlockState";
     private static final String TAG_AVOID_BLOCK_STATE = "AvoidBlockState";
     private static final String TAG_TRADED_WITH_PLAYERS = "TradedWithPlayers";
+    private static final String TAG_OFFERS_CRAFTED = "OffersCrafted";
     private static final String TAG_TRADED_PLAYER_UUID = "UUID";
-    private static final int MAX_SYNCED_DISPLAY_OFFERS = 3;
     private static final EntityDataAccessor<Integer> DATA_CUSTOMER_STATE = SynchedEntityData.defineId(CustomerVillagerEntity.class, EntityDataSerializers.INT);
+    private static final int MAX_SYNCED_DISPLAY_OFFERS = 3;
     private static final EntityDataAccessor<Boolean> DATA_CUSTOMER_SITTING = SynchedEntityData.defineId(CustomerVillagerEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<ItemStack> DATA_OFFER_DISPLAY_ITEM_0 = SynchedEntityData.defineId(CustomerVillagerEntity.class, EntityDataSerializers.ITEM_STACK);
     private static final EntityDataAccessor<ItemStack> DATA_OFFER_DISPLAY_ITEM_1 = SynchedEntityData.defineId(CustomerVillagerEntity.class, EntityDataSerializers.ITEM_STACK);
@@ -205,9 +210,224 @@ public class CustomerVillagerEntity extends Villager {
     private BlockState avoidBlockState;
     private BlockPos counterTargetBlockPos;
     private Set<UUID> tradedWithPlayers = new HashSet<>();
+    private final List<ItemStack> offersCrafted = new ArrayList<>();
     private long ticksSinceTrade = 0;
     private long ticksSincePlayerScan = 0;
 
+    /**
+     * Assigns as much of a crafted stack as possible to this customer's
+     * outstanding offers.
+     *
+     * @param stack crafted items available for assignment
+     * @return null when fully assigned, the unassigned remainder when partially
+     *         assigned, or the original stack when nothing matched
+     */
+    public @Nullable ItemStack tryAssignCraftedOffer(ItemStack stack) {
+        return tryAssignCraftedOffer(
+                getOffers(),
+                offersCrafted,
+                stack
+        );
+    }
+
+    public int releaseCraftedOfferAssignment(ItemStack stack) {
+        return releaseCraftedOfferAssignment(offersCrafted, stack);
+    }
+
+    /**
+     * Completes an offer taken from a pickup counter and credits its crafting
+     * player with serving the items.
+     *
+     * @param offer completed customer offer
+     * @param crafterId player who deposited the stored stack
+     * @param counterPosition pickup counter supplying the item
+     */
+    public void completePickupCounterOffer(
+            MerchantOffer offer,
+            UUID crafterId,
+            BlockPos counterPosition
+    ) {
+        int servedCount = completePickupCounterOffer(
+                offer,
+                offersCrafted,
+                tradedWithPlayers,
+                crafterId
+        );
+        ticksSinceTrade = 0;
+        playHappy();
+        if (level() instanceof ServerLevel serverLevel) {
+            Player crafter = serverLevel.getServer()
+                    .getPlayerList()
+                    .getPlayer(crafterId);
+            if (crafter != null) {
+                giveTradeRemainderItems(crafter, offer.getCostA());
+            } else {
+                ItemStack remainder =
+                        getTradeRemainderStack(offer.getCostA());
+                if (!remainder.isEmpty()) {
+                    Containers.dropItemStack(
+                            level(),
+                            counterPosition.getX() + 0.5D,
+                            counterPosition.getY() + 1.5D,
+                            counterPosition.getZ() + 0.5D,
+                            remainder
+                    );
+                }
+            }
+        }
+        if (spawnerPos != null
+                && level().getBlockEntity(spawnerPos)
+                        instanceof CustomerSpawnerBlockEntity spawner) {
+            spawner.scoreboardAddItemsServed(crafterId, servedCount);
+        }
+    }
+
+    /**
+     * Applies pickup-counter fulfillment to customer-owned offer state.
+     *
+     * @param offer completed customer offer
+     * @param craftedStacks reserved crafted-item stacks
+     * @param tradedPlayers players credited with serving this customer
+     * @param crafterId player who deposited the stored stack
+     * @return number of items served
+     */
+    static int completePickupCounterOffer(
+            MerchantOffer offer,
+            List<ItemStack> craftedStacks,
+            Set<UUID> tradedPlayers,
+            UUID crafterId
+    ) {
+        ItemStack cost = offer.getCostA();
+        releaseCraftedOfferAssignment(craftedStacks, cost);
+        offer.increaseUses();
+        tradedPlayers.add(crafterId);
+        return cost.getCount();
+    }
+
+    static int releaseCraftedOfferAssignment(
+            List<ItemStack> craftedStacks,
+            ItemStack stack
+    ) {
+        int remainingCount = stack.getCount();
+        Iterator<ItemStack> iterator = craftedStacks.iterator();
+        while (iterator.hasNext() && remainingCount > 0) {
+            ItemStack craftedStack = iterator.next();
+            if (!ItemStack.isSameItemSameComponents(
+                    craftedStack,
+                    stack
+            )) {
+                continue;
+            }
+            int releasedCount = Math.min(
+                    remainingCount,
+                    craftedStack.getCount()
+            );
+            craftedStack.shrink(releasedCount);
+            remainingCount -= releasedCount;
+            if (craftedStack.isEmpty()) {
+                iterator.remove();
+            }
+        }
+        return stack.getCount() - remainingCount;
+    }
+    /**
+     * Returns how many items could be assigned without changing customer state.
+     *
+     * @param stack items being considered
+     * @return number of items that could be assigned
+     */
+    public int getAssignableCraftedItemCount(ItemStack stack) {
+        return getAssignableCraftedItemCount(
+                getOffers(),
+                offersCrafted,
+                stack
+        );
+    }
+
+    /**
+     * Calculates assignable demand without changing the crafted-item list.
+     *
+     * @param offers outstanding customer offers
+     * @param craftedStacks quantities already assigned
+     * @param stack items being considered
+     * @return number of items that could be assigned
+     */
+    static int getAssignableCraftedItemCount(
+            List<MerchantOffer> offers,
+            List<ItemStack> craftedStacks,
+            ItemStack stack
+    ) {
+        int wantedCount = 0;
+        for (MerchantOffer offer : offers) {
+            ItemStack cost = offer.getCostA();
+            if (!offer.isOutOfStock()
+                    && offer.getItemCostA().test(stack)) {
+                wantedCount += cost.getCount();
+            }
+        }
+
+        int craftedCount = 0;
+        for (ItemStack craftedStack : craftedStacks) {
+            if (ItemStack.isSameItemSameComponents(
+                    craftedStack,
+                    stack
+            )) {
+                craftedCount += craftedStack.getCount();
+            }
+        }
+        return Math.min(
+                stack.getCount(),
+                Math.max(0, wantedCount - craftedCount)
+        );
+    }
+
+    /**
+     * Assigns crafted items against outstanding offers while accounting for
+     * quantities already assigned to matching offers.
+     *
+     * @param offers outstanding customer offers
+     * @param craftedStacks quantities already assigned
+     * @param stack crafted items available for assignment
+     * @return null when fully assigned, the unassigned remainder when partially
+     *         assigned, or the original stack when nothing matched
+     */
+    static @Nullable ItemStack tryAssignCraftedOffer(
+            List<MerchantOffer> offers,
+            List<ItemStack> craftedStacks,
+            ItemStack stack
+    ) {
+        int assignCount = getAssignableCraftedItemCount(
+                offers,
+                craftedStacks,
+                stack
+        );
+        if (assignCount == 0) {
+            return stack;
+        }
+
+        ItemStack matchingCraftedStack = craftedStacks.stream()
+                .filter(craftedStack ->
+                        ItemStack.isSameItemSameComponents(
+                                craftedStack,
+                                stack
+                        ))
+                .findFirst()
+                .orElse(null);
+        if (matchingCraftedStack == null) {
+            matchingCraftedStack = stack.copy();
+            matchingCraftedStack.setCount(assignCount);
+            craftedStacks.add(matchingCraftedStack);
+        } else {
+            matchingCraftedStack.grow(assignCount);
+        }
+
+        if (assignCount == stack.getCount()) {
+            return null;
+        }
+        ItemStack remainder = stack.copy();
+        remainder.shrink(assignCount);
+        return remainder;
+    }
     public CustomerVillagerEntity(EntityType<? extends Villager> entityType, Level level) {
         super(entityType, level);
     }
@@ -372,6 +592,23 @@ public class CustomerVillagerEntity extends Villager {
         );
     }
 
+    public CustomerSpawnerSnapshot.Customer.Type getSnapshotType() {
+        VillagerData data = getVillagerData();
+        if (VillagerCUtils.hasProfession(
+                data,
+                Customer.CUSTOMER_IMPATIENT_PROFESSION.getKey()
+        )) {
+            return CustomerSpawnerSnapshot.Customer.Type.IMPATIENT;
+        }
+        if (VillagerCUtils.hasProfession(
+                data,
+                Customer.CUSTOMER_CASUAL_PROFESSION.getKey()
+        )) {
+            return CustomerSpawnerSnapshot.Customer.Type.CASUAL;
+        }
+        return CustomerSpawnerSnapshot.Customer.Type.NORMAL;
+    }
+
     @Override
     public void setOffers(MerchantOffers offers) {
         super.setOffers(offers);
@@ -413,14 +650,14 @@ public class CustomerVillagerEntity extends Villager {
                 .ifPresent(state -> counterBlockState = state);
         input.getBlockState(TAG_AVOID_BLOCK_STATE)
                 .ifPresent(state -> avoidBlockState = state);
-
         tradedWithPlayers.clear();
         input.getChildren(TAG_TRADED_WITH_PLAYERS).forEach(
                 tradedPlayerInput -> tradedPlayerInput
                         .getUuid(TAG_TRADED_PLAYER_UUID)
                         .ifPresent(tradedWithPlayers::add)
         );
-
+        offersCrafted.clear();
+        offersCrafted.addAll(input.getItemStacks(TAG_OFFERS_CRAFTED));
         if (!LevelCUtils.isClientSide(level())) {
             updateOfferDisplayItems(getOffers());
         }
@@ -431,7 +668,6 @@ public class CustomerVillagerEntity extends Villager {
         super.addAdditionalSaveData(output);
         writeCustomerData(PersistenceCUtils.writer(output));
     }
-
     void writeCustomerData(DataWriter output) {
         if (state != null) {
             output.putString(TAG_STATE, state.name());
@@ -455,6 +691,7 @@ public class CustomerVillagerEntity extends Villager {
             output.addChild(TAG_TRADED_WITH_PLAYERS)
                     .putUuid(TAG_TRADED_PLAYER_UUID, playerUuid);
         }
+        output.putItemStacks(TAG_OFFERS_CRAFTED, offersCrafted);
     }
 
     public List<ItemStack> getOfferDisplayItems() {
@@ -467,21 +704,18 @@ public class CustomerVillagerEntity extends Villager {
 
     private void updateOfferDisplayItems(MerchantOffers offers) {
         ItemStack[] displayItems = new ItemStack[MAX_SYNCED_DISPLAY_OFFERS];
-        for (int i = 0; i < displayItems.length; i++) {
-            displayItems[i] = ItemStack.EMPTY;
+        for (int index = 0; index < displayItems.length; index++) {
+            displayItems[index] = ItemStack.EMPTY;
         }
-
         int displayIndex = 0;
         for (MerchantOffer offer : offers) {
             if (!offer.isOutOfStock()) {
-                displayItems[displayIndex] = offer.getBaseCostA().copy();
-                displayIndex++;
+                displayItems[displayIndex++] = offer.getBaseCostA().copy();
                 if (displayIndex >= MAX_SYNCED_DISPLAY_OFFERS) {
                     break;
                 }
             }
         }
-
         entityData.set(DATA_OFFER_DISPLAY_ITEM_0, displayItems[0]);
         entityData.set(DATA_OFFER_DISPLAY_ITEM_1, displayItems[1]);
         entityData.set(DATA_OFFER_DISPLAY_ITEM_2, displayItems[2]);
@@ -492,7 +726,6 @@ public class CustomerVillagerEntity extends Villager {
             items.add(itemStack);
         }
     }
-
     @Override
     public boolean removeWhenFarAway(double distanceToClosestPlayer) {
         return false;
@@ -522,7 +755,13 @@ public class CustomerVillagerEntity extends Villager {
         goalSelector.addGoal(0, new LookAtTradingPlayerGoal(this));
         goalSelector.addGoal(1, new LookAtPlayerGoal(this, Player.class, 8));
 
-        goalSelector.addGoal(0, new CustomerMoveToCounterGoal(this, 0.5));
+        CustomerMoveToCounterGoal moveToCounterGoal =
+                new CustomerMoveToCounterGoal(this, 0.5);
+        goalSelector.addGoal(0, moveToCounterGoal);
+        goalSelector.addGoal(
+                0,
+                new CustomerTakePickupItemGoal(this, moveToCounterGoal)
+        );
         goalSelector.addGoal(0, new CustomerLineUpGoal(this, 0.5));
         goalSelector.addGoal(0, new CustomerWaitOnLeaderGoal(this));
         goalSelector.addGoal(0, new CustomerThankGoal(this));
@@ -573,33 +812,44 @@ public class CustomerVillagerEntity extends Villager {
                 tradedWithPlayers.add(tradingPlayer.getUUID());
                 playHappy();
                 if (level().getBlockEntity(spawnerPos) instanceof CustomerSpawnerBlockEntity spawner) {
-                    spawner.scoreboardAddItemServed(tradingPlayer.getUUID());
+                    spawner.scoreboardAddItemsServed(
+                            tradingPlayer.getUUID(),
+                            offer.getCostA().getCount()
+                    );
                 }
             }
         }
     }
 
     private static void giveTradeRemainderItems(Player player, ItemStack soldStack) {
-        ItemStack remainder = getTradeRemainderItem(soldStack);
+        ItemStack remainder = getTradeRemainderStack(soldStack);
         if (remainder.isEmpty()) {
             return;
         }
 
-        remainder.setCount(soldStack.getCount());
         if (!player.getInventory().add(remainder)) {
             player.drop(remainder, false);
         }
     }
 
-    private static ItemStack getTradeRemainderItem(ItemStack soldStack) {
+    /**
+     * Creates the empty containers returned after consuming a sold stack.
+     *
+     * @param soldStack consumed items
+     * @return corresponding container stack, or an empty stack
+     */
+    static ItemStack getTradeRemainderStack(ItemStack soldStack) {
         ItemStack craftingRemainder =
                 ItemStackCUtils.getCraftingRemainder(soldStack);
         if (!craftingRemainder.isEmpty()) {
+            craftingRemainder.setCount(soldStack.getCount());
             return craftingRemainder;
         }
 
         Item fallbackItem = TRADE_REMAINDER_FALLBACKS.get(soldStack.getItem());
-        return fallbackItem == null ? ItemStack.EMPTY : new ItemStack(fallbackItem);
+        return fallbackItem == null
+                ? ItemStack.EMPTY
+                : new ItemStack(fallbackItem, soldStack.getCount());
     }
 
     public void playHappy() {
@@ -630,6 +880,22 @@ public class CustomerVillagerEntity extends Villager {
         if (!LevelCUtils.isClientSide(level()) && level().getBlockEntity(spawnerPos) instanceof CustomerSpawnerBlockEntity spawner) {
             spawner.sentPlayersChat(message);
         }
+    }
+
+    public long getGiveUpTicks() {
+        long giveUpTicks = 20L * Config.CUSTOMER_GIVE_UP_SECONDS.get();
+        if (VillagerCUtils.hasProfession(
+                getVillagerData(),
+                Customer.CUSTOMER_IMPATIENT_PROFESSION.getKey()
+        )) {
+            giveUpTicks = Math.max(1, giveUpTicks / 2);
+        } else if (VillagerCUtils.hasProfession(
+                getVillagerData(),
+                Customer.CUSTOMER_CASUAL_PROFESSION.getKey()
+        )) {
+            giveUpTicks = 0;
+        }
+        return giveUpTicks;
     }
 
     @Override
