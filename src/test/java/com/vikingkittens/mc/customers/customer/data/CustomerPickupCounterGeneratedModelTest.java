@@ -36,16 +36,31 @@ class CustomerPickupCounterGeneratedModelTest {
             Path blockModel = GENERATED.resolve(
                     "assets/customers/models/block/" + name + ".json"
             );
+            Path baseModel = GENERATED.resolve(
+                    "assets/customers/models/block/" + name + "_base.json"
+            );
+            Path overlayModel = GENERATED.resolve(
+                    "assets/customers/models/block/" + name
+                            + "_overlay.json"
+            );
             Path itemModel = GENERATED.resolve(
                     "assets/customers/models/item/" + name + ".json"
             );
 
             assertTrue(Files.exists(blockState));
             assertTrue(Files.exists(blockModel));
+            assertTrue(Files.exists(baseModel));
+            assertTrue(Files.exists(overlayModel));
             assertTrue(Files.exists(itemModel));
 
             JsonObject model = JsonParser.parseString(
                     Files.readString(blockModel)
+            ).getAsJsonObject();
+            JsonObject base = JsonParser.parseString(
+                    Files.readString(baseModel)
+            ).getAsJsonObject();
+            JsonObject overlay = JsonParser.parseString(
+                    Files.readString(overlayModel)
             ).getAsJsonObject();
             JsonObject item = JsonParser.parseString(
                     Files.readString(itemModel)
@@ -68,19 +83,20 @@ class CustomerPickupCounterGeneratedModelTest {
                     3.0F,
                     gui.getAsJsonArray("translation").get(1).getAsFloat()
             );
-            assertTrue(!model.has("loader"));
             assertEquals(
-                    "minecraft:translucent",
-                    model.get("render_type").getAsString()
+                    "neoforge:composite",
+                    model.get("loader").getAsString()
             );
+            assertEquals(2, model.getAsJsonObject("children").size());
             assertEquals(
                     variant.sideTexture().toString(),
-                    model.getAsJsonObject("textures")
+                    base.getAsJsonObject("textures")
                             .get("base")
                             .getAsString()
             );
-            assertEquals(2, model.getAsJsonArray("elements").size());
-            JsonObject baseFaces = model.getAsJsonArray("elements")
+            assertTrue(!base.has("render_type"));
+            assertEquals(1, base.getAsJsonArray("elements").size());
+            JsonObject baseFaces = base.getAsJsonArray("elements")
                     .get(0)
                     .getAsJsonObject()
                     .getAsJsonObject("faces");
@@ -91,9 +107,13 @@ class CustomerPickupCounterGeneratedModelTest {
                             .get("texture")
                             .getAsString()
             );
-            JsonObject overlayFaces = model
+            assertEquals(
+                    "minecraft:translucent",
+                    overlay.get("render_type").getAsString()
+            );
+            JsonObject overlayFaces = overlay
                     .getAsJsonArray("elements")
-                    .get(1)
+                    .get(0)
                     .getAsJsonObject()
                     .getAsJsonObject("faces");
             assertEquals(1, overlayFaces.size());
@@ -105,7 +125,7 @@ class CustomerPickupCounterGeneratedModelTest {
             );
             assertEquals(
                     "customers:block/customer_pickup_counter_top_overlay",
-                    model.getAsJsonObject("textures")
+                    overlay.getAsJsonObject("textures")
                             .get("top_overlay")
                             .getAsString()
             );

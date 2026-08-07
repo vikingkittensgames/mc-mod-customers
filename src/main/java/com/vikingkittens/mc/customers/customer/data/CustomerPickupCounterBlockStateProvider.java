@@ -9,6 +9,7 @@ import net.minecraft.world.item.ItemDisplayContext;
 
 import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
+import net.neoforged.neoforge.client.model.generators.loaders.CompositeModelBuilder;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 import com.vikingkittens.mc.customers.Customers;
@@ -41,23 +42,35 @@ public class CustomerPickupCounterBlockStateProvider
             CustomerPickupCounterBlock block = entry.getValue().get();
             String name = CustomerPickupCounter.getBlockName(variant);
 
-            BlockModelBuilder model = models()
-                    .getBuilder(name)
+            BlockModelBuilder baseModel = models()
+                    .getBuilder(name + "_base")
                     .texture("particle", variant.sideTexture())
-                    .texture("base", variant.sideTexture())
-                    .texture("top_overlay", TOP_OVERLAY)
-                    .renderType("minecraft:translucent");
-            model.element()
+                    .texture("base", variant.sideTexture());
+            baseModel.element()
                     .from(0.0F, 0.0F, 0.0F)
                     .to(16.0F, 1.0F, 16.0F)
                     .textureAll("#base")
                     .end();
-            model.element()
+
+            BlockModelBuilder overlayModel = models()
+                    .getBuilder(name + "_overlay")
+                    .texture("particle", variant.sideTexture())
+                    .texture("top_overlay", TOP_OVERLAY)
+                    .renderType("minecraft:translucent");
+            overlayModel.element()
                     .from(0.0F, 0.0F, 0.0F)
                     .to(16.0F, 1.001F, 16.0F)
                     .face(Direction.UP)
                     .texture("#top_overlay")
                     .end()
+                    .end();
+
+            BlockModelBuilder model = models()
+                    .getBuilder(name)
+                    .texture("particle", variant.sideTexture());
+            model.customLoader(CompositeModelBuilder::begin)
+                    .child("base", baseModel)
+                    .child("overlay", overlayModel)
                     .end();
 
             simpleBlock(block, model);

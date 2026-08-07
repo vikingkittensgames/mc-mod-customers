@@ -40,10 +40,14 @@ public class SupplierSpawnerBlock extends BaseEntityBlock {
     static final BooleanProperty STATE_DISABLED = BooleanProperty.create("disabled");
 
     public SupplierSpawnerBlock(Properties properties) {
-        super(properties);
+        super(withLogStrength(properties));
         this.registerDefaultState(this.defaultBlockState()
                 .setValue(STATE_DISABLED, false)
         );
+    }
+
+    static Properties withLogStrength(Properties properties) {
+        return properties.strength(2.0F);
     }
 
     @Override

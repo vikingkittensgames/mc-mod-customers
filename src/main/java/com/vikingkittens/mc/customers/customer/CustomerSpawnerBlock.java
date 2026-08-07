@@ -47,13 +47,17 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
     static final BooleanProperty STATE_SPECIAL_ENABLED = BooleanProperty.create("special_enabled");
 
     public CustomerSpawnerBlock(Properties properties) {
-        super(properties);
+        super(withLogStrength(properties));
         this.registerDefaultState(this.defaultBlockState()
                 .setValue(STATE_SPAWN_MODE, CustomerSpawnerMode.CONTINUOUS)
                 .setValue(STATE_DISABLED, false)
                 .setValue(STATE_POWERED, false)
                 .setValue(STATE_SPECIAL_ENABLED, false)
         );
+    }
+
+    static Properties withLogStrength(Properties properties) {
+        return properties.strength(2.0F);
     }
 
     public static BlockState getMarkerState(CustomerSpawnerMode spawnerMode) {

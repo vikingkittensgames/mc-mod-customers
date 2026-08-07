@@ -1,0 +1,26 @@
+{
+  "elements": [
+    {
+      "faces": {
+        "up": {
+          "texture": "#top_overlay"
+        }
+      },
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        1.001,
+        16
+      ]
+    }
+  ],
+  "render_type": "minecraft:translucent",
+  "textures": {
+    "particle": "minecraft:block/stripped_dark_oak_log",
+    "top_overlay": "customers:block/customer_pickup_counter_top_overlay"
+  }
+}

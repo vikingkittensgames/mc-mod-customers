@@ -34,7 +34,11 @@ public class CustomerPickupCounterBlock extends BaseEntityBlock {
             Block.box(0.0D, 0.0D, 0.0D, 16.0D, 1.0D, 16.0D);
 
     public CustomerPickupCounterBlock(Properties properties) {
-        super(properties);
+        super(withLogStrength(properties));
+    }
+
+    static Properties withLogStrength(Properties properties) {
+        return properties.strength(2.0F);
     }
 
     @Override
