@@ -7,6 +7,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Checkbox;
 import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.MultiLineLabel;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -21,7 +22,13 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
             Customers.MODID,
             "textures/gui/customer_spawner_ui.png"
     );
+    private static final int TEXTURE_WIDTH = 288;
+    private static final int TEXTURE_HEIGHT = 256;
+    private static final int APPEARANCE_WIDGET_WIDTH = 99;
+    private static final int APPEARANCE_TEXT_COLOR = 0x000000;
     private final List<Checkbox> appearanceCheckboxes =
+            new ArrayList<>();
+    private final List<MultiLineLabel> appearanceLabels =
             new ArrayList<>();
     private CycleButton<CustomerSpawnerMode> modeButton;
     private EditBox maxCustomers;
@@ -33,7 +40,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
             Component title
     ) {
         super(menu, inventory, title);
-        imageWidth = 256;
+        imageWidth = TEXTURE_WIDTH;
         imageHeight = 222;
         inventoryLabelY = 128;
     }
@@ -41,6 +48,8 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
     @Override
     protected void init() {
         super.init();
+        appearanceCheckboxes.clear();
+        appearanceLabels.clear();
         modeButton = addRenderableWidget(
                 CycleButton.<CustomerSpawnerMode>builder(
                                 CustomerSpawnerMode::getTitle
@@ -82,12 +91,15 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         addRenderableWidget(maxCustomers);
 
         int y = 101;
+        int appearanceTextWidth = APPEARANCE_WIDGET_WIDTH
+                - Checkbox.getBoxSize(font)
+                - 4;
         for (int index = 0; index < menu.getAppearanceIds().size(); index++) {
             int appearanceIndex = index;
+            Component appearanceName = menu.getAppearanceName(index);
             Checkbox checkbox = addRenderableWidget(
-                    Checkbox.builder(menu.getAppearanceName(index), font)
+                    Checkbox.builder(Component.empty(), font)
                             .pos(leftPos + 177, topPos + y)
-                            .maxWidth(67)
                             .selected(menu.isAppearanceEnabled(index))
                             .onValueChange((changedCheckbox, selected) -> {
                                 if (!synchronizingAppearanceCheckboxes) {
@@ -98,7 +110,14 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                             })
                             .build()
             );
+            checkbox.setWidth(APPEARANCE_WIDGET_WIDTH);
+            checkbox.setMessage(appearanceName);
             appearanceCheckboxes.add(checkbox);
+            appearanceLabels.add(MultiLineLabel.create(
+                    font,
+                    appearanceName,
+                    appearanceTextWidth
+            ));
             y += 20;
         }
     }
@@ -144,10 +163,12 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                 TEXTURE,
                 leftPos,
                 topPos,
-                0,
-                0,
+                0.0F,
+                0.0F,
                 imageWidth,
-                imageHeight
+                imageHeight,
+                TEXTURE_WIDTH,
+                TEXTURE_HEIGHT
         );
     }
 
@@ -209,7 +230,26 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
     ) {
         renderBackground(graphics, mouseX, mouseY, partialTick);
         super.render(graphics, mouseX, mouseY, partialTick);
+        renderAppearanceLabels(graphics);
         renderTooltip(graphics, mouseX, mouseY);
+    }
+
+    private void renderAppearanceLabels(GuiGraphics graphics) {
+        for (int index = 0; index < appearanceCheckboxes.size(); index++) {
+            Checkbox checkbox = appearanceCheckboxes.get(index);
+            MultiLineLabel label = appearanceLabels.get(index);
+            int labelHeight = label.getLineCount() * font.lineHeight;
+            int labelY = checkbox.getY()
+                    + Checkbox.getBoxSize(font) / 2
+                    - labelHeight / 2;
+            label.renderLeftAlignedNoShadow(
+                    graphics,
+                    checkbox.getX() + Checkbox.getBoxSize(font) + 4,
+                    labelY,
+                    font.lineHeight,
+                    APPEARANCE_TEXT_COLOR
+            );
+        }
     }
 
     private void send(int id) {
