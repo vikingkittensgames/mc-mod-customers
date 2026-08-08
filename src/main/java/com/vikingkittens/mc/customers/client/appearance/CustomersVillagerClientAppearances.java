@@ -10,6 +10,9 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillager;
+import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
+import com.vikingkittens.mc.customers.appearance.skins.SkinPackCustomersVillagerAppearance;
+import com.vikingkittens.mc.customers.client.appearance.skins.SkinCustomersVillagerClientAppearance;
 
 public final class CustomersVillagerClientAppearances {
     private static final Map<
@@ -22,6 +25,7 @@ public final class CustomersVillagerClientAppearances {
                     ResourceLocation,
                     CustomersVillagerClientAppearance>
             APPEARANCES = new HashMap<>();
+    private static SkinCustomersVillagerClientAppearance skinAppearance;
 
     private CustomersVillagerClientAppearances() {}
 
@@ -39,6 +43,7 @@ public final class CustomersVillagerClientAppearances {
             EntityRendererProvider.Context context
     ) {
         APPEARANCES.clear();
+        skinAppearance = new SkinCustomersVillagerClientAppearance(context);
         FACTORIES.forEach((appearanceId, factory) ->
                 APPEARANCES.put(
                         appearanceId,
@@ -50,7 +55,15 @@ public final class CustomersVillagerClientAppearances {
     public static @Nullable CustomersVillagerClientAppearance get(
             CustomersVillager villager
     ) {
-        return APPEARANCES.get(villager.getAppearanceId());
+        CustomersVillagerClientAppearance registered =
+                APPEARANCES.get(villager.getAppearanceId());
+        if (registered != null) {
+            return registered;
+        }
+        return CustomersVillagerAppearances.get(villager)
+                        instanceof SkinPackCustomersVillagerAppearance
+                ? skinAppearance
+                : null;
     }
 
     public static float getNameTagOffset(

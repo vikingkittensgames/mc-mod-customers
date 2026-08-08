@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 
@@ -47,6 +48,25 @@ class CustomersVillagerAppearanceSelectorTest {
         );
 
         assertNull(selected);
+    }
+
+    @Test
+    void retainsTheIdOfADynamicallyResolvedAppearance() {
+        CustomersVillager villager = mock(CustomersVillager.class);
+        ResourceLocation skinPackId =
+                ResourceLocation.parse("customers:mc_skins");
+        CustomersVillagerAppearance skinPack =
+                appearance("MC Skins", true);
+
+        ResourceLocation selected =
+                CustomersVillagerAppearanceSelector.selectApplicableId(
+                        List.of(skinPackId),
+                        ignored -> skinPack,
+                        villager,
+                        ignored -> 0
+                );
+
+        assertEquals(skinPackId, selected);
     }
 
     private static CustomersVillagerAppearance appearance(String name, boolean applicable) {

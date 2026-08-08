@@ -13,7 +13,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
 import com.vikingkittens.mc.customers.Customers;
-import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearance;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlockMenu;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
@@ -84,12 +83,9 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
 
         int y = 101;
         for (int index = 0; index < menu.getAppearanceIds().size(); index++) {
-            ResourceLocation id = menu.getAppearanceIds().get(index);
-            CustomersVillagerAppearance appearance =
-                    CustomersVillagerAppearance.APPEARANCE_REGISTRY.get(id);
             int appearanceIndex = index;
             Checkbox checkbox = addRenderableWidget(
-                    Checkbox.builder(appearance.getName(), font)
+                    Checkbox.builder(menu.getAppearanceName(index), font)
                             .pos(leftPos + 177, topPos + y)
                             .maxWidth(67)
                             .selected(menu.isAppearanceEnabled(index))

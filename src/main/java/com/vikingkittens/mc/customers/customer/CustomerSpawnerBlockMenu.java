@@ -1,9 +1,10 @@
 package com.vikingkittens.mc.customers.customer;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -15,7 +16,7 @@ import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearance;
+import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 
 public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
     public static final int CONTAINER_SIZE = 54;
@@ -24,6 +25,7 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
     private final ContainerData data;
     private final CustomerSpawnerBlockEntity blockEntity;
     private final List<ResourceLocation> appearanceIds;
+    private final RegistryAccess registryAccess;
 
     public CustomerSpawnerBlockMenu(int id, Inventory inventory) {
         this(id, inventory, new SimpleContainer(CONTAINER_SIZE), null);
@@ -34,8 +36,9 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
         checkContainerSize(container, CONTAINER_SIZE);
         this.container = container;
         this.blockEntity = blockEntity;
-        appearanceIds = CustomersVillagerAppearance.APPEARANCE_REGISTRY.keySet().stream()
-                .sorted(Comparator.comparing(ResourceLocation::toString)).toList();
+        registryAccess = playerInventory.player.registryAccess();
+        appearanceIds = CustomersVillagerAppearances
+                .getAvailableAppearanceIds(registryAccess);
         data = blockEntity == null ? new SimpleContainerData(2 + appearanceIds.size()) : createData(blockEntity);
         addDataSlots(data);
         container.startOpen(playerInventory.player);
@@ -72,6 +75,12 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
 
     public int getMaxCustomers() { return data.get(1); }
     public List<ResourceLocation> getAppearanceIds() { return appearanceIds; }
+    public Component getAppearanceName(int index) {
+        return CustomersVillagerAppearances.getName(
+                appearanceIds.get(index),
+                registryAccess
+        );
+    }
     public boolean isAppearanceEnabled(int index) { return data.get(APPEARANCE_DATA_START + index) != 0; }
     public int modeButtonId(CustomerSpawnerMode mode) { return mode.ordinal(); }
     public int maxCustomersButtonId(int value) { return 100 + value; }

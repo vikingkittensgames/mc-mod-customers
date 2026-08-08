@@ -364,6 +364,18 @@ version-specific block-entity overrides. Shared item-stack lists use
 `DataReader` and `DataWriter` so functionality code can remain the same across
 versions.
 
+## Data-Pack Registries
+
+Skin definitions and skin-pack definitions use NeoForge synchronized
+data-pack registries. Register them with `DataPackRegistryEvent.NewRegistry`
+and provide both disk and network codecs so dedicated-server definitions are
+available through client registry access.
+
+Registry keys deliberately use `customers:skins` and
+`customers:skin_packs`, producing the version-independent data paths
+`data/{namespace}/customers/skins` and
+`data/{namespace}/customers/skin_packs`.
+
 ## Client Compatibility
 
 ### TextureC

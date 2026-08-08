@@ -2,11 +2,14 @@ package com.vikingkittens.mc.customers.appearance;
 
 import java.util.Optional;
 
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
 
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
 public interface CustomersVillager {
+    RegistryAccess registryAccess();
+
     CustomersVillagerType getCustomersVillagerType();
 
     Optional<CustomerSpawnerMode> getSpawnerMode();
