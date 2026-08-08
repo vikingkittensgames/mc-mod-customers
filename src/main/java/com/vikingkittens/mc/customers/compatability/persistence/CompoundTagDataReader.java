@@ -45,6 +45,33 @@ final class CompoundTagDataReader implements DataReader {
     }
 
     @Override
+    public Optional<Float> getFloat(String key) {
+        return tag.contains(key, Tag.TAG_FLOAT)
+                ? Optional.of(tag.getFloat(key))
+                : Optional.empty();
+    }
+
+    @Override
+    public Optional<Integer> getInt(String key) {
+        return tag.contains(key, Tag.TAG_INT)
+                ? Optional.of(tag.getInt(key))
+                : Optional.empty();
+    }
+
+    @Override
+    public List<String> getStrings(String key) {
+        if (!tag.contains(key, Tag.TAG_LIST)) {
+            return List.of();
+        }
+        ListTag stringTags = tag.getList(key, Tag.TAG_STRING);
+        List<String> strings = new ArrayList<>(stringTags.size());
+        for (Tag stringTag : stringTags) {
+            strings.add(stringTag.getAsString());
+        }
+        return List.copyOf(strings);
+    }
+
+    @Override
     public boolean getBoolean(String key) {
         return tag.getBoolean(key);
     }

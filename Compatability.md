@@ -286,6 +286,12 @@ Reader operations:
 ```java
 Optional<String> getString(String key);
 
+Optional<Float> getFloat(String key);
+
+Optional<Integer> getInt(String key);
+
+List<String> getStrings(String key);
+
 boolean getBoolean(String key);
 
 Optional<BlockPos> getBlockPos(String key);
@@ -307,6 +313,12 @@ Writer operations:
 
 ```java
 void putString(String key, String value);
+
+void putFloat(String key, float value);
+
+void putInt(String key, int value);
+
+void putStrings(String key, Collection<String> values);
 
 void putBoolean(String key, boolean value);
 

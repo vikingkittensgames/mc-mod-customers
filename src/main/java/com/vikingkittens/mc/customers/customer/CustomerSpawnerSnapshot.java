@@ -12,7 +12,6 @@ import net.minecraft.world.item.ItemStack;
 public record CustomerSpawnerSnapshot(
         BlockPos spawnerPos,
         CustomerSpawnerMode spawnerMode,
-        boolean specialEnabled,
         Optional<UUID> bossEventId,
         List<Customer> customers
 ) {
@@ -26,14 +25,12 @@ public record CustomerSpawnerSnapshot(
     public static CustomerSpawnerSnapshot create(
             BlockPos spawnerPos,
             CustomerSpawnerMode spawnerMode,
-            boolean specialEnabled,
             Optional<UUID> bossEventId,
             Collection<CustomerVillagerEntity> customers
     ) {
         return new CustomerSpawnerSnapshot(
                 spawnerPos,
                 spawnerMode,
-                specialEnabled,
                 bossEventId,
                 customers.stream()
                         .map(CustomerSpawnerSnapshot::createCustomer)

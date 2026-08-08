@@ -14,6 +14,12 @@ import net.minecraft.world.level.block.state.BlockState;
 public interface DataReader {
     Optional<String> getString(String key);
 
+    Optional<Float> getFloat(String key);
+
+    Optional<Integer> getInt(String key);
+
+    List<String> getStrings(String key);
+
     boolean getBoolean(String key);
 
     Optional<BlockPos> getBlockPos(String key);

@@ -56,14 +56,12 @@ class CustomerSpawnerSnapshotCreationTest {
                 CustomerSpawnerSnapshot.create(
                         spawnerPos,
                         CustomerSpawnerMode.LUNCH,
-                        true,
                         Optional.of(bossEventId),
                         List.of(customer)
                 );
 
         assertEquals(spawnerPos, snapshot.spawnerPos());
         assertEquals(CustomerSpawnerMode.LUNCH, snapshot.spawnerMode());
-        assertTrue(snapshot.specialEnabled());
         assertEquals(Optional.of(bossEventId), snapshot.bossEventId());
         assertEquals(1, snapshot.customers().size());
         CustomerSpawnerSnapshot.Customer customerSnapshot =

@@ -12,6 +12,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -40,6 +41,25 @@ final class CompoundTagDataWriter implements DataWriter {
     @Override
     public void putString(String key, String value) {
         tag.putString(key, value);
+    }
+
+    @Override
+    public void putFloat(String key, float value) {
+        tag.putFloat(key, value);
+    }
+
+    @Override
+    public void putInt(String key, int value) {
+        tag.putInt(key, value);
+    }
+
+    @Override
+    public void putStrings(String key, Collection<String> values) {
+        ListTag stringTags = new ListTag();
+        values.stream()
+                .map(StringTag::valueOf)
+                .forEach(stringTags::add);
+        tag.put(key, stringTags);
     }
 
     @Override

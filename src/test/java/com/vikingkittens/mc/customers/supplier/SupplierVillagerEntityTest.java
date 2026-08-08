@@ -15,6 +15,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.pathfinder.Path;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
+import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 import com.vikingkittens.mc.customers.common.MobUtils;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
 import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
@@ -25,6 +26,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -49,6 +52,14 @@ class SupplierVillagerEntityTest {
 
         when(input.getString("SupplierState"))
                 .thenReturn(Optional.of(SupplierState.SELLING.name()));
+        when(input.getString("CustomersAppearance"))
+                .thenReturn(Optional.of("customers:monsters"));
+        when(input.getFloat("CustomersVariationSeed"))
+                .thenReturn(Optional.of(0.25F));
+        doNothing().when(supplier).setAppearanceId(
+                CustomersVillagerAppearances.MONSTERS
+        );
+        doNothing().when(supplier).setVariationSeed(0.25F);
         when(input.getBlockPos("SpawnerPos")).thenReturn(Optional.of(spawnerPos));
         when(input.getBlockPos("SpawnPos")).thenReturn(Optional.of(spawnPos));
 
@@ -57,6 +68,10 @@ class SupplierVillagerEntityTest {
         assertEquals(SupplierState.SELLING, supplier.getState());
         assertEquals(spawnerPos, supplier.getSpawnerPos());
         assertEquals(spawnPos, supplier.getSpawnPos());
+        verify(supplier).setAppearanceId(
+                CustomersVillagerAppearances.MONSTERS
+        );
+        verify(supplier).setVariationSeed(0.25F);
     }
     @Test
     void writesSupplierPersistenceData() {
@@ -70,12 +85,20 @@ class SupplierVillagerEntityTest {
         supplier.setState(SupplierState.SELLING);
         supplier.setSpawnerPos(spawnerPos);
         supplier.setSpawnPos(spawnPos);
+        doReturn(CustomersVillagerAppearances.MONSTERS)
+                .when(supplier).getAppearanceId();
+        doReturn(0.25F).when(supplier).getVariationSeed();
 
         supplier.writeSupplierData(output);
 
         verify(output).putString("SupplierState", SupplierState.SELLING.name());
         verify(output).putBlockPos("SpawnerPos", spawnerPos);
         verify(output).putBlockPos("SpawnPos", spawnPos);
+        verify(output).putString(
+                "CustomersAppearance",
+                "customers:monsters"
+        );
+        verify(output).putFloat("CustomersVariationSeed", 0.25F);
     }
 
     @Test

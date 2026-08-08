@@ -1,9 +1,12 @@
 package com.vikingkittens.mc.customers.customer;
 
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -17,6 +20,7 @@ import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -81,5 +85,35 @@ class CustomerVillagerEntityTest {
                 targetPosition,
                 CustomerVillagerEntity.readCounterTargetBlockPos(input).orElseThrow()
         );
+    }
+
+    @Test
+    void readsPersistedAppearanceContext() {
+        CustomerVillagerEntity customer = mock(
+                CustomerVillagerEntity.class,
+                CALLS_REAL_METHODS
+        );
+        DataReader input = mock(DataReader.class);
+        ResourceLocation appearance =
+                ResourceLocation.parse("customers:monsters");
+        doNothing().when(customer).setAppearanceId(appearance);
+        doNothing().when(customer).setVariationSeed(0.75F);
+        doNothing().when(customer).setSpawnerMode(CustomerSpawnerMode.NIGHT);
+        doNothing().when(customer).setSpecial(true);
+        when(input.getString("CustomersAppearance"))
+                .thenReturn(Optional.of("customers:monsters"));
+        when(input.getFloat("CustomersVariationSeed"))
+                .thenReturn(Optional.of(0.75F));
+        when(input.getString("CustomersAppearanceSpawnerMode"))
+                .thenReturn(Optional.of(CustomerSpawnerMode.NIGHT.name()));
+        when(input.getBoolean("CustomersAppearanceSpecial"))
+                .thenReturn(true);
+
+        customer.readAppearanceData(input);
+
+        verify(customer).setAppearanceId(appearance);
+        verify(customer).setVariationSeed(0.75F);
+        verify(customer).setSpawnerMode(CustomerSpawnerMode.NIGHT);
+        verify(customer).setSpecial(true);
     }
 }

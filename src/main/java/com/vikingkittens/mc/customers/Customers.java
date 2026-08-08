@@ -13,6 +13,7 @@ import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 
+import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 import com.vikingkittens.mc.customers.config.Config;
 import com.vikingkittens.mc.customers.config.RecipeConditions;
 import com.vikingkittens.mc.customers.customer.Customer;
@@ -38,6 +39,7 @@ public class Customers {
 
         // Register our features
         CustomerSpawner.register(modEventBus);
+        CustomersVillagerAppearances.register(modEventBus);
         CustomerPickupCounter.register(modEventBus);
         Customer.register(modEventBus);
         SupplierSpawner.register(modEventBus);

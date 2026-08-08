@@ -25,13 +25,15 @@
 
   "entity.customers.customer_villager": "Customer",
   "entity.customers.supplier_villager": "Supplier",
+  "appearance.customers.default": "Default",
+  "appearance.customers.monsters": "Monsters",
 
   "titles.customers.spawn_mode.continuous": "Continuous",
-  "titles.customers.spawn_mode.day": "Day Shift",
-  "titles.customers.spawn_mode.night": "Night Shift",
-  "titles.customers.spawn_mode.breakfast": "Breakfast Shift",
-  "titles.customers.spawn_mode.lunch": "Lunch Shift",
-  "titles.customers.spawn_mode.dinner": "Dinner Shift",
+  "titles.customers.spawn_mode.day": "Day",
+  "titles.customers.spawn_mode.night": "Night",
+  "titles.customers.spawn_mode.breakfast": "Breakfast",
+  "titles.customers.spawn_mode.lunch": "Lunch",
+  "titles.customers.spawn_mode.dinner": "Dinner",
   "titles.customers.spawn_mode.manual": "Manual",
 
   "messages.customers.thank_you1": "Thank you!",
@@ -74,6 +76,10 @@
   "screen.customers.shift_finished.total_items_served": "%s items served",
   "screen.customers.shift_finished.total_items_crafted": "%s items crafted",
   "screen.customers.shift_finished.close": "Close",
+  "screen.customers.customer_spawner.mode": "Mode",
+  "screen.customers.customer_spawner.max": "Max",
+  "screen.customers.customer_spawner.appearance": "Appearance",
+  "screen.customers.customer_spawner.cost": "Cost",
 
   "messages.customers.supplies": "I have your supplies for the day.",
   "messages.customers.pickup_counter.full": "The pickup counter is full.",

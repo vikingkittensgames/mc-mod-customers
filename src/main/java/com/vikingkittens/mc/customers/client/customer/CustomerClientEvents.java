@@ -18,29 +18,34 @@ import net.neoforged.neoforge.client.ClientHooks;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.CustomizeGuiOverlayEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RenderNameTagEvent;
 
 import com.vikingkittens.mc.customers.Customers;
-import com.vikingkittens.mc.customers.client.customer.special.CustomerDrownedEntityRenderer;
-import com.vikingkittens.mc.customers.client.customer.special.CustomerHuskEntityRenderer;
-import com.vikingkittens.mc.customers.client.customer.special.CustomerSkeletonEntityRenderer;
-import com.vikingkittens.mc.customers.client.customer.special.CustomerStrayEntityRenderer;
-import com.vikingkittens.mc.customers.client.customer.special.CustomerWitchEntityRenderer;
-import com.vikingkittens.mc.customers.client.customer.special.CustomerZombieEntityRenderer;
+import com.vikingkittens.mc.customers.client.appearance.CustomersVillagerAppearanceEntityRenderer;
+import com.vikingkittens.mc.customers.client.appearance.CustomersVillagerClientAppearances;
 import com.vikingkittens.mc.customers.customer.Customer;
 import com.vikingkittens.mc.customers.customer.CustomerCounterMarkersPayload;
 import com.vikingkittens.mc.customers.customer.CustomerPickupCounter;
 import com.vikingkittens.mc.customers.customer.CustomerShiftFinishedPayload;
+import com.vikingkittens.mc.customers.customer.CustomerSpawner;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerSnapshotPayload;
 import com.vikingkittens.mc.customers.customer.CustomerState;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
-import com.vikingkittens.mc.customers.customer.special.CustomerWitchEntity;
 
 @EventBusSubscriber(modid = Customers.MODID, value = Dist.CLIENT)
 public class CustomerClientEvents {
     private static final int MAX_OVERHEAD_ITEMS = 3;
     private static final float NAME_TAG_TEXT_SCALE = 0.025F;
     private static final float NAME_TAG_ITEM_GAP = 0.12F;
+
+    @SubscribeEvent
+    public static void registerScreens(RegisterMenuScreensEvent event) {
+        event.register(
+                CustomerSpawner.CUSTOMER_SPAWNER_MENU.get(),
+                CustomerSpawnerBlockScreen::new
+        );
+    }
 
     public static void showCustomerShiftFinishedScreen(CustomerShiftFinishedPayload payload) {
         Minecraft.getInstance().setScreen(new CustomerShiftFinishedScreen(payload));
@@ -125,14 +130,12 @@ public class CustomerClientEvents {
         event.registerEntityRenderer(Customer.CUSTOMER_SEAT.get(), NoopRenderer::new);
         event.registerEntityRenderer(
                 Customer.CUSTOMER_VILLAGER.get(),
-                CustomerVillagerEntityRenderer::new
+                context ->
+                        new CustomersVillagerAppearanceEntityRenderer<>(
+                                context,
+                                new CustomerVillagerEntityRenderer(context)
+                        )
         );
-        event.registerEntityRenderer(Customer.CUSTOMER_ZOMBIE.get(), CustomerZombieEntityRenderer::new);
-        event.registerEntityRenderer(Customer.CUSTOMER_SKELETON.get(), CustomerSkeletonEntityRenderer::new);
-        event.registerEntityRenderer(Customer.CUSTOMER_WITCH.get(), CustomerWitchEntityRenderer::new);
-        event.registerEntityRenderer(Customer.CUSTOMER_HUSK.get(), CustomerHuskEntityRenderer::new);
-        event.registerEntityRenderer(Customer.CUSTOMER_DROWNED.get(), CustomerDrownedEntityRenderer::new);
-        event.registerEntityRenderer(Customer.CUSTOMER_STRAY.get(), CustomerStrayEntityRenderer::new);
     }
 
     @SubscribeEvent
@@ -157,8 +160,11 @@ public class CustomerClientEvents {
                 poseStack.pushPose();
                 // Translate above the head
                 float offset = 0.25F;
-                if (customer instanceof CustomerWitchEntity) {
-                    offset += 0.40F - nameTagOffset;
+                float appearanceNameTagOffset =
+                        CustomersVillagerClientAppearances
+                                .getNameTagOffset(customer);
+                if (appearanceNameTagOffset != 0.0F) {
+                    offset += appearanceNameTagOffset - nameTagOffset;
                 }
                 poseStack.translate(0, customer.getBbHeight() + offset, 0);
                 poseStack.mulPose(minecraft.getEntityRenderDispatcher().cameraOrientation());

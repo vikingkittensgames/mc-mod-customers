@@ -13,17 +13,16 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.*;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -39,6 +38,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearanceSettings;
+import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 import com.vikingkittens.mc.customers.common.SearchUtils;
 import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
 import com.vikingkittens.mc.customers.compatability.LevelCUtils;
@@ -49,6 +50,14 @@ import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtil
 import com.vikingkittens.mc.customers.config.Config;
 
 public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvider {
+    static final int CURRENT_DATA_VERSION = 1;
+    static final int MIN_MAX_CUSTOMERS = 1;
+    static final int MAX_MAX_CUSTOMERS = 99;
+    static final String TAG_DATA_VERSION = "data_version";
+    static final String TAG_MAX_CUSTOMERS = "maxCustomers";
+
+    private final CustomersVillagerAppearanceSettings appearanceSettings =
+            new CustomersVillagerAppearanceSettings();
     private static final Logger LOGGER = LogUtils.getLogger();
 
     private static final int INVENTORY_ROW_SIZE = 9;
@@ -67,30 +76,28 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     static MerchantOffers getOffersFromInventory(
             RandomSource random,
             ItemStackHandler inventory,
-            Supplier<Item> paymentItem,
-            Supplier<Item> maxCustomersItem
+            Supplier<Item> defaultPaymentItem
     ) {
         MerchantOffers offers = new MerchantOffers();
         int numRows = inventory.getSlots() / INVENTORY_ROW_SIZE;
-        List<Integer> rowCost = new ArrayList<>();
+        List<ItemStack> rowCosts = new ArrayList<>();
         List<List<ItemStack>> rowItems = new ArrayList<>();
         for (int slot = 0; slot < inventory.getSlots(); slot++) {
             int row = slot / INVENTORY_ROW_SIZE;
-            if (rowCost.size() <= row) {
-                rowCost.add(1);
+            int column = slot % INVENTORY_ROW_SIZE;
+            if (rowCosts.size() <= row) {
+                rowCosts.add(new ItemStack(defaultPaymentItem.get()));
             }
             if (rowItems.size() <= row) {
                 rowItems.add(new ArrayList<>());
             }
             ItemStack stack = inventory.getStackInSlot(slot);
-            if (!stack.isEmpty()) {
-                if (stack.is(paymentItem.get())) {
-                    if (rowCost.get(row) < stack.getCount()) {
-                        rowCost.set(row, stack.getCount());
-                    }
-                } else if (!stack.is(maxCustomersItem.get())) {
-                    rowItems.get(row).add(stack);
+            if (column == INVENTORY_ROW_SIZE - 1) {
+                if (!stack.isEmpty()) {
+                    rowCosts.set(row, stack.copy());
                 }
+            } else if (!stack.isEmpty()) {
+                rowItems.get(row).add(stack);
             }
         }
         List<Integer> rowsWithItems = new ArrayList<>();
@@ -107,12 +114,14 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             int itemNum = rowItems.get(row).size() > 1 ? random.nextInt(rowItems.get(row).size()) : 0;
             ItemStack itemStack = rowItems.get(row).get(itemNum);
             int count = itemStack.getCount() > 1 ? random.nextIntBetweenInclusive(1, itemStack.getCount()) : 1;
+            ItemStack paymentStack = rowCosts.get(row).copy();
+            paymentStack.setCount(paymentStack.getCount() * count);
             offers.add(new MerchantOffer(
                     ItemStackCUtils.createItemCost(itemStack, count),
                     Optional.empty(),
-                    new ItemStack(paymentItem.get(), rowCost.get(row) * count),
+                    paymentStack,
                     1,
-                    rowCost.get(row),
+                    rowCosts.get(row).getCount(),
                     0
             ));
 
@@ -130,28 +139,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         return getOffersFromInventory(
                 random,
                 inventory,
-                CustomerSpawnerBlockEntity::getPaymentItem,
-                CustomerSpawnerBlockEntity::getMaxCustomersItem
-        );
-    }
-
-    static OptionalInt getMaxCustomersOverrideFromInventory(
-            ItemStackHandler inventory,
-            Supplier<Item> maxCustomersItem
-    ) {
-        for (int slot = 0; slot < inventory.getSlots(); slot++) {
-            ItemStack stack = inventory.getStackInSlot(slot);
-            if (stack.is(maxCustomersItem.get())) {
-                return OptionalInt.of(stack.getCount());
-            }
-        }
-        return OptionalInt.empty();
-    }
-
-    static OptionalInt getMaxCustomersOverrideFromInventory(ItemStackHandler inventory) {
-        return getMaxCustomersOverrideFromInventory(
-                inventory,
-                CustomerSpawnerBlockEntity::getMaxCustomersItem
+                CustomerSpawnerBlockEntity::getPaymentItem
         );
     }
 
@@ -162,11 +150,12 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     private boolean needsUpdate = true;
     private long updateDelayTicks = 0;
-    private OptionalInt maxCustomersOverride = OptionalInt.empty();
+    private int maxCustomers = clampMaxCustomers(
+            Config.MAX_CUSTOMERS.get()
+    );
     private final ItemStackHandler inventory = new ItemStackHandler(INVENTORY_ROW_SIZE * 6) {
         @Override
         protected void onContentsChanged(int slot) {
-            onInventoryUpdate();
             setChanged();
         }
     };
@@ -371,12 +360,21 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         super(CustomerSpawner.CUSTOMER_SPAWNER_ENTITY.get(), pos, blockState);
     }
 
-    private void onInventoryUpdate() {
-        maxCustomersOverride = getMaxCustomersOverrideFromInventory(inventory);
+    static int clampMaxCustomers(int value) {
+        return Math.clamp(
+                value,
+                MIN_MAX_CUSTOMERS,
+                MAX_MAX_CUSTOMERS
+        );
     }
 
-    private int getMaxCustomers() {
-        return maxCustomersOverride.orElseGet(Config.MAX_CUSTOMERS::get);
+    public int getMaxCustomers() {
+        return maxCustomers;
+    }
+
+    public void setMaxCustomers(int maxCustomers) {
+        this.maxCustomers = clampMaxCustomers(maxCustomers);
+        setChanged();
     }
 
     @Override
@@ -392,6 +390,9 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         writeSpawnerData(PersistenceCUtils.writer(tag));
     }
     void writeSpawnerData(DataWriter output) {
+        output.putInt(TAG_DATA_VERSION, CURRENT_DATA_VERSION);
+        output.putInt(TAG_MAX_CUSTOMERS, maxCustomers);
+        appearanceSettings.write(output);
         try {
             output.putUuids("customers", customerIds);
         } catch (Throwable t) {
@@ -410,10 +411,17 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 LOGGER.error("Failed to load inventory because of error", t);
             }
         }
-        onInventoryUpdate();
         readSpawnerData(PersistenceCUtils.reader(tag));
     }
     void readSpawnerData(DataReader input) {
+        int loadedDataVersion =
+                input.getInt(TAG_DATA_VERSION).orElse(0);
+        maxCustomers = clampMaxCustomers(
+                input.getInt(TAG_MAX_CUSTOMERS)
+                        .orElseGet(Config.MAX_CUSTOMERS::get)
+        );
+        migrateData(loadedDataVersion);
+        appearanceSettings.read(input);
         try {
             customerIds.clear();
             input.getUuids("customers").forEach(uuid -> {
@@ -429,6 +437,79 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         reservedTargetCounterPositions.clear();
         reservedTargetCounterPositions.putAll(loadReservedTargetCounterPositions(input));
     }
+
+    private void migrateData(int loadedDataVersion) {
+        int dataVersion = Math.max(0, loadedDataVersion);
+        while (dataVersion < CURRENT_DATA_VERSION) {
+            if (dataVersion == 0) {
+                InventoryDataMigrationResult result =
+                        migrateVersion0Inventory(
+                                inventory,
+                                getPaymentItem(),
+                                getMaxCustomersItem(),
+                                maxCustomers
+                        );
+                maxCustomers = result.maxCustomers();
+            } else {
+                LOGGER.warn(
+                        "Unable to migrate unknown customer spawner data version {}",
+                        dataVersion
+                );
+                return;
+            }
+            dataVersion++;
+        }
+    }
+
+    static InventoryDataMigrationResult migrateVersion0Inventory(
+            ItemStackHandler inventory,
+            Item paymentItem,
+            Item maxCustomersItem,
+            int fallbackMaxCustomers
+    ) {
+        int maxCustomers = clampMaxCustomers(fallbackMaxCustomers);
+        boolean maxCustomersFound = false;
+        boolean changed = false;
+
+        for (int slot = 0; slot < inventory.getSlots(); slot++) {
+            ItemStack stack = inventory.getStackInSlot(slot);
+            if (stack.is(maxCustomersItem)) {
+                if (!maxCustomersFound) {
+                    maxCustomers = clampMaxCustomers(stack.getCount());
+                    maxCustomersFound = true;
+                }
+                inventory.setStackInSlot(slot, ItemStack.EMPTY);
+                changed = true;
+            }
+        }
+
+        int rowCount = inventory.getSlots() / INVENTORY_ROW_SIZE;
+        for (int row = 0; row < rowCount; row++) {
+            int rowStart = row * INVENTORY_ROW_SIZE;
+            int costSlot = rowStart + INVENTORY_ROW_SIZE - 1;
+            if (inventory.getStackInSlot(costSlot).is(paymentItem)) {
+                continue;
+            }
+            for (int slot = rowStart; slot < costSlot; slot++) {
+                ItemStack stack = inventory.getStackInSlot(slot);
+                if (stack.is(paymentItem)) {
+                    ItemStack previousCost =
+                            inventory.getStackInSlot(costSlot).copy();
+                    inventory.setStackInSlot(costSlot, stack.copy());
+                    inventory.setStackInSlot(slot, previousCost);
+                    changed = true;
+                    break;
+                }
+            }
+        }
+
+        return new InventoryDataMigrationResult(maxCustomers, changed);
+    }
+
+    record InventoryDataMigrationResult(
+            int maxCustomers,
+            boolean changed
+    ) {}
     static void saveReservedTargetCounterPositions(
             DataWriter output,
             Map<BlockPos, List<UUID>> reservations
@@ -630,7 +711,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             }
         };
 
-        return ChestMenu.sixRows(containerId, playerInventory, containerBridge);
+        return new CustomerSpawnerBlockMenu(containerId, playerInventory, containerBridge, this);
     }
 
     static BlockState updateState(Level level, BlockPos pos, BlockState currentState) {
@@ -638,8 +719,6 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
         boolean wasDisabled = currentState.getValue(CustomerSpawnerBlock.STATE_DISABLED);
         boolean wasPowered = currentState.getValue(CustomerSpawnerBlock.STATE_POWERED);
-        boolean wasSpecialEnabled = currentState.getValue(CustomerSpawnerBlock.STATE_SPECIAL_ENABLED);
-
         boolean powered = level.hasNeighborSignal(pos);
         boolean disabled;
         if (spawnerMode == CustomerSpawnerMode.MANUAL) {
@@ -648,21 +727,9 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             disabled = powered;
         }
 
-        List<BlockState> neighbors = new ArrayList<>();
-        neighbors.add(level.getBlockState(pos.north()));
-        neighbors.add(level.getBlockState(pos.south()));
-        neighbors.add(level.getBlockState(pos.east()));
-        neighbors.add(level.getBlockState(pos.west()));
-        boolean specialEnabled = switch (spawnerMode) {
-            case NIGHT -> neighbors.stream().anyMatch(blockState -> blockState.is(Blocks.JACK_O_LANTERN));
-            default -> false;
-        };
-
-        BlockState newState = currentState
+        return currentState
                 .setValue(CustomerSpawnerBlock.STATE_DISABLED, disabled)
-                .setValue(CustomerSpawnerBlock.STATE_POWERED, powered)
-                .setValue(CustomerSpawnerBlock.STATE_SPECIAL_ENABLED, specialEnabled);
-        return newState;
+                .setValue(CustomerSpawnerBlock.STATE_POWERED, powered);
     }
 
     void updateState() {
@@ -706,8 +773,29 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         level.setBlock(getBlockPos(), newState, Block.UPDATE_ALL);
     }
 
+    public CustomerSpawnerMode getSpawnerMode() {
+        return getBlockState().getValue(CustomerSpawnerBlock.STATE_SPAWN_MODE);
+    }
+
+    public void setSpawnerMode(CustomerSpawnerMode spawnerMode) {
+        BlockState newState = updateState(getLevel(), getBlockPos(), getBlockState().setValue(CustomerSpawnerBlock.STATE_SPAWN_MODE, spawnerMode));
+        level.setBlock(getBlockPos(), newState, Block.UPDATE_ALL);
+        setChanged();
+    }
+
     public Set<UUID> getCustomerIds() {
         return customerIds;
+    }
+
+    public List<ResourceLocation> getEnabledAppearanceIds() {
+        return appearanceSettings.getEnabledAppearances();
+    }
+
+    public void setEnabledAppearanceIds(
+            Collection<ResourceLocation> appearanceIds
+    ) {
+        appearanceSettings.setEnabledAppearances(appearanceIds);
+        setChanged();
     }
 
     public void spawnCustomer() {
@@ -715,24 +803,11 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         if (!offers.isEmpty()) {
             BlockState counterBlockState = level.getBlockState(getBlockPos().above());
             BlockState avoidBlockState = level.getBlockState(getBlockPos().below());
-            boolean specialEnabled = getBlockState().getValue(CustomerSpawnerBlock.STATE_SPECIAL_ENABLED);
-
-            List<EntityType<? extends CustomerVillagerEntity>> entityTypes = new ArrayList<>();
-            entityTypes.add(Customer.CUSTOMER_VILLAGER.get());
-            if (specialEnabled) {
-                CustomerSpawnerMode spawnerMode = getBlockState().getValue(CustomerSpawnerBlock.STATE_SPAWN_MODE);
-                if (spawnerMode == CustomerSpawnerMode.NIGHT) {
-                    entityTypes.add(Customer.CUSTOMER_ZOMBIE.get());
-                    entityTypes.add(Customer.CUSTOMER_SKELETON.get());
-                    entityTypes.add(Customer.CUSTOMER_WITCH.get());
-                    entityTypes.add(Customer.CUSTOMER_HUSK.get());
-                    entityTypes.add(Customer.CUSTOMER_DROWNED.get());
-                    entityTypes.add(Customer.CUSTOMER_STRAY.get());
-                }
-            }
-            EntityType<? extends CustomerVillagerEntity> entityType = entityTypes.get(level.getRandom().nextInt(entityTypes.size()));
+            CustomerSpawnerMode spawnerMode =
+                    getBlockState().getValue(
+                            CustomerSpawnerBlock.STATE_SPAWN_MODE
+                    );
             CustomerVillagerEntity customer = CustomerVillagerEntity.spawn(
-                    entityType,
                     level,
                     getBlockPos(),
                     offers,
@@ -740,6 +815,20 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                     avoidBlockState
             );
             if (customer != null) {
+                float variationSeed = level.getRandom().nextFloat();
+                customer.setAppearanceContext(
+                        CustomersVillagerAppearances.DEFAULT,
+                        variationSeed,
+                        spawnerMode,
+                        false
+                );
+                customer.setAppearanceId(
+                        CustomersVillagerAppearances.select(
+                                appearanceSettings.getEnabledAppearances(),
+                                customer,
+                                level.getRandom()::nextInt
+                        )
+                );
                 customerIds.add(customer.getUUID());
                 setChanged();
                 scoreboardAddCustomer();
@@ -927,7 +1016,6 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         return CustomerSpawnerSnapshot.create(
                 getBlockPos(),
                 state.getValue(CustomerSpawnerBlock.STATE_SPAWN_MODE),
-                state.getValue(CustomerSpawnerBlock.STATE_SPECIAL_ENABLED),
                 bossEventId,
                 customers
         );

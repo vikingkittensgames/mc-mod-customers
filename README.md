@@ -29,12 +29,12 @@ Customers only spawn where they have enough vertical clearance and a 2ÃƒÆ’�
 blocks, slabs, carpet, or stairs.
 
 Similar to a regular mob spawner block, each customer block will try to keep up to 4 customers
-spawned at any one time by default. The default maximum can be changed with the `maxCustomers`
-configuration option or overridden for an individual spawner with redstone in its inventory.
+spawned at any one time by default. Open the Customer Spawner interface and change its
+**Max** setting to control the maximum number of customers for that individual spawner.
 Customers that are done buying and are leaving do not count toward this maximum.
 
-During timed shifts, the customer maximum starts low, ramps up to the configured or
-inventory-defined maximum, and ramps down over the final portion of the shift. The longer
+During timed shifts, the customer maximum starts low, ramps up to the spawner's configured
+maximum, and ramps down over the final portion of the shift. The longer
 Day and Night Shifts ramp up more gradually than the shorter meal shifts.
 
 ![customer-spawners.png](screenshots/customer-spawners.png)
@@ -73,7 +73,7 @@ and green for casual customers.
 
 ### Redstone and Customer Spawner
 
-Similar to a hopper, if the Customer Spawner block is is any mode other than Manual and
+Similar to a hopper, if the Customer Spawner block is in any mode other than Manual and
 is receiving power, it will turn off spawning.  This will allow you to turn off getting
 new customers when you don't want to deal with them or if you want to use redstone to control
 when the shifts are on.
@@ -96,22 +96,19 @@ the customer will decide to randomly buy 1 to 5 apples.
 
 The separate 6 rows in the spawner container are used to define how many different items
 a customer can decide to buy and what each of those items can be.  Each of the 6 container
-rows is a "slot" for a customer to decide to buy from.  All 9 items on that row (except for
-emeralds) can define an item the customer can ask for for that slot.  A customer will only
+rows is a "slot" for a customer to decide to buy from. The first 8 columns on each row
+define the items a customer can ask to buy from that row. A customer will only
 ask for one item per slot, and it will randomly decide how many slots to buy from from 1 to
 the number of rows you have items in.
 
-Emeralds are special.  Just like regular villager traders, you will be paid in emeralds.
-By default, you will be payed one emerald for each item you sell to a customer.  If a
-spawner container row contains a stack of emeralds, that will define how many emeralds the
-items in that row cost.  Remember this will be per item not per stack so if the customer
-buys more than one of the item, you will be payed that number of emeralds multiplied by
-the number of items in the stack.
+The 9th column is the **Cost** column for its row. By default, each requested item costs
+one emerald. Placing any item stack in a row's Cost slot overrides that default with the
+item and count in the slot. The cost is per requested item, so if a customer asks for
+more than one item, the cost is multiplied by the number requested.
 
-Redstone is also special and will not be offered to customers for purchase. The first stack
-of redstone in the spawner inventory sets the maximum number of customers for that individual
-spawner to the stack count. Removing all redstone returns the spawner to the `maxCustomers`
-configuration value.
+The maximum number of customers is not controlled by an inventory item. Use the **Max**
+setting in the Customer Spawner interface to set a value from 1 through 99 for that
+spawner.
 
 Examples:
 * Row 1 contains just a single apple - Customer will always ask for a single apple and
@@ -121,13 +118,15 @@ Examples:
 * Row 1 contains a stack of 5 applies and a stack of 5 carrots - Customer will always
   decide to buy either apples or carrots and buy from 1 to 5 of them paying one emerald
   for each.
-* Row 1 contains a stack of 3 chocolate chip cookies, a single pumpkin pie, and a stack of
-  2 emeralds - Customer will always decide to buy chocolate chip cookies or a pumpkin pie.
+* Row 1 contains a stack of 3 chocolate chip cookies and a single pumpkin pie in its first
+  8 columns, with a stack of 2 emeralds in its 9th-column Cost slot - Customer will always
+  decide to buy chocolate chip cookies or a pumpkin pie.
   If it decides to buy chocolate chip cookies it will buy from 1 to 3 and pay 2 emeralds
   for each cookie.  If it decides to buy a pumpkin pie it will only buy 1 and pay 2 emeralds 
   for it.
-* Row 1 contains a single apple and row 2 contains a single pumpkin pie and a stack of 2
-  emeralds - Customer will decide to buy from 1 to 2 items.  If it decides to only buy 1,
+* Row 1 contains a single apple. Row 2 contains a single pumpkin pie in its first 8 columns
+  and a stack of 2 emeralds in its Cost slot - Customer will decide to buy from 1 to 2
+  items. If it decides to only buy 1,
   it will randomly pick which row to buy from.  If it decides to buy 2, it will buy one
   item from each row.
 
@@ -272,15 +271,6 @@ Each wears a different hat:
 
 If you want your customers to have names, think about using the [Villager Names mod](https://www.curseforge.com/minecraft/mc-mods/villager-names).
 
-### Special Night Shift Customers
-
-If the Customer Spawner Block has a lit jack-o-lantern block next to it and the spawner
-mode is on Night Shift, it will also randomly spawn the monster customers which are just
-like the villager customers but on the client side will show up and sound like friendly
-zombies, skeletons, witches, pillagers, vindicators, evokers, and illusioners.
-
-![customers-sitting-special.png](screenshots/customers-sitting-special.png)
-
 ### Picking Items to Buy
 
 The first thing a customer will do it look at it's spawner to pick what items it wants to
@@ -322,6 +312,26 @@ chat and walk back to the spawner that created them.  Once they reach the spawne
 will pick a random block to walk to 32 blocks away that has 2 air blocks above it and
 that they can actually path to.  They will then walk to this block and once they get
 there despawn.
+
+## Appearances
+
+The appearance of Customers and Suppliers is extensible. An appearance controls how
+those villagers are rendered and which ambient, hurt, death, and step sounds they use.
+Each spawner can enable the appearances its villagers may use.
+
+### Default Appearance
+
+The Default appearance uses vanilla Villager rendering and sounds with custom textures
+that distinguish Suppliers, normal Customers, impatient Customers, and casual Customers.
+The Default appearance is enabled initially.
+
+### Monsters Appearance
+
+The Monsters appearance makes Customers look and sound like friendly monsters while
+preserving their normal customer behavior, including sitting while waiting. It uses the
+customer's saved appearance variation to consistently select a zombie, skeleton, witch,
+husk, drowned, or stray. Enable Monsters in a Customer Spawner's appearance list to make
+it available in any spawning mode.
 
 ## Gameplay and Shifts
 

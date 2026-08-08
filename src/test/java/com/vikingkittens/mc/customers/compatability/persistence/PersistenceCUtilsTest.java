@@ -36,6 +36,9 @@ class PersistenceCUtilsTest {
 
         DataWriter writer = PersistenceCUtils.writer(tag);
         writer.putString("string", "value");
+        writer.putFloat("float", 0.625F);
+        writer.putInt("int", 42);
+        writer.putStrings("strings", List.of("first", "second"));
         writer.putBoolean("boolean", true);
         writer.putBlockPos("position", position);
         writer.putBlockState("state", state);
@@ -48,6 +51,9 @@ class PersistenceCUtilsTest {
         DataReader reader = PersistenceCUtils.reader(tag);
 
         assertEquals(Optional.of("value"), reader.getString("string"));
+        assertEquals(Optional.of(0.625F), reader.getFloat("float"));
+        assertEquals(Optional.of(42), reader.getInt("int"));
+        assertEquals(List.of("first", "second"), reader.getStrings("strings"));
         assertEquals(true, reader.getBoolean("boolean"));
         assertEquals(Optional.of(position), reader.getBlockPos("position"));
         assertEquals(Optional.of(state), reader.getBlockState("state"));
@@ -67,6 +73,9 @@ class PersistenceCUtilsTest {
         DataReader reader = PersistenceCUtils.reader(new CompoundTag());
 
         assertEquals(Optional.empty(), reader.getString("string"));
+        assertEquals(Optional.empty(), reader.getFloat("float"));
+        assertEquals(Optional.empty(), reader.getInt("int"));
+        assertEquals(List.of(), reader.getStrings("strings"));
         assertFalse(reader.getBoolean("boolean"));
         assertEquals(Optional.empty(), reader.getBlockPos("position"));
         assertEquals(Optional.empty(), reader.getBlockState("state"));

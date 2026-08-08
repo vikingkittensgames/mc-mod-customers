@@ -45,7 +45,6 @@ class CustomerSpawnerSnapshotManagerTest {
         CustomerSpawnerSnapshot snapshot = new CustomerSpawnerSnapshot(
                 spawnerPos,
                 CustomerSpawnerMode.DAY,
-                false,
                 Optional.of(bossEventId),
                 List.of(customer)
         );
@@ -74,7 +73,6 @@ class CustomerSpawnerSnapshotManagerTest {
         CustomerSpawnerSnapshot oldSnapshot = new CustomerSpawnerSnapshot(
                 spawnerPos,
                 CustomerSpawnerMode.BREAKFAST,
-                false,
                 Optional.of(oldBossEventId),
                 List.of(new CustomerSpawnerSnapshot.Customer(
                         oldCustomerId,
@@ -88,7 +86,6 @@ class CustomerSpawnerSnapshotManagerTest {
         CustomerSpawnerSnapshot newSnapshot = new CustomerSpawnerSnapshot(
                 spawnerPos,
                 CustomerSpawnerMode.CONTINUOUS,
-                true,
                 Optional.empty(),
                 List.of(new CustomerSpawnerSnapshot.Customer(
                         newCustomerId,
@@ -128,7 +125,6 @@ class CustomerSpawnerSnapshotManagerTest {
         CustomerSpawnerSnapshot snapshot = new CustomerSpawnerSnapshot(
                 spawnerPos,
                 CustomerSpawnerMode.DINNER,
-                true,
                 Optional.of(bossEventId),
                 List.of(new CustomerSpawnerSnapshot.Customer(
                         customerId,
@@ -165,7 +161,6 @@ class CustomerSpawnerSnapshotManagerTest {
         CustomerSpawnerSnapshot snapshot = new CustomerSpawnerSnapshot(
                 BlockPos.ZERO,
                 CustomerSpawnerMode.DAY,
-                false,
                 Optional.empty(),
                 List.of(new CustomerSpawnerSnapshot.Customer(
                         customerId,

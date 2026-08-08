@@ -13,8 +13,13 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
@@ -31,11 +36,17 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.Path;
 
 import net.neoforged.neoforge.registries.datamaps.builtin.BiomeVillagerType;
 import net.neoforged.neoforge.registries.datamaps.builtin.NeoForgeDataMaps;
 
+import com.vikingkittens.mc.customers.appearance.CustomersVillager;
+import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearance;
+import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearancePersistence;
+import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
+import com.vikingkittens.mc.customers.appearance.CustomersVillagerType;
 import com.vikingkittens.mc.customers.common.MobUtils;
 import com.vikingkittens.mc.customers.common.PositionUtils;
 import com.vikingkittens.mc.customers.compatability.EntityCUtils;
@@ -45,10 +56,11 @@ import com.vikingkittens.mc.customers.compatability.VillagerCUtils;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
 import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
 import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
+import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 import com.vikingkittens.mc.customers.supplier.ai.SupplierMoveToSpawnGoal;
 import com.vikingkittens.mc.customers.supplier.ai.SupplierMoveToSpawnerGoal;
 
-public class SupplierVillagerEntity extends Villager {
+public class SupplierVillagerEntity extends Villager implements CustomersVillager {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     private static final int INITIAL_SPAWN_RADIUS = 64;
@@ -59,6 +71,16 @@ public class SupplierVillagerEntity extends Villager {
     private static final String TAG_STATE = "SupplierState";
     private static final String TAG_SPAWNER_POS = "SpawnerPos";
     private static final String TAG_SPAWN_POS = "SpawnPos";
+    private static final EntityDataAccessor<String> DATA_APPEARANCE =
+            SynchedEntityData.defineId(
+                    SupplierVillagerEntity.class,
+                    EntityDataSerializers.STRING
+            );
+    private static final EntityDataAccessor<Float> DATA_VARIATION_SEED =
+            SynchedEntityData.defineId(
+                    SupplierVillagerEntity.class,
+                    EntityDataSerializers.FLOAT
+            );
 
     public static final String NAME = "supplier_villager";
 
@@ -193,6 +215,120 @@ public class SupplierVillagerEntity extends Villager {
         super(entityType, level);
     }
 
+    @Override
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(
+                DATA_APPEARANCE,
+                CustomersVillagerAppearances.DEFAULT.toString()
+        );
+        builder.define(DATA_VARIATION_SEED, 0.0F);
+    }
+
+    @Override
+    public CustomersVillagerType getCustomersVillagerType() {
+        return CustomersVillagerType.SUPPLIER;
+    }
+
+    @Override
+    public Optional<CustomerSpawnerMode> getSpawnerMode() {
+        return Optional.empty();
+    }
+
+    @Override
+    public boolean isSpecial() {
+        return false;
+    }
+
+    @Override
+    public ResourceLocation getAppearanceId() {
+        return ResourceLocation.parse(entityData.get(DATA_APPEARANCE));
+    }
+
+    @Override
+    public void setAppearanceId(ResourceLocation appearanceId) {
+        entityData.set(DATA_APPEARANCE, appearanceId.toString());
+    }
+
+    @Override
+    public float getVariationSeed() {
+        return entityData.get(DATA_VARIATION_SEED);
+    }
+
+    @Override
+    public void setVariationSeed(float variationSeed) {
+        entityData.set(DATA_VARIATION_SEED, variationSeed);
+    }
+
+    @Override
+    public boolean isSitting() {
+        return isPassenger();
+    }
+
+    @Override
+    protected SoundEvent getAmbientSound() {
+        CustomersVillagerAppearance appearance =
+                CustomersVillagerAppearances.get(this);
+        if (appearance != null) {
+            SoundEvent sound = appearance.getAmbientSound(this);
+            if (sound != null) {
+                return sound;
+            }
+        }
+        return super.getAmbientSound();
+    }
+
+    @Override
+    protected SoundEvent getHurtSound(DamageSource damageSource) {
+        CustomersVillagerAppearance appearance =
+                CustomersVillagerAppearances.get(this);
+        if (appearance != null) {
+            SoundEvent sound = appearance.getHurtSound(this);
+            if (sound != null) {
+                return sound;
+            }
+        }
+        return super.getHurtSound(damageSource);
+    }
+
+    @Override
+    protected SoundEvent getDeathSound() {
+        CustomersVillagerAppearance appearance =
+                CustomersVillagerAppearances.get(this);
+        if (appearance != null) {
+            SoundEvent sound = appearance.getDeathSound(this);
+            if (sound != null) {
+                return sound;
+            }
+        }
+        return super.getDeathSound();
+    }
+
+    @Override
+    protected void playStepSound(
+            BlockPos position,
+            BlockState blockState
+    ) {
+        CustomersVillagerAppearance appearance =
+                CustomersVillagerAppearances.get(this);
+        if (appearance != null) {
+            SoundEvent sound = appearance.getStepSound(this);
+            if (sound != null) {
+                playSound(sound, 0.15F, 1.0F);
+                return;
+            }
+        }
+        super.playStepSound(position, blockState);
+    }
+
+    public void setAppearanceContext(
+            ResourceLocation appearanceId,
+            float variationSeed
+    ) {
+        setAppearanceId(appearanceId);
+        setVariationSeed(variationSeed);
+    }
+
     public SupplierState getState() {
         return state;
     }
@@ -223,6 +359,7 @@ public class SupplierVillagerEntity extends Villager {
         readSupplierData(PersistenceCUtils.reader(compound));
     }
     void readSupplierData(DataReader input) {
+        CustomersVillagerAppearancePersistence.read(input, this);
         input.getString(TAG_STATE).ifPresent(stateName -> {
             try {
                 setState(SupplierState.valueOf(stateName));
@@ -240,6 +377,7 @@ public class SupplierVillagerEntity extends Villager {
         writeSupplierData(PersistenceCUtils.writer(compound));
     }
     void writeSupplierData(DataWriter output) {
+        CustomersVillagerAppearancePersistence.write(output, this);
         if (state != null) {
             output.putString(TAG_STATE, state.name());
         }

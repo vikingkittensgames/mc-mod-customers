@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.OptionalInt;
 import java.util.Set;
 import java.util.UUID;
 
@@ -188,33 +187,18 @@ class CustomerSpawnerBlockEntityTest {
         );
     }
     @Test
-    void usesFirstMaximumCustomerStackAndIgnoresLaterStacks() {
-        Item maximumItem = createItem();
-        ItemStackHandler inventory = new ItemStackHandler(4);
-        inventory.setStackInSlot(1, new ItemStack(maximumItem, 7));
-        inventory.setStackInSlot(2, new ItemStack(maximumItem, 12));
-
+    void clampsPersistedMaximumCustomersToUiRange() {
         assertEquals(
-                OptionalInt.of(7),
-                CustomerSpawnerBlockEntity.getMaxCustomersOverrideFromInventory(
-                        inventory,
-                        () -> maximumItem
-                )
+                1,
+                CustomerSpawnerBlockEntity.clampMaxCustomers(0)
         );
-    }
-
-    @Test
-    void hasNoOverrideWithoutMaximumCustomerItem() {
-        Item ordinaryItem = createItem();
-        Item maximumItem = createItem();
-        ItemStackHandler inventory = new ItemStackHandler(4);
-        inventory.setStackInSlot(0, new ItemStack(ordinaryItem, 3));
-
-        assertTrue(
-                CustomerSpawnerBlockEntity.getMaxCustomersOverrideFromInventory(
-                        inventory,
-                        () -> maximumItem
-                ).isEmpty()
+        assertEquals(
+                50,
+                CustomerSpawnerBlockEntity.clampMaxCustomers(50)
+        );
+        assertEquals(
+                99,
+                CustomerSpawnerBlockEntity.clampMaxCustomers(100)
         );
     }
 
@@ -231,19 +215,27 @@ class CustomerSpawnerBlockEntityTest {
     }
 
     @Test
-    void createsNoOffersFromPaymentAndMaximumItems() {
+    void allowsFormerConfigurationItemsAsCustomerChoices() {
         Item paymentItem = createItem();
         Item maximumItem = createItem();
         ItemStackHandler inventory = new ItemStackHandler(9);
         inventory.setStackInSlot(0, new ItemStack(paymentItem, 4));
         inventory.setStackInSlot(1, new ItemStack(maximumItem, 7));
 
-        assertTrue(getOffers(
+        MerchantOffers offers = getOffers(
                 RandomSource.create(1L),
                 inventory,
                 paymentItem,
                 maximumItem
-        ).isEmpty());
+        );
+
+        assertEquals(1, offers.size());
+        assertTrue(
+                offers.getFirst().getItemCostA().item().value()
+                                == paymentItem
+                        || offers.getFirst().getItemCostA().item().value()
+                                == maximumItem
+        );
     }
 
     @Test
@@ -274,7 +266,7 @@ class CustomerSpawnerBlockEntityTest {
         Item wantedItem = createItem();
         ItemStackHandler inventory = new ItemStackHandler(9);
         inventory.setStackInSlot(0, new ItemStack(wantedItem, 5));
-        inventory.setStackInSlot(1, new ItemStack(paymentItem, 2));
+        inventory.setStackInSlot(8, new ItemStack(paymentItem, 2));
         RandomSource random = mock(RandomSource.class);
         when(random.nextIntBetweenInclusive(1, 5)).thenReturn(3);
 
@@ -290,26 +282,31 @@ class CustomerSpawnerBlockEntityTest {
     }
 
     @Test
-    void ignoresMaximumItemWhileKeepingOrdinaryRowItem() {
-        Item paymentItem = createItem();
-        Item maximumItem = createItem();
+    void usesAnyNinthSlotStackAsRowPayment() {
+        Item defaultPaymentItem = createItem();
+        Item configuredPaymentItem = createItem();
         Item wantedItem = createItem();
         ItemStackHandler inventory = new ItemStackHandler(9);
-        inventory.setStackInSlot(0, new ItemStack(maximumItem, 7));
-        inventory.setStackInSlot(1, new ItemStack(wantedItem));
+        inventory.setStackInSlot(0, new ItemStack(wantedItem, 5));
+        inventory.setStackInSlot(
+                8,
+                new ItemStack(configuredPaymentItem, 3)
+        );
+        RandomSource random = mock(RandomSource.class);
+        when(random.nextIntBetweenInclusive(1, 5)).thenReturn(2);
 
-        MerchantOffers offers = getOffers(
-                RandomSource.create(1L),
+        MerchantOffer offer = getOffers(
+                random,
                 inventory,
-                paymentItem,
-                maximumItem
-        );
+                defaultPaymentItem,
+                createItem()
+        ).getFirst();
 
-        assertEquals(1, offers.size());
         assertSame(
-                wantedItem,
-                offers.getFirst().getItemCostA().item().value()
+                configuredPaymentItem,
+                offer.getResult().getItem()
         );
+        assertEquals(6, offer.getResult().getCount());
     }
 
     @Test
@@ -669,8 +666,7 @@ class CustomerSpawnerBlockEntityTest {
         return CustomerSpawnerBlockEntity.getOffersFromInventory(
                 random,
                 inventory,
-                () -> paymentItem,
-                () -> maximumItem
+                () -> paymentItem
         );
     }
 

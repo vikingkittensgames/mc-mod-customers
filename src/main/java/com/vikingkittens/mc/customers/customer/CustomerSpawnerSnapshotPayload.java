@@ -44,7 +44,6 @@ public record CustomerSpawnerSnapshotPayload(
         buffer.writeBoolean(payload.snapshot().isPresent());
         payload.snapshot().ifPresent(snapshot -> {
             buffer.writeEnum(snapshot.spawnerMode());
-            buffer.writeBoolean(snapshot.specialEnabled());
             buffer.writeBoolean(snapshot.bossEventId().isPresent());
             snapshot.bossEventId().ifPresent(buffer::writeUUID);
             buffer.writeVarInt(snapshot.customers().size());
@@ -81,7 +80,6 @@ public record CustomerSpawnerSnapshotPayload(
         }
         CustomerSpawnerMode spawnerMode =
                 buffer.readEnum(CustomerSpawnerMode.class);
-        boolean specialEnabled = buffer.readBoolean();
         Optional<UUID> bossEventId = buffer.readBoolean()
                 ? Optional.of(buffer.readUUID())
                 : Optional.empty();
@@ -96,7 +94,6 @@ public record CustomerSpawnerSnapshotPayload(
                 Optional.of(new CustomerSpawnerSnapshot(
                         spawnerPos,
                         spawnerMode,
-                        specialEnabled,
                         bossEventId,
                         customers
                 ))

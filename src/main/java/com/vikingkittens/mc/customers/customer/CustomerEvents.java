@@ -72,12 +72,6 @@ public class CustomerEvents {
     @SubscribeEvent
     public static void registerAttributes(EntityAttributeCreationEvent event) {
         event.put(Customer.CUSTOMER_VILLAGER.get(), Villager.createAttributes().build());
-        event.put(Customer.CUSTOMER_ZOMBIE.get(), Villager.createAttributes().build());
-        event.put(Customer.CUSTOMER_SKELETON.get(), Villager.createAttributes().build());
-        event.put(Customer.CUSTOMER_WITCH.get(), Villager.createAttributes().build());
-        event.put(Customer.CUSTOMER_HUSK.get(), Villager.createAttributes().build());
-        event.put(Customer.CUSTOMER_DROWNED.get(), Villager.createAttributes().build());
-        event.put(Customer.CUSTOMER_STRAY.get(), Villager.createAttributes().build());
     }
 
     @SubscribeEvent

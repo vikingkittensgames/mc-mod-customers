@@ -82,7 +82,6 @@ class CustomerSpawnerSnapshotTest {
         CustomerSpawnerSnapshot snapshot = new CustomerSpawnerSnapshot(
                 new BlockPos(10, 64, -20),
                 CustomerSpawnerMode.LUNCH,
-                true,
                 Optional.of(UUID.randomUUID()),
                 mutableCustomers
         );
@@ -100,7 +99,6 @@ class CustomerSpawnerSnapshotTest {
         CustomerSpawnerSnapshot snapshot = new CustomerSpawnerSnapshot(
                 BlockPos.ZERO,
                 CustomerSpawnerMode.CONTINUOUS,
-                false,
                 Optional.empty(),
                 List.of()
         );

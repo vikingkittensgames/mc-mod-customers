@@ -14,6 +14,12 @@ import net.minecraft.world.level.block.state.BlockState;
 public interface DataWriter {
     void putString(String key, String value);
 
+    void putFloat(String key, float value);
+
+    void putInt(String key, int value);
+
+    void putStrings(String key, Collection<String> values);
+
     void putBoolean(String key, boolean value);
 
     void putBlockPos(String key, BlockPos value);

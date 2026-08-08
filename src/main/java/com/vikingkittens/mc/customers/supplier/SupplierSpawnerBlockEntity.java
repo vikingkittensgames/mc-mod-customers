@@ -10,6 +10,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.*;
 import net.minecraft.world.entity.player.Inventory;
@@ -28,6 +29,8 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import net.neoforged.neoforge.items.ItemStackHandler;
 
+import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearanceSettings;
+import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 import com.vikingkittens.mc.customers.common.SearchUtils;
 import com.vikingkittens.mc.customers.compatability.LevelCUtils;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
@@ -35,6 +38,8 @@ import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
 import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
 
 public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvider {
+    private final CustomersVillagerAppearanceSettings appearanceSettings =
+            new CustomersVillagerAppearanceSettings();
     private static final Logger LOGGER = LogUtils.getLogger();
 
     private static final int INVENTORY_ROW_SIZE = 9;
@@ -109,6 +114,7 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
         writeSpawnerData(PersistenceCUtils.writer(tag));
     }
     void writeSpawnerData(DataWriter output) {
+        appearanceSettings.write(output);
         output.putBoolean("daytimeStateInitialized", daytimeStateInitialized);
         output.putBoolean("lastTickWasDaytime", lastTickWasDaytime);
     }
@@ -128,6 +134,7 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
         readSpawnerData(PersistenceCUtils.reader(tag));
     }
     void readSpawnerData(DataReader input) {
+        appearanceSettings.read(input);
         daytimeStateInitialized = input.getBoolean("daytimeStateInitialized");
         lastTickWasDaytime = input.getBoolean("lastTickWasDaytime");
     }
@@ -224,6 +231,17 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
         level.setBlock(getBlockPos(), newState, Block.UPDATE_ALL);
     }
 
+    public List<ResourceLocation> getEnabledAppearanceIds() {
+        return appearanceSettings.getEnabledAppearances();
+    }
+
+    public void setEnabledAppearanceIds(
+            Collection<ResourceLocation> appearanceIds
+    ) {
+        appearanceSettings.setEnabledAppearances(appearanceIds);
+        setChanged();
+    }
+
     public void spawnSupplier() {
         MerchantOffers offers = getOffersFromInventory(level.getRandom(), inventory);
         if (!offers.isEmpty()) {
@@ -233,6 +251,18 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
                     offers
             );
             if (supplier != null) {
+                float variationSeed = level.getRandom().nextFloat();
+                supplier.setAppearanceContext(
+                        CustomersVillagerAppearances.DEFAULT,
+                        variationSeed
+                );
+                supplier.setAppearanceId(
+                        CustomersVillagerAppearances.select(
+                                appearanceSettings.getEnabledAppearances(),
+                                supplier,
+                                level.getRandom()::nextInt
+                        )
+                );
                 setChanged();
             }
         }

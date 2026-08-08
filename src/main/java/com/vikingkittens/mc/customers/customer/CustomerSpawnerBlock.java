@@ -44,15 +44,12 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
 
     static final BooleanProperty STATE_POWERED = BooleanProperty.create("powered");
 
-    static final BooleanProperty STATE_SPECIAL_ENABLED = BooleanProperty.create("special_enabled");
-
     public CustomerSpawnerBlock(Properties properties) {
         super(withLogStrength(properties));
         this.registerDefaultState(this.defaultBlockState()
                 .setValue(STATE_SPAWN_MODE, CustomerSpawnerMode.CONTINUOUS)
                 .setValue(STATE_DISABLED, false)
                 .setValue(STATE_POWERED, false)
-                .setValue(STATE_SPECIAL_ENABLED, false)
         );
     }
 
@@ -64,8 +61,7 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
         return CustomerSpawner.CUSTOMER_SPAWNER_BLOCK.get()
                 .defaultBlockState()
                 .setValue(STATE_SPAWN_MODE, spawnerMode)
-                .setValue(STATE_DISABLED, false)
-                .setValue(STATE_SPECIAL_ENABLED, false);
+                .setValue(STATE_DISABLED, false);
     }
 
     @Override
@@ -79,7 +75,6 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
         builder.add(STATE_SPAWN_MODE);
         builder.add(STATE_DISABLED);
         builder.add(STATE_POWERED);
-        builder.add(STATE_SPECIAL_ENABLED);
     }
 
     @Override

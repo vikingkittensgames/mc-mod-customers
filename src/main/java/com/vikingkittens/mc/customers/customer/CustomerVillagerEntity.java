@@ -23,7 +23,9 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
@@ -54,6 +56,11 @@ import net.neoforged.neoforge.registries.datamaps.builtin.BiomeVillagerType;
 import net.neoforged.neoforge.registries.datamaps.builtin.NeoForgeDataMaps;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.appearance.CustomersVillager;
+import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearance;
+import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearancePersistence;
+import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
+import com.vikingkittens.mc.customers.appearance.CustomersVillagerType;
 import com.vikingkittens.mc.customers.common.MobUtils;
 import com.vikingkittens.mc.customers.compatability.EntityCUtils;
 import com.vikingkittens.mc.customers.compatability.InteractionCUtils;
@@ -66,7 +73,7 @@ import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtil
 import com.vikingkittens.mc.customers.config.Config;
 import com.vikingkittens.mc.customers.customer.ai.*;
 
-public class CustomerVillagerEntity extends Villager {
+public class CustomerVillagerEntity extends Villager implements CustomersVillager {
     @Override
     public Vec3 getVehicleAttachmentPoint(Entity vehicle) {
         if (vehicle instanceof CustomerSeatEntity) {
@@ -85,7 +92,31 @@ public class CustomerVillagerEntity extends Villager {
     private static final String TAG_TRADED_WITH_PLAYERS = "TradedWithPlayers";
     private static final String TAG_OFFERS_CRAFTED = "OffersCrafted";
     private static final String TAG_TRADED_PLAYER_UUID = "UUID";
+    private static final String TAG_APPEARANCE_SPAWNER_MODE =
+            "CustomersAppearanceSpawnerMode";
+    private static final String TAG_APPEARANCE_SPECIAL =
+            "CustomersAppearanceSpecial";
     private static final EntityDataAccessor<Integer> DATA_CUSTOMER_STATE = SynchedEntityData.defineId(CustomerVillagerEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<String> DATA_APPEARANCE =
+            SynchedEntityData.defineId(
+                    CustomerVillagerEntity.class,
+                    EntityDataSerializers.STRING
+            );
+    private static final EntityDataAccessor<Float> DATA_VARIATION_SEED =
+            SynchedEntityData.defineId(
+                    CustomerVillagerEntity.class,
+                    EntityDataSerializers.FLOAT
+            );
+    private static final EntityDataAccessor<Integer> DATA_APPEARANCE_SPAWNER_MODE =
+            SynchedEntityData.defineId(
+                    CustomerVillagerEntity.class,
+                    EntityDataSerializers.INT
+            );
+    private static final EntityDataAccessor<Boolean> DATA_APPEARANCE_SPECIAL =
+            SynchedEntityData.defineId(
+                    CustomerVillagerEntity.class,
+                    EntityDataSerializers.BOOLEAN
+            );
     private static final Map<Item, Item> TRADE_REMAINDER_FALLBACKS = Map.of(
             Items.MUSHROOM_STEW, Items.BOWL,
             Items.RABBIT_STEW, Items.BOWL,
@@ -112,20 +143,13 @@ public class CustomerVillagerEntity extends Villager {
             BlockState counterBlockState,
             BlockState avoidBlockState
     ) {
-        return spawn(Customer.CUSTOMER_VILLAGER.get(), level, spawnerPos, offers, counterBlockState, avoidBlockState);
-    }
-
-    public static CustomerVillagerEntity spawn(
-            EntityType<? extends CustomerVillagerEntity> customerType,
-            Level level,
-            BlockPos spawnerPos,
-            MerchantOffers offers,
-            BlockState counterBlockState,
-            BlockState avoidBlockState
-    ) {
         if (!LevelCUtils.isClientSide(level)) {
             ServerLevel serverLevel = (ServerLevel)level;
-            CustomerVillagerEntity customer = EntityCUtils.create(customerType, level);
+            CustomerVillagerEntity customer =
+                    EntityCUtils.create(
+                            Customer.CUSTOMER_VILLAGER.get(),
+                            level
+                    );
             if (customer != null) {
                 BlockPos safePos = MobUtils.getRandomSpawnPos(level, spawnerPos, 5, 3);
                 if (safePos != null) {
@@ -434,6 +458,140 @@ public class CustomerVillagerEntity extends Villager {
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(DATA_CUSTOMER_STATE, -1);
+        builder.define(
+                DATA_APPEARANCE,
+                CustomersVillagerAppearances.DEFAULT.toString()
+        );
+        builder.define(DATA_VARIATION_SEED, 0.0F);
+        builder.define(DATA_APPEARANCE_SPAWNER_MODE, -1);
+        builder.define(DATA_APPEARANCE_SPECIAL, false);
+    }
+
+    @Override
+    public CustomersVillagerType getCustomersVillagerType() {
+        return switch (getSnapshotType()) {
+            case NORMAL -> CustomersVillagerType.CUSTOMER_NORMAL;
+            case IMPATIENT -> CustomersVillagerType.CUSTOMER_IMPATIENT;
+            case CASUAL -> CustomersVillagerType.CUSTOMER_CASUAL;
+        };
+    }
+
+    @Override
+    public Optional<CustomerSpawnerMode> getSpawnerMode() {
+        int modeIndex = entityData.get(DATA_APPEARANCE_SPAWNER_MODE);
+        CustomerSpawnerMode[] modes = CustomerSpawnerMode.values();
+        return modeIndex >= 0 && modeIndex < modes.length
+                ? Optional.of(modes[modeIndex])
+                : Optional.empty();
+    }
+
+    public void setSpawnerMode(CustomerSpawnerMode spawnerMode) {
+        entityData.set(
+                DATA_APPEARANCE_SPAWNER_MODE,
+                spawnerMode == null ? -1 : spawnerMode.ordinal()
+        );
+    }
+
+    @Override
+    public boolean isSpecial() {
+        return entityData.get(DATA_APPEARANCE_SPECIAL);
+    }
+
+    public void setSpecial(boolean special) {
+        entityData.set(DATA_APPEARANCE_SPECIAL, special);
+    }
+
+    @Override
+    public ResourceLocation getAppearanceId() {
+        return ResourceLocation.parse(entityData.get(DATA_APPEARANCE));
+    }
+
+    @Override
+    public void setAppearanceId(ResourceLocation appearanceId) {
+        entityData.set(DATA_APPEARANCE, appearanceId.toString());
+    }
+
+    @Override
+    public float getVariationSeed() {
+        return entityData.get(DATA_VARIATION_SEED);
+    }
+
+    @Override
+    public void setVariationSeed(float variationSeed) {
+        entityData.set(DATA_VARIATION_SEED, variationSeed);
+    }
+
+    @Override
+    public boolean isSitting() {
+        return isPassenger();
+    }
+
+    @Override
+    protected SoundEvent getAmbientSound() {
+        CustomersVillagerAppearance appearance =
+                CustomersVillagerAppearances.get(this);
+        if (appearance != null) {
+            SoundEvent sound = appearance.getAmbientSound(this);
+            if (sound != null) {
+                return sound;
+            }
+        }
+        return super.getAmbientSound();
+    }
+
+    @Override
+    protected SoundEvent getHurtSound(DamageSource damageSource) {
+        CustomersVillagerAppearance appearance =
+                CustomersVillagerAppearances.get(this);
+        if (appearance != null) {
+            SoundEvent sound = appearance.getHurtSound(this);
+            if (sound != null) {
+                return sound;
+            }
+        }
+        return super.getHurtSound(damageSource);
+    }
+
+    @Override
+    protected SoundEvent getDeathSound() {
+        CustomersVillagerAppearance appearance =
+                CustomersVillagerAppearances.get(this);
+        if (appearance != null) {
+            SoundEvent sound = appearance.getDeathSound(this);
+            if (sound != null) {
+                return sound;
+            }
+        }
+        return super.getDeathSound();
+    }
+
+    @Override
+    protected void playStepSound(
+            BlockPos position,
+            BlockState blockState
+    ) {
+        CustomersVillagerAppearance appearance =
+                CustomersVillagerAppearances.get(this);
+        if (appearance != null) {
+            SoundEvent sound = appearance.getStepSound(this);
+            if (sound != null) {
+                playSound(sound, 0.15F, 1.0F);
+                return;
+            }
+        }
+        super.playStepSound(position, blockState);
+    }
+
+    public void setAppearanceContext(
+            ResourceLocation appearanceId,
+            float variationSeed,
+            CustomerSpawnerMode spawnerMode,
+            boolean special
+    ) {
+        setAppearanceId(appearanceId);
+        setVariationSeed(variationSeed);
+        setSpawnerMode(spawnerMode);
+        setSpecial(special);
     }
 
     public CustomerState getState() {
@@ -594,6 +752,7 @@ public class CustomerVillagerEntity extends Villager {
         ));
     }
     void readCustomerData(DataReader input) {
+        readAppearanceData(input);
         input.getString(TAG_STATE).ifPresent(stateName -> {
             try {
                 setState(CustomerState.valueOf(stateName));
@@ -618,6 +777,22 @@ public class CustomerVillagerEntity extends Villager {
         offersCrafted.addAll(input.getItemStacks(TAG_OFFERS_CRAFTED));
     }
 
+    void readAppearanceData(DataReader input) {
+        CustomersVillagerAppearancePersistence.read(input, this);
+        input.getString(TAG_APPEARANCE_SPAWNER_MODE)
+                .ifPresent(modeName -> {
+                    try {
+                        setSpawnerMode(CustomerSpawnerMode.valueOf(modeName));
+                    } catch (IllegalArgumentException exception) {
+                        LOGGER.warn(
+                                "Ignoring unknown appearance spawner mode while loading: {}",
+                                modeName
+                        );
+                    }
+                });
+        setSpecial(input.getBoolean(TAG_APPEARANCE_SPECIAL));
+    }
+
     @Override
     public void addAdditionalSaveData(CompoundTag compound) {
         super.addAdditionalSaveData(compound);
@@ -627,6 +802,14 @@ public class CustomerVillagerEntity extends Villager {
         ));
     }
     void writeCustomerData(DataWriter output) {
+        CustomersVillagerAppearancePersistence.write(output, this);
+        getSpawnerMode().ifPresent(spawnerMode ->
+                output.putString(
+                        TAG_APPEARANCE_SPAWNER_MODE,
+                        spawnerMode.name()
+                )
+        );
+        output.putBoolean(TAG_APPEARANCE_SPECIAL, isSpecial());
         if (state != null) {
             output.putString(TAG_STATE, state.name());
         }

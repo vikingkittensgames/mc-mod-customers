@@ -4,6 +4,9 @@ import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.flag.FeatureFlags;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.level.block.Block;
@@ -35,6 +38,7 @@ public class CustomerSpawner {
     private static final DeferredRegister.Blocks blocks = DeferredRegister.createBlocks(modid);
     private static final DeferredRegister<BlockEntityType<?>> blockEntities = DeferredRegister.create(BuiltInRegistries.BLOCK_ENTITY_TYPE, modid);
     private static final DeferredRegister.Items items = DeferredRegister.createItems(Customers.MODID);
+    private static final DeferredRegister<MenuType<?>> menus = DeferredRegister.create(Registries.MENU, modid);
 
     // -------------------- Registries --------------------
     public static void register(IEventBus modEventBus) {
@@ -43,6 +47,7 @@ public class CustomerSpawner {
         blocks.register(modEventBus);
         blockEntities.register(modEventBus);
         items.register(modEventBus);
+        menus.register(modEventBus);
 
         modEventBus.addListener(CustomerSpawner::addCreative);
     }
@@ -55,6 +60,8 @@ public class CustomerSpawner {
 
     // -------------------- Items --------------------
     public static final DeferredItem<BlockItem> CUSTOMER_SPAWNER_ITEM = items.registerSimpleBlockItem(CustomerSpawnerBlock.NAME, CUSTOMER_SPAWNER_BLOCK);
+    public static final DeferredHolder<MenuType<?>, MenuType<CustomerSpawnerBlockMenu>> CUSTOMER_SPAWNER_MENU =
+            menus.register("customer_spawner", () -> new MenuType<>(CustomerSpawnerBlockMenu::new, FeatureFlags.DEFAULT_FLAGS));
 
     // Add each item to the right creative tab
     private static void addCreative(BuildCreativeModeTabContentsEvent event) {
