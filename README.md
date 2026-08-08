@@ -14,6 +14,7 @@ rode-side farm stand.
 
 For now we support Minecraft versions:
 * 1.21.1
+* 1.21.11 (delayed update)
 
 ## Mod Loader
 
@@ -25,13 +26,12 @@ A customer spawner block is the starting point for this mod.  Where you place it
 customers will spawn and what you place inside of it determines what your customers will want to
 buy from you.
 
-Customers only spawn where they have enough vertical clearance and a 2ÃƒÆ’Ã¢â‚¬â€2 surface made from solid
+Customers only spawn where they have enough vertical clearance and a 2x2 surface made from solid
 blocks, slabs, carpet, or stairs.
 
-Similar to a regular mob spawner block, each customer block will try to keep up to 4 customers
-spawned at any one time by default. Open the Customer Spawner interface and change its
-**Max** setting to control the maximum number of customers for that individual spawner.
-Customers that are done buying and are leaving do not count toward this maximum.
+Open the Customer Spawner interface and change its **Max** setting to control the maximum number
+of customers for that individual spawner. Customers that are done buying and are leaving do not
+count toward this maximum.
 
 During timed shifts, the customer maximum starts low, ramps up to the spawner's configured
 maximum, and ramps down over the final portion of the shift. The longer
@@ -131,6 +131,9 @@ Examples:
   item from each row.
 
 ![customer-spawner-inventory.png](screenshots/customer-spawner-inventory.png)
+
+The Customer Spawner UI is also where you can chnge the spawner mode, set the max customers,
+and enable different customer appearances.
 
 ### Counter or Table-Top Blocks
 
@@ -317,7 +320,8 @@ there despawn.
 
 The appearance of Customers and Suppliers is extensible. An appearance controls how
 those villagers are rendered and which ambient, hurt, death, and step sounds they use.
-Each spawner can enable the appearances its villagers may use.
+Each spawner can enable the appearances its villagers may use.  Open the spawner UI
+to enable or disable differences.
 
 ### Default Appearance
 
@@ -333,6 +337,8 @@ customer's saved appearance variation to consistently select a zombie, skeleton,
 husk, drowned, or stray. Enable Monsters in a Customer Spawner's appearance list to make
 it available in any spawning mode.
 
+![night-shift-special.png](screenshots/night-shift-special.png)
+
 ### Skins
 
 Skin packs are data-driven appearances that use standard Minecraft player skins. Each
@@ -342,6 +348,8 @@ appearance variation consistently selects one of the skins in that pack.
 
 The mod includes an **MC Skins** appearance containing Alex, Ari, Efe, Herobrine,
 Makena, Steve, and Zuri.
+
+![apperance-skins.png](screenshots/apperance-skins.png)
 
 A skin pack uses synchronized data-pack definitions together with client resource-pack
 textures and optional sounds:
@@ -458,6 +466,8 @@ weighted variants, volume, pitch, subtitles, streaming, and replacement. Skin pa
 with IDs that conflict with code-defined appearances are ignored in favor of the
 code-defined appearance.
 
+![apperance-skins-datapack.png](screenshots/apperance-skins-datapack.png)
+
 ### Minecraft Comes Alive Appearance
 
 When Minecraft Comes Alive Reborn is installed, the **Minecraft Comes Alive**
@@ -467,6 +477,8 @@ villager voices while
 preserving normal Customer and Supplier behavior, including sitting while waiting.
 The saved appearance variation keeps each villager's MCA appearance consistent.
 Customers and Suppliers using this appearance are always rendered as adults.
+
+![apperance-mca.png](screenshots/apperance-mca.png)
 
 ## Gameplay and Shifts
 
