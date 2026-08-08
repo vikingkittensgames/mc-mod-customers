@@ -1,6 +1,8 @@
 package com.vikingkittens.mc.customers.client.appearance;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -10,9 +12,8 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillager;
+import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearance;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
-import com.vikingkittens.mc.customers.appearance.skins.SkinPackCustomersVillagerAppearance;
-import com.vikingkittens.mc.customers.client.appearance.skins.SkinCustomersVillagerClientAppearance;
 
 public final class CustomersVillagerClientAppearances {
     private static final Map<
@@ -25,7 +26,12 @@ public final class CustomersVillagerClientAppearances {
                     ResourceLocation,
                     CustomersVillagerClientAppearance>
             APPEARANCES = new HashMap<>();
-    private static SkinCustomersVillagerClientAppearance skinAppearance;
+    private static final List<CustomersVillagerClientAppearanceProvider>
+            PROVIDERS = new ArrayList<>();
+    private static final List<InitializedProvider>
+            INITIALIZED_PROVIDERS = new ArrayList<>();
+    private static @Nullable EntityRendererProvider.Context
+            initializationContext;
 
     private CustomersVillagerClientAppearances() {}
 
@@ -39,15 +45,39 @@ public final class CustomersVillagerClientAppearances {
         FACTORIES.put(appearanceId, factory);
     }
 
+    public static void registerProvider(
+            CustomersVillagerClientAppearanceProvider provider
+    ) {
+        if (PROVIDERS.contains(provider)) {
+            return;
+        }
+        PROVIDERS.add(provider);
+        if (initializationContext != null) {
+            INITIALIZED_PROVIDERS.add(new InitializedProvider(
+                    provider,
+                    provider.create(initializationContext)
+            ));
+        }
+    }
+
     public static void initialize(
             EntityRendererProvider.Context context
     ) {
+        initializationContext = context;
         APPEARANCES.clear();
-        skinAppearance = new SkinCustomersVillagerClientAppearance(context);
+        INITIALIZED_PROVIDERS.clear();
         FACTORIES.forEach((appearanceId, factory) ->
                 APPEARANCES.put(
                         appearanceId,
                         factory.apply(context)
+                )
+        );
+        PROVIDERS.forEach(provider ->
+                INITIALIZED_PROVIDERS.add(
+                        new InitializedProvider(
+                                provider,
+                                provider.create(context)
+                        )
                 )
         );
     }
@@ -60,10 +90,18 @@ public final class CustomersVillagerClientAppearances {
         if (registered != null) {
             return registered;
         }
-        return CustomersVillagerAppearances.get(villager)
-                        instanceof SkinPackCustomersVillagerAppearance
-                ? skinAppearance
-                : null;
+        CustomersVillagerAppearance appearance =
+                CustomersVillagerAppearances.get(villager);
+        if (appearance == null) {
+            return null;
+        }
+        for (InitializedProvider initialized :
+                INITIALIZED_PROVIDERS) {
+            if (initialized.provider().supports(appearance)) {
+                return initialized.appearance();
+            }
+        }
+        return null;
     }
 
     public static float getNameTagOffset(
@@ -73,5 +111,11 @@ public final class CustomersVillagerClientAppearances {
         return appearance == null
                 ? 0.0F
                 : appearance.getNameTagOffset(villager);
+    }
+
+    private record InitializedProvider(
+            CustomersVillagerClientAppearanceProvider provider,
+            CustomersVillagerClientAppearance appearance
+    ) {
     }
 }

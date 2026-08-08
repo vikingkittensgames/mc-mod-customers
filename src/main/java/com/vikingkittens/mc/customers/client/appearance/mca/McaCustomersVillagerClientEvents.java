@@ -6,7 +6,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 
 import com.vikingkittens.mc.customers.Customers;
-import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
+import com.vikingkittens.mc.customers.appearance.mca.McaCustomersVillagerAppearance;
 import com.vikingkittens.mc.customers.appearance.mca.McaCustomersVillagerMod;
 import com.vikingkittens.mc.customers.client.appearance.CustomersVillagerClientAppearances;
 
@@ -22,7 +22,7 @@ public final class McaCustomersVillagerClientEvents {
             return;
         }
         CustomersVillagerClientAppearances.register(
-                CustomersVillagerAppearances.MCA,
+                McaCustomersVillagerAppearance.ID,
                 McaCustomersVillagerClientAppearance::new
         );
     }

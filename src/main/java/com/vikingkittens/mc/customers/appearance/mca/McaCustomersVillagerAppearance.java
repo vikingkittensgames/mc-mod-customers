@@ -4,13 +4,21 @@ import net.conczin.mca.Config;
 import net.conczin.mca.registry.SoundsMCA;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 
+import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.appearance.CustomersVillager;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearance;
 
-final class McaCustomersVillagerAppearance
+public final class McaCustomersVillagerAppearance
         implements CustomersVillagerAppearance {
+    public static final ResourceLocation ID =
+            ResourceLocation.fromNamespaceAndPath(
+                    Customers.MODID,
+                    "mca"
+            );
+
     @Override
     public Component getName() {
         return Component.translatable("appearance.customers.mca");

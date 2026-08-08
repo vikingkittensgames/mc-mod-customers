@@ -6,11 +6,9 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearance;
-import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 
 @EventBusSubscriber(
-        modid = Customers.MODID,
-        bus = EventBusSubscriber.Bus.MOD
+        modid = Customers.MODID
 )
 public final class MonsterCustomersVillagerAppearanceEvents {
     private MonsterCustomersVillagerAppearanceEvents() {}
@@ -20,7 +18,7 @@ public final class MonsterCustomersVillagerAppearanceEvents {
         event.register(
                 CustomersVillagerAppearance.APPEARANCE_REGISTRY_KEY,
                 registry -> registry.register(
-                        CustomersVillagerAppearances.MONSTERS,
+                        MonsterCustomersVillagerAppearance.ID,
                         new MonsterCustomersVillagerAppearance()
                 )
         );

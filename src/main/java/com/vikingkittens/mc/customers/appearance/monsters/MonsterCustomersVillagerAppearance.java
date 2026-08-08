@@ -3,15 +3,23 @@ package com.vikingkittens.mc.customers.appearance.monsters;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 
+import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.appearance.CustomersVillager;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearance;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerType;
 
 public final class MonsterCustomersVillagerAppearance
         implements CustomersVillagerAppearance {
+    public static final ResourceLocation ID =
+            ResourceLocation.fromNamespaceAndPath(
+                    Customers.MODID,
+                    "monsters"
+            );
+
     @Override
     public Component getName() {
         return Component.translatable(

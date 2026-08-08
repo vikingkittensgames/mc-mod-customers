@@ -3,6 +3,7 @@ package com.vikingkittens.mc.customers.appearance.monsters;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
@@ -23,6 +24,14 @@ class MonsterCustomersVillagerAppearanceTest {
     @BeforeAll
     static void bootstrapMinecraft() {
         MinecraftTestBootstrap.bootstrap();
+    }
+
+    @Test
+    void ownsItsAppearanceId() {
+        assertEquals(
+                ResourceLocation.parse("customers:monsters"),
+                MonsterCustomersVillagerAppearance.ID
+        );
     }
 
     @Test

@@ -6,7 +6,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 
 import com.vikingkittens.mc.customers.Customers;
-import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
+import com.vikingkittens.mc.customers.appearance.monsters.MonsterCustomersVillagerAppearance;
 import com.vikingkittens.mc.customers.client.appearance.CustomersVillagerClientAppearances;
 
 @EventBusSubscriber(
@@ -21,7 +21,7 @@ public final class MonsterCustomersVillagerClientEvents {
             EntityRenderersEvent.RegisterRenderers event
     ) {
         CustomersVillagerClientAppearances.register(
-                CustomersVillagerAppearances.MONSTERS,
+                MonsterCustomersVillagerAppearance.ID,
                 MonsterCustomersVillagerClientAppearance::new
         );
     }

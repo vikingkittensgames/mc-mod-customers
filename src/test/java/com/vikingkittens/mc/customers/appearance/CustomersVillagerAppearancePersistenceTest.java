@@ -5,6 +5,8 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import net.minecraft.resources.ResourceLocation;
+
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
 import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
@@ -15,6 +17,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class CustomersVillagerAppearancePersistenceTest {
+    private static final ResourceLocation TEST_APPEARANCE =
+            ResourceLocation.parse("example:test");
+
     @BeforeAll
     static void bootstrapMinecraft() {
         MinecraftTestBootstrap.bootstrap();
@@ -27,7 +32,7 @@ class CustomersVillagerAppearancePersistenceTest {
         when(input.getString(
                         CustomersVillagerAppearancePersistence.TAG_APPEARANCE
                 ))
-                .thenReturn(Optional.of("customers:monsters"));
+                .thenReturn(Optional.of(TEST_APPEARANCE.toString()));
         when(input.getFloat(
                         CustomersVillagerAppearancePersistence.TAG_VARIATION_SEED
                 ))
@@ -36,7 +41,7 @@ class CustomersVillagerAppearancePersistenceTest {
         CustomersVillagerAppearancePersistence.read(input, villager);
 
         verify(villager).setAppearanceId(
-                CustomersVillagerAppearances.MONSTERS
+                TEST_APPEARANCE
         );
         verify(villager).setVariationSeed(0.625F);
     }
@@ -67,14 +72,14 @@ class CustomersVillagerAppearancePersistenceTest {
         DataWriter output = mock(DataWriter.class);
         CustomersVillager villager = mock(CustomersVillager.class);
         when(villager.getAppearanceId())
-                .thenReturn(CustomersVillagerAppearances.MONSTERS);
+                .thenReturn(TEST_APPEARANCE);
         when(villager.getVariationSeed()).thenReturn(0.625F);
 
         CustomersVillagerAppearancePersistence.write(output, villager);
 
         verify(output).putString(
                 CustomersVillagerAppearancePersistence.TAG_APPEARANCE,
-                "customers:monsters"
+                TEST_APPEARANCE.toString()
         );
         verify(output).putFloat(
                 CustomersVillagerAppearancePersistence.TAG_VARIATION_SEED,

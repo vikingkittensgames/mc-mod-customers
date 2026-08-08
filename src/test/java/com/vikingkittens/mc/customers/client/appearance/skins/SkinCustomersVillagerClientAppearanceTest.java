@@ -6,12 +6,35 @@ import org.junit.jupiter.api.Test;
 
 import net.minecraft.resources.ResourceLocation;
 
+import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearance;
 import com.vikingkittens.mc.customers.appearance.skins.SkinCustomersVillagerDefinition;
 import com.vikingkittens.mc.customers.appearance.skins.SkinCustomersVillagerModel;
+import com.vikingkittens.mc.customers.appearance.skins.SkinPackCustomersVillagerAppearance;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 
 class SkinCustomersVillagerClientAppearanceTest {
+    @Test
+    void clientProviderRecognizesOnlySkinPackAppearances() {
+        assertTrue(
+                SkinCustomersVillagerClientAppearanceProvider.INSTANCE
+                        .supports(
+                                mock(
+                                        SkinPackCustomersVillagerAppearance.class
+                                )
+                        )
+        );
+        assertFalse(
+                SkinCustomersVillagerClientAppearanceProvider.INSTANCE
+                        .supports(
+                                mock(CustomersVillagerAppearance.class)
+                        )
+        );
+    }
+
     @Test
     void preservesClientRendererSettings() {
         SkinCustomersVillagerDefinition skin =

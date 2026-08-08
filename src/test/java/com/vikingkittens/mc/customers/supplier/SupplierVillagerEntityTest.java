@@ -9,13 +9,13 @@ import org.mockito.InOrder;
 import org.mockito.MockedStatic;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.pathfinder.Path;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
-import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 import com.vikingkittens.mc.customers.common.MobUtils;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
 import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
@@ -36,6 +36,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class SupplierVillagerEntityTest {
+    private static final ResourceLocation TEST_APPEARANCE =
+            ResourceLocation.parse("example:test");
+
     @BeforeAll
     static void bootstrapMinecraft() {
         MinecraftTestBootstrap.bootstrap();
@@ -53,11 +56,11 @@ class SupplierVillagerEntityTest {
         when(input.getString("SupplierState"))
                 .thenReturn(Optional.of(SupplierState.SELLING.name()));
         when(input.getString("CustomersAppearance"))
-                .thenReturn(Optional.of("customers:monsters"));
+                .thenReturn(Optional.of(TEST_APPEARANCE.toString()));
         when(input.getFloat("CustomersVariationSeed"))
                 .thenReturn(Optional.of(0.25F));
         doNothing().when(supplier).setAppearanceId(
-                CustomersVillagerAppearances.MONSTERS
+                TEST_APPEARANCE
         );
         doNothing().when(supplier).setVariationSeed(0.25F);
         when(input.getBlockPos("SpawnerPos")).thenReturn(Optional.of(spawnerPos));
@@ -69,7 +72,7 @@ class SupplierVillagerEntityTest {
         assertEquals(spawnerPos, supplier.getSpawnerPos());
         assertEquals(spawnPos, supplier.getSpawnPos());
         verify(supplier).setAppearanceId(
-                CustomersVillagerAppearances.MONSTERS
+                TEST_APPEARANCE
         );
         verify(supplier).setVariationSeed(0.25F);
     }
@@ -85,7 +88,7 @@ class SupplierVillagerEntityTest {
         supplier.setState(SupplierState.SELLING);
         supplier.setSpawnerPos(spawnerPos);
         supplier.setSpawnPos(spawnPos);
-        doReturn(CustomersVillagerAppearances.MONSTERS)
+        doReturn(TEST_APPEARANCE)
                 .when(supplier).getAppearanceId();
         doReturn(0.25F).when(supplier).getVariationSeed();
 
@@ -96,7 +99,7 @@ class SupplierVillagerEntityTest {
         verify(output).putBlockPos("SpawnPos", spawnPos);
         verify(output).putString(
                 "CustomersAppearance",
-                "customers:monsters"
+                TEST_APPEARANCE.toString()
         );
         verify(output).putFloat("CustomersVariationSeed", 0.25F);
     }
