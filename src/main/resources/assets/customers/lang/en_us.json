@@ -27,6 +27,7 @@
   "entity.customers.supplier_villager": "Supplier",
   "appearance.customers.default": "Default",
   "appearance.customers.monsters": "Monsters",
+  "appearance.customers.mca": "Minecraft Comes Alive",
 
   "titles.customers.spawn_mode.continuous": "Continuous",
   "titles.customers.spawn_mode.day": "Day",

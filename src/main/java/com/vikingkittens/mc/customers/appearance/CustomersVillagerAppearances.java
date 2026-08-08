@@ -25,6 +25,8 @@ public final class CustomersVillagerAppearances {
             ResourceLocation.fromNamespaceAndPath(Customers.MODID, "default");
     public static final ResourceLocation MONSTERS =
             ResourceLocation.fromNamespaceAndPath(Customers.MODID, "monsters");
+    public static final ResourceLocation MCA =
+            ResourceLocation.fromNamespaceAndPath(Customers.MODID, "mca");
     public static final List<ResourceLocation> INITIAL_ENABLED =
             List.of(DEFAULT);
 

@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.phys.Vec3;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillager;
 
@@ -34,14 +35,29 @@ public final class CustomersVillagerAppearanceEntityRenderer<
             MultiBufferSource buffer,
             int packedLight
     ) {
-        renderer(entity).render(
-                entity,
-                entityYaw,
-                partialTick,
-                poseStack,
-                buffer,
-                packedLight
+        CustomersVillagerClientAppearance appearance =
+                CustomersVillagerClientAppearances.get(entity);
+        Vec3 sittingOffset = entity.isSitting() && appearance != null
+                ? appearance.getSittingOffset(entity)
+                : Vec3.ZERO;
+        poseStack.pushPose();
+        poseStack.translate(
+                sittingOffset.x,
+                sittingOffset.y,
+                sittingOffset.z
         );
+        try {
+            renderer(entity, appearance).render(
+                    entity,
+                    entityYaw,
+                    partialTick,
+                    poseStack,
+                    buffer,
+                    packedLight
+            );
+        } finally {
+            poseStack.popPose();
+        }
     }
 
     @Override
@@ -53,6 +69,14 @@ public final class CustomersVillagerAppearanceEntityRenderer<
     private MobRenderer<T, ?> renderer(T entity) {
         CustomersVillagerClientAppearance appearance =
                 CustomersVillagerClientAppearances.get(entity);
+        return renderer(entity, appearance);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private MobRenderer<T, ?> renderer(
+            T entity,
+            CustomersVillagerClientAppearance appearance
+    ) {
         MobRenderer renderer = appearance == null
                 ? fallbackRenderer
                 : appearance.getRenderer(entity);

@@ -458,6 +458,16 @@ weighted variants, volume, pitch, subtitles, streaming, and replacement. Skin pa
 with IDs that conflict with code-defined appearances are ignored in favor of the
 code-defined appearance.
 
+### Minecraft Comes Alive Appearance
+
+When Minecraft Comes Alive Reborn is installed, the **Minecraft Comes Alive**
+appearance becomes available in Customer and Supplier Spawners. It uses MCA's
+human villager models, genetics, skin layers, clothing, hairstyles, and configured
+villager voices while
+preserving normal Customer and Supplier behavior, including sitting while waiting.
+The saved appearance variation keeps each villager's MCA appearance consistent.
+Customers and Suppliers using this appearance are always rendered as adults.
+
 ## Gameplay and Shifts
 
 If your Customer Spawner Block is ser to a mode other than Continuous and Manual,
