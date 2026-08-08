@@ -2,12 +2,15 @@ package com.vikingkittens.mc.customers.client.customer;
 
 import java.util.List;
 
+import org.jetbrains.annotations.Nullable;
+
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.NoopRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
@@ -24,6 +27,7 @@ import net.neoforged.neoforge.client.event.RenderNameTagEvent;
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.client.appearance.CustomersVillagerAppearanceEntityRenderer;
 import com.vikingkittens.mc.customers.client.appearance.CustomersVillagerClientAppearances;
+import com.vikingkittens.mc.customers.client.appearance.CustomersVillagerRenderProxy;
 import com.vikingkittens.mc.customers.customer.Customer;
 import com.vikingkittens.mc.customers.customer.CustomerCounterMarkersPayload;
 import com.vikingkittens.mc.customers.customer.CustomerPickupCounter;
@@ -140,8 +144,9 @@ public class CustomerClientEvents {
 
     @SubscribeEvent
     public static void onRenderNameTag(RenderNameTagEvent event) {
-        // 1. Check if the entity is a villager (custom or vanilla)
-        if (event.getEntity() instanceof CustomerVillagerEntity customer) {
+        CustomerVillagerEntity customer =
+                getRenderedCustomer(event.getEntity());
+        if (customer != null) {
             List<ItemStack> offerDisplayItems =
                     customer.getState() == CustomerState.BUYING
                             ? CustomerSpawnerSnapshotManager.findOfferCostItems(
@@ -195,6 +200,22 @@ public class CustomerClientEvents {
         }
     }
 
+    static @Nullable CustomerVillagerEntity getRenderedCustomer(
+            Entity renderedEntity
+    ) {
+        if (renderedEntity instanceof CustomerVillagerEntity customer) {
+            return customer;
+        }
+        if (
+                renderedEntity instanceof CustomersVillagerRenderProxy proxy
+                        && proxy.getCustomersVillagerSource()
+                                instanceof CustomerVillagerEntity customer
+        ) {
+            return customer;
+        }
+        return null;
+    }
+
     private static boolean isNameTagRendered(RenderNameTagEvent event, CustomerVillagerEntity customer, Minecraft minecraft) {
         if (event.getContent() == null || event.getContent().getString().isBlank()) {
             return false;
@@ -208,7 +229,27 @@ public class CustomerClientEvents {
             return true;
         }
 
-        return event.canRender().isDefault()
-                && (customer.shouldShowName() || customer.hasCustomName() && customer == minecraft.getEntityRenderDispatcher().crosshairPickEntity);
+        if (!event.canRender().isDefault()) {
+            return false;
+        }
+
+        boolean sourceVisibility = customer.shouldShowName()
+                || customer.hasCustomName()
+                        && customer
+                                == minecraft.getEntityRenderDispatcher()
+                                        .crosshairPickEntity;
+        return getDefaultNameTagVisibility(
+                event.getEntity(),
+                sourceVisibility
+        );
+    }
+
+    static boolean getDefaultNameTagVisibility(
+            Entity renderedEntity,
+            boolean sourceVisibility
+    ) {
+        return renderedEntity instanceof CustomersVillagerRenderProxy proxy
+                ? proxy.shouldRenderNameTag()
+                : sourceVisibility;
     }
 }

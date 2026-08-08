@@ -2,6 +2,8 @@ package com.vikingkittens.mc.customers.client.appearance.mca;
 
 import java.lang.ref.WeakReference;
 
+import net.conczin.mca.Config;
+import net.conczin.mca.client.gui.VillagerEditorScreen;
 import net.conczin.mca.entity.VillagerEntityMCA;
 import net.conczin.mca.entity.ai.Genetics;
 import net.conczin.mca.entity.ai.relationship.Gender;
@@ -11,6 +13,8 @@ import net.conczin.mca.resources.HairList;
 import net.conczin.mca.resources.WeightedPool;
 import org.jetbrains.annotations.Nullable;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
@@ -18,8 +22,10 @@ import net.minecraft.world.level.Level;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillager;
 import com.vikingkittens.mc.customers.appearance.mca.McaCustomersVillagerVariation;
+import com.vikingkittens.mc.customers.client.appearance.CustomersVillagerRenderProxy;
 
-final class McaCustomersVillagerProxy extends VillagerEntityMCA {
+final class McaCustomersVillagerProxy extends VillagerEntityMCA
+        implements CustomersVillagerRenderProxy {
     private WeakReference<CustomersVillager> source =
             new WeakReference<>(null);
     private WeakReference<Mob> sourceEntity =
@@ -90,6 +96,29 @@ final class McaCustomersVillagerProxy extends VillagerEntityMCA {
     @Override
     public @Nullable Entity getVehicle() {
         return McaCustomersVillagerProxyState.vehicle(sourceEntity);
+    }
+
+    @Override
+    public @Nullable CustomersVillager getCustomersVillagerSource() {
+        return source == null ? null : source.get();
+    }
+
+    @Override
+    public boolean shouldRenderNameTag() {
+        Minecraft minecraft = Minecraft.getInstance();
+        LocalPlayer player = minecraft.player;
+        Config config = Config.getInstance();
+        return McaCustomersVillagerNameTagPolicy.shouldRender(
+                getCustomName() != null,
+                minecraft.screen instanceof VillagerEditorScreen,
+                player != null,
+                config.showNameTags,
+                player == null
+                        ? Double.POSITIVE_INFINITY
+                        : player.distanceToSqr(this),
+                config.nameTagDistance,
+                player != null && isInvisibleTo(player)
+        );
     }
 
     private void applyVariation(
