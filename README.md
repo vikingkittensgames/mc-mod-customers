@@ -10,6 +10,13 @@ pay you, say thank you, and go on their merry way.  It provides the basic villag
 and controls to crafter and customer type gameplay experiences like a fast-paced diner or a cozy
 rode-side farm stand.
 
+This has been a big passion project.  If you enjoy this mod, think about buying me a coffee to fuel
+me adding more features:
+
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png)](https://www.buymeacoffee.com/clubycoder)
+
+<img src="buymeacoffee-qr-code.png" width="50%" height="50%" />
+
 ## Supported Minecraft Versions
 
 For now we support Minecraft versions:
