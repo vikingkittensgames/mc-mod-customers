@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.flag.FeatureFlags;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.level.block.Block;
@@ -27,6 +29,8 @@ public class SupplierSpawner {
     private static final DeferredRegister.Blocks blocks = DeferredRegister.createBlocks(modid);
     private static final DeferredRegister<BlockEntityType<?>> blockEntities = DeferredRegister.create(BuiltInRegistries.BLOCK_ENTITY_TYPE, modid);
     private static final DeferredRegister.Items items = DeferredRegister.createItems(Customers.MODID);
+    private static final DeferredRegister<MenuType<?>> menus =
+            DeferredRegister.create(BuiltInRegistries.MENU, modid);
 
     // -------------------- Registries --------------------
     public static void register(IEventBus modEventBus) {
@@ -35,6 +39,7 @@ public class SupplierSpawner {
         blocks.register(modEventBus);
         blockEntities.register(modEventBus);
         items.register(modEventBus);
+        menus.register(modEventBus);
 
         modEventBus.addListener(SupplierSpawner::addCreative);
     }
@@ -44,6 +49,15 @@ public class SupplierSpawner {
 
     // -------------------- Block Entities --------------------
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SupplierSpawnerBlockEntity>> SUPPLIER_SPAWNER_ENTITY = blockEntities.register(SupplierSpawnerBlockEntity.NAME, () -> BlockEntityType.Builder.of(SupplierSpawnerBlockEntity::new, SUPPLIER_SPAWNER_BLOCK.get()).build(null));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<SupplierSpawnerBlockMenu>>
+            SUPPLIER_SPAWNER_MENU = menus.register(
+                    "supplier_spawner",
+                    () -> new MenuType<>(
+                            SupplierSpawnerBlockMenu::new,
+                            FeatureFlags.DEFAULT_FLAGS
+                    )
+            );
 
     // -------------------- Items --------------------
     public static final DeferredItem<BlockItem> SUPPLIER_SPAWNER_ITEM = items.registerSimpleBlockItem(SupplierSpawnerBlock.NAME, SUPPLIER_SPAWNER_BLOCK);

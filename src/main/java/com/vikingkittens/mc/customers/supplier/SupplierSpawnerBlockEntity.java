@@ -32,53 +32,52 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearanceSettings;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 import com.vikingkittens.mc.customers.common.SearchUtils;
+import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
 import com.vikingkittens.mc.customers.compatability.LevelCUtils;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
 import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
 import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
 
 public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvider {
+    static final int CURRENT_DATA_VERSION = 1;
+    static final String TAG_DATA_VERSION = "data_version";
     private final CustomersVillagerAppearanceSettings appearanceSettings =
             new CustomersVillagerAppearanceSettings();
     private static final Logger LOGGER = LogUtils.getLogger();
 
     private static final int INVENTORY_ROW_SIZE = 9;
 
-    private static MerchantOffers getOffersFromInventory(RandomSource random, ItemStackHandler inventory) {
+    static MerchantOffers getOffersFromInventory(
+            RandomSource random,
+            ItemStackHandler inventory
+    ) {
         MerchantOffers offers = new MerchantOffers();
-        ItemStack lastItemStack = null;
-        for (int slot = 0; slot < inventory.getSlots(); slot++) {
-            ItemStack stack = inventory.getStackInSlot(slot);
-            if (!stack.isEmpty()) {
-                if (stack.is(Items.EMERALD)) {
-                    if (lastItemStack != null) {
-                        offers.removeLast();
-                        offers.add(new MerchantOffer(
-                                new ItemCost(Items.EMERALD, stack.getCount()),
-                                Optional.empty(),
-                                new ItemStack(lastItemStack.getItem(), lastItemStack.getCount()),
-                                10,
-                                0,
-                                0
-                        ));
-                    }
-                    lastItemStack = null;
-                } else {
-                    lastItemStack = stack;
-                    offers.add(new MerchantOffer(
-                            new ItemCost(Items.EMERALD, 1),
-                            Optional.empty(),
-                            new ItemStack(stack.getItem(), stack.getCount()),
-                            10,
-                            0,
-                            0
-                    ));
+        int rowCount = inventory.getSlots() / INVENTORY_ROW_SIZE;
+        for (int row = 0; row < rowCount; row++) {
+            int rowStart = row * INVENTORY_ROW_SIZE;
+            for (int column = 0; column < 8; column += 2) {
+                ItemStack result = inventory.getStackInSlot(
+                        rowStart + column
+                );
+                ItemStack cost = inventory.getStackInSlot(
+                        rowStart + column + 1
+                );
+                if (result.isEmpty() || cost.isEmpty()) {
+                    continue;
                 }
-            } else {
-                lastItemStack = null;
+                offers.add(new MerchantOffer(
+                        ItemStackCUtils.createItemCost(
+                                cost,
+                                cost.getCount()
+                        ),
+                        Optional.empty(),
+                        result.copy(),
+                        10,
+                        0,
+                        0
+                ));
             }
         }
-
         return offers;
     }
 
@@ -114,6 +113,7 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
         writeSpawnerData(PersistenceCUtils.writer(tag));
     }
     void writeSpawnerData(DataWriter output) {
+        output.putInt(TAG_DATA_VERSION, CURRENT_DATA_VERSION);
         appearanceSettings.write(output);
         output.putBoolean("daytimeStateInitialized", daytimeStateInitialized);
         output.putBoolean("lastTickWasDaytime", lastTickWasDaytime);
@@ -134,6 +134,9 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
         readSpawnerData(PersistenceCUtils.reader(tag));
     }
     void readSpawnerData(DataReader input) {
+        int loadedDataVersion =
+                input.getInt(TAG_DATA_VERSION).orElse(0);
+        migrateData(loadedDataVersion);
         appearanceSettings.read(input);
         daytimeStateInitialized = input.getBoolean("daytimeStateInitialized");
         lastTickWasDaytime = input.getBoolean("lastTickWasDaytime");
@@ -214,7 +217,84 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
             }
         };
 
-        return ChestMenu.sixRows(containerId, playerInventory, containerBridge);
+        return new SupplierSpawnerBlockMenu(
+                containerId,
+                playerInventory,
+                containerBridge,
+                this
+        );
+    }
+
+    private void migrateData(int loadedDataVersion) {
+        int dataVersion = Math.max(0, loadedDataVersion);
+        while (dataVersion < CURRENT_DATA_VERSION) {
+            if (dataVersion == 0) {
+                migrateVersion0Inventory(inventory);
+            } else {
+                LOGGER.warn(
+                        "Unable to migrate unknown supplier spawner data version {}",
+                        dataVersion
+                );
+                return;
+            }
+            dataVersion++;
+        }
+    }
+
+    static void migrateVersion0Inventory(
+            ItemStackHandler inventory
+    ) {
+        int rowCount = inventory.getSlots() / INVENTORY_ROW_SIZE;
+        for (int row = 0; row < rowCount; row++) {
+            int rowStart = row * INVENTORY_ROW_SIZE;
+            List<ItemStack> legacyRow = new ArrayList<>(8);
+            for (int column = 0; column < 8; column++) {
+                legacyRow.add(
+                        inventory.getStackInSlot(
+                                rowStart + column
+                        ).copy()
+                );
+            }
+
+            List<ItemStack> migratedRow = new ArrayList<>(8);
+            int column = 0;
+            while (column < legacyRow.size()
+                    && migratedRow.size() < 8) {
+                ItemStack result = legacyRow.get(column);
+                if (result.isEmpty() || result.is(Items.EMERALD)) {
+                    column++;
+                    continue;
+                }
+
+                ItemStack cost = new ItemStack(Items.EMERALD);
+                if (column + 1 < legacyRow.size()
+                        && legacyRow.get(column + 1)
+                                .is(Items.EMERALD)) {
+                    cost = legacyRow.get(column + 1);
+                    column++;
+                }
+                migratedRow.add(result);
+                migratedRow.add(cost);
+                column++;
+            }
+
+            for (int rowColumn = 0;
+                    rowColumn < INVENTORY_ROW_SIZE;
+                    rowColumn++) {
+                inventory.setStackInSlot(
+                        rowStart + rowColumn,
+                        ItemStack.EMPTY
+                );
+            }
+            for (int migratedColumn = 0;
+                    migratedColumn < migratedRow.size();
+                    migratedColumn++) {
+                inventory.setStackInSlot(
+                        rowStart + migratedColumn,
+                        migratedRow.get(migratedColumn)
+                );
+            }
+        }
     }
 
     static BlockState updateState(Level level, BlockPos pos, BlockState currentState) {
@@ -243,7 +323,10 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     public void spawnSupplier() {
-        MerchantOffers offers = getOffersFromInventory(level.getRandom(), inventory);
+        MerchantOffers offers = getOffersFromInventory(
+                level.getRandom(),
+                inventory
+        );
         if (!offers.isEmpty()) {
             SupplierVillagerEntity supplier = SupplierVillagerEntity.spawn(
                     level,

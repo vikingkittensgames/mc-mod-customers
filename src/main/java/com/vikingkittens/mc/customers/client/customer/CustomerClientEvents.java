@@ -28,6 +28,7 @@ import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.client.appearance.CustomersVillagerAppearanceEntityRenderer;
 import com.vikingkittens.mc.customers.client.appearance.CustomersVillagerClientAppearances;
 import com.vikingkittens.mc.customers.client.appearance.CustomersVillagerRenderProxy;
+import com.vikingkittens.mc.customers.client.supplier.SupplierSpawnerBlockScreen;
 import com.vikingkittens.mc.customers.customer.Customer;
 import com.vikingkittens.mc.customers.customer.CustomerCounterMarkersPayload;
 import com.vikingkittens.mc.customers.customer.CustomerPickupCounter;
@@ -36,6 +37,7 @@ import com.vikingkittens.mc.customers.customer.CustomerSpawner;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerSnapshotPayload;
 import com.vikingkittens.mc.customers.customer.CustomerState;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
+import com.vikingkittens.mc.customers.supplier.SupplierSpawner;
 
 @EventBusSubscriber(modid = Customers.MODID, value = Dist.CLIENT)
 public class CustomerClientEvents {
@@ -48,6 +50,10 @@ public class CustomerClientEvents {
         event.register(
                 CustomerSpawner.CUSTOMER_SPAWNER_MENU.get(),
                 CustomerSpawnerBlockScreen::new
+        );
+        event.register(
+                SupplierSpawner.SUPPLIER_SPAWNER_MENU.get(),
+                SupplierSpawnerBlockScreen::new
         );
     }
 

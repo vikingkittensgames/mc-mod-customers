@@ -81,6 +81,7 @@
   "screen.customers.customer_spawner.max": "Max",
   "screen.customers.customer_spawner.appearance": "Appearance",
   "screen.customers.customer_spawner.cost": "Cost",
+  "screen.customers.supplier_spawner.appearance": "Appearance",
 
   "messages.customers.supplies": "I have your supplies for the day.",
   "messages.customers.pickup_counter.full": "The pickup counter is full.",

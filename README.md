@@ -132,6 +132,8 @@ Examples:
 
 ![customer-spawner-inventory.png](screenshots/customer-spawner-inventory.png)
 
+![customer-trades.png](screenshots/customer-trades.png)
+
 The Customer Spawner UI is also where you can chnge the spawner mode, set the max customers,
 and enable different customer appearances.
 
@@ -371,8 +373,8 @@ assets/{namespace}/sounds.json
 
 For example, this file defines an appearance named **Example Skins**:
 
+**data/example/customers/skin_packs/example.json:**
 ```json
-// data/example/customers/skin_packs/example.json
 {
   "name": "Example Skins",
   "skins": [
@@ -385,8 +387,8 @@ For example, this file defines an appearance named **Example Skins**:
 Each referenced skin has its own definition. Steve uses the standard wide-arm player
 model:
 
+**data/example/customers/skins/steve.json:**
 ```json
-// data/example/customers/skins/steve.json
 {
   "texture": "example:steve",
   "model": "wide"
@@ -396,8 +398,8 @@ model:
 Alex uses the slim-arm player model and demonstrates the optional rendering and sound
 settings:
 
+**data/example/customers/skins/alex.json:**
 ```json
-// data/example/customers/skins/alex.json
 {
   "texture": "example:alex",
   "model": "slim",
@@ -426,8 +428,8 @@ set `"legacy": true`; legacy skins are converted at runtime and cannot be animat
 Every sound is optional. A missing sound uses the normal Villager sound for that action.
 Custom sounds use Minecraft's standard `sounds.json` system. For example:
 
+**assets/example/sounds.json:**
 ```json
-// assets/example/sounds.json
 {
   "alex_ambient": {
     "sounds": [
@@ -509,23 +511,24 @@ You can craft a supplier spawner block from a barrel surrounded by 8 emeralds.
 
 ### Specifying What the Supplier Will Sell
 
-The supplier spawner block acts like a double-chest container and the items you put in it,
-including the size of the stack, will be what the supplier will sell you.  Similar to the
-customer spawner blocks, the exception is emeralds.  Emeralds are used to set the price of
-the items the supplier will sell.  The Supplier will default to 1 emerald per stack of items,
-but if you put a stack of emeralds after each of the items in the container, that will set
-the price to the count of emeralds.  For example if you put a stack of 32 raw steaks in the
-container and in the next slot put 5 emeralds, the supplier will sell you 32 raw steaks for
-5 emeralds.
+The supplier spawner inventory has four pairs of slots on each row. Put the stack the
+Supplier will sell in the first slot of a pair and its cost in the second slot. The full
+stacks are used as entered, so a stack of 32 raw steaks followed by 5 emeralds makes an
+offer of 32 raw steaks for 5 emeralds. The cost can be any item, not only emeralds.
+
+The Appearance checkboxes select which appearances Suppliers from that spawner may use.
+At least one appearance is always enabled.
 
 ![supplier-spawner-inventory.png](screenshots/supplier-spawner-inventory.png)
+
+![supplier-trades.png](screenshots/supplier-trades.png)
 
 ### Supplier Spawning
 
 The Supplier will spawn each morning up to 64 blocks away from the spawner at a position
 from which it can walk back to the spawner. Once the Supplier is there you can start buying items.
 
-Suppliers only spawn where they have enough vertical clearance and a 2ÃƒÆ’Ã¢â‚¬â€2 surface made from solid
+Suppliers only spawn where they have enough vertical clearance and a 24x24 surface made from solid
 blocks, slabs, carpet, or stairs.
 
 Once it is dark the Supplier will walk away and despawn.
