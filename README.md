@@ -491,8 +491,8 @@ end, and a heads up view of what all active customers want for that shift.
 
 ![orders-in-progress-bar.png](screenshots/orders-in-progress-bar.png)
 
-At the end of the shift you and the other players will get a scoreboard showing
-how well you did:
+At the end of a shift where at least one player crafted or served an item, you and
+the other players will get a scoreboard showing how well you did:
 
 ![scoreboard.png](screenshots/scoreboard.png)
 

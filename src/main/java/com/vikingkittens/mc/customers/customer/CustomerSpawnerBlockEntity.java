@@ -1124,6 +1124,12 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         if (!CustomerSpawnerMode.shouldShowScore(spawnerMode)) {
             return;
         }
+        if (!shouldShowFinalScore(
+                numItemsServedByPlayer,
+                numItemsCraftedByPlayer
+        )) {
+            return;
+        }
 
         int color = 0x36991C;
         if (scoreboardGetPercentage() <= 0.25) {
@@ -1167,6 +1173,21 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 LOGGER.warn("Unable to add player score because of error", t);
             }
         }
+    }
+
+    static boolean shouldShowFinalScore(
+            Map<UUID, Integer> servedByPlayer,
+            Map<UUID, Integer> craftedByPlayer
+    ) {
+        return hasPositivePlayerScore(servedByPlayer)
+                || hasPositivePlayerScore(craftedByPlayer);
+    }
+
+    private static boolean hasPositivePlayerScore(
+            Map<UUID, Integer> scores
+    ) {
+        return scores.values().stream()
+                .anyMatch(score -> score != null && score > 0);
     }
 
     public void scoreboardAddCustomer() {
