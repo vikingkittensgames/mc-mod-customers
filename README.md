@@ -518,6 +518,14 @@ Customers and Suppliers using this appearance are always rendered as adults.
 
 ![apperance-mca.png](screenshots/apperance-mca.png)
 
+### Creating a Custom Appearance
+
+The Customers Appearance system is extensible by other mods creating and
+registering their own appearance which will show up as a new option in
+the Customer or Supplier Spawner UI.
+
+Check out [this example and tutorial](https://github.com/vikingkittensgames/mc-mod-customers-example-appearance).
+
 ## Gameplay and Shifts
 
 If your Customer Spawner Block is ser to a mode other than Continuous and Manual,
