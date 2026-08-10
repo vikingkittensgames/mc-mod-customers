@@ -60,6 +60,46 @@ public final class McaCustomersVillagerAppearance
         };
     }
 
+    @Override
+    public SoundEvent getYesSound(
+            CustomersVillager villager
+    ) {
+        return yesSound(voiceMode(), feminine(villager));
+    }
+
+    @Override
+    public SoundEvent getNoSound(
+            CustomersVillager villager
+    ) {
+        return noSound(voiceMode(), feminine(villager));
+    }
+
+    static SoundEvent yesSound(
+            McaCustomersVillagerSoundPolicy.VoiceMode voiceMode,
+            boolean feminine
+    ) {
+        return switch (voiceMode) {
+            case MCA -> feminine
+                    ? SoundsMCA.VILLAGER_FEMALE_YES
+                    : SoundsMCA.VILLAGER_MALE_YES;
+            case VANILLA -> null;
+            case SILENT -> SoundsMCA.SILENT;
+        };
+    }
+
+    static SoundEvent noSound(
+            McaCustomersVillagerSoundPolicy.VoiceMode voiceMode,
+            boolean feminine
+    ) {
+        return switch (voiceMode) {
+            case MCA -> feminine
+                    ? SoundsMCA.VILLAGER_FEMALE_NO
+                    : SoundsMCA.VILLAGER_MALE_NO;
+            case VANILLA -> null;
+            case SILENT -> SoundsMCA.SILENT;
+        };
+    }
+
     private static boolean feminine(
             CustomersVillager villager
     ) {

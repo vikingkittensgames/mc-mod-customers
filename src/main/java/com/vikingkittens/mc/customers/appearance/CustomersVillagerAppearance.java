@@ -40,4 +40,12 @@ public interface CustomersVillagerAppearance {
     default @Nullable SoundEvent getStepSound(CustomersVillager villager) {
         return null;
     }
+
+    default @Nullable SoundEvent getYesSound(CustomersVillager villager) {
+        return null;
+    }
+
+    default @Nullable SoundEvent getNoSound(CustomersVillager villager) {
+        return null;
+    }
 }

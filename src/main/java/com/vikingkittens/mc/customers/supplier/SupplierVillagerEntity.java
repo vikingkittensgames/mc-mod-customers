@@ -45,6 +45,7 @@ import net.neoforged.neoforge.registries.datamaps.builtin.NeoForgeDataMaps;
 import com.vikingkittens.mc.customers.appearance.CustomersVillager;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearance;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearancePersistence;
+import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearanceSounds;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerType;
 import com.vikingkittens.mc.customers.common.MobUtils;
@@ -319,6 +320,36 @@ public class SupplierVillagerEntity extends Villager implements CustomersVillage
             }
         }
         super.playStepSound(position, blockState);
+    }
+
+    @Override
+    public SoundEvent getNotifyTradeSound() {
+        return CustomersVillagerAppearanceSounds.getYesSound(
+                CustomersVillagerAppearances.get(this),
+                this,
+                super.getNotifyTradeSound()
+        );
+    }
+
+    @Override
+    protected SoundEvent getTradeUpdatedSound(
+            boolean isYesSound
+    ) {
+        CustomersVillagerAppearance appearance =
+                CustomersVillagerAppearances.get(this);
+        SoundEvent fallback =
+                super.getTradeUpdatedSound(isYesSound);
+        return isYesSound
+                ? CustomersVillagerAppearanceSounds.getYesSound(
+                        appearance,
+                        this,
+                        fallback
+                )
+                : CustomersVillagerAppearanceSounds.getNoSound(
+                        appearance,
+                        this,
+                        fallback
+                );
     }
 
     public void setAppearanceContext(

@@ -4,7 +4,9 @@ public enum SkinCustomersVillagerSound {
     AMBIENT("ambient"),
     HURT("hurt"),
     DEATH("death"),
-    STEP("step");
+    STEP("step"),
+    YES("yes"),
+    NO("no");
 
     private final String serializedName;
 

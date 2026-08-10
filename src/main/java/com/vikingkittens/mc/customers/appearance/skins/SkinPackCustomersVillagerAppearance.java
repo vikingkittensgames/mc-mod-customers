@@ -58,6 +58,16 @@ public final class SkinPackCustomersVillagerAppearance implements CustomersVilla
         return getSound(villager, SkinCustomersVillagerSound.STEP);
     }
 
+    @Override
+    public @Nullable SoundEvent getYesSound(CustomersVillager villager) {
+        return getSound(villager, SkinCustomersVillagerSound.YES);
+    }
+
+    @Override
+    public @Nullable SoundEvent getNoSound(CustomersVillager villager) {
+        return getSound(villager, SkinCustomersVillagerSound.NO);
+    }
+
     static Optional<ResourceLocation> selectSkinId(List<ResourceLocation> skinIds, float variationSeed) {
         if (skinIds.isEmpty()) return Optional.empty();
         float boundedSeed = Mth.clamp(variationSeed, 0.0F, Math.nextDown(1.0F));

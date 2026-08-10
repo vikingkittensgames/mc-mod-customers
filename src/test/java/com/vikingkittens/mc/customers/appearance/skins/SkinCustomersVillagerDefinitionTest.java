@@ -48,7 +48,9 @@ class SkinCustomersVillagerDefinitionTest {
                           "name_tag_offset": 0.2,
                           "sounds": {
                             "ambient": "example:alex_ambient",
-                            "hurt": "example:alex_hurt"
+                            "hurt": "example:alex_hurt",
+                            "yes": "example:alex_yes",
+                            "no": "example:alex_no"
                           }
                         }
                         """)
@@ -60,6 +62,8 @@ class SkinCustomersVillagerDefinitionTest {
         assertEquals(0.4F, definition.shadowRadius());
         assertEquals(0.2F, definition.nameTagOffset());
         assertEquals(Optional.of(ResourceLocation.parse("example:alex_ambient")), definition.getSound(SkinCustomersVillagerSound.AMBIENT));
+        assertEquals(Optional.of(ResourceLocation.parse("example:alex_yes")), definition.getSound(SkinCustomersVillagerSound.YES));
+        assertEquals(Optional.of(ResourceLocation.parse("example:alex_no")), definition.getSound(SkinCustomersVillagerSound.NO));
         assertEquals(Optional.empty(), definition.getSound(SkinCustomersVillagerSound.DEATH));
     }
 }
