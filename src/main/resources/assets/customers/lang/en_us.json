@@ -1,8 +1,4 @@
 {
-  "itemGroup.customers": "Example Mod Tab",
-  "block.customers.example_block": "Example Block",
-  "item.customers.example_item": "Example Item",
-
   "block.customers.customer_spawner_block": "Customer Spawner",
   "block.customers.supplier_spawner_block": "Supplier Spawner",
   "block.customers.iron_customer_pickup_counter": "Iron Customer Pickup Counter",
@@ -22,6 +18,22 @@
   "block.customers.stripped_bamboo_customer_pickup_counter": "Stripped Bamboo Customer Pickup Counter",
   "item.customers.customer_spawner_block": "Customer Spawner",
   "item.customers.supplier_spawner_block": "Supplier Spawner",
+
+  "block.customers.iron_customer_payment_box": "Iron Customer Payment Box",
+  "block.customers.copper_customer_payment_box": "Copper Customer Payment Box",
+  "block.customers.gold_customer_payment_box": "Gold Customer Payment Box",
+  "block.customers.oak_customer_payment_box": "Oak Customer Payment Box",
+  "block.customers.spruce_customer_payment_box": "Spruce Customer Payment Box",
+  "block.customers.birch_customer_payment_box": "Birch Customer Payment Box",
+  "block.customers.jungle_customer_payment_box": "Jungle Customer Payment Box",
+  "block.customers.acacia_customer_payment_box": "Acacia Customer Payment Box",
+  "block.customers.dark_oak_customer_payment_box": "Dark Oak Customer Payment Box",
+  "block.customers.mangrove_customer_payment_box": "Mangrove Customer Payment Box",
+  "block.customers.cherry_customer_payment_box": "Cherry Customer Payment Box",
+  "block.customers.crimson_customer_payment_box": "Crimson Customer Payment Box",
+  "block.customers.warped_customer_payment_box": "Warped Customer Payment Box",
+  "block.customers.bamboo_customer_payment_box": "Bamboo Customer Payment Box",
+  "block.customers.stripped_bamboo_customer_payment_box": "Stripped Bamboo Customer Payment Box",
 
   "entity.customers.customer_villager": "Customer",
   "entity.customers.supplier_villager": "Supplier",

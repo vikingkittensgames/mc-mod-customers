@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "E": {
+      "item": "minecraft:emerald"
+    },
+    "G": {
+      "item": "minecraft:gold_ingot"
+    },
+    "V": {
+      "item": "minecraft:bamboo_block"
+    }
+  },
+  "pattern": [
+    "VGV",
+    "VEV",
+    "VVV"
+  ],
+  "result": {
+    "count": 1,
+    "id": "customers:bamboo_customer_payment_box"
+  }
+}

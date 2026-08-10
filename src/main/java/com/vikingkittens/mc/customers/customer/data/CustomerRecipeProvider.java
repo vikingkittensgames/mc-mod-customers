@@ -13,11 +13,13 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.customer.CustomerPaymentBox;
+import com.vikingkittens.mc.customers.customer.CustomerPaymentBoxBlock;
 import com.vikingkittens.mc.customers.customer.CustomerPickupCounter;
 import com.vikingkittens.mc.customers.customer.CustomerPickupCounterBlock;
 
-public class CustomerPickupCounterRecipeProvider extends RecipeProvider {
-    public CustomerPickupCounterRecipeProvider(
+public class CustomerRecipeProvider extends RecipeProvider {
+    public CustomerRecipeProvider(
             PackOutput output,
             CompletableFuture<HolderLookup.Provider> registries
     ) {
@@ -26,13 +28,18 @@ public class CustomerPickupCounterRecipeProvider extends RecipeProvider {
 
     @Override
     protected void buildRecipes(RecipeOutput output) {
+        buildPickupCounterRecipes(output);
+        buildPaymentBoxRecipes(output);
+    }
+
+    private void buildPickupCounterRecipes(RecipeOutput output) {
         for (Map.Entry<
-                CustomerPickupCounterVariant,
+                CustomerOverlayBlockVariant,
                 ? extends java.util.function.Supplier<
                         CustomerPickupCounterBlock
                 >
         > entry : CustomerPickupCounter.BLOCKS.entrySet()) {
-            CustomerPickupCounterVariant variant = entry.getKey();
+            CustomerOverlayBlockVariant variant = entry.getKey();
             CustomerPickupCounterBlock block = entry.getValue().get();
             String name = CustomerPickupCounter.getBlockName(variant);
 
@@ -43,6 +50,41 @@ public class CustomerPickupCounterRecipeProvider extends RecipeProvider {
                     .pattern("IVV")
                     .define('I', Items.IRON_INGOT)
                     .define('V', variant.ingredient().get())
+                    .unlockedBy(
+                            getHasName(variant.ingredient().get()),
+                            has(variant.ingredient().get())
+                    )
+                    .save(
+                            output,
+                            ResourceLocation.fromNamespaceAndPath(
+                                    Customers.MODID,
+                                    name
+                            )
+                    );
+        }
+    }
+
+    private void buildPaymentBoxRecipes(RecipeOutput output) {
+        for (Map.Entry<
+                CustomerOverlayBlockVariant,
+                ? extends java.util.function.Supplier<
+                        CustomerPaymentBoxBlock
+                >
+        > entry : CustomerPaymentBox.BLOCKS.entrySet()) {
+            CustomerOverlayBlockVariant variant = entry.getKey();
+            CustomerPaymentBoxBlock block = entry.getValue().get();
+            String name = CustomerPaymentBox.getBlockName(variant);
+
+            ShapedRecipeBuilder.shaped(
+                    RecipeCategory.DECORATIONS,
+                    block
+            )
+                    .pattern("VGV")
+                    .pattern("VEV")
+                    .pattern("VVV")
+                    .define('V', variant.ingredient().get())
+                    .define('G', Items.GOLD_INGOT)
+                    .define('E', Items.EMERALD)
                     .unlockedBy(
                             getHasName(variant.ingredient().get()),
                             has(variant.ingredient().get())

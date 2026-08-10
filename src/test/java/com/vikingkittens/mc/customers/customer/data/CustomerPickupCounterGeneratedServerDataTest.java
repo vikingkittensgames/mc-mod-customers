@@ -19,8 +19,8 @@ class CustomerPickupCounterGeneratedServerDataTest {
 
     @Test
     void generatesRecipesAndLootForEveryVariant() throws IOException {
-        for (CustomerPickupCounterVariant variant
-                : CustomerPickupCounterVariants.ALL) {
+        for (CustomerOverlayBlockVariant variant
+                : CustomerOverlayBlockVariants.ALL) {
             String name = CustomerPickupCounter.getBlockName(variant);
             Path recipePath = GENERATED.resolve(
                     "recipe/" + name + ".json"

@@ -17,6 +17,7 @@ import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 import com.vikingkittens.mc.customers.config.Config;
 import com.vikingkittens.mc.customers.config.RecipeConditions;
 import com.vikingkittens.mc.customers.customer.Customer;
+import com.vikingkittens.mc.customers.customer.CustomerPaymentBox;
 import com.vikingkittens.mc.customers.customer.CustomerPickupCounter;
 import com.vikingkittens.mc.customers.customer.CustomerSpawner;
 import com.vikingkittens.mc.customers.customer.data.CustomersData;
@@ -40,6 +41,7 @@ public class Customers {
         // Register our features
         CustomerSpawner.register(modEventBus);
         CustomersVillagerAppearances.register(modEventBus);
+        CustomerPaymentBox.register(modEventBus);
         CustomerPickupCounter.register(modEventBus);
         Customer.register(modEventBus);
         SupplierSpawner.register(modEventBus);

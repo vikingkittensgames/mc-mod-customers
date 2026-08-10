@@ -20,17 +20,25 @@ public final class CustomersData {
                 )
         );
         generator.addProvider(
+                event.includeClient(),
+                new CustomerPaymentBoxBlockStateProvider(
+                        output,
+                        event.getExistingFileHelper()
+                )
+        );
+        generator.addProvider(
                 event.includeServer(),
-                new CustomerPickupCounterRecipeProvider(
+                new CustomerRecipeProvider(
                         output,
                         event.getLookupProvider()
                 )
         );
         generator.addProvider(
                 event.includeServer(),
-                new CustomerPickupCounterLootTableProvider(
+                new CustomerLootTableProvider(
                         output,
                         event.getLookupProvider()
                 )
-        );    }
+        );
+    }
 }

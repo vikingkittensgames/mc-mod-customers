@@ -8,8 +8,8 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 
-public final class CustomerPickupCounterVariants {
-    public static final List<CustomerPickupCounterVariant> ALL = List.of(
+public final class CustomerOverlayBlockVariants {
+    public static final List<CustomerOverlayBlockVariant> ALL = List.of(
             variant("iron", Items.IRON_INGOT, Blocks.IRON_BLOCK, "iron_block"),
             variant(
                     "copper",
@@ -92,16 +92,16 @@ public final class CustomerPickupCounterVariants {
             )
     );
 
-    private CustomerPickupCounterVariants() {
+    private CustomerOverlayBlockVariants() {
     }
 
-    private static CustomerPickupCounterVariant variant(
+    private static CustomerOverlayBlockVariant variant(
             String name,
             ItemLike ingredient,
             Block textureBlock,
             String textureName
     ) {
-        return new CustomerPickupCounterVariant(
+        return new CustomerOverlayBlockVariant(
                 name,
                 () -> ingredient,
                 () -> textureBlock,

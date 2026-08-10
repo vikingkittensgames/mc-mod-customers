@@ -9,19 +9,25 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 
-public class CustomerPickupCounterLootTableProvider
+public class CustomerLootTableProvider
         extends LootTableProvider {
-    public CustomerPickupCounterLootTableProvider(
+    public CustomerLootTableProvider(
             PackOutput output,
             CompletableFuture<HolderLookup.Provider> registries
     ) {
         super(
                 output,
                 Set.of(),
-                List.of(new SubProviderEntry(
-                        CustomerPickupCounterBlockLootSubProvider::new,
-                        LootContextParamSets.BLOCK
-                )),
+                List.of(
+                        new SubProviderEntry(
+                                CustomerPickupCounterBlockLootSubProvider::new,
+                                LootContextParamSets.BLOCK
+                        ),
+                        new SubProviderEntry(
+                                CustomerPaymentBoxBlockLootSubProvider::new,
+                                LootContextParamSets.BLOCK
+                        )
+                ),
                 registries
         );
     }

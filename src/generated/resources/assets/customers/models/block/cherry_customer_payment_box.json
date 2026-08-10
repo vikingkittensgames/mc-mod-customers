@@ -1,0 +1,96 @@
+{
+  "children": {
+    "base": {
+      "elements": [
+        {
+          "faces": {
+            "down": {
+              "texture": "#base"
+            },
+            "east": {
+              "texture": "#base"
+            },
+            "north": {
+              "texture": "#base"
+            },
+            "south": {
+              "texture": "#base"
+            },
+            "up": {
+              "texture": "#base"
+            },
+            "west": {
+              "texture": "#base"
+            }
+          },
+          "from": [
+            1,
+            0,
+            1
+          ],
+          "to": [
+            15,
+            14,
+            15
+          ]
+        }
+      ],
+      "textures": {
+        "base": "minecraft:block/stripped_cherry_log",
+        "particle": "minecraft:block/stripped_cherry_log"
+      }
+    },
+    "overlay": {
+      "elements": [
+        {
+          "faces": {
+            "down": {
+              "texture": "#bottom"
+            },
+            "east": {
+              "texture": "#side"
+            },
+            "north": {
+              "texture": "#front"
+            },
+            "south": {
+              "texture": "#side"
+            },
+            "up": {
+              "texture": "#top"
+            },
+            "west": {
+              "texture": "#side"
+            }
+          },
+          "from": [
+            0.99,
+            -0.01,
+            0.99
+          ],
+          "to": [
+            15.01,
+            14.01,
+            15.01
+          ]
+        }
+      ],
+      "render_type": "minecraft:translucent",
+      "textures": {
+        "bottom": "customers:block/customer_payment_box_block_overlay_bottom",
+        "front": "customers:block/customer_payment_box_block_overlay_front",
+        "particle": "minecraft:block/stripped_cherry_log",
+        "side": "customers:block/customer_payment_box_block_overlay_side",
+        "top": "customers:block/customer_payment_box_block_overlay_top"
+      }
+    }
+  },
+  "item_render_order": [
+    "base",
+    "overlay"
+  ],
+  "loader": "neoforge:composite",
+  "textures": {
+    "particle": "minecraft:block/stripped_cherry_log"
+  }
+}

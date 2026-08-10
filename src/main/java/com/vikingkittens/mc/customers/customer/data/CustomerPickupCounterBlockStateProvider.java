@@ -9,6 +9,7 @@ import net.minecraft.world.item.ItemDisplayContext;
 
 import net.neoforged.neoforge.client.model.generators.BlockModelBuilder;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
+import net.neoforged.neoforge.client.model.generators.ItemModelBuilder;
 import net.neoforged.neoforge.client.model.generators.loaders.CompositeModelBuilder;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
@@ -33,19 +34,19 @@ public class CustomerPickupCounterBlockStateProvider
     @Override
     protected void registerStatesAndModels() {
         for (Map.Entry<
-                CustomerPickupCounterVariant,
+                CustomerOverlayBlockVariant,
                 ? extends java.util.function.Supplier<
                         CustomerPickupCounterBlock
                 >
         > entry : CustomerPickupCounter.BLOCKS.entrySet()) {
-            CustomerPickupCounterVariant variant = entry.getKey();
+            CustomerOverlayBlockVariant variant = entry.getKey();
             CustomerPickupCounterBlock block = entry.getValue().get();
             String name = CustomerPickupCounter.getBlockName(variant);
 
             BlockModelBuilder baseModel = models()
                     .getBuilder(name + "_base")
-                    .texture("particle", variant.sideTexture())
-                    .texture("base", variant.sideTexture());
+                    .texture("particle", variant.baseTexture())
+                    .texture("base", variant.baseTexture());
             baseModel.element()
                     .from(0.0F, 0.0F, 0.0F)
                     .to(16.0F, 1.0F, 16.0F)
@@ -54,12 +55,12 @@ public class CustomerPickupCounterBlockStateProvider
 
             BlockModelBuilder overlayModel = models()
                     .getBuilder(name + "_overlay")
-                    .texture("particle", variant.sideTexture())
+                    .texture("particle", variant.baseTexture())
                     .texture("top_overlay", TOP_OVERLAY)
                     .renderType("minecraft:translucent");
             overlayModel.element()
-                    .from(0.0F, 0.0F, 0.0F)
-                    .to(16.0F, 1.001F, 16.0F)
+                    .from(-0.01F, -0.01F, -0.01F)
+                    .to(16.01F, 1.01F, 16.01F)
                     .face(Direction.UP)
                     .texture("#top_overlay")
                     .end()
@@ -67,17 +68,45 @@ public class CustomerPickupCounterBlockStateProvider
 
             BlockModelBuilder model = models()
                     .getBuilder(name)
-                    .texture("particle", variant.sideTexture());
+                    .texture("particle", variant.baseTexture());
             model.customLoader(CompositeModelBuilder::begin)
                     .child("base", baseModel)
                     .child("overlay", overlayModel)
                     .end();
 
             simpleBlock(block, model);
-            itemModels()
+            ItemModelBuilder itemBaseModel = itemModels()
+                    .getBuilder(name + "_base")
+                    .texture("particle", variant.baseTexture())
+                    .texture("base", variant.baseTexture())
+                    .renderType("minecraft:translucent");
+            itemBaseModel.element()
+                    .from(0.0F, 0.0F, 0.0F)
+                    .to(16.0F, 1.0F, 16.0F)
+                    .textureAll("#base")
+                    .end();
+
+            ItemModelBuilder itemOverlayModel = itemModels()
+                    .getBuilder(name + "_overlay")
+                    .texture("particle", variant.baseTexture())
+                    .texture("top_overlay", TOP_OVERLAY)
+                    .renderType("minecraft:translucent");
+            itemOverlayModel.element()
+                    .from(-0.01F, -0.01F, -0.01F)
+                    .to(16.01F, 1.01F, 16.01F)
+                    .face(Direction.UP)
+                    .texture("#top_overlay")
+                    .end()
+                    .end();
+
+            ItemModelBuilder itemModel = itemModels()
                     .getBuilder(name)
-                    .parent(model)
-                    .transforms()
+                    .texture("particle", variant.baseTexture());
+            itemModel.customLoader(CompositeModelBuilder::begin)
+                    .child("base", itemBaseModel)
+                    .child("overlay", itemOverlayModel)
+                    .end();
+            itemModel.transforms()
                     .transform(ItemDisplayContext.GUI)
                     .rotation(45.0F, 225.0F, 0.0F)
                     .translation(0.0F, 3.0F, 0.0F)

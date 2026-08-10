@@ -22,8 +22,8 @@ import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import com.vikingkittens.mc.customers.Customers;
-import com.vikingkittens.mc.customers.customer.data.CustomerPickupCounterVariant;
-import com.vikingkittens.mc.customers.customer.data.CustomerPickupCounterVariants;
+import com.vikingkittens.mc.customers.customer.data.CustomerOverlayBlockVariant;
+import com.vikingkittens.mc.customers.customer.data.CustomerOverlayBlockVariants;
 
 public final class CustomerPickupCounter {
     private static final DeferredRegister.Blocks BLOCK_REGISTER =
@@ -37,11 +37,11 @@ public final class CustomerPickupCounter {
             );
 
     public static final Map<
-            CustomerPickupCounterVariant,
+            CustomerOverlayBlockVariant,
             DeferredBlock<CustomerPickupCounterBlock>
     > BLOCKS = registerBlocks();
     public static final Map<
-            CustomerPickupCounterVariant,
+            CustomerOverlayBlockVariant,
             DeferredItem<BlockItem>
     > ITEMS = registerItems();
     public static final DeferredHolder<
@@ -68,21 +68,21 @@ public final class CustomerPickupCounter {
     }
 
     public static String getBlockName(
-            CustomerPickupCounterVariant variant
+            CustomerOverlayBlockVariant variant
     ) {
         return variant.name() + "_customer_pickup_counter";
     }
 
     private static Map<
-            CustomerPickupCounterVariant,
+            CustomerOverlayBlockVariant,
             DeferredBlock<CustomerPickupCounterBlock>
     > registerBlocks() {
         Map<
-                CustomerPickupCounterVariant,
+                CustomerOverlayBlockVariant,
                 DeferredBlock<CustomerPickupCounterBlock>
         > blocks = new LinkedHashMap<>();
-        for (CustomerPickupCounterVariant variant
-                : CustomerPickupCounterVariants.ALL) {
+        for (CustomerOverlayBlockVariant variant
+                : CustomerOverlayBlockVariants.ALL) {
             blocks.put(
                     variant,
                     BLOCK_REGISTER.register(
@@ -97,7 +97,7 @@ public final class CustomerPickupCounter {
     }
 
     private static BlockBehaviour.Properties createProperties(
-            CustomerPickupCounterVariant variant
+            CustomerOverlayBlockVariant variant
     ) {
         Block source = variant.textureBlock().get();
         if (source instanceof RotatedPillarBlock) {
@@ -107,13 +107,13 @@ public final class CustomerPickupCounter {
                 .noOcclusion();
     }
     private static Map<
-            CustomerPickupCounterVariant,
+            CustomerOverlayBlockVariant,
             DeferredItem<BlockItem>
     > registerItems() {
-        Map<CustomerPickupCounterVariant, DeferredItem<BlockItem>> items =
+        Map<CustomerOverlayBlockVariant, DeferredItem<BlockItem>> items =
                 new LinkedHashMap<>();
         for (Map.Entry<
-                CustomerPickupCounterVariant,
+                CustomerOverlayBlockVariant,
                 DeferredBlock<CustomerPickupCounterBlock>
         > entry : BLOCKS.entrySet()) {
             items.put(

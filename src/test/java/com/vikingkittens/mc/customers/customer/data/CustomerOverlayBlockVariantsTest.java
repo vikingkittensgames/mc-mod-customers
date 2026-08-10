@@ -15,7 +15,7 @@ import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class CustomerPickupCounterVariantsTest {
+class CustomerOverlayBlockVariantsTest {
     @BeforeAll
     static void bootstrapMinecraft() {
         MinecraftTestBootstrap.bootstrap();
@@ -41,8 +41,8 @@ class CustomerPickupCounterVariantsTest {
                         "bamboo",
                         "stripped_bamboo"
                 ),
-                CustomerPickupCounterVariants.ALL.stream()
-                        .map(CustomerPickupCounterVariant::name)
+                CustomerOverlayBlockVariants.ALL.stream()
+                        .map(CustomerOverlayBlockVariant::name)
                         .toList()
         );
     }
@@ -151,8 +151,8 @@ class CustomerPickupCounterVariantsTest {
             Block textureBlock,
             String texturePath
     ) {
-        CustomerPickupCounterVariant variant =
-                CustomerPickupCounterVariants.ALL.stream()
+        CustomerOverlayBlockVariant variant =
+                CustomerOverlayBlockVariants.ALL.stream()
                         .filter(candidate -> candidate.name().equals(name))
                         .findFirst()
                         .orElseThrow();
@@ -161,7 +161,7 @@ class CustomerPickupCounterVariantsTest {
         assertEquals(textureBlock, variant.textureBlock().get());
         assertEquals(
                 ResourceLocation.withDefaultNamespace(texturePath),
-                variant.sideTexture()
+                variant.baseTexture()
         );
     }
 }

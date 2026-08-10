@@ -27,8 +27,8 @@ class CustomerPickupCounterGeneratedModelTest {
 
     @Test
     void generatesLayeredModelsForEveryVariant() throws IOException {
-        for (CustomerPickupCounterVariant variant
-                : CustomerPickupCounterVariants.ALL) {
+        for (CustomerOverlayBlockVariant variant
+                : CustomerOverlayBlockVariants.ALL) {
             String name = CustomerPickupCounter.getBlockName(variant);
             Path blockState = GENERATED.resolve(
                     "assets/customers/blockstates/" + name + ".json"
@@ -46,12 +46,24 @@ class CustomerPickupCounterGeneratedModelTest {
             Path itemModel = GENERATED.resolve(
                     "assets/customers/models/item/" + name + ".json"
             );
+            Path itemBaseModel = GENERATED.resolve(
+                    "assets/customers/models/item/"
+                            + name
+                            + "_base.json"
+            );
+            Path itemOverlayModel = GENERATED.resolve(
+                    "assets/customers/models/item/"
+                            + name
+                            + "_overlay.json"
+            );
 
             assertTrue(Files.exists(blockState));
             assertTrue(Files.exists(blockModel));
             assertTrue(Files.exists(baseModel));
             assertTrue(Files.exists(overlayModel));
             assertTrue(Files.exists(itemModel));
+            assertTrue(Files.exists(itemBaseModel));
+            assertTrue(Files.exists(itemOverlayModel));
 
             JsonObject model = JsonParser.parseString(
                     Files.readString(blockModel)
@@ -64,6 +76,12 @@ class CustomerPickupCounterGeneratedModelTest {
             ).getAsJsonObject();
             JsonObject item = JsonParser.parseString(
                     Files.readString(itemModel)
+            ).getAsJsonObject();
+            JsonObject itemBase = JsonParser.parseString(
+                    Files.readString(itemBaseModel)
+            ).getAsJsonObject();
+            JsonObject itemOverlay = JsonParser.parseString(
+                    Files.readString(itemOverlayModel)
             ).getAsJsonObject();
             JsonObject gui = item.getAsJsonObject("display")
                     .getAsJsonObject("gui");
@@ -85,11 +103,24 @@ class CustomerPickupCounterGeneratedModelTest {
             );
             assertEquals(
                     "neoforge:composite",
+                    item.get("loader").getAsString()
+            );
+            assertEquals(2, item.getAsJsonObject("children").size());
+            assertEquals(
+                    "minecraft:translucent",
+                    itemBase.get("render_type").getAsString()
+            );
+            assertEquals(
+                    "minecraft:translucent",
+                    itemOverlay.get("render_type").getAsString()
+            );
+            assertEquals(
+                    "neoforge:composite",
                     model.get("loader").getAsString()
             );
             assertEquals(2, model.getAsJsonObject("children").size());
             assertEquals(
-                    variant.sideTexture().toString(),
+                    variant.baseTexture().toString(),
                     base.getAsJsonObject("textures")
                             .get("base")
                             .getAsString()
@@ -110,6 +141,15 @@ class CustomerPickupCounterGeneratedModelTest {
             assertEquals(
                     "minecraft:translucent",
                     overlay.get("render_type").getAsString()
+            );
+            assertEquals(
+                    1.01F,
+                    overlay.getAsJsonArray("elements")
+                            .get(0)
+                            .getAsJsonObject()
+                            .getAsJsonArray("to")
+                            .get(1)
+                            .getAsFloat()
             );
             JsonObject overlayFaces = overlay
                     .getAsJsonArray("elements")
