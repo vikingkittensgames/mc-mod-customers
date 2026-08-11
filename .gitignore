@@ -40,3 +40,5 @@ run-*/
 repo/
 !**/src/**/repo/
 /logs/
+/inspiration/
+/example-appearance/
