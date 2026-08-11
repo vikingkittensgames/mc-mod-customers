@@ -15,6 +15,8 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -65,6 +67,9 @@ public final class CustomerPickupCounter {
         ITEM_REGISTER.register(modEventBus);
         BLOCK_ENTITY_REGISTER.register(modEventBus);
         modEventBus.addListener(CustomerPickupCounter::addCreative);
+        modEventBus.addListener(
+                CustomerPickupCounter::registerCapabilities
+        );
     }
 
     public static String getBlockName(
@@ -144,5 +149,15 @@ public final class CustomerPickupCounter {
         if (event.getTabKey() == CreativeModeTabs.FUNCTIONAL_BLOCKS) {
             ITEMS.values().forEach(event::accept);
         }
+    }
+
+    private static void registerCapabilities(
+            RegisterCapabilitiesEvent event
+    ) {
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                BLOCK_ENTITY.get(),
+                (counter, direction) -> counter.getItemHandler()
+        );
     }
 }

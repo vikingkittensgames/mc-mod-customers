@@ -26,7 +26,9 @@ public record CustomerShiftFinishedPayload(
         int numCustomersServed,
         int numCustomersGaveUp,
         Map<UUID, Integer> numItemsServedByPlayer,
-        Map<UUID, Integer> numItemsCraftedByPlayer
+        Map<UUID, Integer> numItemsCraftedByPlayer,
+        int numItemsServedAutomated,
+        int numItemsCraftedAutomated
 ) implements CustomPacketPayload {
     private static final Logger LOGGER = LogUtils.getLogger();
 
@@ -48,7 +50,8 @@ public record CustomerShiftFinishedPayload(
      * @return served item total
      */
     public int totalItemsServed() {
-        return numItemsServedByPlayer.values().stream()
+        return numItemsServedAutomated
+                + numItemsServedByPlayer.values().stream()
                 .mapToInt(Integer::intValue)
                 .sum();
     }
@@ -59,7 +62,8 @@ public record CustomerShiftFinishedPayload(
      * @return crafted item total
      */
     public int totalItemsCrafted() {
-        return numItemsCraftedByPlayer.values().stream()
+        return numItemsCraftedAutomated
+                + numItemsCraftedByPlayer.values().stream()
                 .mapToInt(Integer::intValue)
                 .sum();
     }
@@ -80,6 +84,8 @@ public record CustomerShiftFinishedPayload(
                 (target, playerId) -> target.writeUUID(playerId),
                 (target, itemCount) -> target.writeVarInt(itemCount)
         );
+        buffer.writeVarInt(payload.numItemsServedAutomated());
+        buffer.writeVarInt(payload.numItemsCraftedAutomated());
     }
 
     private static CustomerShiftFinishedPayload read(FriendlyByteBuf buffer) {
@@ -98,7 +104,9 @@ public record CustomerShiftFinishedPayload(
                         HashMap::new,
                         source -> source.readUUID(),
                         source -> source.readVarInt()
-                )
+                ),
+                buffer.readVarInt(),
+                buffer.readVarInt()
         );
     }
 

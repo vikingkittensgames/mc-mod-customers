@@ -19,6 +19,7 @@
   "item.customers.customer_spawner_block": "Customer Spawner",
   "item.customers.supplier_spawner_block": "Supplier Spawner",
 
+  "block.customers.customer_payment_box": "Customer Payment Box",
   "block.customers.iron_customer_payment_box": "Iron Customer Payment Box",
   "block.customers.copper_customer_payment_box": "Copper Customer Payment Box",
   "block.customers.gold_customer_payment_box": "Gold Customer Payment Box",
@@ -88,6 +89,7 @@
   "screen.customers.shift_finished.items_served": "%s items",
   "screen.customers.shift_finished.total_items_served": "%s items served",
   "screen.customers.shift_finished.total_items_crafted": "%s items crafted",
+  "screen.customers.shift_finished.automated": "Automated",
   "screen.customers.shift_finished.close": "Close",
   "screen.customers.customer_spawner.mode": "Mode",
   "screen.customers.customer_spawner.max": "Max",

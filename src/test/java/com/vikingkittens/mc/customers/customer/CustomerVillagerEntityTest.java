@@ -1,5 +1,6 @@
 package com.vikingkittens.mc.customers.customer;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -19,13 +20,77 @@ import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class CustomerVillagerEntityTest {
+    @Test
+    void sortsPaymentBoxesNearestToTheCustomer() {
+        CustomerPaymentBoxBlockEntity far =
+                mock(CustomerPaymentBoxBlockEntity.class);
+        CustomerPaymentBoxBlockEntity nearest =
+                mock(CustomerPaymentBoxBlockEntity.class);
+        CustomerPaymentBoxBlockEntity middle =
+                mock(CustomerPaymentBoxBlockEntity.class);
+        when(far.getBlockPos()).thenReturn(new BlockPos(20, 0, 0));
+        when(nearest.getBlockPos()).thenReturn(new BlockPos(2, 0, 0));
+        when(middle.getBlockPos()).thenReturn(new BlockPos(8, 0, 0));
+
+        assertEquals(
+                List.of(nearest, middle, far),
+                CustomerVillagerEntity.sortPaymentBoxesByDistance(
+                        BlockPos.ZERO,
+                        List.of(far, nearest, middle)
+                )
+        );
+    }
+
+    @Test
+    void triesPaymentBoxesInOrderUntilOneAcceptsTheFullPayment() {
+        CustomerPaymentBoxBlockEntity first =
+                mock(CustomerPaymentBoxBlockEntity.class);
+        CustomerPaymentBoxBlockEntity second =
+                mock(CustomerPaymentBoxBlockEntity.class);
+        CustomerPaymentBoxBlockEntity third =
+                mock(CustomerPaymentBoxBlockEntity.class);
+        ItemStack payment = new ItemStack(Items.EMERALD, 8);
+        when(first.tryInsertPayment(payment)).thenReturn(false);
+        when(second.tryInsertPayment(payment)).thenReturn(true);
+
+        boolean inserted = CustomerVillagerEntity.tryInsertPayment(
+                List.of(first, second, third),
+                payment
+        );
+
+        assertTrue(inserted);
+        var ordered = inOrder(first, second);
+        ordered.verify(first).tryInsertPayment(payment);
+        ordered.verify(second).tryInsertPayment(payment);
+        verify(third, never()).tryInsertPayment(payment);
+    }
+
+    @Test
+    void reportsWhenNoPaymentBoxCanAcceptTheFullPayment() {
+        CustomerPaymentBoxBlockEntity first =
+                mock(CustomerPaymentBoxBlockEntity.class);
+        CustomerPaymentBoxBlockEntity second =
+                mock(CustomerPaymentBoxBlockEntity.class);
+        ItemStack payment = new ItemStack(Items.DIAMOND, 4);
+        when(first.tryInsertPayment(payment)).thenReturn(false);
+        when(second.tryInsertPayment(payment)).thenReturn(false);
+
+        assertFalse(CustomerVillagerEntity.tryInsertPayment(
+                List.of(first, second),
+                payment
+        ));
+    }
+
     @BeforeAll
     static void bootstrapMinecraft() {
         MinecraftTestBootstrap.bootstrap();

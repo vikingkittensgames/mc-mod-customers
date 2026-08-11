@@ -180,13 +180,8 @@ customer orders. One player can prepare food or other requested items and place 
 a pickup counter while another player serves the waiting customers, or customers stationed
 at pickup counters can collect their prepared items directly.
 
-Placing a requested item on a pickup counter gives crafting credit to the player who
-prepared it when a Customer Spawner or one of its customers is within a 64 by 64 by 64
-area. The pickup counter includes all active customers belonging to each matching spawner,
-even when the spawner itself is outside that area. If the full stack is not currently
-needed, the counter remembers who prepared the remaining items. Those items are checked
-again when another matching stack is added, and any later crafting credit still goes to
-the original crafter.
+Placing or dropping a requested item on a pickup counter gives crafting credit to the
+player who prepared. Items added by a hopper or without a known player are credited to **Automated**.
 
 Each pickup counter holds up to 9 item stacks. The stored items are displayed on top
 of the block, so players can see what is ready without opening an inventory screen. Items
@@ -224,30 +219,47 @@ the materials and decoration used in a kitchen, restaurant, shop, or market stan
 
 Right-click a pickup counter while holding an item stack to place the entire held stack
 onto the counter. Sneak-right-click while holding a stack to place only one item. Right-click
-with an empty hand to take the entire oldest stack, whether or not you are sneaking. The counter
-does not open an inventory screen; all item handling happens directly through these
-interactions.
+with an empty hand to take the entire oldest stack. The counter does not open an inventory
+screen; all item handling happens directly through these interactions.
 
-Pickup counters accept only items currently wanted by active customers. If customers want
-only part of a held stack, that portion is placed on the counter and the rest remains in the
-player's hand. Items that no active customer wants remain in the player's hand.
+Pickup counters accept only items currently wanted by active customers. Existing matching
+items anywhere in the connected counter network count toward that demand. If customers
+want only part of a held stack, that portion is placed on the counter and the rest remains
+in the player's hand. If no active customer wants the held item, the pickup counter allows
+the item's normal block interaction instead. This lets players hoppers and other blocks
+against a pickup counter.
 
-Once each second, a waiting customer at a pickup counter tries to collect one of their
-remaining requested items. The counter must contain the full requested amount in a single
-stack. The customer takes only the requested amount when the stored stack contains more,
-and the player who originally placed that stack receives credit for serving those items.
-Empty containers such as bottles, buckets, and bowls are returned to that player. If the
-player is offline, the containers are dropped on top of the pickup counter.
+Dropped items resting on top of a pickup counter are accepted using the same rules. If the
+item was dropped by a player, that player receives the crafting and serving credit. Items
+without a known player are credited to **Automated**.
+
+Hoppers, ownerless dropped items, and compatible automation accept demand only from Customer
+Spawners assigned to that kind of pickup counter. They can insert wanted items into a pickup
+counter but cannot extract prepared customer orders. Unwanted items and portions that do not
+fit remain outside the counter.
+
+Customers spawned from a Customer Spawner that is assigned a Pickup Counter as the counter/table
+block will try to pick up the items they want from the Pickup Counter.
+
+Empty containers such as bottles, buckets, and bowls are returned to the player credited for
+each consumed portion. If that player is unavailable or the item was supplied by automation,
+the containers are dropped on top of the pickup counter.
+
+Payments for player-prepared orders are added to that player's inventory or dropped when
+their inventory is full. For Automated orders or when the credited player is unavailable,
+the customer tries nearby Customer Payment Boxes from nearest to farthest. A payment box is
+used only when it can hold the entire payment. If no payment box within a 64x64x64 area
+can hold it, the customer drops the payment.
 
 If all 9 spaces are occupied, the item remains in the player's hand and a message explains
 that the pickup counter is full.
 
-Pickup counters regularly check whether their stored items are still needed. Items that are
-no longer needed are returned to the player who placed them. If that player's inventory is
-full, the remaining items are dropped on top of the pickup counter and the player receives
-a message. The player keeps the crafted-item credit earned when the items were first accepted.
-Breaking a pickup counter drops all of the items stored on it, so prepared items are not
-lost when a counter is moved.
+Once each second, one pickup counter validates the entire connected network against all
+nearby active customer demand. Excess items are returned to the player who placed them.
+If that player's inventory is full, the remaining items are dropped on top of the pickup
+counter and the player receives a message. Automated items and items whose player is
+unavailable are dropped on top of the pickup counter instead. The original player or
+Automated crafting credit is kept when items are first accepted.
 
 ### Connecting Pickup Counters
 
@@ -257,7 +269,8 @@ not connected.
 
 When a player places an item on a full counter, the item is passed to an available connected
 counter. This continues through an entire connected row or group of counters until a space
-is found. If every connected counter is full, the item stays in the player's hand.
+is found. Customer demand and stored quantities are also calculated across the complete
+network. If every connected counter is full, the item stays in the player's hand.
 
 When a player tries to take an item from an empty counter, it searches its connected
 neighbors and returns the oldest available item it finds. This lets players add and collect
@@ -280,11 +293,12 @@ payment box drops both the box and every item stored inside it.
 Craft a payment box with a gold ingot at the top center, an emerald at the center, and
 matching variant ingredients in every other crafting-grid position:
 
-```text
-Variant Ingredient | Gold Ingot | Variant Ingredient
-Variant Ingredient | Emerald    | Variant Ingredient
-Variant Ingredient | Variant Ingredient | Variant Ingredient
-```
+| Variant Ingredient |     Gold Ingot     | Variant Ingredient |
+|:------------------:|:------------------:|:------------------:|
+| Variant Ingredient |      Emerald       | Variant Ingredient |
+| Variant Ingredient | Variant Ingredient | Variant Ingredient |
+
+![customer-payment-box-crafting.png](screenshots/customer-payment-box-crafting.png)
 
 The following variants are available:
 
@@ -297,6 +311,8 @@ The following variants are available:
 * Bamboo and stripped bamboo, made with matching full bamboo blocks
 
 Each payment box uses the matching block texture beneath its payment-box detailing.
+
+![customer-payment-box-types.png](screenshots/customer-payment-box-types.png)
 
 ## Villager Customers
 
@@ -569,10 +585,36 @@ end, and a heads up view of what all active customers want for that shift.
 
 ![orders-in-progress-bar.png](screenshots/orders-in-progress-bar.png)
 
-At the end of a shift where at least one player crafted or served an item, you and
-the other players will get a scoreboard showing how well you did:
+At the end of a shift where at least one player or Automated system crafted or served an
+item, you and the other players will get a scoreboard showing how well you did. Automated
+activity appears with redstone as its profile image:
 
 ![scoreboard.png](screenshots/scoreboard.png)
+
+## Automation
+
+Using Customer Pickup Counters and Customer Payment Boxes combined with some hoppers you
+can automate a shop that customers can buy from.
+
+* Setup your spawner with a Customer Pickup Counter above it as the counter/table block.
+* Create your show and add at least one of the same Customer Pickup Counter block.
+* In your shop add a Customer Payment Box.  This is where customers will drop their payments after they pickup their items.
+* Add a hopper directed into your Customer Pickup counter block(s).
+* Feed the items your customers want into that hopper like adding a barrel above it and filling it up.
+
+![automation1.png](screenshots/automation1.png)
+
+[automation1.mp4](screenshots/automation1.mp4)
+
+As your customers spawn and head to your counter, the Customer Pickup Counter will recognize
+what customers it is serving, get what items the customers want, and extract those items
+from the hopper placing those items on the counter ready to pick up.  When the customer gets
+there it will see the items it wants, take them, and drop the payment in the Customer Payment
+Box.
+
+Then you can break out your redstone skills or even work in the Create mod to automate the
+crafting of the items before feeding them into the hopper, and maybe even using a comparator on
+the hopper to know when it's empty to signal crafting more.
 
 ## Supplier Spawner Block
 

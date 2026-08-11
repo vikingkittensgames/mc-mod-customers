@@ -74,12 +74,24 @@ public class CustomerPaymentBoxBlockStateProvider
                     overlayModel.element()
                             .from(0.99F, -0.01F, 0.99F)
                             .to(15.01F, 14.01F, 15.01F);
-            overlay.face(Direction.UP).texture("#top").end();
-            overlay.face(Direction.DOWN).texture("#bottom").end();
-            overlay.face(Direction.NORTH).texture("#front").end();
-            overlay.face(Direction.SOUTH).texture("#side").end();
-            overlay.face(Direction.EAST).texture("#side").end();
-            overlay.face(Direction.WEST).texture("#side").end();
+            overlay.face(Direction.UP)
+                    .uvs(0.0F, 0.0F, 16.0F, 16.0F)
+                    .texture("#top").end();
+            overlay.face(Direction.DOWN)
+                    .uvs(0.0F, 0.0F, 16.0F, 16.0F)
+                    .texture("#bottom").end();
+            overlay.face(Direction.NORTH)
+                    .uvs(0.0F, 0.0F, 16.0F, 16.0F)
+                    .texture("#front").end();
+            overlay.face(Direction.SOUTH)
+                    .uvs(0.0F, 0.0F, 16.0F, 16.0F)
+                    .texture("#side").end();
+            overlay.face(Direction.EAST)
+                    .uvs(0.0F, 0.0F, 16.0F, 16.0F)
+                    .texture("#side").end();
+            overlay.face(Direction.WEST)
+                    .uvs(0.0F, 0.0F, 16.0F, 16.0F)
+                    .texture("#side").end();
             overlay.end();
 
             BlockModelBuilder model = models()
@@ -113,12 +125,24 @@ public class CustomerPaymentBoxBlockStateProvider
             var itemOverlay = itemOverlayModel.element()
                     .from(0.99F, -0.01F, 0.99F)
                     .to(15.01F, 14.01F, 15.01F);
-            itemOverlay.face(Direction.UP).texture("#top").end();
-            itemOverlay.face(Direction.DOWN).texture("#bottom").end();
-            itemOverlay.face(Direction.NORTH).texture("#front").end();
-            itemOverlay.face(Direction.SOUTH).texture("#side").end();
-            itemOverlay.face(Direction.EAST).texture("#side").end();
-            itemOverlay.face(Direction.WEST).texture("#side").end();
+            itemOverlay.face(Direction.UP)
+                    .uvs(0.0F, 0.0F, 16.0F, 16.0F)
+                    .texture("#top").end();
+            itemOverlay.face(Direction.DOWN)
+                    .uvs(0.0F, 0.0F, 16.0F, 16.0F)
+                    .texture("#bottom").end();
+            itemOverlay.face(Direction.NORTH)
+                    .uvs(0.0F, 0.0F, 16.0F, 16.0F)
+                    .texture("#front").end();
+            itemOverlay.face(Direction.SOUTH)
+                    .uvs(0.0F, 0.0F, 16.0F, 16.0F)
+                    .texture("#side").end();
+            itemOverlay.face(Direction.EAST)
+                    .uvs(0.0F, 0.0F, 16.0F, 16.0F)
+                    .texture("#side").end();
+            itemOverlay.face(Direction.WEST)
+                    .uvs(0.0F, 0.0F, 16.0F, 16.0F)
+                    .texture("#side").end();
             itemOverlay.end();
 
             ItemModelBuilder itemModel = itemModels()

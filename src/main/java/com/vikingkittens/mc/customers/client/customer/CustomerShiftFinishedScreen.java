@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.TreeSet;
 import java.util.UUID;
 
+import org.jetbrains.annotations.Nullable;
+
 import com.mojang.authlib.GameProfile;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.Util;
@@ -24,6 +26,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.client.compatability.GuiGraphicsCUtils;
@@ -245,24 +249,29 @@ public class CustomerShiftFinishedScreen extends Screen {
     }
 
     private void renderPlayerScores(GuiGraphics graphics) {
-        List<UUID> playerIds = duplicatePlayers(
-                getScoredPlayerIds(
+        List<ScoreEntry> scoreEntries = duplicatePlayers(
+                getScoreEntries(
                         payload.numItemsServedByPlayer(),
-                        payload.numItemsCraftedByPlayer()
+                        payload.numItemsCraftedByPlayer(),
+                        payload.numItemsServedAutomated(),
+                        payload.numItemsCraftedAutomated()
                 ),
                 TEST_DUPLICATE_PLAYERS
         );
-        int playerCount = playerIds.size();
-        if (playerCount == 0) {
+        if (scoreEntries.isEmpty()) {
             return;
         }
 
-        List<String> playerNames = new ArrayList<>(playerCount);
-        List<Integer> cardWidths = new ArrayList<>(playerCount);
-        for (UUID playerId : playerIds) {
-            String playerName = getPlayerName(playerId);
-            playerNames.add(playerName);
-            cardWidths.add(getPlayerCardWidth(font.width(playerName)));
+        List<Component> names = new ArrayList<>(scoreEntries.size());
+        List<Integer> cardWidths = new ArrayList<>(scoreEntries.size());
+        for (ScoreEntry scoreEntry : scoreEntries) {
+            Component name = scoreEntry.automated()
+                    ? Component.translatable(
+                            "screen.customers.shift_finished.automated"
+                    )
+                    : Component.literal(getPlayerName(scoreEntry.playerId()));
+            names.add(name);
+            cardWidths.add(getPlayerCardWidth(font.width(name)));
         }
 
         int availableWidth = IMAGE_WIDTH - PLAYER_CARD_MARGIN * 2;
@@ -282,15 +291,10 @@ public class CustomerShiftFinishedScreen extends Screen {
                     rowWidth
             );
             for (int cardWidth : row) {
-                UUID playerId = playerIds.get(playerIndex);
-                renderPlayerScore(
+                renderScoreEntry(
                         graphics,
-                        playerId,
-                        playerNames.get(playerIndex),
-                        payload.numItemsServedByPlayer()
-                                .getOrDefault(playerId, 0),
-                        payload.numItemsCraftedByPlayer()
-                                .getOrDefault(playerId, 0),
+                        scoreEntries.get(playerIndex),
+                        names.get(playerIndex),
                         x,
                         y
                 );
@@ -300,7 +304,10 @@ public class CustomerShiftFinishedScreen extends Screen {
             y += PLAYER_CARD_HEIGHT;
         }
     }
-    private String getPlayerName(UUID playerId) {
+    private String getPlayerName(@Nullable UUID playerId) {
+        if (playerId == null) {
+            return "";
+        }
         Minecraft minecraft = Minecraft.getInstance();
         ClientPacketListener connection = minecraft.getConnection();
         PlayerInfo playerInfo = connection == null
@@ -313,31 +320,36 @@ public class CustomerShiftFinishedScreen extends Screen {
                 ? playerId.toString().substring(0, 8)
                 : ProfileCUtils.getName(profile);
     }
-    private void renderPlayerScore(
+    private void renderScoreEntry(
             GuiGraphics graphics,
-            UUID playerId,
-            String playerName,
-            int servedCount,
-            int craftedCount,
+            ScoreEntry scoreEntry,
+            Component name,
             int x,
             int y
     ) {
-        Minecraft minecraft = Minecraft.getInstance();
-        ClientPacketListener connection = minecraft.getConnection();
-        PlayerInfo playerInfo = connection == null ? null : connection.getPlayerInfo(playerId);
-        PlayerSkin skin = playerInfo == null ? DefaultPlayerSkin.get(playerId) : playerInfo.getSkin();
-
-
-        PlayerFaceRenderer.draw(
-                graphics,
-                skin,
-                x,
-                y,
-                PLAYER_HEAD_SIZE
-        );
+        if (scoreEntry.automated()) {
+            renderAutomatedIcon(graphics, x, y);
+        } else {
+            UUID playerId = scoreEntry.playerId();
+            Minecraft minecraft = Minecraft.getInstance();
+            ClientPacketListener connection = minecraft.getConnection();
+            PlayerInfo playerInfo = connection == null
+                    ? null
+                    : connection.getPlayerInfo(playerId);
+            PlayerSkin skin = playerInfo == null
+                    ? DefaultPlayerSkin.get(playerId)
+                    : playerInfo.getSkin();
+            PlayerFaceRenderer.draw(
+                    graphics,
+                    skin,
+                    x,
+                    y,
+                    PLAYER_HEAD_SIZE
+            );
+        }
         graphics.drawString(
                 font,
-                playerName,
+                name,
                 x + PLAYER_HEAD_SIZE + 2,
                 y + 2,
                 TEXT_COLOR,
@@ -345,25 +357,38 @@ public class CustomerShiftFinishedScreen extends Screen {
         );
 
         int scoreY = y + PLAYER_HEAD_SIZE + 2;
-        if (shouldRenderScore(servedCount)) {
+        if (shouldRenderScore(scoreEntry.servedCount())) {
             renderPlayerItemScore(
                     graphics,
                     STAR_TEXTURE,
-                    servedCount,
+                    scoreEntry.servedCount(),
                     x,
                     scoreY
             );
             scoreY += font.lineHeight + 1;
         }
-        if (shouldRenderScore(craftedCount)) {
+        if (shouldRenderScore(scoreEntry.craftedCount())) {
             renderPlayerItemScore(
                     graphics,
                     SPOON_TEXTURE,
-                    craftedCount,
+                    scoreEntry.craftedCount(),
                     x,
                     scoreY
             );
         }
+    }
+
+    private void renderAutomatedIcon(
+            GuiGraphics graphics,
+            int x,
+            int y
+    ) {
+        float scale = PLAYER_HEAD_SIZE / 16.0F;
+        GuiGraphicsCUtils.pushTransform(graphics);
+        GuiGraphicsCUtils.translate(graphics, x, y);
+        GuiGraphicsCUtils.scale(graphics, scale, scale);
+        graphics.renderItem(new ItemStack(Items.REDSTONE), 0, 0);
+        GuiGraphicsCUtils.popTransform(graphics);
     }
 
     private void renderPlayerItemScore(
@@ -436,6 +461,33 @@ public class CustomerShiftFinishedScreen extends Screen {
         return List.copyOf(playerIds);
     }
 
+    static List<ScoreEntry> getScoreEntries(
+            Map<UUID, Integer> served,
+            Map<UUID, Integer> crafted,
+            int automatedServed,
+            int automatedCrafted
+    ) {
+        List<ScoreEntry> entries = new ArrayList<>();
+        for (UUID playerId : getScoredPlayerIds(served, crafted)) {
+            entries.add(new ScoreEntry(
+                    playerId,
+                    served.getOrDefault(playerId, 0),
+                    crafted.getOrDefault(playerId, 0),
+                    false
+            ));
+        }
+        if (shouldRenderScore(automatedServed)
+                || shouldRenderScore(automatedCrafted)) {
+            entries.add(new ScoreEntry(
+                    null,
+                    automatedServed,
+                    automatedCrafted,
+                    true
+            ));
+        }
+        return List.copyOf(entries);
+    }
+
     /**
      * Repeats the rendered players to support testing multi-player layouts.
      *
@@ -443,11 +495,11 @@ public class CustomerShiftFinishedScreen extends Screen {
      * @param duplicateCount number of times each player should appear
      * @return repeated player IDs
      */
-    static List<UUID> duplicatePlayers(
-            List<UUID> playerIds,
+    static <T> List<T> duplicatePlayers(
+            List<T> playerIds,
             int duplicateCount
     ) {
-        List<UUID> duplicatedPlayers = new ArrayList<>(
+        List<T> duplicatedPlayers = new ArrayList<>(
                 playerIds.size() * duplicateCount
         );
         for (int index = 0; index < duplicateCount; index++) {
@@ -580,5 +632,13 @@ public class CustomerShiftFinishedScreen extends Screen {
         EMPTY,
         HALF,
         FULL
+    }
+
+    record ScoreEntry(
+            @Nullable UUID playerId,
+            int servedCount,
+            int craftedCount,
+            boolean automated
+    ) {
     }
 }

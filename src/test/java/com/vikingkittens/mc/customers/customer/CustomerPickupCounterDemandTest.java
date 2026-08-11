@@ -12,12 +12,14 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.trading.ItemCost;
 import net.minecraft.world.item.trading.MerchantOffer;
+import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
@@ -26,6 +28,7 @@ import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -34,6 +37,107 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class CustomerPickupCounterDemandTest {
+    @Test
+    void takesMatchingItemsWithoutLegacyAssignmentMetadata() {
+        CustomerPickupCounterBlockEntity counter = createCounter();
+        UUID playerId = UUID.randomUUID();
+        counter.insertStoredStack(
+                new CustomerPickupCounterBlockEntity.StoredStack(
+                        new ItemStack(Items.COOKIE, 5),
+                        false,
+                        playerId
+                )
+        );
+
+        List<CustomerPickupCounterBlockEntity.StoredStack> taken =
+                CustomerPickupCounterBlockEntity
+                        .takeMatchingStoredStacks(
+                                List.of(counter),
+                                offer(Items.COOKIE, 5)
+                        );
+
+        assertEquals(1, taken.size());
+        assertEquals(5, taken.getFirst().stack().getCount());
+        assertEquals(playerId, taken.getFirst().crafterId());
+        assertTrue(counter.getDisplayItems().isEmpty());
+    }
+
+    @Test
+    void takesACompleteOfferAcrossMultipleNetworkStacks() {
+        CustomerPickupCounterBlockEntity first = createCounter();
+        CustomerPickupCounterBlockEntity second = createCounter();
+        UUID playerId = UUID.randomUUID();
+        first.insertStoredStack(
+                new CustomerPickupCounterBlockEntity.StoredStack(
+                        new ItemStack(Items.COOKIE, 3),
+                        true,
+                        playerId
+                )
+        );
+        second.insertStoredStack(
+                new CustomerPickupCounterBlockEntity.StoredStack(
+                        new ItemStack(Items.COOKIE, 4),
+                        true,
+                        null
+                )
+        );
+
+        List<CustomerPickupCounterBlockEntity.StoredStack> taken =
+                CustomerPickupCounterBlockEntity
+                        .takeMatchingStoredStacks(
+                                List.of(first, second),
+                                offer(Items.COOKIE, 5)
+                        );
+
+        assertEquals(2, taken.size());
+        assertEquals(3, taken.getFirst().stack().getCount());
+        assertEquals(playerId, taken.getFirst().crafterId());
+        assertEquals(2, taken.getLast().stack().getCount());
+        assertNull(taken.getLast().crafterId());
+        assertTrue(first.getDisplayItems().isEmpty());
+        assertEquals(
+                2,
+                second.getDisplayItems().getFirst().getCount()
+        );
+    }
+
+    @Test
+    void leavesNetworkStacksUnchangedWhenCombinedQuantityIsTooSmall() {
+        CustomerPickupCounterBlockEntity first = createCounter();
+        CustomerPickupCounterBlockEntity second = createCounter();
+        first.insertStoredStack(
+                new CustomerPickupCounterBlockEntity.StoredStack(
+                        new ItemStack(Items.COOKIE, 2),
+                        true,
+                        null
+                )
+        );
+        second.insertStoredStack(
+                new CustomerPickupCounterBlockEntity.StoredStack(
+                        new ItemStack(Items.COOKIE, 2),
+                        true,
+                        null
+                )
+        );
+
+        List<CustomerPickupCounterBlockEntity.StoredStack> taken =
+                CustomerPickupCounterBlockEntity
+                        .takeMatchingStoredStacks(
+                                List.of(first, second),
+                                offer(Items.COOKIE, 5)
+                        );
+
+        assertTrue(taken.isEmpty());
+        assertEquals(
+                2,
+                first.getDisplayItems().getFirst().getCount()
+        );
+        assertEquals(
+                2,
+                second.getDisplayItems().getFirst().getCount()
+        );
+    }
+
     @BeforeAll
     static void bootstrapMinecraft() {
         MinecraftTestBootstrap.bootstrap();
@@ -63,7 +167,6 @@ class CustomerPickupCounterDemandTest {
         CustomerPickupCounterBlockEntity.StoredStack stored =
                 counter.removeOldestStored();
         assertEquals(15, stored.stack().getCount());
-        assertTrue(stored.assigned());
         assertEquals(crafterId, stored.crafterId());
         assertTrue(counter.removeOldestStored().stack().isEmpty());
     }
@@ -139,7 +242,7 @@ class CustomerPickupCounterDemandTest {
         for (int slot = 0;
                 slot < CustomerPickupCounterBlockEntity.INVENTORY_SIZE;
                 slot++) {
-            counter.insertStack(new ItemStack(Items.APPLE));
+            counter.insertStack(new ItemStack(Items.APPLE, 64));
         }
         CustomerSpawnerBlockEntity spawner =
                 mock(CustomerSpawnerBlockEntity.class);
@@ -167,7 +270,7 @@ class CustomerPickupCounterDemandTest {
     void keepsAStackThatIsStillFullyWanted() {
         CustomerPickupCounterBlockEntity counter = createCounter();
         CustomerSpawnerBlockEntity spawner =
-                mock(CustomerSpawnerBlockEntity.class);
+                spawnerWithOffer(Items.BREAD, 15);
         UUID crafterId = UUID.randomUUID();
         counter.insertStoredStack(
                 new CustomerPickupCounterBlockEntity.StoredStack(
@@ -176,13 +279,6 @@ class CustomerPickupCounterDemandTest {
                         crafterId
                 )
         );
-        when(spawner.releaseCraftedItemAssignment(
-                any(ItemStack.class)
-        )).thenReturn(15);
-        when(spawner.tryReserveCraftedItem(
-                any(ItemStack.class)
-        )).thenReturn(null);
-
         List<CustomerPickupCounterBlockEntity.StoredStack> returned =
                 CustomerPickupCounterBlockEntity.revalidateStoredStacks(
                         List.of(counter),
@@ -200,7 +296,7 @@ class CustomerPickupCounterDemandTest {
     void returnsThePortionThatIsNoLongerWanted() {
         CustomerPickupCounterBlockEntity counter = createCounter();
         CustomerSpawnerBlockEntity spawner =
-                mock(CustomerSpawnerBlockEntity.class);
+                spawnerWithOffer(Items.BREAD, 5);
         UUID crafterId = UUID.randomUUID();
         counter.insertStoredStack(
                 new CustomerPickupCounterBlockEntity.StoredStack(
@@ -209,13 +305,6 @@ class CustomerPickupCounterDemandTest {
                         crafterId
                 )
         );
-        when(spawner.releaseCraftedItemAssignment(
-                any(ItemStack.class)
-        )).thenReturn(15);
-        when(spawner.tryReserveCraftedItem(
-                any(ItemStack.class)
-        )).thenReturn(new ItemStack(Items.BREAD, 10));
-
         List<CustomerPickupCounterBlockEntity.StoredStack> returned =
                 CustomerPickupCounterBlockEntity.revalidateStoredStacks(
                         List.of(counter),
@@ -234,8 +323,6 @@ class CustomerPickupCounterDemandTest {
     @Test
     void returnsACompleteStackThatIsNoLongerWanted() {
         CustomerPickupCounterBlockEntity counter = createCounter();
-        CustomerSpawnerBlockEntity spawner =
-                mock(CustomerSpawnerBlockEntity.class);
         UUID crafterId = UUID.randomUUID();
         counter.insertStoredStack(
                 new CustomerPickupCounterBlockEntity.StoredStack(
@@ -244,17 +331,10 @@ class CustomerPickupCounterDemandTest {
                         crafterId
                 )
         );
-        when(spawner.releaseCraftedItemAssignment(
-                any(ItemStack.class)
-        )).thenReturn(15);
-        when(spawner.tryReserveCraftedItem(
-                any(ItemStack.class)
-        )).thenAnswer(invocation -> invocation.getArgument(0));
-
         List<CustomerPickupCounterBlockEntity.StoredStack> returned =
                 CustomerPickupCounterBlockEntity.revalidateStoredStacks(
                         List.of(counter),
-                        List.of(spawner)
+                        List.of()
                 );
 
         assertEquals(1, returned.size());
@@ -264,16 +344,49 @@ class CustomerPickupCounterDemandTest {
     }
 
     @Test
-    void returnsLegacyStacksWithoutAPlayerOwner() {
+    void allocatesDemandAcrossTheWholeCounterNetwork() {
+        CustomerPickupCounterBlockEntity first = createCounter();
+        CustomerPickupCounterBlockEntity second = createCounter();
+        UUID firstOwner = UUID.randomUUID();
+        UUID secondOwner = UUID.randomUUID();
+        first.insertStoredStack(
+                new CustomerPickupCounterBlockEntity.StoredStack(
+                        new ItemStack(Items.COOKIE, 3),
+                        true,
+                        firstOwner
+                )
+        );
+        second.insertStoredStack(
+                new CustomerPickupCounterBlockEntity.StoredStack(
+                        new ItemStack(Items.COOKIE, 4),
+                        true,
+                        secondOwner
+                )
+        );
+
+        List<CustomerPickupCounterBlockEntity.StoredStack> returned =
+                CustomerPickupCounterBlockEntity.revalidateStoredStacks(
+                        List.of(first, second),
+                        List.of(spawnerWithOffer(Items.COOKIE, 5))
+                );
+
+        assertEquals(1, returned.size());
+        assertEquals(2, returned.getFirst().stack().getCount());
+        assertEquals(secondOwner, returned.getFirst().crafterId());
+        assertEquals(3, first.removeOldestStored().stack().getCount());
+        assertEquals(2, second.removeOldestStored().stack().getCount());
+    }
+
+    @Test
+    void returnsUnwantedStacksWithoutAPlayerOwner() {
         CustomerPickupCounterBlockEntity counter = createCounter();
         counter.insertStoredStack(
                 new CustomerPickupCounterBlockEntity.StoredStack(
                         new ItemStack(Items.CARROT, 6),
-                        false,
+                        true,
                         null
                 )
         );
-
         List<CustomerPickupCounterBlockEntity.StoredStack> returned =
                 CustomerPickupCounterBlockEntity.revalidateStoredStacks(
                         List.of(counter),
@@ -282,7 +395,7 @@ class CustomerPickupCounterDemandTest {
 
         assertEquals(1, returned.size());
         assertEquals(6, returned.getFirst().stack().getCount());
-        assertEquals(null, returned.getFirst().crafterId());
+        assertNull(returned.getFirst().crafterId());
         assertTrue(counter.getDisplayItems().isEmpty());
     }
     @Test
@@ -471,18 +584,19 @@ class CustomerPickupCounterDemandTest {
     }
 
     @Test
-    void doesNotTakeAnOwnerlessLegacyStack() {
+    void takesAnAssignedOwnerlessStack() {
         CustomerPickupCounterBlockEntity counter = createCounter();
         counter.insertStoredStack(
                 new CustomerPickupCounterBlockEntity.StoredStack(
-                        new ItemStack(Items.COOKIE, 5), false, null));
+                        new ItemStack(Items.COOKIE, 5), true, null));
 
         CustomerPickupCounterBlockEntity.StoredStack taken =
                 CustomerPickupCounterBlockEntity.takeMatchingStoredStack(
                         List.of(counter), new ItemStack(Items.COOKIE, 5));
 
-        assertTrue(taken.stack().isEmpty());
-        assertEquals(5, counter.removeOldestStored().stack().getCount());
+        assertEquals(5, taken.stack().getCount());
+        assertNull(taken.crafterId());
+        assertTrue(counter.getDisplayItems().isEmpty());
     }
     /** Uses the offer predicate when selecting a stored component-bearing item. */
     @Test
@@ -543,5 +657,32 @@ class CustomerPickupCounterDemandTest {
                 BlockPos.ZERO,
                 state
         );
+    }
+
+    private static MerchantOffer offer(Item item, int count) {
+        return new MerchantOffer(
+                new ItemCost(item, count),
+                Optional.empty(),
+                new ItemStack(Items.EMERALD),
+                1,
+                1,
+                0.0F
+        );
+    }
+
+    private static CustomerSpawnerBlockEntity spawnerWithOffer(
+            Item item,
+            int count
+    ) {
+        CustomerSpawnerBlockEntity spawner =
+                mock(CustomerSpawnerBlockEntity.class);
+        CustomerVillagerEntity customer =
+                mock(CustomerVillagerEntity.class);
+        MerchantOffers offers = new MerchantOffers();
+        offers.add(offer(item, count));
+        when(spawner.getActiveCustomers())
+                .thenReturn(List.of(customer));
+        when(customer.getOffers()).thenReturn(offers);
+        return spawner;
     }
 }

@@ -28,6 +28,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -79,6 +80,8 @@ class CustomerPickupCounterBlockTest {
                 mock(CustomerPickupCounterBlockEntity.class);
         ItemStack held = new ItemStack(Items.BREAD, 25);
         when(level.getBlockEntity(BlockPos.ZERO)).thenReturn(counter);
+        when(counter.hasAssignableCraftedItemConnected(held))
+                .thenReturn(true);
         when(counter.insertCraftedStackConnected(player, held))
                 .thenReturn(ItemStack.EMPTY);
 
@@ -110,6 +113,9 @@ class CustomerPickupCounterBlockTest {
         ItemStack held = new ItemStack(Items.BREAD, 25);
         when(level.getBlockEntity(BlockPos.ZERO)).thenReturn(counter);
         when(player.isShiftKeyDown()).thenReturn(true);
+        when(counter.hasAssignableCraftedItemConnected(
+                any(ItemStack.class)
+        )).thenReturn(true);
         when(counter.insertCraftedStackConnected(
                 eq(player),
                 any(ItemStack.class)
@@ -224,19 +230,17 @@ class CustomerPickupCounterBlockTest {
     }
 
     @Test
-    void keepsAndMessagesForAnItemNoCustomerWants() {
+    void passesAnUnwantedSneakingHopperToItemPlacement() {
         CustomerPickupCounterBlock block = createBlock();
         Level level = mock(Level.class);
         Player player = mock(Player.class);
         CustomerPickupCounterBlockEntity counter =
                 mock(CustomerPickupCounterBlockEntity.class);
-        ItemStack held = new ItemStack(Items.APPLE);
-        ItemStack rejected = held.copy();
+        ItemStack held = new ItemStack(Items.HOPPER);
         when(level.getBlockEntity(BlockPos.ZERO)).thenReturn(counter);
+        when(player.isShiftKeyDown()).thenReturn(true);
         when(counter.hasAssignableCraftedItemConnected(held))
                 .thenReturn(false);
-        when(counter.insertCraftedStackConnected(player, held))
-                .thenReturn(rejected);
 
         ItemInteractionResult result = block.useItemOn(
                 held,
@@ -248,16 +252,21 @@ class CustomerPickupCounterBlockTest {
                 mock(BlockHitResult.class)
         );
 
-        assertEquals(ItemInteractionResult.SUCCESS, result);
-        verify(player).setItemInHand(
-                InteractionHand.MAIN_HAND,
-                rejected
+        assertEquals(
+                ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION,
+                result
         );
-        verify(player).displayClientMessage(
-                Component.translatable(
-                        "messages.customers.pickup_counter.not_wanted"
-                ),
-                true
+        verify(counter, never()).insertCraftedStackConnected(
+                eq(player),
+                any(ItemStack.class)
+        );
+        verify(player, never()).setItemInHand(
+                eq(InteractionHand.MAIN_HAND),
+                any(ItemStack.class)
+        );
+        verify(player, never()).displayClientMessage(
+                any(Component.class),
+                eq(true)
         );
     }
     private static CustomerPickupCounterBlock createBlock() {

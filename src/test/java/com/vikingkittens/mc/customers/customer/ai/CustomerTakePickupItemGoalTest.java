@@ -1,5 +1,6 @@
 package com.vikingkittens.mc.customers.customer.ai;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -19,6 +20,7 @@ import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -44,7 +46,6 @@ class CustomerTakePickupItemGoalTest {
         MerchantOffer firstOffer = mock(MerchantOffer.class);
         MerchantOffer secondOffer = mock(MerchantOffer.class);
         MerchantOffers offers = new MerchantOffers();
-        ItemStack firstCost = new ItemStack(Items.BREAD, 5);
         UUID crafterId = UUID.randomUUID();
         BlockPos counterPosition = new BlockPos(2, 64, 3);
 
@@ -58,12 +59,21 @@ class CustomerTakePickupItemGoalTest {
         when(level.getBlockEntity(counterPosition)).thenReturn(counter);
         when(firstOffer.isOutOfStock()).thenReturn(false);
         when(secondOffer.isOutOfStock()).thenReturn(false);
-        when(counter.takeMatchingStoredStack(firstOffer))
-                .thenReturn(new CustomerPickupCounterBlockEntity.StoredStack(
-                        firstCost.copy(),
-                        true,
-                        crafterId
-                ));
+        List<CustomerPickupCounterBlockEntity.StoredStack> stored =
+                List.of(
+                        new CustomerPickupCounterBlockEntity.StoredStack(
+                                new ItemStack(Items.BREAD, 3),
+                                true,
+                                crafterId
+                        ),
+                        new CustomerPickupCounterBlockEntity.StoredStack(
+                                new ItemStack(Items.BREAD, 2),
+                                true,
+                                null
+                        )
+                );
+        when(counter.takeMatchingStoredStacks(firstOffer))
+                .thenReturn(stored);
 
         CustomerTakePickupItemGoal goal =
                 new CustomerTakePickupItemGoal(customer, moveGoal);
@@ -73,10 +83,52 @@ class CustomerTakePickupItemGoalTest {
 
         verify(customer).completePickupCounterOffer(
                 firstOffer,
-                crafterId,
+                stored,
                 counterPosition
         );
         verify(secondOffer, never()).getCostA();
+    }
+
+    @Test
+    void completesAnOfferFromAnOwnerlessAutomatedStack() {
+        CustomerVillagerEntity customer = mock(CustomerVillagerEntity.class);
+        CustomerMoveToCounterGoal moveGoal =
+                mock(CustomerMoveToCounterGoal.class);
+        CustomerPickupCounterBlockEntity counter =
+                mock(CustomerPickupCounterBlockEntity.class);
+        Level level = mock(Level.class);
+        MerchantOffer offer = mock(MerchantOffer.class);
+        MerchantOffers offers = new MerchantOffers();
+        BlockPos counterPosition = new BlockPos(2, 64, 3);
+
+        offers.add(offer);
+        moveGoal.counterPosition = counterPosition;
+        when(customer.level()).thenReturn(level);
+        when(customer.getState()).thenReturn(CustomerState.BUYING);
+        when(customer.getOffers()).thenReturn(offers);
+        when(level.getGameTime()).thenReturn(100L);
+        when(level.getBlockEntity(counterPosition)).thenReturn(counter);
+        when(offer.isOutOfStock()).thenReturn(false);
+        List<CustomerPickupCounterBlockEntity.StoredStack> stored =
+                List.of(new CustomerPickupCounterBlockEntity.StoredStack(
+                        new ItemStack(Items.BREAD, 5),
+                        true,
+                        null
+                ));
+        when(counter.takeMatchingStoredStacks(offer))
+                .thenReturn(stored);
+
+        CustomerTakePickupItemGoal goal =
+                new CustomerTakePickupItemGoal(customer, moveGoal);
+
+        assertTrue(goal.canUse());
+        goal.start();
+
+        verify(customer).completePickupCounterOffer(
+                eq(offer),
+                eq(stored),
+                eq(counterPosition)
+        );
     }
 
     /** Waits one second after each attempt before trying the counter again. */
@@ -101,12 +153,8 @@ class CustomerTakePickupItemGoalTest {
         when(level.getBlockEntity(counterPosition)).thenReturn(counter);
         when(offer.isOutOfStock()).thenReturn(false);
         when(offer.getCostA()).thenReturn(cost);
-        when(counter.takeMatchingStoredStack(offer))
-                .thenReturn(new CustomerPickupCounterBlockEntity.StoredStack(
-                        ItemStack.EMPTY,
-                        false,
-                        null
-                ));
+        when(counter.takeMatchingStoredStacks(offer))
+                .thenReturn(List.of());
         when(level.getGameTime()).thenReturn(100L, 119L, 120L);
 
         CustomerTakePickupItemGoal goal =

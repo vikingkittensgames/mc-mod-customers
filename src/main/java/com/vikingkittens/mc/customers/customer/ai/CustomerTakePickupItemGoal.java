@@ -1,5 +1,7 @@
 package com.vikingkittens.mc.customers.customer.ai;
 
+import java.util.List;
+
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.trading.MerchantOffer;
 
@@ -69,12 +71,13 @@ public class CustomerTakePickupItemGoal extends Goal {
             if (offer.isOutOfStock()) {
                 continue;
             }
-            CustomerPickupCounterBlockEntity.StoredStack stored =
-                    counter.takeMatchingStoredStack(offer);
-            if (!stored.stack().isEmpty() && stored.crafterId() != null) {
+            List<CustomerPickupCounterBlockEntity.StoredStack>
+                    storedStacks =
+                            counter.takeMatchingStoredStacks(offer);
+            if (!storedStacks.isEmpty()) {
                 customer.completePickupCounterOffer(
                         offer,
-                        stored.crafterId(),
+                        storedStacks,
                         moveGoal.counterPosition
                 );
                 return;

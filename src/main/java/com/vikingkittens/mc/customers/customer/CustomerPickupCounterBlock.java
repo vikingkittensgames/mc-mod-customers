@@ -100,6 +100,10 @@ public class CustomerPickupCounterBlock extends BaseEntityBlock {
             }
             boolean wanted =
                     counter.hasAssignableCraftedItemConnected(requested);
+            if (!wanted) {
+                return ItemInteractionResult
+                        .SKIP_DEFAULT_BLOCK_INTERACTION;
+            }
             ItemStack requestedRemainder =
                     counter.insertCraftedStackConnected(
                             player,
@@ -121,9 +125,7 @@ public class CustomerPickupCounterBlock extends BaseEntityBlock {
                 PlayerCUtils.sendActionBarMessage(
                         player,
                         Component.translatable(
-                                wanted
-                                        ? "messages.customers.pickup_counter.full"
-                                        : "messages.customers.pickup_counter.not_wanted"
+                                "messages.customers.pickup_counter.full"
                         )
                 );
             }

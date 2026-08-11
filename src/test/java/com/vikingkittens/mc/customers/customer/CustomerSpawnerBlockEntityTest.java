@@ -56,19 +56,19 @@ class CustomerSpawnerBlockEntityTest {
         CustomerVillagerEntity second = mock(CustomerVillagerEntity.class);
         ItemStack input = new ItemStack(Items.BREAD, 10);
         ItemStack firstRemainder = new ItemStack(Items.BREAD, 4);
-        Map<UUID, Integer> craftedByPlayer = new HashMap<>();
+        CustomerItemScores craftedScores = new CustomerItemScores();
         when(first.tryAssignCraftedOffer(input)).thenReturn(firstRemainder);
         when(second.tryAssignCraftedOffer(firstRemainder)).thenReturn(null);
 
         ItemStack result = CustomerSpawnerBlockEntity.tryAssignCraftedItem(
                 List.of(first, second),
-                craftedByPlayer,
+                craftedScores,
                 playerId,
                 input
         );
 
         assertNull(result);
-        assertEquals(10, craftedByPlayer.get(playerId));
+        assertEquals(10, craftedScores.playerScores().get(playerId));
     }
 
     /** Returns the unmatched portion and credits only assigned item units. */
@@ -78,18 +78,18 @@ class CustomerSpawnerBlockEntityTest {
         CustomerVillagerEntity customer = mock(CustomerVillagerEntity.class);
         ItemStack input = new ItemStack(Items.BREAD, 10);
         ItemStack remainder = new ItemStack(Items.BREAD, 3);
-        Map<UUID, Integer> craftedByPlayer = new HashMap<>();
+        CustomerItemScores craftedScores = new CustomerItemScores();
         when(customer.tryAssignCraftedOffer(input)).thenReturn(remainder);
 
         ItemStack result = CustomerSpawnerBlockEntity.tryAssignCraftedItem(
                 List.of(customer),
-                craftedByPlayer,
+                craftedScores,
                 playerId,
                 input
         );
 
         assertSame(remainder, result);
-        assertEquals(7, craftedByPlayer.get(playerId));
+        assertEquals(7, craftedScores.playerScores().get(playerId));
     }
 
     /** Leaves the score unchanged when no customer wants the item. */
@@ -98,18 +98,18 @@ class CustomerSpawnerBlockEntityTest {
         UUID playerId = UUID.randomUUID();
         CustomerVillagerEntity customer = mock(CustomerVillagerEntity.class);
         ItemStack input = new ItemStack(Items.IRON_INGOT, 8);
-        Map<UUID, Integer> craftedByPlayer = new HashMap<>();
+        CustomerItemScores craftedScores = new CustomerItemScores();
         when(customer.tryAssignCraftedOffer(input)).thenReturn(input);
 
         ItemStack result = CustomerSpawnerBlockEntity.tryAssignCraftedItem(
                 List.of(customer),
-                craftedByPlayer,
+                craftedScores,
                 playerId,
                 input
         );
 
         assertSame(input, result);
-        assertFalse(craftedByPlayer.containsKey(playerId));
+        assertFalse(craftedScores.playerScores().containsKey(playerId));
     }
     /** Previews assignable demand across customers without changing scores. */
     @Test

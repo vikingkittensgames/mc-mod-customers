@@ -7,9 +7,47 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CustomerShiftFinishedScreenTest {
+    @Test
+    void includesAutomatedScoreEntryWhenAutomationHasAScore() {
+        UUID playerId = UUID.randomUUID();
+
+        List<CustomerShiftFinishedScreen.ScoreEntry> entries =
+                CustomerShiftFinishedScreen.getScoreEntries(
+                        Map.of(playerId, 3),
+                        Map.of(playerId, 2),
+                        5,
+                        7
+                );
+
+        assertEquals(2, entries.size());
+        assertEquals(playerId, entries.getFirst().playerId());
+        assertFalse(entries.getFirst().automated());
+        assertEquals(3, entries.getFirst().servedCount());
+        assertEquals(2, entries.getFirst().craftedCount());
+        assertNull(entries.getLast().playerId());
+        assertTrue(entries.getLast().automated());
+        assertEquals(5, entries.getLast().servedCount());
+        assertEquals(7, entries.getLast().craftedCount());
+    }
+
+    @Test
+    void omitsAutomatedScoreEntryWhenAutomationHasNoScore() {
+        List<CustomerShiftFinishedScreen.ScoreEntry> entries =
+                CustomerShiftFinishedScreen.getScoreEntries(
+                        Map.of(),
+                        Map.of(),
+                        0,
+                        0
+                );
+
+        assertTrue(entries.isEmpty());
+    }
+
     @Test
     void fiftyPercentProducesTwoAndAHalfStars() {
         assertEquals(CustomerShiftFinishedScreen.StarState.FULL, CustomerShiftFinishedScreen.getStarState(0.5F, 0));

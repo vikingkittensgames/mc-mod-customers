@@ -15,11 +15,15 @@ class CustomerScoreboardVisibilityTest {
     void hidesScoreboardWhenNoPlayerCraftedOrServedItems() {
         assertFalse(CustomerSpawnerBlockEntity.shouldShowFinalScore(
                 Map.of(),
-                Map.of()
+                Map.of(),
+                0,
+                0
         ));
         assertFalse(CustomerSpawnerBlockEntity.shouldShowFinalScore(
                 Map.of(PLAYER_ID, 0),
-                Map.of(PLAYER_ID, 0)
+                Map.of(PLAYER_ID, 0),
+                0,
+                0
         ));
     }
 
@@ -27,7 +31,9 @@ class CustomerScoreboardVisibilityTest {
     void showsScoreboardWhenAPlayerServedAnItem() {
         assertTrue(CustomerSpawnerBlockEntity.shouldShowFinalScore(
                 Map.of(PLAYER_ID, 1),
-                Map.of()
+                Map.of(),
+                0,
+                0
         ));
     }
 
@@ -35,7 +41,29 @@ class CustomerScoreboardVisibilityTest {
     void showsScoreboardWhenAPlayerCraftedAnItem() {
         assertTrue(CustomerSpawnerBlockEntity.shouldShowFinalScore(
                 Map.of(),
-                Map.of(PLAYER_ID, 1)
+                Map.of(PLAYER_ID, 1),
+                0,
+                0
+        ));
+    }
+
+    @Test
+    void showsScoreboardWhenAutomationServedAnItem() {
+        assertTrue(CustomerSpawnerBlockEntity.shouldShowFinalScore(
+                Map.of(),
+                Map.of(),
+                1,
+                0
+        ));
+    }
+
+    @Test
+    void showsScoreboardWhenAutomationCraftedAnItem() {
+        assertTrue(CustomerSpawnerBlockEntity.shouldShowFinalScore(
+                Map.of(),
+                Map.of(),
+                0,
+                1
         ));
     }
 }

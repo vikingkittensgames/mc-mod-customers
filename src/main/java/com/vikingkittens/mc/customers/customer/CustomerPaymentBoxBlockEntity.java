@@ -15,6 +15,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
 import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.items.wrapper.InvWrapper;
 
 public class CustomerPaymentBoxBlockEntity
@@ -52,9 +53,7 @@ public class CustomerPaymentBoxBlockEntity
 
     @Override
     protected Component getDefaultName() {
-        return Component.translatable(
-                getBlockState().getBlock().getDescriptionId()
-        );
+        return Component.translatable("block.customers.customer_payment_box");
     }
 
     @Override
@@ -74,6 +73,33 @@ public class CustomerPaymentBoxBlockEntity
 
     public IItemHandler getItemHandler() {
         return itemHandler;
+    }
+
+    public boolean tryInsertPayment(ItemStack payment) {
+        if (payment.isEmpty()) {
+            return true;
+        }
+        ItemStack simulatedRemainder =
+                ItemHandlerHelper.insertItemStacked(
+                        itemHandler,
+                        payment.copy(),
+                        true
+                );
+        if (!simulatedRemainder.isEmpty()) {
+            return false;
+        }
+        ItemStack remainder =
+                ItemHandlerHelper.insertItemStacked(
+                        itemHandler,
+                        payment.copy(),
+                        false
+                );
+        if (!remainder.isEmpty()) {
+            throw new IllegalStateException(
+                    "Simulated payment-box capacity was unavailable"
+            );
+        }
+        return true;
     }
 
     @Override

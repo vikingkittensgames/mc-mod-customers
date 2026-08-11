@@ -25,7 +25,9 @@ class CustomerShiftFinishedPayloadTest {
                 8,
                 3,
                 Map.of(playerId, 14),
-                Map.of(playerId, 21)
+                Map.of(playerId, 21),
+                6,
+                9
         );
         FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
 
@@ -47,7 +49,9 @@ class CustomerShiftFinishedPayloadTest {
                 5,
                 2,
                 mutableResults,
-                mutableResults
+                mutableResults,
+                0,
+                0
         );
 
         mutableResults.put(playerId, 9);
@@ -76,9 +80,13 @@ class CustomerShiftFinishedPayloadTest {
                         Map.of(
                                 UUID.randomUUID(), 12,
                                 UUID.randomUUID(), 7
-                        )
+                        ),
+                        4,
+                        6
                 );
 
-        assertEquals(13, payload.totalItemsServed());
-        assertEquals(19, payload.totalItemsCrafted());
+        assertEquals(17, payload.totalItemsServed());
+        assertEquals(25, payload.totalItemsCrafted());
+        assertEquals(4, payload.numItemsServedAutomated());
+        assertEquals(6, payload.numItemsCraftedAutomated());
     }}

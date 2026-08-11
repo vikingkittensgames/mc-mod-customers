@@ -1,10 +1,12 @@
 package com.vikingkittens.mc.customers.customer;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
@@ -18,6 +20,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -27,10 +30,13 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
+import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
+import com.vikingkittens.mc.customers.common.OfferUtils;
 import com.vikingkittens.mc.customers.common.SearchUtils;
 import com.vikingkittens.mc.customers.compatability.LevelCUtils;
 import com.vikingkittens.mc.customers.compatability.PlayerCUtils;
@@ -39,12 +45,22 @@ import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
 import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
 
 public class CustomerPickupCounterBlockEntity extends BlockEntity {
+    enum CustomerScope {
+        ALL,
+        COUNTER_BLOCK
+    }
+
+    static CustomerScope customerScope(@Nullable UUID crafterId) {
+        return crafterId == null
+                ? CustomerScope.COUNTER_BLOCK
+                : CustomerScope.ALL;
+    }
+
     public static final String NAME = "customer_pickup_counter";
     public static final int INVENTORY_SIZE = 9;
     private static final int CUSTOMER_SPAWNER_SEARCH_SIZE = 64;
     private static final String TAG_INVENTORY = "inventory";
     private static final String TAG_STACK_METADATA = "stackMetadata";
-    private static final String TAG_ASSIGNED = "assigned";
     private static final String TAG_CRAFTER_ID = "crafterId";
     private static final Direction[] CONNECTED_DIRECTIONS = {
         Direction.NORTH,
@@ -60,32 +76,241 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
                     inventoryChanged();
                 }
             };
-    private final boolean[] assignedSlots =
-            new boolean[INVENTORY_SIZE];
     private final UUID[] crafterIds = new UUID[INVENTORY_SIZE];
+    private final IItemHandler itemHandler =
+            new ItemHandler(this);
 
-    /**
-     * Associates a pickup-counter item stack with its assignment and original
-     * crafting-player information.
-     *
-     * @param stack stored item stack
-     * @param assigned whether customer demand has been assigned to the stack
-     * @param crafterId original crafting player, or null for legacy items
-     */
+    static final class ItemHandler implements IItemHandler {
+        private static final int INPUT_SLOT = 0;
+
+        private final CustomerPickupCounterBlockEntity counter;
+
+        ItemHandler(CustomerPickupCounterBlockEntity counter) {
+            this.counter = counter;
+        }
+
+        @Override
+        public int getSlots() {
+            return 1;
+        }
+
+        @Override
+        public ItemStack getStackInSlot(int slot) {
+            validateSlot(slot);
+            return ItemStack.EMPTY;
+        }
+
+        @Override
+        public ItemStack insertItem(
+                int slot,
+                ItemStack stack,
+                boolean simulate
+        ) {
+            validateSlot(slot);
+            if (stack.isEmpty()) {
+                return ItemStack.EMPTY;
+            }
+            return simulate
+                    ? counter.previewCraftedStackConnected(null, stack)
+                    : counter.insertCraftedStackConnectedByOwner(
+                            null,
+                            stack
+                    );
+        }
+
+        @Override
+        public ItemStack extractItem(
+                int slot,
+                int amount,
+                boolean simulate
+        ) {
+            validateSlot(slot);
+            return ItemStack.EMPTY;
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            validateSlot(slot);
+            return 64;
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            validateSlot(slot);
+            return counter.previewCraftedStackConnected(null, stack)
+                            .getCount()
+                    < stack.getCount();
+        }
+
+        private static void validateSlot(int slot) {
+            if (slot != INPUT_SLOT) {
+                throw new IndexOutOfBoundsException(
+                        "Pickup counter item-handler slot: " + slot
+                );
+            }
+        }
+    }
+
     public record StoredStack(
             ItemStack stack,
-            boolean assigned,
             @Nullable UUID crafterId
     ) {
         public StoredStack {
             stack = stack.copy();
         }
+
+        public StoredStack(
+                ItemStack stack,
+                boolean ignoredAssigned,
+                @Nullable UUID crafterId
+        ) {
+            this(stack, crafterId);
+        }
+    }
+
+    record CustomerOffer(
+            CustomerSpawnerBlockEntity spawner,
+            MerchantOffer offer
+    ) {
+    }
+
+    record IncomingAllocation(
+            int acceptedCount,
+            Map<CustomerSpawnerBlockEntity, Integer>
+                    acceptedBySpawner
+    ) {
+        IncomingAllocation {
+            acceptedBySpawner = Map.copyOf(acceptedBySpawner);
+        }
+    }
+
+    static IncomingAllocation allocateIncoming(
+            List<CustomerOffer> customerOffers,
+            List<ItemStack> existingStacks,
+            ItemStack incomingStack
+    ) {
+        List<MerchantOffer> offers = customerOffers.stream()
+                .map(CustomerOffer::offer)
+                .toList();
+        OfferUtils.Allocation existingAllocation =
+                OfferUtils.allocateDetailed(offers, existingStacks);
+        List<ItemStack> stacksWithIncoming =
+                new ArrayList<>(existingStacks);
+        stacksWithIncoming.add(incomingStack);
+        OfferUtils.Allocation combinedAllocation =
+                OfferUtils.allocateDetailed(
+                        offers,
+                        stacksWithIncoming
+                );
+        int acceptedCount = combinedAllocation.stackCounts().getLast();
+        Map<CustomerSpawnerBlockEntity, Integer>
+                acceptedBySpawner = new LinkedHashMap<>();
+        for (int index = 0; index < customerOffers.size(); index++) {
+            int acceptedForOffer =
+                    combinedAllocation.offerCounts().get(index)
+                            - existingAllocation.offerCounts().get(index);
+            if (acceptedForOffer > 0) {
+                acceptedBySpawner.merge(
+                        customerOffers.get(index).spawner(),
+                        acceptedForOffer,
+                        Integer::sum
+                );
+            }
+        }
+        return new IncomingAllocation(
+                acceptedCount,
+                acceptedBySpawner
+        );
+    }
+
+    static ItemStack insertLiveDemandStack(
+            List<CustomerPickupCounterBlockEntity> counters,
+            List<CustomerSpawnerBlockEntity> spawners,
+            @Nullable UUID crafterId,
+            ItemStack stack
+    ) {
+        List<ItemStack> existingStacks = counters.stream()
+                .flatMap(counter -> counter.getDisplayItems().stream())
+                .toList();
+        IncomingAllocation allocation = allocateIncoming(
+                findCustomerOffers(spawners),
+                existingStacks,
+                stack
+        );
+        if (allocation.acceptedCount() == 0) {
+            return stack.copy();
+        }
+
+        ItemStack acceptedStack = stack.copy();
+        acceptedStack.setCount(allocation.acceptedCount());
+        List<StoredStack> storedStacks = List.of(
+                new StoredStack(
+                        acceptedStack,
+                        true,
+                        crafterId
+                )
+        );
+        if (!hasCapacity(counters, storedStacks)) {
+            return stack.copy();
+        }
+        if (!insertStoredStacksConnected(counters, storedStacks)) {
+            throw new IllegalStateException(
+                    "Previewed pickup counter capacity was unavailable"
+            );
+        }
+        allocation.acceptedBySpawner().forEach(
+                (spawner, count) ->
+                        spawner.scoreboardAddItemsCrafted(
+                                crafterId,
+                                count
+                        )
+        );
+
+        ItemStack remainder = stack.copy();
+        remainder.shrink(allocation.acceptedCount());
+        return remainder;
+    }
+
+    static ItemStack previewLiveDemandStack(
+            List<CustomerPickupCounterBlockEntity> counters,
+            List<CustomerSpawnerBlockEntity> spawners,
+            @Nullable UUID crafterId,
+            ItemStack stack
+    ) {
+        List<ItemStack> existingStacks = counters.stream()
+                .flatMap(counter -> counter.getDisplayItems().stream())
+                .toList();
+        IncomingAllocation allocation = allocateIncoming(
+                findCustomerOffers(spawners),
+                existingStacks,
+                stack
+        );
+        if (allocation.acceptedCount() == 0) {
+            return stack.copy();
+        }
+
+        ItemStack acceptedStack = stack.copy();
+        acceptedStack.setCount(allocation.acceptedCount());
+        List<StoredStack> storedStacks = List.of(
+                new StoredStack(
+                        acceptedStack,
+                        true,
+                        crafterId
+                )
+        );
+        if (!hasCapacity(counters, storedStacks)) {
+            return stack.copy();
+        }
+
+        ItemStack remainder = stack.copy();
+        remainder.shrink(allocation.acceptedCount());
+        return remainder;
     }
 
     static List<StoredStack> splitByAssignment(
             ItemStack offered,
             @Nullable ItemStack remainder,
-            UUID crafterId
+            @Nullable UUID crafterId
     ) {
         int remainderCount =
                 remainder == null ? 0 : remainder.getCount();
@@ -135,7 +360,6 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
         writeStackMetadata(
                 PersistenceCUtils.writer(tag),
                 inventory,
-                assignedSlots,
                 crafterIds
         );
     }
@@ -155,7 +379,6 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
         readStackMetadata(
                 PersistenceCUtils.reader(tag),
                 inventory,
-                assignedSlots,
                 crafterIds
         );
     }
@@ -187,24 +410,53 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
         if (storedStack.stack().isEmpty()) {
             return ItemStack.EMPTY;
         }
+        ItemStack remainder = storedStack.stack().copy();
         for (int slot = 0; slot < inventory.getSlots(); slot++) {
-            if (inventory.getStackInSlot(slot).isEmpty()) {
-                assignedSlots[slot] = storedStack.assigned();
-                crafterIds[slot] = storedStack.crafterId();
-                ItemStack remainder = inventory.insertItem(
+            if (canMerge(slot, storedStack)) {
+                remainder = inventory.insertItem(
                         slot,
-                        storedStack.stack(),
+                        remainder,
                         false
                 );
-                if (remainder.getCount()
-                        == storedStack.stack().getCount()) {
-                    assignedSlots[slot] = false;
-                    crafterIds[slot] = null;
+                if (remainder.isEmpty()) {
+                    return ItemStack.EMPTY;
                 }
-                return remainder;
             }
         }
-        return storedStack.stack().copy();
+        for (int slot = 0; slot < inventory.getSlots(); slot++) {
+            if (inventory.getStackInSlot(slot).isEmpty()) {
+                crafterIds[slot] = storedStack.crafterId();
+                int countBefore = remainder.getCount();
+                remainder = inventory.insertItem(
+                        slot,
+                        remainder,
+                        false
+                );
+                if (remainder.getCount() == countBefore) {
+                    crafterIds[slot] = null;
+                }
+                if (remainder.isEmpty()) {
+                    return ItemStack.EMPTY;
+                }
+            }
+        }
+        return remainder;
+    }
+
+    private boolean canMerge(
+            int slot,
+            StoredStack storedStack
+    ) {
+        ItemStack existing = inventory.getStackInSlot(slot);
+        return !existing.isEmpty()
+                && Objects.equals(
+                        crafterIds[slot],
+                        storedStack.crafterId()
+                )
+                && ItemStack.isSameItemSameComponents(
+                        existing,
+                        storedStack.stack()
+                );
     }
 
     public ItemStack insertStackConnected(ItemStack stack) {
@@ -328,7 +580,6 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
                 remainder = counter.insertStoredStack(
                         new StoredStack(
                                 remainder,
-                                storedStack.assigned(),
                                 storedStack.crafterId()
                         )
                 );
@@ -371,25 +622,84 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
             List<StoredStack> stacks,
             int additionalFreeSlots
     ) {
-        int requiredSlots = stacks.stream()
-                .mapToInt(storedStack -> {
-                    int maximum = storedStack.stack()
-                            .getMaxStackSize();
-                    return (storedStack.stack().getCount()
-                            + maximum - 1) / maximum;
-                })
-                .sum();
-        int freeSlots = counters.stream()
-                .mapToInt(CustomerPickupCounterBlockEntity
-                        ::getFreeSlotCount)
-                .sum()
-                + additionalFreeSlots;
-        return freeSlots >= requiredSlots;
+        List<StoredStack> simulated = new ArrayList<>();
+        int totalSlots = additionalFreeSlots;
+        for (CustomerPickupCounterBlockEntity counter : counters) {
+            totalSlots += counter.inventory.getSlots();
+            for (int slot = 0;
+                    slot < counter.inventory.getSlots();
+                    slot++) {
+                ItemStack stack =
+                        counter.inventory.getStackInSlot(slot);
+                if (!stack.isEmpty()) {
+                    simulated.add(new StoredStack(
+                            stack,
+                            true,
+                            counter.crafterIds[slot]
+                    ));
+                }
+            }
+        }
+
+        for (StoredStack incoming : stacks) {
+            int remaining = incoming.stack().getCount();
+            for (int index = 0;
+                    index < simulated.size() && remaining > 0;
+                    index++) {
+                StoredStack existing = simulated.get(index);
+                if (!canMerge(existing, incoming)) {
+                    continue;
+                }
+                int available = existing.stack().getMaxStackSize()
+                        - existing.stack().getCount();
+                int inserted = Math.min(available, remaining);
+                if (inserted > 0) {
+                    ItemStack merged = existing.stack().copy();
+                    merged.grow(inserted);
+                    simulated.set(index, new StoredStack(
+                            merged,
+                            existing.crafterId()
+                    ));
+                    remaining -= inserted;
+                }
+            }
+            while (remaining > 0 && simulated.size() < totalSlots) {
+                int inserted = Math.min(
+                        incoming.stack().getMaxStackSize(),
+                        remaining
+                );
+                ItemStack insertedStack = incoming.stack().copy();
+                insertedStack.setCount(inserted);
+                simulated.add(new StoredStack(
+                        insertedStack,
+                        incoming.crafterId()
+                ));
+                remaining -= inserted;
+            }
+            if (remaining > 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean canMerge(
+            StoredStack first,
+            StoredStack second
+    ) {
+        return Objects.equals(
+                        first.crafterId(),
+                        second.crafterId()
+                )
+                && ItemStack.isSameItemSameComponents(
+                        first.stack(),
+                        second.stack()
+                );
     }
 
     static List<StoredStack> previewCraftedStacks(
             List<CustomerSpawnerBlockEntity> spawners,
-            UUID crafterId,
+            @Nullable UUID crafterId,
             ItemStack stack
     ) {
         int assignableCount =
@@ -420,7 +730,7 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
     static ItemStack insertCraftedStack(
             List<CustomerPickupCounterBlockEntity> counters,
             List<CustomerSpawnerBlockEntity> spawners,
-            UUID crafterId,
+            @Nullable UUID crafterId,
             ItemStack stack
     ) {
         List<StoredStack> previewStacks =
@@ -455,6 +765,26 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
         return remainder == null
                 ? ItemStack.EMPTY
                 : remainder.copy();
+    }
+
+    static ItemStack previewCraftedStack(
+            List<CustomerPickupCounterBlockEntity> counters,
+            List<CustomerSpawnerBlockEntity> spawners,
+            @Nullable UUID crafterId,
+            ItemStack stack
+    ) {
+        List<StoredStack> previewStacks =
+                previewCraftedStacks(spawners, crafterId, stack);
+        if (previewStacks.isEmpty()
+                || !hasCapacity(counters, previewStacks)) {
+            return stack.copy();
+        }
+        int acceptedCount = previewStacks.stream()
+                .mapToInt(stored -> stored.stack().getCount())
+                .sum();
+        ItemStack remainder = stack.copy();
+        remainder.shrink(acceptedCount);
+        return remainder;
     }
 
     /**
@@ -500,8 +830,12 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
         List<CustomerSpawnerBlockEntity> spawners =
                 level == null
                         ? List.of()
-                        : findCustomerSpawners(level, worldPosition);
-        return insertCraftedStack(
+                        : findCustomerSpawners(
+                                level,
+                                worldPosition,
+                                CustomerScope.ALL
+                        );
+        return insertLiveDemandStack(
                 counters,
                 spawners,
                 player.getUUID(),
@@ -509,14 +843,76 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
         );
     }
 
+    public ItemStack insertCraftedStackConnectedByOwner(
+            @Nullable UUID crafterId,
+            ItemStack stack
+    ) {
+        List<CustomerPickupCounterBlockEntity> counters =
+                level == null
+                        ? List.of(this)
+                        : getConnectedCounters(level, worldPosition);
+        List<CustomerSpawnerBlockEntity> spawners =
+                level == null
+                        ? List.of()
+                        : findCustomerSpawners(
+                                level,
+                                worldPosition,
+                                customerScope(crafterId)
+                        );
+        return insertLiveDemandStack(
+                counters,
+                spawners,
+                crafterId,
+                stack
+        );
+    }
+
+    public ItemStack previewCraftedStackConnected(
+            @Nullable UUID crafterId,
+            ItemStack stack
+    ) {
+        List<CustomerPickupCounterBlockEntity> counters =
+                level == null
+                        ? List.of(this)
+                        : getConnectedCounters(level, worldPosition);
+        List<CustomerSpawnerBlockEntity> spawners =
+                level == null
+                        ? List.of()
+                        : findCustomerSpawners(
+                                level,
+                                worldPosition,
+                                customerScope(crafterId)
+                        );
+        return previewLiveDemandStack(
+                counters,
+                spawners,
+                crafterId,
+                stack
+        );
+    }
+
+    public IItemHandler getItemHandler() {
+        return itemHandler;
+    }
+
     public boolean hasAssignableCraftedItemConnected(ItemStack stack) {
         if (level == null) {
             return false;
         }
-        return getAssignableCraftedItemCount(
-                findCustomerSpawners(level, worldPosition),
+        List<CustomerPickupCounterBlockEntity> counters =
+                getConnectedCounters(level, worldPosition);
+        List<CustomerSpawnerBlockEntity> spawners =
+                findCustomerSpawners(
+                        level,
+                        worldPosition,
+                        CustomerScope.ALL
+                );
+        return previewLiveDemandStack(
+                counters,
+                spawners,
+                null,
                 stack
-        ) > 0;
+        ).getCount() < stack.getCount();
     }
     /**
      * Finds spawners or their customers inside a 64 by 64 by 64 cube centered
@@ -558,6 +954,19 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
 
     static List<CustomerSpawnerBlockEntity> findCustomerSpawners(
             Level level,
+            BlockPos pos,
+            CustomerScope scope
+    ) {
+        return filterCustomerSpawners(
+                level,
+                findCustomerSpawners(level, pos),
+                level.getBlockState(pos).getBlock(),
+                scope
+        );
+    }
+
+    static List<CustomerSpawnerBlockEntity> findCustomerSpawners(
+            Level level,
             List<BlockPos> nearbySpawnerPositions,
             List<CustomerVillagerEntity> nearbyCustomers
     ) {
@@ -577,6 +986,52 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
             }
         }
         return List.copyOf(spawners);
+    }
+
+    static List<CustomerSpawnerBlockEntity> filterCustomerSpawners(
+            Level level,
+            List<CustomerSpawnerBlockEntity> spawners,
+            Block counterBlock,
+            CustomerScope scope
+    ) {
+        if (scope == CustomerScope.ALL) {
+            return List.copyOf(spawners);
+        }
+        return spawners.stream()
+                .filter(spawner -> {
+                    BlockState state = level.getBlockState(
+                            spawner.getBlockPos().above()
+                    );
+                    return state != null
+                            && state.getBlock() == counterBlock;
+                })
+                .toList();
+    }
+
+    static List<CustomerVillagerEntity> findActiveCustomers(
+            List<CustomerSpawnerBlockEntity> spawners
+    ) {
+        Set<CustomerVillagerEntity> customers =
+                new LinkedHashSet<>();
+        for (CustomerSpawnerBlockEntity spawner : spawners) {
+            customers.addAll(spawner.getActiveCustomers());
+        }
+        return List.copyOf(customers);
+    }
+
+    static List<CustomerOffer> findCustomerOffers(
+            List<CustomerSpawnerBlockEntity> spawners
+    ) {
+        List<CustomerOffer> offers = new ArrayList<>();
+        for (CustomerSpawnerBlockEntity spawner : spawners) {
+            for (CustomerVillagerEntity customer
+                    : spawner.getActiveCustomers()) {
+                for (MerchantOffer offer : customer.getOffers()) {
+                    offers.add(new CustomerOffer(spawner, offer));
+                }
+            }
+        }
+        return List.copyOf(offers);
     }
 
     public ItemStack removeOldest() {
@@ -616,6 +1071,83 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
                         ? List.of(this)
                         : getConnectedCounters(level, worldPosition);
         return takeMatchingStoredStack(counters, offer);
+    }
+
+    public List<StoredStack> takeMatchingStoredStacks(
+            MerchantOffer offer
+    ) {
+        List<CustomerPickupCounterBlockEntity> counters =
+                level == null
+                        ? List.of(this)
+                        : getConnectedCounters(level, worldPosition);
+        return takeMatchingStoredStacks(counters, offer);
+    }
+
+    static List<StoredStack> takeMatchingStoredStacks(
+            List<CustomerPickupCounterBlockEntity> counters,
+            MerchantOffer offer
+    ) {
+        ItemStack requested = offer.getCostA();
+        int available = 0;
+        for (CustomerPickupCounterBlockEntity counter : counters) {
+            for (int slot = 0;
+                    slot < counter.inventory.getSlots();
+                    slot++) {
+                ItemStack stored =
+                        counter.inventory.getStackInSlot(slot);
+                if (offer.getItemCostA().test(stored)) {
+                    available += stored.getCount();
+                }
+            }
+        }
+        if (available < requested.getCount()) {
+            return List.of();
+        }
+
+        int remaining = requested.getCount();
+        List<StoredStack> takenStacks = new ArrayList<>();
+        for (CustomerPickupCounterBlockEntity counter : counters) {
+            int slot = 0;
+            while (slot < counter.inventory.getSlots()
+                    && remaining > 0) {
+                ItemStack stored =
+                        counter.inventory.getStackInSlot(slot);
+                if (!offer.getItemCostA().test(stored)) {
+                    slot++;
+                    continue;
+                }
+
+                int takenCount = Math.min(
+                        remaining,
+                        stored.getCount()
+                );
+                ItemStack taken = stored.copy();
+                taken.setCount(takenCount);
+                UUID crafterId = counter.crafterIds[slot];
+                takenStacks.add(new StoredStack(
+                        taken,
+                        true,
+                        crafterId
+                ));
+                remaining -= takenCount;
+
+                if (takenCount == stored.getCount()) {
+                    counter.removeStoredStack(slot);
+                } else {
+                    ItemStack storedRemainder = stored.copy();
+                    storedRemainder.shrink(takenCount);
+                    counter.inventory.setStackInSlot(
+                            slot,
+                            storedRemainder
+                    );
+                    slot++;
+                }
+            }
+            if (remaining == 0) {
+                break;
+            }
+        }
+        return List.copyOf(takenStacks);
     }
 
     /**
@@ -677,9 +1209,7 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
             for (int slot = 0; slot < counter.inventory.getSlots(); slot++) {
                 ItemStack stored = counter.inventory.getStackInSlot(slot);
                 UUID crafterId = counter.crafterIds[slot];
-                if (!counter.assignedSlots[slot]
-                        || crafterId == null
-                        || stored.getCount() < requested.getCount()
+                if (stored.getCount() < requested.getCount()
                         || !matchesOffer.test(stored)) {
                     continue;
                 }
@@ -714,7 +1244,7 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
         }
         StoredStack removed = new StoredStack(
                 inventory.getStackInSlot(removedSlot),
-                assignedSlots[removedSlot],
+                true,
                 crafterIds[removedSlot]
         );
         for (int slot = removedSlot + 1;
@@ -724,95 +1254,89 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
                     slot - 1,
                     inventory.getStackInSlot(slot).copy()
             );
-            assignedSlots[slot - 1] = assignedSlots[slot];
             crafterIds[slot - 1] = crafterIds[slot];
         }
         int lastSlot = inventory.getSlots() - 1;
         inventory.setStackInSlot(lastSlot, ItemStack.EMPTY);
-        assignedSlots[lastSlot] = false;
         crafterIds[lastSlot] = null;
         return removed;
+    }
+
+    private record StoredLocation(
+            CustomerPickupCounterBlockEntity counter,
+            int slot,
+            StoredStack stored
+    ) {
     }
 
     static List<StoredStack> revalidateStoredStacks(
             List<CustomerPickupCounterBlockEntity> counters,
             List<CustomerSpawnerBlockEntity> spawners
     ) {
-        List<StoredStack> returnedStacks = new ArrayList<>();
+        List<StoredLocation> locations = new ArrayList<>();
         for (CustomerPickupCounterBlockEntity counter : counters) {
-            int slot = 0;
-            while (slot < counter.inventory.getSlots()) {
-                ItemStack stored =
+            for (int slot = 0;
+                    slot < counter.inventory.getSlots();
+                    slot++) {
+                ItemStack stack =
                         counter.inventory.getStackInSlot(slot);
-                if (stored.isEmpty()) {
-                    slot++;
-                    continue;
-                }
-
-                UUID crafterId = counter.crafterIds[slot];
-                if (crafterId == null) {
-                    StoredStack removed =
-                            counter.removeStoredStack(slot);
-                    returnedStacks.add(new StoredStack(
-                            removed.stack(),
-                            false,
-                            null
-                    ));
-                    continue;
-                }
-
-                ItemStack offered = stored.copy();
-                if (counter.assignedSlots[slot]) {
-                    int releasedCount = 0;
-                    for (CustomerSpawnerBlockEntity spawner : spawners) {
-                        int remainingCount =
-                                offered.getCount() - releasedCount;
-                        if (remainingCount == 0) {
-                            break;
-                        }
-                        ItemStack remaining = offered.copy();
-                        remaining.setCount(remainingCount);
-                        releasedCount +=
-                                spawner.releaseCraftedItemAssignment(
-                                        remaining
-                                );
-                    }
-                }
-
-                ItemStack remainder = offered;
-                for (CustomerSpawnerBlockEntity spawner : spawners) {
-                    remainder = spawner.tryReserveCraftedItem(remainder);
-                    if (remainder == null) {
-                        break;
-                    }
-                }
-
-                int remainderCount =
-                        remainder == null ? 0 : remainder.getCount();
-                int reservedCount =
-                        offered.getCount() - remainderCount;
-                if (reservedCount == 0) {
-                    counter.removeStoredStack(slot);
-                    returnedStacks.add(new StoredStack(
-                            offered,
-                            false,
-                            crafterId
-                    ));
-                    continue;
-                }
-
-                if (remainderCount > 0) {
-                    ItemStack reserved = offered.copy();
-                    reserved.setCount(reservedCount);
-                    counter.inventory.setStackInSlot(slot, reserved);
-                    returnedStacks.add(new StoredStack(
-                            remainder,
-                            false,
-                            crafterId
+                if (!stack.isEmpty()) {
+                    locations.add(new StoredLocation(
+                            counter,
+                            slot,
+                            new StoredStack(
+                                    stack,
+                                    true,
+                                    counter.crafterIds[slot]
+                            )
                     ));
                 }
-                counter.assignedSlots[slot] = true;
-                slot++;
+            }
+        }
+
+        List<Integer> allocatedCounts = OfferUtils.allocate(
+                findCustomerOffers(spawners).stream()
+                        .map(CustomerOffer::offer)
+                        .toList(),
+                locations.stream()
+                        .map(location -> location.stored().stack())
+                        .toList()
+        );
+        List<StoredStack> returnedStacks = new ArrayList<>();
+        for (int index = 0; index < locations.size(); index++) {
+            StoredStack stored = locations.get(index).stored();
+            int returnedCount =
+                    stored.stack().getCount()
+                            - allocatedCounts.get(index);
+            if (returnedCount > 0) {
+                ItemStack returned = stored.stack().copy();
+                returned.setCount(returnedCount);
+                returnedStacks.add(new StoredStack(
+                        returned,
+                        false,
+                        stored.crafterId()
+                ));
+            }
+        }
+
+        for (int index = locations.size() - 1;
+                index >= 0;
+                index--) {
+            StoredLocation location = locations.get(index);
+            int allocatedCount = allocatedCounts.get(index);
+            if (allocatedCount == 0) {
+                location.counter().removeStoredStack(location.slot());
+                continue;
+            }
+            if (allocatedCount
+                    < location.stored().stack().getCount()) {
+                ItemStack retained =
+                        location.stored().stack().copy();
+                retained.setCount(allocatedCount);
+                location.counter().inventory.setStackInSlot(
+                        location.slot(),
+                        retained
+                );
             }
         }
         return List.copyOf(returnedStacks);
@@ -856,14 +1380,62 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
     static Vec3 getReturnedItemDropPosition(BlockPos pos) {
         return Vec3.atCenterOf(pos.above());
     }
+
+    static @Nullable UUID getDroppingPlayerId(
+            @Nullable Entity owner
+    ) {
+        return owner instanceof Player player
+                ? player.getUUID()
+                : null;
+    }
+
+    static void acceptDroppedItem(
+            CustomerPickupCounterBlockEntity counter,
+            ItemEntity droppedItem
+    ) {
+        ItemStack offered = droppedItem.getItem();
+        if (offered.isEmpty()) {
+            return;
+        }
+        ItemStack remainder =
+                counter.insertCraftedStackConnectedByOwner(
+                        getDroppingPlayerId(droppedItem.getOwner()),
+                        offered
+                );
+        if (remainder.isEmpty()) {
+            droppedItem.discard();
+        } else if (remainder.getCount() < offered.getCount()) {
+            droppedItem.setItem(remainder);
+        }
+    }
+
+    private static void acceptDroppedItems(
+            Level level,
+            BlockPos pos,
+            CustomerPickupCounterBlockEntity counter
+    ) {
+        AABB collectionArea = new AABB(pos)
+                .expandTowards(0.0D, 0.5D, 0.0D);
+        for (ItemEntity droppedItem : level.getEntitiesOfClass(
+                ItemEntity.class,
+                collectionArea,
+                item -> item.isAlive() && !item.getItem().isEmpty()
+        )) {
+            acceptDroppedItem(counter, droppedItem);
+        }
+    }
+
     public static void tick(
             Level level,
             BlockPos pos,
             BlockState state,
             CustomerPickupCounterBlockEntity counter
     ) {
-        if (LevelCUtils.isClientSide(level)
-                || !shouldRevalidate(level.getGameTime())) {
+        if (LevelCUtils.isClientSide(level)) {
+            return;
+        }
+        acceptDroppedItems(level, pos, counter);
+        if (!shouldRevalidate(level.getGameTime())) {
             return;
         }
         List<CustomerPickupCounterBlockEntity> counters =
@@ -914,23 +1486,17 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
      *
      * @param output persistence destination
      * @param inventory inventory whose entries are described
-     * @param assignedSlots assignment state by slot
      * @param crafterIds crafting-player IDs by slot
      */
     static void writeStackMetadata(
             DataWriter output,
             ItemStackHandler inventory,
-            boolean[] assignedSlots,
             UUID[] crafterIds
     ) {
         for (int slot = 0; slot < inventory.getSlots(); slot++) {
             if (!inventory.getStackInSlot(slot).isEmpty()) {
                 DataWriter metadata =
                         output.addChild(TAG_STACK_METADATA);
-                metadata.putBoolean(
-                        TAG_ASSIGNED,
-                        assignedSlots[slot]
-                );
                 if (crafterIds[slot] != null) {
                     metadata.putUuid(
                             TAG_CRAFTER_ID,
@@ -942,22 +1508,19 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
     }
 
     /**
-     * Restores metadata by FIFO position, defaulting old saves to unassigned
-     * stacks without a known crafter.
+     * Restores metadata by FIFO position, defaulting old saves to stacks
+     * without a known crafter.
      *
      * @param input persistence source
      * @param inventory restored inventory
-     * @param assignedSlots assignment state destination
      * @param crafterIds crafting-player ID destination
      */
     static void readStackMetadata(
             DataReader input,
             ItemStackHandler inventory,
-            boolean[] assignedSlots,
             UUID[] crafterIds
     ) {
-        Arrays.fill(assignedSlots, false);
-        Arrays.fill(crafterIds, null);
+        java.util.Arrays.fill(crafterIds, null);
         List<DataReader> metadata =
                 input.getChildren(TAG_STACK_METADATA);
         int metadataIndex = 0;
@@ -968,8 +1531,6 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
             if (!inventory.getStackInSlot(slot).isEmpty()) {
                 DataReader storedMetadata =
                         metadata.get(metadataIndex++);
-                assignedSlots[slot] =
-                        storedMetadata.getBoolean(TAG_ASSIGNED);
                 crafterIds[slot] =
                         storedMetadata.getUuid(TAG_CRAFTER_ID)
                                 .orElse(null);

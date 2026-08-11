@@ -171,8 +171,10 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     private int numCustomersServed = 0;
     private int totalItemsWanted = 0;
     private int numCustomersGaveUp = 0;
-    private final Map<UUID, Integer> numItemsServedByPlayer = new HashMap<>();
-    private final Map<UUID, Integer> numItemsCraftedByPlayer = new HashMap<>();
+    private final CustomerItemScores itemsServed =
+            new CustomerItemScores();
+    private final CustomerItemScores itemsCrafted =
+            new CustomerItemScores();
 
     /**
      * Assigns crafted items to active customers tracked by this spawner.
@@ -199,7 +201,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
      *         assigned, or the original stack when nothing matched
      */
     public @Nullable ItemStack tryAssignCraftedItem(
-            UUID playerId,
+            @Nullable UUID playerId,
             ItemStack stack
     ) {
         if (!(level instanceof ServerLevel serverLevel)) {
@@ -207,7 +209,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         }
         return tryAssignCraftedItem(
                 getActiveCustomers(serverLevel, customerIds),
-                numItemsCraftedByPlayer,
+                itemsCrafted,
                 playerId,
                 stack
         );
@@ -323,16 +325,16 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
      * units assigned to the crafting player.
      *
      * @param customers active customers eligible for assignment
-     * @param craftedByPlayer crafted item counts keyed by player
-     * @param playerId crafting player
+     * @param craftedScores crafted item scores
+     * @param playerId crafting player, or null for automation
      * @param stack items available for assignment
      * @return null when fully assigned, an unassigned remainder when partially
      *         assigned, or the original stack when nothing matched
      */
     static @Nullable ItemStack tryAssignCraftedItem(
             List<CustomerVillagerEntity> customers,
-            Map<UUID, Integer> craftedByPlayer,
-            UUID playerId,
+            CustomerItemScores craftedScores,
+            @Nullable UUID playerId,
             ItemStack stack
     ) {
         ItemStack remainder = stack;
@@ -351,7 +353,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             remainder = nextRemainder;
         }
         if (assignedCount > 0) {
-            craftedByPlayer.merge(playerId, assignedCount, Integer::sum);
+            craftedScores.add(playerId, assignedCount);
         }
         return remainder;
     }
@@ -787,6 +789,19 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         return customerIds;
     }
 
+    public List<CustomerVillagerEntity> getActiveCustomers() {
+        return level instanceof ServerLevel serverLevel
+                ? getActiveCustomers(serverLevel, customerIds)
+                : List.of();
+    }
+
+    public void scoreboardAddItemsCrafted(
+            @Nullable UUID playerId,
+            int count
+    ) {
+        itemsCrafted.add(playerId, count);
+    }
+
     public List<ResourceLocation> getEnabledAppearanceIds() {
         return appearanceSettings.getEnabledAppearances();
     }
@@ -1084,14 +1099,12 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         numCustomersServed = 0;
         totalItemsWanted = 0;
         numCustomersGaveUp = 0;
-        numItemsServedByPlayer.clear();
-        numItemsCraftedByPlayer.clear();
+        itemsServed.clear();
+        itemsCrafted.clear();
     }
 
     private float scoreboardGetPercentage() {
-        int totalItemsServed = numItemsServedByPlayer.values().stream()
-                .reduce(0, Integer::sum);
-        return ((float)totalItemsServed / (float)totalItemsWanted);
+        return ((float)itemsServed.total() / (float)totalItemsWanted);
     }
 
     private void sendShiftFinishedPayload(CustomerSpawnerMode spawnerMode) {
@@ -1101,8 +1114,10 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 totalCustomers,
                 numCustomersServed,
                 numCustomersGaveUp,
-                numItemsServedByPlayer,
-                numItemsCraftedByPlayer
+                itemsServed.playerScores(),
+                itemsCrafted.playerScores(),
+                itemsServed.automatedScore(),
+                itemsCrafted.automatedScore()
         );
         for (UUID playerId : playerIds) {
             try {
@@ -1125,8 +1140,10 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             return;
         }
         if (!shouldShowFinalScore(
-                numItemsServedByPlayer,
-                numItemsCraftedByPlayer
+                itemsServed.playerScores(),
+                itemsCrafted.playerScores(),
+                itemsServed.automatedScore(),
+                itemsCrafted.automatedScore()
         )) {
             return;
         }
@@ -1160,13 +1177,13 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 "messages.customers.scoreboard.detail.customers_gave_up",
                 numCustomersGaveUp
         ).withColor(color));
-        for (UUID playerId : numItemsServedByPlayer.keySet()) {
+        for (UUID playerId : itemsServed.playerScores().keySet()) {
             try {
                 Player player = level.getPlayerByUUID(playerId);
                 sentPlayersChat(Component.translatable(
                         "messages.customers.scoreboard.detail.player_served_items",
                         player.getDisplayName(),
-                        numItemsServedByPlayer.get(playerId),
+                        itemsServed.playerScores().get(playerId),
                         totalItemsWanted
                 ).withColor(color));
             } catch (Throwable t) {
@@ -1177,10 +1194,14 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     static boolean shouldShowFinalScore(
             Map<UUID, Integer> servedByPlayer,
-            Map<UUID, Integer> craftedByPlayer
+            Map<UUID, Integer> craftedByPlayer,
+            int automatedServed,
+            int automatedCrafted
     ) {
         return hasPositivePlayerScore(servedByPlayer)
-                || hasPositivePlayerScore(craftedByPlayer);
+                || hasPositivePlayerScore(craftedByPlayer)
+                || automatedServed > 0
+                || automatedCrafted > 0;
     }
 
     private static boolean hasPositivePlayerScore(
@@ -1207,20 +1228,16 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     /**
-     * Credits the actual number of item units served by a player.
+     * Credits item units served by a player or automation.
      *
-     * @param playerId serving player
+     * @param playerId serving player, or null for automation
      * @param itemCount item units served
      */
     public void scoreboardAddItemsServed(
-            UUID playerId,
+            @Nullable UUID playerId,
             int itemCount
     ) {
-        numItemsServedByPlayer.merge(
-                playerId,
-                itemCount,
-                Integer::sum
-        );
+        itemsServed.add(playerId, itemCount);
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, CustomerSpawnerBlockEntity entity) {

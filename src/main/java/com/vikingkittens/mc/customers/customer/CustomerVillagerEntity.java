@@ -1,10 +1,12 @@
 package com.vikingkittens.mc.customers.customer;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -63,6 +65,7 @@ import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearanceSoun
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerType;
 import com.vikingkittens.mc.customers.common.MobUtils;
+import com.vikingkittens.mc.customers.common.SearchUtils;
 import com.vikingkittens.mc.customers.compatability.EntityCUtils;
 import com.vikingkittens.mc.customers.compatability.InteractionCUtils;
 import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
@@ -75,6 +78,58 @@ import com.vikingkittens.mc.customers.config.Config;
 import com.vikingkittens.mc.customers.customer.ai.*;
 
 public class CustomerVillagerEntity extends Villager implements CustomersVillager {
+    private static final int PAYMENT_BOX_SEARCH_SIZE = 64;
+
+    static List<CustomerPaymentBoxBlockEntity>
+            sortPaymentBoxesByDistance(
+                    BlockPos origin,
+                    List<CustomerPaymentBoxBlockEntity> paymentBoxes
+            ) {
+        return paymentBoxes.stream()
+                .sorted(Comparator.comparingDouble(paymentBox ->
+                        paymentBox.getBlockPos().distToCenterSqr(
+                                origin.getCenter()
+                        )
+                ))
+                .toList();
+    }
+
+    static boolean tryInsertPayment(
+            List<CustomerPaymentBoxBlockEntity> paymentBoxes,
+            ItemStack payment
+    ) {
+        for (CustomerPaymentBoxBlockEntity paymentBox
+                : paymentBoxes) {
+            if (paymentBox.tryInsertPayment(payment)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static List<CustomerPaymentBoxBlockEntity> findPaymentBoxes(
+            Level level,
+            BlockPos origin
+    ) {
+        List<CustomerPaymentBoxBlockEntity> paymentBoxes =
+                new ArrayList<>();
+        for (BlockPos paymentBoxPosition
+                : SearchUtils.findBlocksInBox(
+                        level,
+                        origin,
+                        PAYMENT_BOX_SEARCH_SIZE,
+                        (position, state) ->
+                                state.getBlock()
+                                        instanceof CustomerPaymentBoxBlock
+                )) {
+            if (level.getBlockEntity(paymentBoxPosition)
+                    instanceof CustomerPaymentBoxBlockEntity paymentBox) {
+                paymentBoxes.add(paymentBox);
+            }
+        }
+        return sortPaymentBoxesByDistance(origin, paymentBoxes);
+    }
+
     @Override
     public Vec3 getVehicleAttachmentPoint(Entity vehicle) {
         if (vehicle instanceof CustomerSeatEntity) {
@@ -91,7 +146,6 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
     private static final String TAG_COUNTER_BLOCK_STATE = "CounterBlockState";
     private static final String TAG_AVOID_BLOCK_STATE = "AvoidBlockState";
     private static final String TAG_TRADED_WITH_PLAYERS = "TradedWithPlayers";
-    private static final String TAG_OFFERS_CRAFTED = "OffersCrafted";
     private static final String TAG_TRADED_PLAYER_UUID = "UUID";
     private static final String TAG_APPEARANCE_SPAWNER_MODE =
             "CustomersAppearanceSpawnerMode";
@@ -223,7 +277,6 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
     private BlockState avoidBlockState;
     private BlockPos counterTargetBlockPos;
     private Set<UUID> tradedWithPlayers = new HashSet<>();
-    private final List<ItemStack> offersCrafted = new ArrayList<>();
     private long ticksSinceTrade = 0;
     private long ticksSincePlayerScan = 0;
 
@@ -238,13 +291,13 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
     public @Nullable ItemStack tryAssignCraftedOffer(ItemStack stack) {
         return tryAssignCraftedOffer(
                 getOffers(),
-                offersCrafted,
+                new ArrayList<>(),
                 stack
         );
     }
 
     public int releaseCraftedOfferAssignment(ItemStack stack) {
-        return releaseCraftedOfferAssignment(offersCrafted, stack);
+        return 0;
     }
 
     /**
@@ -257,41 +310,116 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
      */
     public void completePickupCounterOffer(
             MerchantOffer offer,
-            UUID crafterId,
+            @Nullable UUID crafterId,
             BlockPos counterPosition
     ) {
-        int servedCount = completePickupCounterOffer(
+        completePickupCounterOffer(
                 offer,
-                offersCrafted,
-                tradedWithPlayers,
-                crafterId
+                List.of(
+                        new CustomerPickupCounterBlockEntity.StoredStack(
+                                offer.getCostA(),
+                                true,
+                                crafterId
+                        )
+                ),
+                counterPosition
         );
+    }
+
+    public void completePickupCounterOffer(
+            MerchantOffer offer,
+            List<CustomerPickupCounterBlockEntity.StoredStack>
+                    consumedStacks,
+            BlockPos counterPosition
+    ) {
+        offer.increaseUses();
+        consumedStacks.stream()
+                .map(CustomerPickupCounterBlockEntity.StoredStack
+                        ::crafterId)
+                .filter(Objects::nonNull)
+                .forEach(tradedWithPlayers::add);
         ticksSinceTrade = 0;
         playHappy();
+
+        UUID paymentOwner = consumedStacks.stream()
+                .map(CustomerPickupCounterBlockEntity.StoredStack
+                        ::crafterId)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
         if (level() instanceof ServerLevel serverLevel) {
-            Player crafter = serverLevel.getServer()
-                    .getPlayerList()
-                    .getPlayer(crafterId);
+            Player crafter = paymentOwner == null
+                    ? null
+                    : serverLevel.getServer()
+                            .getPlayerList()
+                            .getPlayer(paymentOwner);
+            ItemStack payment = offer.assemble();
             if (crafter != null) {
-                giveTradeRemainderItems(crafter, offer.getCostA());
+                ItemStackCUtils.onCraftedBy(
+                        payment,
+                        crafter,
+                        payment.getCount()
+                );
+                if (!crafter.getInventory().add(payment)) {
+                    crafter.drop(payment, false);
+                }
             } else {
-                ItemStack remainder =
-                        getTradeRemainderStack(offer.getCostA());
-                if (!remainder.isEmpty()) {
+                if (!tryInsertPayment(
+                        findPaymentBoxes(
+                                level(),
+                                blockPosition()
+                        ),
+                        payment
+                )) {
                     Containers.dropItemStack(
                             level(),
-                            counterPosition.getX() + 0.5D,
-                            counterPosition.getY() + 1.5D,
-                            counterPosition.getZ() + 0.5D,
-                            remainder
+                            getX(),
+                            getY(),
+                            getZ(),
+                            payment
                     );
+                }
+            }
+
+            for (CustomerPickupCounterBlockEntity.StoredStack consumed
+                    : consumedStacks) {
+                Player owner = consumed.crafterId() == null
+                        ? null
+                        : serverLevel.getServer()
+                                .getPlayerList()
+                                .getPlayer(consumed.crafterId());
+                if (owner != null) {
+                    giveTradeRemainderItems(
+                            owner,
+                            consumed.stack()
+                    );
+                } else {
+                    ItemStack remainder =
+                            getTradeRemainderStack(
+                                    consumed.stack()
+                            );
+                    if (!remainder.isEmpty()) {
+                        Containers.dropItemStack(
+                                level(),
+                                counterPosition.getX() + 0.5D,
+                                counterPosition.getY() + 1.5D,
+                                counterPosition.getZ() + 0.5D,
+                                remainder
+                        );
+                    }
                 }
             }
         }
         if (spawnerPos != null
                 && level().getBlockEntity(spawnerPos)
                         instanceof CustomerSpawnerBlockEntity spawner) {
-            spawner.scoreboardAddItemsServed(crafterId, servedCount);
+            for (CustomerPickupCounterBlockEntity.StoredStack consumed
+                    : consumedStacks) {
+                spawner.scoreboardAddItemsServed(
+                        consumed.crafterId(),
+                        consumed.stack().getCount()
+                );
+            }
         }
     }
 
@@ -308,12 +436,14 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
             MerchantOffer offer,
             List<ItemStack> craftedStacks,
             Set<UUID> tradedPlayers,
-            UUID crafterId
+            @Nullable UUID crafterId
     ) {
         ItemStack cost = offer.getCostA();
         releaseCraftedOfferAssignment(craftedStacks, cost);
         offer.increaseUses();
-        tradedPlayers.add(crafterId);
+        if (crafterId != null) {
+            tradedPlayers.add(crafterId);
+        }
         return cost.getCount();
     }
 
@@ -352,7 +482,7 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
     public int getAssignableCraftedItemCount(ItemStack stack) {
         return getAssignableCraftedItemCount(
                 getOffers(),
-                offersCrafted,
+                List.of(),
                 stack
         );
     }
@@ -804,8 +934,6 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
                         .getUuid(TAG_TRADED_PLAYER_UUID)
                         .ifPresent(tradedWithPlayers::add)
         );
-        offersCrafted.clear();
-        offersCrafted.addAll(input.getItemStacks(TAG_OFFERS_CRAFTED));
     }
 
     void readAppearanceData(DataReader input) {
@@ -863,7 +991,6 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
             output.addChild(TAG_TRADED_WITH_PLAYERS)
                     .putUuid(TAG_TRADED_PLAYER_UUID, playerUuid);
         }
-        output.putItemStacks(TAG_OFFERS_CRAFTED, offersCrafted);
     }
 
     @Override

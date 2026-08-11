@@ -19,12 +19,65 @@ import net.neoforged.neoforge.items.IItemHandler;
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class CustomerPaymentBoxBlockEntityTest {
+    @Test
+    void atomicallyAcceptsACompletePayment() {
+        CustomerPaymentBoxBlockEntity paymentBox = createPaymentBox();
+
+        boolean inserted = paymentBox.tryInsertPayment(
+                new ItemStack(Items.EMERALD, 20)
+        );
+
+        assertTrue(inserted);
+        assertEquals(
+                20,
+                paymentBox.getItem(0).getCount()
+        );
+    }
+
+    @Test
+    void rejectsAPaymentWhenOnlyPartOfItFits() {
+        CustomerPaymentBoxBlockEntity paymentBox = createPaymentBox();
+        for (int slot = 0;
+                slot < paymentBox.getContainerSize();
+                slot++) {
+            paymentBox.setItem(
+                    slot,
+                    new ItemStack(Items.EMERALD, 64)
+            );
+        }
+        paymentBox.setItem(
+                paymentBox.getContainerSize() - 1,
+                new ItemStack(Items.EMERALD, 60)
+        );
+
+        boolean inserted = paymentBox.tryInsertPayment(
+                new ItemStack(Items.EMERALD, 8)
+        );
+
+        assertFalse(inserted);
+        assertEquals(
+                60,
+                paymentBox.getItem(
+                        paymentBox.getContainerSize() - 1
+                ).getCount()
+        );
+    }
+
+    @Test
+    void treatsAnEmptyPaymentAsSuccessfullyInserted() {
+        CustomerPaymentBoxBlockEntity paymentBox = createPaymentBox();
+
+        assertTrue(paymentBox.tryInsertPayment(ItemStack.EMPTY));
+        assertTrue(paymentBox.isEmpty());
+    }
+
     @BeforeAll
     static void bootstrapMinecraft() {
         MinecraftTestBootstrap.bootstrap();

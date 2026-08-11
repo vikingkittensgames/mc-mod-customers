@@ -3,6 +3,7 @@ package com.vikingkittens.mc.customers.customer.data;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -131,6 +132,7 @@ class CustomerPaymentBoxGeneratedModelTest {
             assertEquals("#side", faceTexture(faces, "south"));
             assertEquals("#side", faceTexture(faces, "east"));
             assertEquals("#side", faceTexture(faces, "west"));
+            assertFullFaceUvs(faces);
 
             JsonObject item = read(itemModel);
             assertEquals(
@@ -147,11 +149,16 @@ class CustomerPaymentBoxGeneratedModelTest {
                             .get("render_type")
                             .getAsString()
             );
+            JsonObject itemOverlay = read(itemOverlayModel);
             assertEquals(
                     "minecraft:translucent",
-                    read(itemOverlayModel)
-                            .get("render_type")
-                            .getAsString()
+                    itemOverlay.get("render_type").getAsString()
+            );
+            assertFullFaceUvs(
+                    itemOverlay.getAsJsonArray("elements")
+                            .get(0)
+                            .getAsJsonObject()
+                            .getAsJsonObject("faces")
             );
             JsonObject gui = item.getAsJsonObject("display")
                     .getAsJsonObject("gui");
@@ -213,6 +220,24 @@ class CustomerPaymentBoxGeneratedModelTest {
         return faces.getAsJsonObject(direction)
                 .get("texture")
                 .getAsString();
+    }
+
+    private static void assertFullFaceUvs(JsonObject faces) {
+        for (String direction : List.of(
+                "up",
+                "down",
+                "north",
+                "south",
+                "east",
+                "west"
+        )) {
+            var uv = faces.getAsJsonObject(direction)
+                    .getAsJsonArray("uv");
+            assertEquals(0.0F, uv.get(0).getAsFloat());
+            assertEquals(0.0F, uv.get(1).getAsFloat());
+            assertEquals(16.0F, uv.get(2).getAsFloat());
+            assertEquals(16.0F, uv.get(3).getAsFloat());
+        }
     }
 
     private static JsonObject read(Path path) throws IOException {
