@@ -1,0 +1,72 @@
+plugins {
+    id 'customers-common'
+    id 'net.neoforged.moddev'
+    id 'com.diffplug.spotless'
+}
+
+neoForge {
+    neoFormVersion = neo_form_version
+
+    parchment {
+        minecraftVersion = parchment_minecraft_version
+        mappingsVersion = parchment_mappings_version
+    }
+}
+
+sourceSets.test.compileClasspath += sourceSets.main.compileClasspath
+sourceSets.test.runtimeClasspath += sourceSets.main.runtimeClasspath
+
+sourceSets.main.resources {
+    exclude('**/*.bbmodel')
+    exclude('**/*.kra')
+    exclude('src/generated/**/.cache')
+}
+
+spotless {
+    java {
+        target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
+        importOrder(
+                'java',
+                '',
+                'com.mojang|net.minecraft',
+                'net.minecraftforge',
+                'net.neoforged',
+                'com.vikingkittens',
+                '\\#'
+        )
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('spotlessCheck')
+}
+
+dependencies {
+    compileOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
+    testRuntimeOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
+
+    testImplementation project(':testsupport')
+    testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
+    testImplementation "org.mockito:mockito-core:5.12.0"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+}
+
+configurations {
+    commonJava {
+        canBeResolved = false
+        canBeConsumed = true
+    }
+    commonResources {
+        canBeResolved = false
+        canBeConsumed = true
+    }
+}
+
+artifacts {
+    commonJava sourceSets.main.java.sourceDirectories.singleFile
+    sourceSets.main.resources.sourceDirectories.files.each { resourceDirectory ->
+        commonResources resourceDirectory
+    }
+}

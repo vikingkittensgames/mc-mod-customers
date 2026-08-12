@@ -1,0 +1,78 @@
+{
+  "children": {
+    "base": {
+      "elements": [
+        {
+          "faces": {
+            "down": {
+              "texture": "#base"
+            },
+            "east": {
+              "texture": "#base"
+            },
+            "north": {
+              "texture": "#base"
+            },
+            "south": {
+              "texture": "#base"
+            },
+            "up": {
+              "texture": "#base"
+            },
+            "west": {
+              "texture": "#base"
+            }
+          },
+          "from": [
+            0,
+            0,
+            0
+          ],
+          "to": [
+            16,
+            1,
+            16
+          ]
+        }
+      ],
+      "textures": {
+        "base": "minecraft:block/copper_block",
+        "particle": "minecraft:block/copper_block"
+      }
+    },
+    "overlay": {
+      "elements": [
+        {
+          "faces": {
+            "up": {
+              "texture": "#top_overlay"
+            }
+          },
+          "from": [
+            -0.01,
+            -0.01,
+            -0.01
+          ],
+          "to": [
+            16.01,
+            1.01,
+            16.01
+          ]
+        }
+      ],
+      "render_type": "minecraft:translucent",
+      "textures": {
+        "particle": "minecraft:block/copper_block",
+        "top_overlay": "customers:block/customer_pickup_counter_top_overlay"
+      }
+    }
+  },
+  "item_render_order": [
+    "base",
+    "overlay"
+  ],
+  "loader": "forge:composite",
+  "textures": {
+    "particle": "minecraft:block/copper_block"
+  }
+}

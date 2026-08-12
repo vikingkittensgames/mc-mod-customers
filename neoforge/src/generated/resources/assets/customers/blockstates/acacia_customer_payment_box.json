@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "customers:block/acacia_customer_payment_box",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "customers:block/acacia_customer_payment_box"
+    },
+    "facing=south": {
+      "model": "customers:block/acacia_customer_payment_box",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "customers:block/acacia_customer_payment_box",
+      "y": 270
+    }
+  }
+}

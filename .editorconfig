@@ -2,3 +2,22 @@ root = true
 
 [*.java]
 ij_java_imports_layout = java.**,|,*,|,com.mojang.**,net.minecraft.**,|,net.neoforged.**,|,com.vikingkittens.**,$*
+
+max_line_length = 120
+ij_wrap_on_typing = true
+
+ij_java_call_parameters_wrap = wrap_if_long
+ij_java_method_parameters_wrap = wrap_if_long
+
+ij_java_binary_operation_wrap = wrap_if_long
+ij_java_binary_operation_sign_on_next_line = false
+
+ij_java_assignment_wrap = wrap_if_long
+ij_java_place_assignment_sign_on_next_line = false
+
+ij_java_ternary_operation_wrap = wrap_if_long
+ij_java_ternary_operation_signs_on_next_line = false
+
+ij_java_assert_statement_wrap = wrap_if_long
+ij_java_assert_statement_colon_on_next_line = false
+
