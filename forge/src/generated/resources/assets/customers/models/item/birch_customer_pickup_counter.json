@@ -1,0 +1,98 @@
+{
+  "children": {
+    "base": {
+      "elements": [
+        {
+          "faces": {
+            "down": {
+              "texture": "#base"
+            },
+            "east": {
+              "texture": "#base"
+            },
+            "north": {
+              "texture": "#base"
+            },
+            "south": {
+              "texture": "#base"
+            },
+            "up": {
+              "texture": "#base"
+            },
+            "west": {
+              "texture": "#base"
+            }
+          },
+          "from": [
+            0,
+            0,
+            0
+          ],
+          "to": [
+            16,
+            1,
+            16
+          ]
+        }
+      ],
+      "render_type": "minecraft:translucent",
+      "textures": {
+        "base": "minecraft:block/stripped_birch_log",
+        "particle": "minecraft:block/stripped_birch_log"
+      }
+    },
+    "overlay": {
+      "elements": [
+        {
+          "faces": {
+            "up": {
+              "texture": "#top_overlay"
+            }
+          },
+          "from": [
+            -0.01,
+            -0.01,
+            -0.01
+          ],
+          "to": [
+            16.01,
+            1.01,
+            16.01
+          ]
+        }
+      ],
+      "render_type": "minecraft:translucent",
+      "textures": {
+        "particle": "minecraft:block/stripped_birch_log",
+        "top_overlay": "customers:block/customer_pickup_counter_top_overlay"
+      }
+    }
+  },
+  "display": {
+    "gui": {
+      "rotation": [
+        45,
+        225,
+        0
+      ],
+      "scale": [
+        0.8,
+        0.8,
+        0.8
+      ],
+      "translation": [
+        0,
+        3,
+        0
+      ]
+    }
+  },
+  "item_render_order": [
+    "base",
+    "overlay"
+  ],
+  "loader": "forge:composite",
+  "textures": {
+    "particle": "minecraft:block/stripped_birch_log"
+  }
+}

@@ -1,0 +1,19 @@
+plugins {
+    id 'java-library'
+    id 'com.diffplug.spotless'
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(java_version)
+
+spotless {
+    java {
+        target 'src/main/java/**/*.java'
+        importOrder('java', '', 'com.vikingkittens', '\\#')
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('spotlessCheck')
+}

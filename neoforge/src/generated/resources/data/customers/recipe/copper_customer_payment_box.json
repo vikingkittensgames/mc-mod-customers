@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "E": {
+      "item": "minecraft:emerald"
+    },
+    "G": {
+      "item": "minecraft:gold_ingot"
+    },
+    "V": {
+      "item": "minecraft:copper_ingot"
+    }
+  },
+  "pattern": [
+    "VGV",
+    "VEV",
+    "VVV"
+  ],
+  "result": {
+    "count": 1,
+    "id": "customers:copper_customer_payment_box"
+  }
+}

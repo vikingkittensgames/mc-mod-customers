@@ -1,0 +1,121 @@
+plugins {
+    id 'customers-loader'
+    id 'net.minecraftforge.gradle' version '[6.0.24,6.2)'
+    id 'idea'
+    id 'com.diffplug.spotless'
+}
+
+minecraft {
+    mappings channel: 'official', version: minecraft_version
+    copyIdeResources = true
+    reobf = false
+
+    runs {
+        client {
+            workingDirectory rootProject.file("run-forge-${minecraft_version}")
+            ideaModule "${rootProject.name}.${project.name}.main"
+            taskName 'runClient'
+            mods {
+                customers {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        server {
+            workingDirectory rootProject.file("run-forge-${minecraft_version}")
+            ideaModule "${rootProject.name}.${project.name}.main"
+            taskName 'runServer'
+            args '--nogui'
+            mods {
+                customers {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        data {
+            workingDirectory rootProject.file("run-forge-${minecraft_version}")
+            ideaModule "${rootProject.name}.${project.name}.main"
+            taskName 'runData'
+            args '--mod', mod_id, '--all',
+                    '--output', project.file('src/generated/resources'),
+                    '--existing', rootProject.file('common/src/main/resources')
+            mods {
+                customers {
+                    source sourceSets.main
+                }
+            }
+        }
+    }
+}
+
+sourceSets.main.resources {
+    srcDir('src/generated/resources')
+    exclude('**/*.bbmodel')
+    exclude('**/*.kra')
+    exclude('**/.cache/**')
+}
+
+spotless {
+    java {
+        target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
+        importOrder(
+                'java',
+                '',
+                'com.mojang|net.minecraft',
+                'net.minecraftforge',
+                'net.neoforged',
+                'com.vikingkittens',
+                '\\#'
+        )
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('spotlessCheck')
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+    compileOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
+
+    testImplementation project(':testsupport')
+    testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
+    testImplementation "org.mockito:mockito-core:5.12.0"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+
+    implementation('net.sf.jopt-simple:jopt-simple:5.0.4') {
+        version {
+            strictly '5.0.4'
+        }
+    }
+}
+
+sourceSets.each {
+    def outputDirectory = layout.buildDirectory.dir("sourceSets/${it.name}")
+    it.output.resourcesDir = outputDirectory
+    it.java.destinationDirectory = outputDirectory
+}
+
+def generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
+    def replaceProperties = [
+            minecraft_version         : minecraft_version,
+            minecraft_version_range   : minecraft_version_range,
+            forge_version             : forge_version,
+            forge_loader_version_range: forge_loader_version_range,
+            mca_version_range         : mca_version_range,
+            mod_id                    : mod_id,
+            mod_name                  : mod_name,
+            mod_license               : mod_license,
+            mod_version               : mod_version
+    ]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from 'src/main/templates'
+    into 'build/generated/sources/modMetadata'
+}
+
+sourceSets.main.resources.srcDir generateModMetadata

@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "customers:block/dark_oak_customer_pickup_counter"
+    }
+  }
+}
