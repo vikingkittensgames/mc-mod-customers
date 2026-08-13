@@ -17,6 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.*;
 import net.minecraft.world.entity.Entity;
@@ -360,7 +361,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     static int clampMaxCustomers(int value) {
-        return Math.clamp(
+        return Mth.clamp(
                 value,
                 MIN_MAX_CUSTOMERS,
                 MAX_MAX_CUSTOMERS
@@ -553,9 +554,9 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         );
         customerIds.removeIf(id -> !activeCustomer.test(id));
         if (!customerIds.contains(customerId)) {
-            customerIds.addFirst(customerId);
+            customerIds.add(0, customerId);
         }
-        return customerIds.getLast();
+        return customerIds.get(customerIds.size() - 1);
     }
 
     public UUID getReservedTargetCounterPositionFollowingCustomerId(

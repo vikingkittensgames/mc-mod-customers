@@ -8,7 +8,7 @@ plugins {
 minecraft {
     mappings channel: 'official', version: minecraft_version
     copyIdeResources = true
-    reobf = false
+    reobf = true
 
     runs {
         client {
@@ -117,3 +117,7 @@ def generateModMetadata = tasks.register('generateModMetadata', ProcessResources
 }
 
 sourceSets.main.resources.srcDir generateModMetadata
+
+tasks.named('jar').configure {
+    finalizedBy('reobfJar')
+}

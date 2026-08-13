@@ -24,7 +24,7 @@ public interface CustomersVillager {
 
     void setVariationSeed(float variationSeed);
 
-    boolean isSitting();
+    boolean isVillagerSitting();
 
-    boolean isInWater();
+    boolean isVillagerInWater();
 }

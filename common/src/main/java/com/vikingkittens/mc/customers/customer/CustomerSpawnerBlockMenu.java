@@ -6,6 +6,7 @@ import java.util.List;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -70,7 +71,7 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
     }
 
     public CustomerSpawnerMode getSpawnerMode() {
-        return CustomerSpawnerMode.values()[Math.clamp(data.get(0), 0, CustomerSpawnerMode.values().length - 1)];
+        return CustomerSpawnerMode.values()[Mth.clamp(data.get(0), 0, CustomerSpawnerMode.values().length - 1)];
     }
 
     public int getMaxCustomers() { return data.get(1); }

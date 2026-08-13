@@ -64,7 +64,7 @@ class CustomerSpawnerSnapshotCreationTest {
         assertEquals(Optional.of(bossEventId), snapshot.bossEventId());
         assertEquals(1, snapshot.customers().size());
         CustomerSpawnerSnapshot.Customer customerSnapshot =
-                snapshot.customers().getFirst();
+                snapshot.customers().get(0);
         assertEquals(customerId, customerSnapshot.customerId());
         assertEquals(
                 CustomerSpawnerSnapshot.Customer.Type.IMPATIENT,

@@ -25,14 +25,14 @@ class CustomerShiftFinishedScreenTest {
                 );
 
         assertEquals(2, entries.size());
-        assertEquals(playerId, entries.getFirst().playerId());
-        assertFalse(entries.getFirst().automated());
-        assertEquals(3, entries.getFirst().servedCount());
-        assertEquals(2, entries.getFirst().craftedCount());
-        assertNull(entries.getLast().playerId());
-        assertTrue(entries.getLast().automated());
-        assertEquals(5, entries.getLast().servedCount());
-        assertEquals(7, entries.getLast().craftedCount());
+        assertEquals(playerId, entries.get(0).playerId());
+        assertFalse(entries.get(0).automated());
+        assertEquals(3, entries.get(0).servedCount());
+        assertEquals(2, entries.get(0).craftedCount());
+        assertNull(entries.get(entries.size() - 1).playerId());
+        assertTrue(entries.get(entries.size() - 1).automated());
+        assertEquals(5, entries.get(entries.size() - 1).servedCount());
+        assertEquals(7, entries.get(entries.size() - 1).craftedCount());
     }
 
     @Test

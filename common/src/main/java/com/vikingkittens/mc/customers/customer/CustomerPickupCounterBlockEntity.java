@@ -157,7 +157,9 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
                         offers,
                         stacksWithIncoming
                 );
-        int acceptedCount = combinedAllocation.stackCounts().getLast();
+        int acceptedCount = combinedAllocation.stackCounts().get(
+                combinedAllocation.stackCounts().size() - 1
+        );
         Map<CustomerSpawnerBlockEntity, Integer>
                 acceptedBySpawner = new LinkedHashMap<>();
         for (int index = 0; index < customerOffers.size(); index++) {

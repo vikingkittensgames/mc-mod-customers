@@ -221,10 +221,10 @@ class CustomerPickupCounterBlockEntityTest {
                                 );
 
         assertEquals(2, offers.size());
-        assertEquals(firstSpawner, offers.getFirst().spawner());
-        assertEquals(firstOffer, offers.getFirst().offer());
-        assertEquals(secondSpawner, offers.getLast().spawner());
-        assertEquals(secondOffer, offers.getLast().offer());
+        assertEquals(firstSpawner, offers.get(0).spawner());
+        assertEquals(firstOffer, offers.get(0).offer());
+        assertEquals(secondSpawner, offers.get(offers.size() - 1).spawner());
+        assertEquals(secondOffer, offers.get(offers.size() - 1).offer());
     }
 
     @Test
@@ -361,7 +361,7 @@ class CustomerPickupCounterBlockEntityTest {
 
         assertTrue(remainder.isEmpty());
         assertEquals(1, counter.getDisplayItems().size());
-        assertEquals(32, counter.getDisplayItems().getFirst().getCount());
+        assertEquals(32, counter.getDisplayItems().get(0).getCount());
     }
 
     @Test
@@ -385,7 +385,7 @@ class CustomerPickupCounterBlockEntityTest {
 
         assertTrue(remainder.isEmpty());
         assertEquals(1, counter.getDisplayItems().size());
-        assertEquals(32, counter.getDisplayItems().getFirst().getCount());
+        assertEquals(32, counter.getDisplayItems().get(0).getCount());
     }
 
     @Test
@@ -410,7 +410,7 @@ class CustomerPickupCounterBlockEntityTest {
 
         assertTrue(remainder.isEmpty());
         assertEquals(1, counter.getDisplayItems().size());
-        assertEquals(32, counter.getDisplayItems().getFirst().getCount());
+        assertEquals(32, counter.getDisplayItems().get(0).getCount());
     }
 
     @Test
@@ -626,8 +626,8 @@ class CustomerPickupCounterBlockEntityTest {
                 );
 
         assertEquals(1, stacks.size());
-        assertEquals(20, stacks.getFirst().stack().getCount());
-        assertEquals(crafterId, stacks.getFirst().crafterId());
+        assertEquals(20, stacks.get(0).stack().getCount());
+        assertEquals(crafterId, stacks.get(0).crafterId());
     }
 
     @Test
@@ -644,8 +644,8 @@ class CustomerPickupCounterBlockEntityTest {
                 );
 
         assertEquals(1, stacks.size());
-        assertEquals(15, stacks.getFirst().stack().getCount());
-        assertEquals(crafterId, stacks.getFirst().crafterId());
+        assertEquals(15, stacks.get(0).stack().getCount());
+        assertEquals(crafterId, stacks.get(0).crafterId());
     }
 
     @Test

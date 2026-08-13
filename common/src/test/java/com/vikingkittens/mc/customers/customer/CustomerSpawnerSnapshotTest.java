@@ -41,8 +41,8 @@ class CustomerSpawnerSnapshotTest {
         );
 
         assertEquals(4, snapshot.offerCostItems().size());
-        assertSame(first, snapshot.offerCostItems().getFirst());
-        assertSame(fourth, snapshot.offerCostItems().getLast());
+        assertSame(first, snapshot.offerCostItems().get(0));
+        assertSame(fourth, snapshot.offerCostItems().get(snapshot.offerCostItems().size() - 1));
     }
 
     @Test

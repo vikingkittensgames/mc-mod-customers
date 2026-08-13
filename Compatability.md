@@ -588,9 +588,11 @@ version-specific behavior in those classes whenever method signatures allow it.
 | Item offer cost | `ItemCost` with component predicates | `ItemStack` cost copied from the configured item |
 | Item comparison | `ItemStack.isSameItemSameComponents` | `ItemStack.isSameItemSameTags` |
 | Entity synchronized data | `defineSynchedData(SynchedEntityData.Builder)` | `defineSynchedData()` and `entityData.define(...)` |
+| Custom registry keys | `ResourceKey.createRegistryKey(...)` | Use the same source method and let the Forge `reobfJar` task remap it for the production JAR |
 | Block entity persistence | `CompoundTag` plus `HolderLookup.Provider` | `CompoundTag` without a provider |
 | Item-stack persistence | provider-aware `ItemStack.save/parse` | `ItemStack.save` and `ItemStack.of`; provider parameters are retained only for source compatibility |
 | Interaction result | `ItemInteractionResult` for `useItemOn` | `InteractionResult` for block use; unsupported items return `PASS` |
+| Project interface methods that expose Minecraft state | Project-owned method names are safe | Use project-owned names such as `isVillagerInWater()` and call vanilla state methods only inside their implementation so `reobfJar` does not remap an interface contract as a Minecraft override |
 | Payload networking | `CustomPacketPayload` and `StreamCodec` | Forge `SimpleChannel` and `FriendlyByteBuf` |
 | Boss-bar rendering | Boss-bar sprites rendered with `GuiGraphics.blitSprite` | `textures/gui/bars.png` atlas rendered with `GuiGraphics.blit` UV offsets |
 | Recipe generation | `RecipeOutput` | recipe consumer callbacks |
