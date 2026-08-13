@@ -73,7 +73,7 @@ class PersistedContainerTest {
         PersistedContainer container = new PersistedContainer(3, () -> {});
         container.setItem(1, new ItemStack(Items.DIAMOND, 2));
 
-        CompoundTag serialized = container.serializeNBT(RegistryAccess.EMPTY);
+        CompoundTag serialized = container.serializeNBT();
         ListTag items = serialized.getList("Items", CompoundTag.TAG_COMPOUND);
 
         assertEquals(3, serialized.getInt("Size"));
@@ -85,7 +85,7 @@ class PersistedContainerTest {
     void loadsExistingItemStackHandlerDataWithoutReportingAChange() {
         CompoundTag itemPrefix = new CompoundTag();
         itemPrefix.putInt("Slot", 2);
-        CompoundTag item = (CompoundTag) new ItemStack(Items.EMERALD, 7).save(RegistryAccess.EMPTY, itemPrefix);
+        CompoundTag item = new ItemStack(Items.EMERALD, 7).save(itemPrefix);
         ListTag items = new ListTag();
         items.add(item);
         CompoundTag serialized = new CompoundTag();
@@ -94,7 +94,7 @@ class PersistedContainerTest {
         AtomicInteger changes = new AtomicInteger();
         PersistedContainer container = new PersistedContainer(1, changes::incrementAndGet);
 
-        container.deserializeNBT(RegistryAccess.EMPTY, serialized);
+        container.deserializeNBT(serialized);
 
         assertEquals(4, container.getContainerSize());
         assertTrue(container.getItem(0).isEmpty());

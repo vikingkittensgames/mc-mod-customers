@@ -24,7 +24,7 @@ class SkinPackCustomersVillagerDefinitionTest {
                           ]
                         }
                         """)
-        ).getOrThrow();
+        ).getOrThrow(false, message -> {});
 
         assertEquals("Example Skins", definition.getName().getString());
         assertEquals(List.of(ResourceLocation.parse("example:steve"), ResourceLocation.parse("example:alex")), definition.skins());

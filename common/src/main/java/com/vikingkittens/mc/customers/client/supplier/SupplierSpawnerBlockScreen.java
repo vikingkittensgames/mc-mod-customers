@@ -49,33 +49,30 @@ public class SupplierSpawnerBlockScreen
         appearanceLabels.clear();
 
         int y = 29;
-        int appearanceTextWidth = APPEARANCE_WIDGET_WIDTH
-                - Checkbox.getBoxSize(font)
-                - 4;
+        int appearanceTextWidth = APPEARANCE_WIDGET_WIDTH - 20;
         for (int index = 0;
                 index < menu.getAppearanceIds().size();
                 index++) {
             int appearanceIndex = index;
             Component appearanceName =
                     menu.getAppearanceName(index);
-            Checkbox checkbox = addRenderableWidget(
-                    Checkbox.builder(Component.empty(), font)
-                            .pos(leftPos + 177, topPos + y)
-                            .selected(
-                                    menu.isAppearanceEnabled(index)
-                            )
-                            .onValueChange((
-                                    changedCheckbox,
-                                    selected
-                            ) -> {
-                                if (!synchronizingAppearanceCheckboxes) {
-                                    send(menu.appearanceButtonId(
-                                            appearanceIndex
-                                    ));
-                                }
-                            })
-                            .build()
-            );
+            Checkbox checkbox = addRenderableWidget(new Checkbox(
+                    leftPos + 177,
+                    topPos + y,
+                    20,
+                    20,
+                    Component.empty(),
+                    menu.isAppearanceEnabled(index),
+                    false
+            ) {
+                @Override
+                public void onPress() {
+                    super.onPress();
+                    if (!synchronizingAppearanceCheckboxes) {
+                        send(menu.appearanceButtonId(appearanceIndex));
+                    }
+                }
+            });
             checkbox.setWidth(APPEARANCE_WIDGET_WIDTH);
             checkbox.setMessage(appearanceName);
             appearanceCheckboxes.add(checkbox);
@@ -149,7 +146,7 @@ public class SupplierSpawnerBlockScreen
             int mouseY,
             float partialTick
     ) {
-        renderBackground(graphics, mouseX, mouseY, partialTick);
+        renderBackground(graphics);
         super.render(graphics, mouseX, mouseY, partialTick);
         renderAppearanceLabels(graphics);
         renderTooltip(graphics, mouseX, mouseY);
@@ -166,12 +163,12 @@ public class SupplierSpawnerBlockScreen
             int labelHeight =
                     label.getLineCount() * font.lineHeight;
             int labelY = checkbox.getY()
-                    + Checkbox.getBoxSize(font) / 2
+                    + 10
                     - labelHeight / 2;
             label.renderLeftAlignedNoShadow(
                     graphics,
                     checkbox.getX()
-                            + Checkbox.getBoxSize(font)
+                            + 24
                             + 4,
                     labelY,
                     font.lineHeight,

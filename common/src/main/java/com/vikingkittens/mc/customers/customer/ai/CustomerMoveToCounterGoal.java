@@ -100,7 +100,7 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
                         .orElse(null);
                 if (surroundingPos == null) {
                     RandomSource random = customer.level().getRandom();
-                    Util.shuffle(validPositions, random);
+                    validPositions.sort((first, second) -> random.nextInt(3) - 1);
                     Map<BlockPos, List<UUID>> reservedTargetCounterPositions =
                             spawner.getReservedTargetCounterPositions();
                     validPositions.sort(
@@ -129,7 +129,7 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
                             untargetedPositions.add(sp);
                             if (otherCustomersTargetPositions.stream().noneMatch(
                                     pos -> pos.distToCenterSqr(
-                                            sp.getPosition().getBottomCenter()
+                                            sp.getPosition().getCenter()
                                     ) < 3 * 3
                             )) {
                                 untargetedNotTooClosePositions.add(sp);
@@ -166,7 +166,7 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
         if (customer.getState() == CustomerState.MOVING_TO_COUNTER) {
             EntityCUtils.snapTo(
                     mob,
-                    targetPos.getBottomCenter(),
+                    targetPos.getCenter(),
                     mob.getYRot(),
                     mob.getXRot()
             );

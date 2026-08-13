@@ -1,5 +1,6 @@
 plugins {
     id 'base'
+    id 'net.minecraftforge.gradle' version '[6.0.24,6.2)' apply false
     id 'net.neoforged.moddev' version '2.0.141' apply false
     id 'com.diffplug.spotless' version '8.9.0' apply false
 }
@@ -54,12 +55,12 @@ tasks.register('buildForge') {
 
 tasks.register('buildAllLoaders') {
     group = 'build'
-    description = 'Builds the Customers NeoForge and Forge JARs.'
-    dependsOn('buildNeoForge', 'buildForge')
+    description = 'Builds the Customers Forge JAR for the 1.20.1 port.'
+    dependsOn('buildForge')
 }
 
 tasks.register('testAllLoaders') {
     group = 'verification'
-    description = 'Runs common and loader-specific tests.'
-    dependsOn(':common:test', ':forge:test', ':neoforge:test')
+    description = 'Runs common and Forge tests for the 1.20.1 port.'
+    dependsOn(':common:test', ':forge:test')
 }

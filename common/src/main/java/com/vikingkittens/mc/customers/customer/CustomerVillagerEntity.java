@@ -125,11 +125,8 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
     }
 
     @Override
-    public Vec3 getVehicleAttachmentPoint(Entity vehicle) {
-        if (vehicle instanceof CustomerSeatEntity) {
-            return CustomerSeatLogic.getCustomerVehicleAttachmentPoint();
-        }
-        return super.getVehicleAttachmentPoint(vehicle);
+    public net.minecraft.core.RegistryAccess registryAccess() {
+        return level().registryAccess();
     }
     private static final Logger LOGGER = LogUtils.getLogger();
 
@@ -221,7 +218,7 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
 
                     customer.setState(CustomerState.INITIALIZING);
 
-                    customer.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(spawnerPos), MobSpawnType.COMMAND, null);
+                    customer.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(spawnerPos), MobSpawnType.COMMAND, null, null);
 
                     serverLevel.addFreshEntity(customer);
 
@@ -440,7 +437,7 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
         Iterator<ItemStack> iterator = craftedStacks.iterator();
         while (iterator.hasNext() && remainingCount > 0) {
             ItemStack craftedStack = iterator.next();
-            if (!ItemStack.isSameItemSameComponents(
+            if (!ItemStackCUtils.isSameItemAndTags(
                     craftedStack,
                     stack
             )) {
@@ -489,14 +486,14 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
         for (MerchantOffer offer : offers) {
             ItemStack cost = offer.getCostA();
             if (!offer.isOutOfStock()
-                    && offer.getItemCostA().test(stack)) {
+                    && ItemStackCUtils.isSameItemAndTags(offer.getCostA(), stack)) {
                 wantedCount += cost.getCount();
             }
         }
 
         int craftedCount = 0;
         for (ItemStack craftedStack : craftedStacks) {
-            if (ItemStack.isSameItemSameComponents(
+            if (ItemStackCUtils.isSameItemAndTags(
                     craftedStack,
                     stack
             )) {
@@ -535,7 +532,7 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
 
         ItemStack matchingCraftedStack = craftedStacks.stream()
                 .filter(craftedStack ->
-                        ItemStack.isSameItemSameComponents(
+                        ItemStackCUtils.isSameItemAndTags(
                                 craftedStack,
                                 stack
                         ))
@@ -571,16 +568,16 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
     }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.Builder builder) {
-        super.defineSynchedData(builder);
-        builder.define(DATA_CUSTOMER_STATE, -1);
-        builder.define(
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        entityData.define(DATA_CUSTOMER_STATE, -1);
+        entityData.define(
                 DATA_APPEARANCE,
                 CustomersVillagerAppearances.DEFAULT.toString()
         );
-        builder.define(DATA_VARIATION_SEED, 0.0F);
-        builder.define(DATA_APPEARANCE_SPAWNER_MODE, -1);
-        builder.define(DATA_APPEARANCE_SPECIAL, false);
+        entityData.define(DATA_VARIATION_SEED, 0.0F);
+        entityData.define(DATA_APPEARANCE_SPAWNER_MODE, -1);
+        entityData.define(DATA_APPEARANCE_SPECIAL, false);
     }
 
     @Override
@@ -894,7 +891,7 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
         super.readAdditionalSaveData(compound);
         readCustomerData(PersistenceCUtils.reader(
                 compound,
-                registryAccess()
+                level().registryAccess()
         ));
     }
     void readCustomerData(DataReader input) {
@@ -942,7 +939,7 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
         super.addAdditionalSaveData(compound);
         writeCustomerData(PersistenceCUtils.writer(
                 compound,
-                registryAccess()
+                level().registryAccess()
         ));
     }
     void writeCustomerData(DataWriter output) {

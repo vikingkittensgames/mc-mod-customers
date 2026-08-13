@@ -27,9 +27,8 @@ class CustomerCounterMarkersPayloadTest {
         ), List.of(new BlockPos(1, 2, 3)));
         FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
 
-        CustomerCounterMarkersPayload.STREAM_CODEC.encode(buffer, original);
-        CustomerCounterMarkersPayload decoded =
-                CustomerCounterMarkersPayload.STREAM_CODEC.decode(buffer);
+        CustomerCounterMarkersPayload.write(buffer, original);
+        CustomerCounterMarkersPayload decoded = CustomerCounterMarkersPayload.read(buffer);
 
         assertEquals(original, decoded);
     }

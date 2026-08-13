@@ -55,6 +55,10 @@ import com.vikingkittens.mc.customers.supplier.ai.SupplierMoveToSpawnGoal;
 import com.vikingkittens.mc.customers.supplier.ai.SupplierMoveToSpawnerGoal;
 
 public class SupplierVillagerEntity extends Villager implements CustomersVillager {
+    @Override
+    public net.minecraft.core.RegistryAccess registryAccess() {
+        return level().registryAccess();
+    }
     private static final Logger LOGGER = LogUtils.getLogger();
 
     private static final int INITIAL_SPAWN_RADIUS = 64;
@@ -120,7 +124,7 @@ public class SupplierVillagerEntity extends Villager implements CustomersVillage
 
                     supplier.setState(SupplierState.INITIALIZING);
 
-                    supplier.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(spawnerPos), MobSpawnType.COMMAND, null);
+                    supplier.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(spawnerPos), MobSpawnType.COMMAND, null, null);
 
                     serverLevel.addFreshEntity(supplier);
 
@@ -201,13 +205,13 @@ public class SupplierVillagerEntity extends Villager implements CustomersVillage
     }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.Builder builder) {
-        super.defineSynchedData(builder);
-        builder.define(
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        entityData.define(
                 DATA_APPEARANCE,
                 CustomersVillagerAppearances.DEFAULT.toString()
         );
-        builder.define(DATA_VARIATION_SEED, 0.0F);
+        entityData.define(DATA_VARIATION_SEED, 0.0F);
     }
 
     @Override

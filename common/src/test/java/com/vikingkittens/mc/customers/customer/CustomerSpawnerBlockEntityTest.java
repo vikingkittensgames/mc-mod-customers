@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
-import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -230,9 +229,9 @@ class CustomerSpawnerBlockEntityTest {
 
         assertEquals(1, offers.size());
         assertTrue(
-                offers.getFirst().getItemCostA().item().value()
+                offers.getFirst().getCostA().getItem()
                                 == paymentItem
-                        || offers.getFirst().getItemCostA().item().value()
+                        || offers.getFirst().getCostA().getItem()
                                 == maximumItem
         );
     }
@@ -252,8 +251,8 @@ class CustomerSpawnerBlockEntityTest {
                 maximumItem
         ).getFirst();
 
-        assertSame(wantedItem, offer.getItemCostA().item().value());
-        assertEquals(1, offer.getItemCostA().count());
+        assertSame(wantedItem, offer.getCostA().getItem());
+        assertEquals(1, offer.getCostA().getCount());
         assertSame(paymentItem, offer.getResult().getItem());
         assertEquals(1, offer.getResult().getCount());
     }
@@ -276,7 +275,7 @@ class CustomerSpawnerBlockEntityTest {
                 maximumItem
         ).getFirst();
 
-        assertEquals(3, offer.getItemCostA().count());
+        assertEquals(3, offer.getCostA().getCount());
         assertEquals(6, offer.getResult().getCount());
     }
 
@@ -330,7 +329,7 @@ class CustomerSpawnerBlockEntityTest {
         assertEquals(1, offers.size());
         assertSame(
                 secondItem,
-                offers.getFirst().getItemCostA().item().value()
+                offers.getFirst().getCostA().getItem()
         );
     }
 
@@ -669,14 +668,19 @@ class CustomerSpawnerBlockEntityTest {
         );
     }
 
-    @SuppressWarnings("unchecked")
+    private static int nextTestItem;
+
     private static Item createItem() {
-        Item item = mock(Item.class);
-        Holder.Reference<Item> holder = mock(Holder.Reference.class);
-        when(item.asItem()).thenReturn(item);
-        when(item.components()).thenReturn(DataComponentMap.EMPTY);
-        when(item.builtInRegistryHolder()).thenReturn(holder);
-        when(holder.value()).thenReturn(item);
-        return item;
+        Item[] items = {
+                Items.APPLE,
+                Items.BREAD,
+                Items.CARROT,
+                Items.COOKIE,
+                Items.EGG,
+                Items.POTATO,
+                Items.PUMPKIN_PIE,
+                Items.WHEAT
+        };
+        return items[nextTestItem++ % items.length];
     }
 }

@@ -15,7 +15,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.trading.ItemCost;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
@@ -331,8 +330,8 @@ class CustomerPickupCounterBlockEntityTest {
 
     private static MerchantOffer offer(Item item, int count) {
         return new MerchantOffer(
-                new ItemCost(item, count),
-                Optional.empty(),
+                new ItemStack(item, count),
+                ItemStack.EMPTY,
                 new ItemStack(Items.EMERALD),
                 1,
                 1,

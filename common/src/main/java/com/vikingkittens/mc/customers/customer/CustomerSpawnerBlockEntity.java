@@ -26,7 +26,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.trading.ItemCost;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
@@ -38,6 +37,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearanceSettings;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 import com.vikingkittens.mc.customers.common.SearchUtils;
+import com.vikingkittens.mc.customers.compatability.ComponentCUtils;
 import com.vikingkittens.mc.customers.compatability.CustomersServices;
 import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
 import com.vikingkittens.mc.customers.compatability.LevelCUtils;
@@ -116,7 +116,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             paymentStack.setCount(paymentStack.getCount() * count);
             offers.add(new MerchantOffer(
                     ItemStackCUtils.createItemCost(itemStack, count),
-                    Optional.empty(),
+                    ItemStack.EMPTY,
                     paymentStack,
                     1,
                     rowCosts.get(row).getCount(),
@@ -377,11 +377,11 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
 
         try {
-            tag.put("inventory", this.inventory.serializeNBT(registries));
+            tag.put("inventory", this.inventory.serializeNBT());
         } catch (Throwable t) {
             LOGGER.error("Failed to save inventory", t);
         }
@@ -401,11 +401,11 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    public void load(CompoundTag tag) {
+        super.load(tag);
         if (tag.contains("inventory")) {
             try {
-                inventory.deserializeNBT(registries, tag.getCompound("inventory"));
+                inventory.deserializeNBT(tag.getCompound("inventory"));
             } catch (Throwable t) {
                 LOGGER.error("Failed to load inventory because of error", t);
             }
@@ -1091,35 +1091,35 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
         sendShiftFinishedPayload(spawnerMode);
 
-        Component summary = Component.translatable(
+        Component summary = ComponentCUtils.withColor(Component.translatable(
                 "messages.customers.scoreboard.summary",
                 spawnerMode.getTitle(),
                 (int)(scoreboardGetPercentage() * 100) + "%"
-        ).withColor(color);
+        ), color);
         sentPlayersMessage(summary);
 
         sentPlayersChat(summary);
-        sentPlayersChat(Component.translatable(
+        sentPlayersChat(ComponentCUtils.withColor(Component.translatable(
                 "messages.customers.scoreboard.detail.total_customers",
                 totalCustomers
-        ).withColor(color));
-        sentPlayersChat(Component.translatable(
+        ), color));
+        sentPlayersChat(ComponentCUtils.withColor(Component.translatable(
                 "messages.customers.scoreboard.detail.customers_served",
                 numCustomersServed
-        ).withColor(color));
-        sentPlayersChat(Component.translatable(
+        ), color));
+        sentPlayersChat(ComponentCUtils.withColor(Component.translatable(
                 "messages.customers.scoreboard.detail.customers_gave_up",
                 numCustomersGaveUp
-        ).withColor(color));
+        ), color));
         for (UUID playerId : itemsServed.playerScores().keySet()) {
             try {
                 Player player = level.getPlayerByUUID(playerId);
-                sentPlayersChat(Component.translatable(
+                sentPlayersChat(ComponentCUtils.withColor(Component.translatable(
                         "messages.customers.scoreboard.detail.player_served_items",
                         player.getDisplayName(),
                         itemsServed.playerScores().get(playerId),
                         totalItemsWanted
-                ).withColor(color));
+                ), color));
             } catch (Throwable t) {
                 LOGGER.warn("Unable to add player score because of error", t);
             }

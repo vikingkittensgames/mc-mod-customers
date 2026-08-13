@@ -37,6 +37,7 @@ import net.minecraft.world.phys.Vec3;
 import com.vikingkittens.mc.customers.common.OfferUtils;
 import com.vikingkittens.mc.customers.common.SearchUtils;
 import com.vikingkittens.mc.customers.compatability.ItemInsertionTarget;
+import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
 import com.vikingkittens.mc.customers.compatability.LevelCUtils;
 import com.vikingkittens.mc.customers.compatability.PlayerCUtils;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
@@ -305,12 +306,9 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(
-            CompoundTag tag,
-            HolderLookup.Provider registries
-    ) {
-        super.saveAdditional(tag, registries);
-        tag.put(TAG_INVENTORY, inventory.serializeNBT(registries));
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
+        tag.put(TAG_INVENTORY, inventory.serializeNBT());
         writeStackMetadata(
                 PersistenceCUtils.writer(tag),
                 inventory,
@@ -318,15 +316,15 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
         );
     }
 
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider ignored) {
+        saveAdditional(tag);
+    }
+
     @Override
-    protected void loadAdditional(
-            CompoundTag tag,
-            HolderLookup.Provider registries
-    ) {
-        super.loadAdditional(tag, registries);
+    public void load(CompoundTag tag) {
+        super.load(tag);
         if (tag.contains(TAG_INVENTORY)) {
             inventory.deserializeNBT(
-                    registries,
                     tag.getCompound(TAG_INVENTORY)
             );
         }
@@ -337,9 +335,17 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
         );
     }
 
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider ignored) {
+        load(tag);
+    }
+
     @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        return saveWithoutMetadata(registries);
+    public CompoundTag getUpdateTag() {
+        return saveWithoutMetadata();
+    }
+
+    public CompoundTag getUpdateTag(HolderLookup.Provider ignored) {
+        return getUpdateTag();
     }
 
     @Override
@@ -407,7 +413,7 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
                         crafterIds[slot],
                         storedStack.crafterId()
                 )
-                && ItemStack.isSameItemSameComponents(
+                && ItemStackCUtils.isSameItemAndTags(
                         existing,
                         storedStack.stack()
                 );
@@ -645,7 +651,7 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
                         first.crafterId(),
                         second.crafterId()
                 )
-                && ItemStack.isSameItemSameComponents(
+                && ItemStackCUtils.isSameItemAndTags(
                         first.stack(),
                         second.stack()
                 );
@@ -1072,7 +1078,7 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
                     slot++) {
                 ItemStack stored =
                         counter.inventory.getItem(slot);
-                if (offer.getItemCostA().test(stored)) {
+                if (ItemStackCUtils.isSameItemAndTags(offer.getCostA(), stored)) {
                     available += stored.getCount();
                 }
             }
@@ -1089,7 +1095,7 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
                     && remaining > 0) {
                 ItemStack stored =
                         counter.inventory.getItem(slot);
-                if (!offer.getItemCostA().test(stored)) {
+                if (!ItemStackCUtils.isSameItemAndTags(offer.getCostA(), stored)) {
                     slot++;
                     continue;
                 }
@@ -1141,7 +1147,7 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
         return takeMatchingStoredStack(
                 counters,
                 requested,
-                stored -> ItemStack.isSameItemSameComponents(
+                stored -> ItemStackCUtils.isSameItemAndTags(
                         stored,
                         requested
                 )
@@ -1162,7 +1168,7 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
         return takeMatchingStoredStack(
                 counters,
                 offer.getCostA(),
-                offer.getItemCostA()::test
+                stored -> ItemStackCUtils.matchesCost(offer.getCostA(), stored)
         );
     }
 

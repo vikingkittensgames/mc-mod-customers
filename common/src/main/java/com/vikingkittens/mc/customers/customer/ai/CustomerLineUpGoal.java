@@ -90,7 +90,7 @@ public class CustomerLineUpGoal extends MobMoveToGoal {
         if (customer.getState() == CustomerState.IN_LINE) {
             EntityCUtils.snapTo(
                     mob,
-                    targetPos.getBottomCenter(),
+                    targetPos.getCenter(),
                     mob.getYRot(),
                     mob.getXRot()
             );

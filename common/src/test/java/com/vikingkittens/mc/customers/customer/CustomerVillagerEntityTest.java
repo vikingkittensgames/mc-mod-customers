@@ -11,7 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.alchemy.Potions;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
@@ -113,7 +113,7 @@ class CustomerVillagerEntityTest {
     @Test
     void createsPickupCounterTradeRemainders() {
         ItemStack water =
-                PotionContents.createItemStack(Items.POTION, Potions.WATER);
+                PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.WATER);
 
         assertEquals(
                 Items.GLASS_BOTTLE,

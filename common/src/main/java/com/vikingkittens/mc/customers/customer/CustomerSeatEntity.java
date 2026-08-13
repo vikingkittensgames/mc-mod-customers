@@ -64,7 +64,7 @@ public class CustomerSeatEntity extends Entity {
     public static Vec3 getSeatPosition(Level level, BlockPos pos, Entity passenger) {
         for (Entity existingEntity : getEntitiesAt(level, pos, passenger)) {
             if (!(existingEntity instanceof CustomerSeatEntity)) {
-                return existingEntity.getPassengerRidingPosition(passenger);
+                return existingEntity.position().add(0.0D, existingEntity.getBbHeight(), 0.0D);
             }
         }
 
@@ -146,7 +146,7 @@ public class CustomerSeatEntity extends Entity {
             return;
         }
 
-        Vec3 passengerAttachment = passenger.getVehicleAttachmentPoint(this);
+        Vec3 passengerAttachment = CustomerSeatLogic.getCustomerVehicleAttachmentPoint();
         Vec3 passengerPosition = CustomerSeatLogic.getPassengerPosition(
                 position(),
                 passengerAttachment
@@ -226,7 +226,7 @@ public class CustomerSeatEntity extends Entity {
     }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+    protected void defineSynchedData() {
     }
 
     @Override

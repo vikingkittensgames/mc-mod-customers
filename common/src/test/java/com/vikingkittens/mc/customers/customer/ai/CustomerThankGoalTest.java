@@ -8,6 +8,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.ai.control.JumpControl;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.trading.MerchantOffers;
@@ -46,6 +47,7 @@ class CustomerThankGoalTest {
         when(customer.getOffers()).thenReturn(offers);
         when(customer.getState()).thenReturn(CustomerState.BUYING);
         when(customer.getRandom()).thenReturn(random);
+        when(customer.getJumpControl()).thenReturn(mock(JumpControl.class));
         when(customer.level()).thenReturn(level);
         when(customer.getSpawnerPos()).thenReturn(BlockPos.ZERO);
         when(offer.isOutOfStock()).thenReturn(false);

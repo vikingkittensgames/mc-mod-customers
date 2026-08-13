@@ -5,11 +5,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-
-import com.vikingkittens.mc.customers.Customers;
 
 public record CustomerShiftFinishedPayload(
         CustomerSpawnerMode spawnerMode,
@@ -21,13 +16,7 @@ public record CustomerShiftFinishedPayload(
         Map<UUID, Integer> numItemsCraftedByPlayer,
         int numItemsServedAutomated,
         int numItemsCraftedAutomated
-) implements CustomPacketPayload {
-    public static final Type<CustomerShiftFinishedPayload> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(Customers.MODID, "customer_shift_finished")
-    );
-
-    public static final StreamCodec<FriendlyByteBuf, CustomerShiftFinishedPayload> STREAM_CODEC =
-            StreamCodec.of(CustomerShiftFinishedPayload::write, CustomerShiftFinishedPayload::read);
+) {
 
     public CustomerShiftFinishedPayload {
         numItemsServedByPlayer = Map.copyOf(numItemsServedByPlayer);
@@ -58,7 +47,7 @@ public record CustomerShiftFinishedPayload(
                 .sum();
     }
 
-    private static void write(FriendlyByteBuf buffer, CustomerShiftFinishedPayload payload) {
+    public static void write(FriendlyByteBuf buffer, CustomerShiftFinishedPayload payload) {
         buffer.writeEnum(payload.spawnerMode());
         buffer.writeFloat(payload.percentComplete());
         buffer.writeVarInt(payload.totalCustomers());
@@ -78,7 +67,7 @@ public record CustomerShiftFinishedPayload(
         buffer.writeVarInt(payload.numItemsCraftedAutomated());
     }
 
-    private static CustomerShiftFinishedPayload read(FriendlyByteBuf buffer) {
+    public static CustomerShiftFinishedPayload read(FriendlyByteBuf buffer) {
         return new CustomerShiftFinishedPayload(
                 buffer.readEnum(CustomerSpawnerMode.class),
                 buffer.readFloat(),
@@ -100,8 +89,4 @@ public record CustomerShiftFinishedPayload(
         );
     }
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
 }

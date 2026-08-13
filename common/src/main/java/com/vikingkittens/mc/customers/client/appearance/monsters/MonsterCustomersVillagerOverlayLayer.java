@@ -55,8 +55,10 @@ final class MonsterCustomersVillagerOverlayLayer
                 ageInTicks,
                 netHeadYaw,
                 headPitch,
-                partialTick,
-                -1
+                1.0F,
+                1.0F,
+                1.0F,
+                1.0F
         );
     }
 }

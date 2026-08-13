@@ -11,6 +11,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.trading.MerchantOffer;
 
 import com.vikingkittens.mc.customers.common.ai.MobTimedGoal;
+import com.vikingkittens.mc.customers.compatability.ComponentCUtils;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlockEntity;
 import com.vikingkittens.mc.customers.customer.CustomerState;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
@@ -68,12 +69,13 @@ public class CustomerGiveUpGoal extends MobTimedGoal {
         super.tick();
         if (!messageSent && ticksSinceStart >= 20 * 1) {
             messageSent = true;
-            customer.sentPlayersMessage(
+            customer.sentPlayersMessage(ComponentCUtils.withColor(
                     createGiveUpMessage(
                             customer.getRandom(),
                             customer.getOffers()
-                    ).withColor(0xFF0000)
-            );
+                    ),
+                    0xFF0000
+            ));
         }
         if (ticksSinceFX == 0 || ticksSinceFX > 30) {
             customer.playAngry();

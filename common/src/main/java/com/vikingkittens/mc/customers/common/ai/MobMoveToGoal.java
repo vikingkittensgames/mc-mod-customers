@@ -66,7 +66,7 @@ public class MobMoveToGoal extends MoveToBlockGoal {
 
     protected boolean isDone() {
         return targetPos != null
-                && getMoveToTarget().getBottomCenter()
+                && getMoveToTarget().getCenter()
                 .closerThan(mob.position(), acceptedDistance());
     }
 

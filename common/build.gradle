@@ -1,16 +1,11 @@
 plugins {
     id 'customers-common'
-    id 'net.neoforged.moddev'
+    id 'net.minecraftforge.gradle'
     id 'com.diffplug.spotless'
 }
 
-neoForge {
-    neoFormVersion = neo_form_version
-
-    parchment {
-        minecraftVersion = parchment_minecraft_version
-        mappingsVersion = parchment_mappings_version
-    }
+minecraft {
+    mappings channel: 'official', version: minecraft_version
 }
 
 sourceSets.test.compileClasspath += sourceSets.main.compileClasspath
@@ -44,8 +39,7 @@ tasks.named('check') {
 }
 
 dependencies {
-    compileOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
-    testRuntimeOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
     testImplementation project(':testsupport')
     testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"

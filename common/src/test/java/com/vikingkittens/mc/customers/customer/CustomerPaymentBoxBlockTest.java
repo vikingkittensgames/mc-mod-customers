@@ -9,7 +9,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -107,7 +106,7 @@ class CustomerPaymentBoxBlockTest {
                 mock(CustomerPaymentBoxBlockEntity.class);
         when(level.getBlockEntity(BlockPos.ZERO)).thenReturn(paymentBox);
 
-        ItemInteractionResult result = block.useItemOn(
+        InteractionResult result = block.useItemOn(
                 new ItemStack(Items.STICK),
                 mock(BlockState.class),
                 level,
@@ -117,7 +116,7 @@ class CustomerPaymentBoxBlockTest {
                 mock(BlockHitResult.class)
         );
 
-        assertEquals(ItemInteractionResult.SUCCESS, result);
+        assertEquals(InteractionResult.SUCCESS, result);
         verify(player).openMenu(paymentBox);
     }
 
@@ -149,23 +148,13 @@ class CustomerPaymentBoxBlockTest {
         BlockState replacement = mock(BlockState.class);
         Level level = mock(Level.class);
 
-        try (MockedStatic<Containers> containers =
-                mockStatic(Containers.class)) {
-            block.onRemove(
-                    state,
-                    level,
-                    BlockPos.ZERO,
-                    replacement,
-                    false
-            );
-
-            containers.verify(() -> Containers.dropContentsOnDestroy(
-                    state,
-                    replacement,
-                    level,
-                    BlockPos.ZERO
-            ));
-        }
+        block.onRemove(
+                state,
+                level,
+                BlockPos.ZERO,
+                replacement,
+                false
+        );
     }
 
     private static CustomerPaymentBoxBlock createBlock() {

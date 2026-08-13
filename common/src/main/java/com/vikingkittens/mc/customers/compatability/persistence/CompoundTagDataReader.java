@@ -76,7 +76,9 @@ final class CompoundTagDataReader implements DataReader {
 
     @Override
     public Optional<BlockPos> getBlockPos(String key) {
-        return NbtUtils.readBlockPos(tag, key);
+        return tag.contains(key, Tag.TAG_COMPOUND)
+                ? Optional.of(NbtUtils.readBlockPos(tag.getCompound(key)))
+                : Optional.empty();
     }
 
     @Override
@@ -123,10 +125,7 @@ final class CompoundTagDataReader implements DataReader {
             CompoundTag itemTag = itemTags.getCompound(index);
             int slot = itemTag.getInt("Slot");
             if (slot >= 0 && slot < size) {
-                ItemStack.parse(
-                        Objects.requireNonNull(registries),
-                        itemTag
-                ).ifPresent(stacks::add);
+                stacks.add(ItemStack.of(itemTag));
             }
         }
         return List.copyOf(stacks);

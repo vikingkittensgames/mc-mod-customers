@@ -66,7 +66,7 @@ public final class CustomerForgeClientGameEvents {
     public static void renderCounterMarkers(RenderLevelStageEvent event) {
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_BLOCK_ENTITIES) {
             PoseStack poseStack = new PoseStack();
-            poseStack.mulPose(event.getPoseStack());
+            poseStack.last().pose().set(event.getPoseStack().last().pose());
             CustomerCounterMarkerRenderer.render(poseStack, event.getCamera().getPosition());
         }
     }

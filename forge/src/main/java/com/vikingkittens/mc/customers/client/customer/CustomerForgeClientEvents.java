@@ -12,6 +12,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.client.appearance.CustomersVillagerAppearanceEntityRenderer;
 import com.vikingkittens.mc.customers.client.supplier.SupplierSpawnerBlockScreen;
+import com.vikingkittens.mc.customers.compatability.ForgeNetworkHelper;
 import com.vikingkittens.mc.customers.customer.Customer;
 import com.vikingkittens.mc.customers.customer.CustomerPickupCounter;
 import com.vikingkittens.mc.customers.customer.CustomerSpawner;
@@ -27,6 +28,7 @@ public final class CustomerForgeClientEvents {
 
     @SubscribeEvent
     public static void clientSetup(FMLClientSetupEvent event) {
+        ForgeNetworkHelper.register();
         event.enqueueWork(() -> {
             MenuScreens.register(CustomerSpawner.CUSTOMER_SPAWNER_MENU.get(), CustomerSpawnerBlockScreen::new);
             MenuScreens.register(SupplierSpawner.SUPPLIER_SPAWNER_MENU.get(), SupplierSpawnerBlockScreen::new);

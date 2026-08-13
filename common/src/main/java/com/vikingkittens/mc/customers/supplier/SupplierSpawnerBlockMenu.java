@@ -41,7 +41,7 @@ public class SupplierSpawnerBlockMenu extends AbstractContainerMenu {
         checkContainerSize(container, CONTAINER_SIZE);
         this.container = container;
         this.blockEntity = blockEntity;
-        registryAccess = playerInventory.player.registryAccess();
+        registryAccess = playerInventory.player.level().registryAccess();
         appearanceIds = CustomersVillagerAppearances
                 .getAvailableAppearanceIds(registryAccess);
         data = blockEntity == null

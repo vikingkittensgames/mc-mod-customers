@@ -97,10 +97,7 @@ final class CompoundTagDataWriter implements DataWriter {
             if (!stack.isEmpty()) {
                 CompoundTag itemTag = new CompoundTag();
                 itemTag.putInt("Slot", slot);
-                itemTags.add(stack.save(
-                        Objects.requireNonNull(registries),
-                        itemTag
-                ));
+                itemTags.add(stack.save(itemTag));
             }
         }
         CompoundTag inventoryTag = new CompoundTag();

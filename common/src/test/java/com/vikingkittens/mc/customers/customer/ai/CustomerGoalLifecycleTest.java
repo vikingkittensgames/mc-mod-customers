@@ -608,7 +608,7 @@ class CustomerGoalLifecycleTest {
         }
 
         private void moveCustomerTo(BlockPos position) {
-            customerPosition.set(position.getBottomCenter());
+            customerPosition.set(position.getCenter());
         }
 
         private long stateCount(CustomerState expectedState) {

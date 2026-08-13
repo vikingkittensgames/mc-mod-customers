@@ -1,5 +1,6 @@
 package com.vikingkittens.mc.customers.compatability;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import com.mojang.serialization.Codec;
@@ -9,10 +10,17 @@ import net.minecraft.resources.ResourceLocation;
 
 import net.minecraftforge.registries.DataPackRegistryEvent;
 
+import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 class ForgeDataPackRegistryTest {
+    @BeforeAll
+    static void bootstrapMinecraft() {
+        MinecraftTestBootstrap.bootstrap();
+    }
+
     @Test
     void registersDeclaredDataPackRegistryDuringForgeRegistryEvent() {
         ResourceKey<Registry<String>> key = ResourceKey.createRegistryKey(

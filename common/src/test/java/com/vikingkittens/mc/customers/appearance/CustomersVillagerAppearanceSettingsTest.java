@@ -48,7 +48,7 @@ class CustomersVillagerAppearanceSettingsTest {
         CustomersVillagerAppearanceSettings settings =
                 new CustomersVillagerAppearanceSettings();
         ResourceLocation optionalAppearance =
-                ResourceLocation.parse("optional_mod:mca");
+                ResourceLocation.parse("optional_mod:custom");
         settings.setEnabledAppearances(List.of(
                 optionalAppearance,
                 CustomersVillagerAppearances.DEFAULT,

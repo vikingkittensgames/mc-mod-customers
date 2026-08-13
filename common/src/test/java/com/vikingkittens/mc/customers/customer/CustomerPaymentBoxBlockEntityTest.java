@@ -130,7 +130,7 @@ class CustomerPaymentBoxBlockEntityTest {
             int count,
             ItemStack actual
     ) {
-        assertTrue(ItemStack.isSameItemSameComponents(
+        assertTrue(ItemStack.isSameItemSameTags(
                 new ItemStack(item),
                 actual
         ));

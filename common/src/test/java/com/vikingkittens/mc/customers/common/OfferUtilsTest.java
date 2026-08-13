@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.trading.ItemCost;
 import net.minecraft.world.item.trading.MerchantOffer;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
@@ -118,8 +117,8 @@ class OfferUtilsTest {
 
     private static MerchantOffer offer(Item item, int count) {
         return new MerchantOffer(
-                new ItemCost(item, count),
-                Optional.empty(),
+                new ItemStack(item, count),
+                ItemStack.EMPTY,
                 new ItemStack(Items.EMERALD),
                 1,
                 1,

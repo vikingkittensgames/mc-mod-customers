@@ -12,6 +12,8 @@ import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
+import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
+
 public class PersistedContainer implements Container {
     private final Runnable changeListener;
     private final Predicate<Player> validity;
@@ -72,11 +74,11 @@ public class PersistedContainer implements Container {
         }
 
         ItemStack existing = getItem(slot);
-        if (!existing.isEmpty() && !ItemStack.isSameItemSameComponents(existing, stack)) {
+        if (!existing.isEmpty() && !ItemStackCUtils.isSameItemAndTags(existing, stack)) {
             return stack;
         }
 
-        int available = Math.min(getMaxStackSize(stack), stack.getMaxStackSize()) - existing.getCount();
+        int available = Math.min(getMaxStackSize(), stack.getMaxStackSize()) - existing.getCount();
         if (available <= 0) {
             return stack;
         }
@@ -110,14 +112,14 @@ public class PersistedContainer implements Container {
         setChanged();
     }
 
-    public CompoundTag serializeNBT(HolderLookup.Provider registries) {
+    public CompoundTag serializeNBT() {
         ListTag serializedItems = new ListTag();
         for (int slot = 0; slot < items.size(); slot++) {
             ItemStack stack = items.get(slot);
             if (!stack.isEmpty()) {
                 CompoundTag serializedStack = new CompoundTag();
                 serializedStack.putInt("Slot", slot);
-                serializedItems.add(stack.save(registries, serializedStack));
+                serializedItems.add(stack.save(serializedStack));
             }
         }
 
@@ -127,7 +129,11 @@ public class PersistedContainer implements Container {
         return serialized;
     }
 
-    public void deserializeNBT(HolderLookup.Provider registries, CompoundTag serialized) {
+    public CompoundTag serializeNBT(HolderLookup.Provider ignored) {
+        return serializeNBT();
+    }
+
+    public void deserializeNBT(CompoundTag serialized) {
         int size = serialized.contains("Size", Tag.TAG_INT) ? Math.max(0, serialized.getInt("Size")) : items.size();
         NonNullList<ItemStack> loadedItems = NonNullList.withSize(size, ItemStack.EMPTY);
         ListTag serializedItems = serialized.getList("Items", Tag.TAG_COMPOUND);
@@ -135,9 +141,13 @@ public class PersistedContainer implements Container {
             CompoundTag serializedStack = serializedItems.getCompound(index);
             int slot = serializedStack.getInt("Slot");
             if (slot >= 0 && slot < loadedItems.size()) {
-                ItemStack.parse(registries, serializedStack).ifPresent(stack -> loadedItems.set(slot, stack));
+                loadedItems.set(slot, ItemStack.of(serializedStack));
             }
         }
         items = loadedItems;
+    }
+
+    public void deserializeNBT(HolderLookup.Provider ignored, CompoundTag serialized) {
+        deserializeNBT(serialized);
     }
 }

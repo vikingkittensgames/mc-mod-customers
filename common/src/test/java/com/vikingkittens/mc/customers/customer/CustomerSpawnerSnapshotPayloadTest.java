@@ -10,17 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import com.mojang.serialization.Lifecycle;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.MappedRegistry;
-import net.minecraft.core.RegistrationInfo;
-import net.minecraft.core.Registry;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.component.DataComponentType;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -39,7 +29,6 @@ class CustomerSpawnerSnapshotPayloadTest {
     @Test
     void roundTripsCompleteSpawnerSnapshot() {
         ItemStack cost = new ItemStack(Items.DIAMOND, 7);
-        cost.set(DataComponents.CUSTOM_NAME, Component.literal("Requested"));
         BlockPos spawnerPos = new BlockPos(10, 64, -20);
         UUID bossEventId = UUID.randomUUID();
         UUID customerId = UUID.randomUUID();
@@ -60,11 +49,10 @@ class CustomerSpawnerSnapshotPayloadTest {
                         spawnerPos,
                         Optional.of(snapshot)
                 );
-        RegistryFriendlyByteBuf buffer = createBuffer();
+        FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
 
-        CustomerSpawnerSnapshotPayload.STREAM_CODEC.encode(buffer, original);
-        CustomerSpawnerSnapshotPayload decoded =
-                CustomerSpawnerSnapshotPayload.STREAM_CODEC.decode(buffer);
+        CustomerSpawnerSnapshotPayload.write(buffer, original);
+        CustomerSpawnerSnapshotPayload decoded = CustomerSpawnerSnapshotPayload.read(buffer);
 
         CustomerSpawnerSnapshot decodedSnapshot =
                 decoded.snapshot().orElseThrow();
@@ -80,7 +68,7 @@ class CustomerSpawnerSnapshotPayloadTest {
                 decodedCustomer.type()
         );
         assertEquals(7, decodedCost.getCount());
-        assertTrue(ItemStack.isSameItemSameComponents(cost, decodedCost));
+        assertTrue(ItemStack.isSameItemSameTags(cost, decodedCost));
         assertEquals(60, decodedCustomer.ticksSinceTrade());
         assertEquals(120, decodedCustomer.giveUpTicks());
     }
@@ -93,46 +81,13 @@ class CustomerSpawnerSnapshotPayloadTest {
                         spawnerPos,
                         Optional.empty()
                 );
-        RegistryFriendlyByteBuf buffer = createBuffer();
+        FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
 
-        CustomerSpawnerSnapshotPayload.STREAM_CODEC.encode(buffer, original);
-        CustomerSpawnerSnapshotPayload decoded =
-                CustomerSpawnerSnapshotPayload.STREAM_CODEC.decode(buffer);
+        CustomerSpawnerSnapshotPayload.write(buffer, original);
+        CustomerSpawnerSnapshotPayload decoded = CustomerSpawnerSnapshotPayload.read(buffer);
 
         assertEquals(spawnerPos, decoded.spawnerPos());
         assertEquals(Optional.empty(), decoded.snapshot());
     }
 
-    private static RegistryFriendlyByteBuf createBuffer() {
-        Registry<Item> itemRegistry = copyRegistryValue(
-                Registries.ITEM,
-                BuiltInRegistries.ITEM,
-                Items.DIAMOND
-        );
-        Registry<DataComponentType<?>> componentRegistry = copyRegistryValue(
-                Registries.DATA_COMPONENT_TYPE,
-                BuiltInRegistries.DATA_COMPONENT_TYPE,
-                DataComponents.CUSTOM_NAME
-        );
-        return new RegistryFriendlyByteBuf(
-                Unpooled.buffer(),
-                new RegistryAccess.ImmutableRegistryAccess(List.of(
-                        itemRegistry,
-                        componentRegistry
-                ))
-        );
-    }
-
-    private static <T> Registry<T> copyRegistryValue(
-            ResourceKey<? extends Registry<T>> registryKey,
-            Registry<T> source,
-            T value
-    ) {
-        MappedRegistry<T> copy = new MappedRegistry<>(registryKey, Lifecycle.stable());
-        copy.register(
-                source.getResourceKey(value).orElseThrow(),
-                value,
-                RegistrationInfo.BUILT_IN);
-        return copy.freeze();
-    }
 }

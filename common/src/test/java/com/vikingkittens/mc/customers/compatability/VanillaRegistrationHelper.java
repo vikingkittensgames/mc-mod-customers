@@ -10,7 +10,6 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.Lifecycle;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.MappedRegistry;
-import net.minecraft.core.RegistrationInfo;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -55,7 +54,7 @@ public final class VanillaRegistrationHelper implements IRegistrationHelper {
         }
         MappedRegistry<T> registry = findRegistry(registryKey);
         I value = valueFactory.get();
-        registry.register(key, value, RegistrationInfo.BUILT_IN);
+        registry.register(key, value, Lifecycle.stable());
         return new CustomersRegistryEntry<>(key, () -> value);
     }
 

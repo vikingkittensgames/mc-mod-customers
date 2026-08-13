@@ -2,13 +2,11 @@ package com.vikingkittens.mc.customers.customer;
 
 import org.jetbrains.annotations.Nullable;
 
-import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
@@ -32,8 +30,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import com.vikingkittens.mc.customers.compatability.LevelCUtils;
 
 public class CustomerPaymentBoxBlock extends BaseEntityBlock {
-    private static final MapCodec<CustomerPaymentBoxBlock> CODEC =
-            simpleCodec(CustomerPaymentBoxBlock::new);
     private static final VoxelShape SHAPE = Block.box(1.0D, 0.0D, 1.0D, 15.0D, 14.0D, 15.0D);
 
     public static final DirectionProperty FACING =
@@ -61,12 +57,7 @@ public class CustomerPaymentBoxBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
-    }
-
-    @Override
-    protected RenderShape getRenderShape(BlockState state) {
+    public RenderShape getRenderShape(BlockState state) {
         return RenderShape.MODEL;
     }
 
@@ -88,7 +79,18 @@ public class CustomerPaymentBoxBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(
+    public InteractionResult use(
+            BlockState state,
+            Level level,
+            BlockPos pos,
+            Player player,
+            InteractionHand hand,
+            BlockHitResult hitResult
+    ) {
+        return openContainer(level, pos, player);
+    }
+
+    protected InteractionResult useItemOn(
             ItemStack stack,
             BlockState state,
             Level level,
@@ -98,10 +100,9 @@ public class CustomerPaymentBoxBlock extends BaseEntityBlock {
             BlockHitResult hitResult
     ) {
         openContainer(level, pos, player);
-        return ItemInteractionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
-    @Override
     protected InteractionResult useWithoutItem(
             BlockState state,
             Level level,
@@ -129,29 +130,30 @@ public class CustomerPaymentBoxBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected void onRemove(
+    public void onRemove(
             BlockState state,
             Level level,
             BlockPos pos,
             BlockState newState,
             boolean movedByPiston
     ) {
-        Containers.dropContentsOnDestroy(
-                state,
-                newState,
-                level,
-                pos
-        );
+        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos)
+                instanceof CustomerPaymentBoxBlockEntity paymentBox) {
+            for (int slot = 0; slot < paymentBox.getContainerSize(); slot++) {
+                Containers.dropItemStack(level, pos.getX() + 0.5D, pos.getY() + 0.5D,
+                        pos.getZ() + 0.5D, paymentBox.removeItemNoUpdate(slot));
+            }
+        }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Override
-    protected boolean hasAnalogOutputSignal(BlockState state) {
+    public boolean hasAnalogOutputSignal(BlockState state) {
         return true;
     }
 
     @Override
-    protected int getAnalogOutputSignal(
+    public int getAnalogOutputSignal(
             BlockState state,
             Level level,
             BlockPos pos
@@ -162,7 +164,7 @@ public class CustomerPaymentBoxBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected BlockState rotate(BlockState state, Rotation rotation) {
+    public BlockState rotate(BlockState state, Rotation rotation) {
         return state.setValue(
                 FACING,
                 rotation.rotate(state.getValue(FACING))
@@ -170,7 +172,7 @@ public class CustomerPaymentBoxBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected BlockState mirror(BlockState state, Mirror mirror) {
+    public BlockState mirror(BlockState state, Mirror mirror) {
         return state.rotate(
                 mirror.getRotation(state.getValue(FACING))
         );
@@ -184,7 +186,7 @@ public class CustomerPaymentBoxBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected VoxelShape getShape(
+    public VoxelShape getShape(
             BlockState state,
             BlockGetter level,
             BlockPos pos,

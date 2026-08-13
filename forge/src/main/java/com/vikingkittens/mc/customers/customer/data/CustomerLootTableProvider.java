@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
@@ -12,7 +11,7 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 public final class CustomerLootTableProvider extends LootTableProvider {
     public CustomerLootTableProvider(
             PackOutput output,
-            CompletableFuture<HolderLookup.Provider> registries
+            CompletableFuture<?> registries
     ) {
         super(
                 output,
@@ -20,8 +19,7 @@ public final class CustomerLootTableProvider extends LootTableProvider {
                 List.of(
                         new SubProviderEntry(CustomerPickupCounterBlockLootSubProvider::new, LootContextParamSets.BLOCK),
                         new SubProviderEntry(CustomerPaymentBoxBlockLootSubProvider::new, LootContextParamSets.BLOCK)
-                ),
-                registries
+                )
         );
     }
 }

@@ -11,6 +11,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.ai.goal.Goal;
 
 import com.vikingkittens.mc.customers.common.ai.MobTimedGoal;
+import com.vikingkittens.mc.customers.compatability.ComponentCUtils;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlockEntity;
 import com.vikingkittens.mc.customers.customer.CustomerState;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
@@ -77,15 +78,16 @@ public class CustomerThankGoal extends MobTimedGoal {
         super.tick();
         if (!messageSent && ticksSinceStart >= 20 * 1) {
             messageSent = true;
-            customer.sentPlayersMessage(
+            customer.sentPlayersMessage(ComponentCUtils.withColor(
                     createThankYouMessage(
                             customer.getRandom(),
                             lastTradedItem
-                    ).withColor(0x36991C)
-            );
+                    ),
+                    0x36991C
+            ));
         }
         if (!customer.isPassenger() && (ticksSinceJump == 0 || ticksSinceJump > 20)) {
-            customer.jumpFromGround();
+            customer.getJumpControl().jump();
             ticksSinceJump = 0;
         }
         ticksSinceJump++;

@@ -22,7 +22,7 @@ class SkinCustomersVillagerDefinitionTest {
                           "texture": "example:steve"
                         }
                         """)
-        ).getOrThrow();
+        ).getOrThrow(false, message -> {});
 
         assertEquals(ResourceLocation.parse("example:steve"), definition.texture());
         assertEquals(SkinCustomersVillagerModel.WIDE, definition.model());
@@ -54,7 +54,7 @@ class SkinCustomersVillagerDefinitionTest {
                           }
                         }
                         """)
-        ).getOrThrow();
+        ).getOrThrow(false, message -> {});
 
         assertEquals(SkinCustomersVillagerModel.SLIM, definition.model());
         assertTrue(definition.legacy());

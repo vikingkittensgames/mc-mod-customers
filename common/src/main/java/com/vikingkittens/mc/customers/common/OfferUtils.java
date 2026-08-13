@@ -6,6 +6,8 @@ import java.util.List;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.trading.MerchantOffer;
 
+import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
+
 public final class OfferUtils {
     public record Allocation(
             List<Integer> offerCounts,
@@ -54,7 +56,7 @@ public final class OfferUtils {
                     offerIndex++) {
                 MerchantOffer offer = offers.get(offerIndex);
                 if (remainingDemand[offerIndex] == 0
-                        || !offer.getItemCostA().test(stack)) {
+                        || !ItemStackCUtils.isSameItemAndTags(offer.getCostA(), stack)) {
                     continue;
                 }
                 int assigned = Math.min(

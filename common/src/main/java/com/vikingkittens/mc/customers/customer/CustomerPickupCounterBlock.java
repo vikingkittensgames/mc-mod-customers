@@ -2,13 +2,11 @@ package com.vikingkittens.mc.customers.customer;
 
 import org.jetbrains.annotations.Nullable;
 
-import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
@@ -28,8 +26,6 @@ import com.vikingkittens.mc.customers.compatability.LevelCUtils;
 import com.vikingkittens.mc.customers.compatability.PlayerCUtils;
 
 public class CustomerPickupCounterBlock extends BaseEntityBlock {
-    private static final MapCodec<CustomerPickupCounterBlock> CODEC =
-            simpleCodec(CustomerPickupCounterBlock::new);
     private static final VoxelShape SHAPE =
             Block.box(0.0D, 0.0D, 0.0D, 16.0D, 1.0D, 16.0D);
 
@@ -42,18 +38,28 @@ public class CustomerPickupCounterBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
-    }
-
-    @Override
-    protected RenderShape getRenderShape(BlockState state) {
+    public RenderShape getRenderShape(BlockState state) {
         return RenderShape.MODEL;
     }
 
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return CustomerPickupCounter.BLOCK_ENTITY.get().create(pos, state);
+    }
+
+    @Override
+    public InteractionResult use(
+            BlockState state,
+            Level level,
+            BlockPos pos,
+            Player player,
+            InteractionHand hand,
+            BlockHitResult hitResult
+    ) {
+        ItemStack stack = player.getItemInHand(hand);
+        return stack.isEmpty()
+                ? useWithoutItem(state, level, pos, player, hitResult)
+                : useItemOn(stack, state, level, pos, player, hand, hitResult);
     }
 
     @Nullable
@@ -74,8 +80,7 @@ public class CustomerPickupCounterBlock extends BaseEntityBlock {
         }
         return null;
     }
-    @Override
-    protected ItemInteractionResult useItemOn(
+    protected InteractionResult useItemOn(
             ItemStack stack,
             BlockState state,
             Level level,
@@ -85,11 +90,11 @@ public class CustomerPickupCounterBlock extends BaseEntityBlock {
             BlockHitResult hitResult
     ) {
         if (stack.isEmpty()) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.PASS;
         }
         if (!(level.getBlockEntity(pos)
                 instanceof CustomerPickupCounterBlockEntity counter)) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.PASS;
         }
         if (!LevelCUtils.isClientSide(level)) {
             ItemStack source = player.isCreative() ? stack.copy() : stack;
@@ -101,8 +106,7 @@ public class CustomerPickupCounterBlock extends BaseEntityBlock {
             boolean wanted =
                     counter.hasAssignableCraftedItemConnected(requested);
             if (!wanted) {
-                return ItemInteractionResult
-                        .SKIP_DEFAULT_BLOCK_INTERACTION;
+                return InteractionResult.PASS;
             }
             ItemStack requestedRemainder =
                     counter.insertCraftedStackConnected(
@@ -130,10 +134,9 @@ public class CustomerPickupCounterBlock extends BaseEntityBlock {
                 );
             }
         }
-        return ItemInteractionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
-    @Override
     protected InteractionResult useWithoutItem(
             BlockState state,
             Level level,
@@ -155,7 +158,7 @@ public class CustomerPickupCounterBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected void onRemove(
+    public void onRemove(
             BlockState state,
             Level level,
             BlockPos pos,
@@ -180,7 +183,7 @@ public class CustomerPickupCounterBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected VoxelShape getShape(
+    public VoxelShape getShape(
             BlockState state,
             BlockGetter level,
             BlockPos pos,

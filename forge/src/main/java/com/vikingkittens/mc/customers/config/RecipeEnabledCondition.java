@@ -1,9 +1,6 @@
 package com.vikingkittens.mc.customers.config;
 
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.DynamicOps;
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraftforge.common.crafting.conditions.ICondition;
 
@@ -13,14 +10,8 @@ import com.vikingkittens.mc.customers.compatability.IConfigHelper;
 public record RecipeEnabledCondition(String recipe) implements ICondition {
     public static final String CUSTOMER_SPAWNER_BLOCK = "customer_spawner_block";
     public static final String SUPPLIER_SPAWNER_BLOCK = "supplier_spawner_block";
-    public static final MapCodec<RecipeEnabledCondition> CODEC = RecordCodecBuilder.mapCodec(
-            builder -> builder
-                    .group(Codec.STRING.fieldOf("recipe").forGetter(RecipeEnabledCondition::recipe))
-                    .apply(builder, RecipeEnabledCondition::new)
-    );
-
     @Override
-    public boolean test(IContext context, DynamicOps<?> ops) {
+    public boolean test(IContext context) {
         return test(CustomersServices.config());
     }
 
@@ -33,7 +24,7 @@ public record RecipeEnabledCondition(String recipe) implements ICondition {
     }
 
     @Override
-    public MapCodec<? extends ICondition> codec() {
-        return CODEC;
+    public net.minecraft.resources.ResourceLocation getID() {
+        return new net.minecraft.resources.ResourceLocation("customers", "recipe_enabled");
     }
 }

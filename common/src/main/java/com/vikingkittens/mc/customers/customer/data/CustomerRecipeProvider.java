@@ -1,12 +1,11 @@
 package com.vikingkittens.mc.customers.customer.data;
 
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
-import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
+import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.data.recipes.RecipeCategory;
-import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
@@ -21,18 +20,18 @@ import com.vikingkittens.mc.customers.customer.CustomerPickupCounterBlock;
 public final class CustomerRecipeProvider extends RecipeProvider {
     public CustomerRecipeProvider(
             PackOutput output,
-            CompletableFuture<HolderLookup.Provider> registries
+            Object ignored
     ) {
-        super(output, registries);
+        super(output);
     }
 
     @Override
-    protected void buildRecipes(RecipeOutput output) {
+    protected void buildRecipes(Consumer<FinishedRecipe> output) {
         buildPickupCounterRecipes(output);
         buildPaymentBoxRecipes(output);
     }
 
-    private void buildPickupCounterRecipes(RecipeOutput output) {
+    private void buildPickupCounterRecipes(Consumer<FinishedRecipe> output) {
         for (Map.Entry<
                 CustomerOverlayBlockVariant,
                 ? extends java.util.function.Supplier<
@@ -64,7 +63,7 @@ public final class CustomerRecipeProvider extends RecipeProvider {
         }
     }
 
-    private void buildPaymentBoxRecipes(RecipeOutput output) {
+    private void buildPaymentBoxRecipes(Consumer<FinishedRecipe> output) {
         for (Map.Entry<
                 CustomerOverlayBlockVariant,
                 ? extends java.util.function.Supplier<

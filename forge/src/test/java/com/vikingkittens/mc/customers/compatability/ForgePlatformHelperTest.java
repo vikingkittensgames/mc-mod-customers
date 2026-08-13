@@ -1,5 +1,6 @@
 package com.vikingkittens.mc.customers.compatability;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.core.Holder;
@@ -8,6 +9,8 @@ import net.minecraft.world.entity.npc.VillagerType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.biome.Biome;
 
+import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -15,6 +18,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 class ForgePlatformHelperTest {
+    @BeforeAll
+    static void bootstrapMinecraft() {
+        MinecraftTestBootstrap.bootstrap();
+    }
+
     @Test
     void loadsForgeConfigProvider() {
         assertEquals(ForgeConfigHelper.class, CustomersServices.config().getClass());
@@ -47,9 +55,9 @@ class ForgePlatformHelperTest {
 
     @Test
     void delegatesModDetectionToForge() {
-        ForgePlatformHelper helper = new ForgePlatformHelper("mca"::equals);
+        ForgePlatformHelper helper = new ForgePlatformHelper("optional_mod"::equals);
 
-        assertTrue(helper.isModLoaded("mca"));
+        assertTrue(helper.isModLoaded("optional_mod"));
         assertFalse(helper.isModLoaded("missing"));
     }
 

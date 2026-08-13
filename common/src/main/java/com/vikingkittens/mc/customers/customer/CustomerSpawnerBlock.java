@@ -5,12 +5,9 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -35,8 +32,6 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
 
     public static final String NAME = "customer_spawner_block";
 
-    private static final MapCodec<CustomerSpawnerBlock> CODEC = RecordCodecBuilder.mapCodec(instance ->
-            instance.group(propertiesCodec()).apply(instance, CustomerSpawnerBlock::new));
 
     static final EnumProperty<CustomerSpawnerMode> STATE_SPAWN_MODE = EnumProperty.create("spawn_mode", CustomerSpawnerMode.class);
 
@@ -65,12 +60,6 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
     }
 
     @Override
-    @NotNull
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
-    }
-
-    @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(STATE_SPAWN_MODE);
         builder.add(STATE_DISABLED);
@@ -93,13 +82,28 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
     }
 
     @Override
+    public InteractionResult use(
+            BlockState state,
+            Level level,
+            BlockPos pos,
+            Player player,
+            InteractionHand hand,
+            BlockHitResult hitResult
+    ) {
+        ItemStack stack = player.getItemInHand(hand);
+        return stack.isEmpty()
+                ? useWithoutItem(state, level, pos, player, hitResult)
+                : useItemOn(stack, state, level, pos, player, hand, hitResult);
+    }
+
+    @Override
     @NotNull
-    protected RenderShape getRenderShape(BlockState pState) {
+    public RenderShape getRenderShape(BlockState pState) {
         return RenderShape.MODEL;
     }
 
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!LevelCUtils.isClientSide(level) && !state.is(newState.getBlock())) {
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof CustomerSpawnerBlockEntity entity) {
@@ -110,7 +114,6 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
-    @Override
     @NotNull
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!LevelCUtils.isClientSide(level)) {
@@ -123,9 +126,8 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
         return InteractionResult.SUCCESS;
     }
 
-    @Override
     @NotNull
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (stack.is(Items.CLOCK)) {
             if (!LevelCUtils.isClientSide(level)) {
                 BlockEntity blockEntity = level.getBlockEntity(pos);
@@ -133,7 +135,7 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
                     entity.cycleSpawnMode();
                 }
             }
-            return ItemInteractionResult.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
 
         if (stack.is(Items.VILLAGER_SPAWN_EGG)) {
@@ -141,14 +143,14 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
             if (blockEntity instanceof CustomerSpawnerBlockEntity entity) {
                 entity.spawnCustomer();
             }
-            return ItemInteractionResult.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
 
-        return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
+        return InteractionResult.PASS;
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
+    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof CustomerSpawnerBlockEntity entity) {
             entity.updateState();

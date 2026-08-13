@@ -5,34 +5,17 @@ import java.util.Optional;
 import java.util.UUID;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
 
-import com.vikingkittens.mc.customers.Customers;
 
 public record CustomerSpawnerSnapshotPayload(
         BlockPos spawnerPos,
         Optional<CustomerSpawnerSnapshot> snapshot
-) implements CustomPacketPayload {
-    public static final Type<CustomerSpawnerSnapshotPayload> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(
-                    Customers.MODID,
-                    "customer_spawner_snapshot"
-            )
-    );
-    public static final StreamCodec<
-            RegistryFriendlyByteBuf,
-            CustomerSpawnerSnapshotPayload
-    > STREAM_CODEC = StreamCodec.of(
-            CustomerSpawnerSnapshotPayload::write,
-            CustomerSpawnerSnapshotPayload::read
-    );
+) {
 
-    private static void write(
-            RegistryFriendlyByteBuf buffer,
+    public static void write(
+            FriendlyByteBuf buffer,
             CustomerSpawnerSnapshotPayload payload
     ) {
         buffer.writeBlockPos(payload.spawnerPos());
@@ -50,21 +33,21 @@ public record CustomerSpawnerSnapshotPayload(
     }
 
     private static void writeCustomer(
-            RegistryFriendlyByteBuf buffer,
+            FriendlyByteBuf buffer,
             CustomerSpawnerSnapshot.Customer customer
     ) {
         buffer.writeUUID(customer.customerId());
         buffer.writeEnum(customer.type());
         buffer.writeVarInt(customer.offerCostItems().size());
         for (ItemStack offerCostItem : customer.offerCostItems()) {
-            ItemStack.STREAM_CODEC.encode(buffer, offerCostItem);
+            buffer.writeItem(offerCostItem);
         }
         buffer.writeLong(customer.ticksSinceTrade());
         buffer.writeLong(customer.giveUpTicks());
     }
 
-    private static CustomerSpawnerSnapshotPayload read(
-            RegistryFriendlyByteBuf buffer
+    public static CustomerSpawnerSnapshotPayload read(
+            FriendlyByteBuf buffer
     ) {
         BlockPos spawnerPos = buffer.readBlockPos();
         if (!buffer.readBoolean()) {
@@ -96,7 +79,7 @@ public record CustomerSpawnerSnapshotPayload(
     }
 
     private static CustomerSpawnerSnapshot.Customer readCustomer(
-            RegistryFriendlyByteBuf buffer
+            FriendlyByteBuf buffer
     ) {
         UUID customerId = buffer.readUUID();
         CustomerSpawnerSnapshot.Customer.Type type =
@@ -104,7 +87,7 @@ public record CustomerSpawnerSnapshotPayload(
         int offerCount = buffer.readVarInt();
         List<ItemStack> offerCostItems = new java.util.ArrayList<>(offerCount);
         for (int index = 0; index < offerCount; index++) {
-            offerCostItems.add(ItemStack.STREAM_CODEC.decode(buffer));
+            offerCostItems.add(buffer.readItem());
         }
         long ticksSinceTrade = buffer.readLong();
         long giveUpTicks = buffer.readLong();
@@ -117,8 +100,4 @@ public record CustomerSpawnerSnapshotPayload(
         );
     }
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
 }

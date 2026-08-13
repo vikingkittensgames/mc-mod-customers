@@ -8,16 +8,14 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.alchemy.Potions;
-import net.minecraft.world.item.trading.ItemCost;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -604,9 +602,9 @@ class CustomerPickupCounterDemandTest {
         CustomerPickupCounterBlockEntity counter = createCounter();
         UUID crafterId = UUID.randomUUID();
         ItemStack water =
-                PotionContents.createItemStack(Items.POTION, Potions.WATER);
+                PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.WATER);
         ItemStack awkward =
-                PotionContents.createItemStack(Items.POTION, Potions.AWKWARD);
+                PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.AWKWARD);
         counter.insertStoredStack(
                 new CustomerPickupCounterBlockEntity.StoredStack(
                         awkward,
@@ -621,15 +619,9 @@ class CustomerPickupCounterDemandTest {
                         crafterId
                 )
         );
-        ItemCost waterCost = new ItemCost(Items.POTION).withComponents(
-                builder -> builder.expect(
-                        DataComponents.POTION_CONTENTS,
-                        water.get(DataComponents.POTION_CONTENTS)
-                )
-        );
         MerchantOffer offer = new MerchantOffer(
-                waterCost,
-                Optional.empty(),
+                water,
+                ItemStack.EMPTY,
                 new ItemStack(Items.EMERALD),
                 1,
                 1,
@@ -642,8 +634,8 @@ class CustomerPickupCounterDemandTest {
                         offer
                 );
 
-        assertTrue(ItemStack.isSameItemSameComponents(water, taken.stack()));
-        assertTrue(ItemStack.isSameItemSameComponents(
+        assertTrue(ItemStack.isSameItemSameTags(water, taken.stack()));
+        assertTrue(ItemStack.isSameItemSameTags(
                 awkward,
                 counter.getDisplayItems().getFirst()
         ));
@@ -661,8 +653,8 @@ class CustomerPickupCounterDemandTest {
 
     private static MerchantOffer offer(Item item, int count) {
         return new MerchantOffer(
-                new ItemCost(item, count),
-                Optional.empty(),
+                new ItemStack(item, count),
+                ItemStack.EMPTY,
                 new ItemStack(Items.EMERALD),
                 1,
                 1,

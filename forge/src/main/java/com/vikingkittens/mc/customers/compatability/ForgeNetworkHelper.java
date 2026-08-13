@@ -1,13 +1,11 @@
 package com.vikingkittens.mc.customers.compatability;
 
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 
-import net.minecraftforge.network.Channel;
-import net.minecraftforge.network.ChannelBuilder;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.network.simple.SimpleChannel;
 
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.client.customer.CustomerPayloadClientHandlers;
@@ -16,45 +14,71 @@ import com.vikingkittens.mc.customers.customer.CustomerShiftFinishedPayload;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerSnapshotPayload;
 
 public final class ForgeNetworkHelper implements INetworkHelper {
-    public static void register() {
-        ChannelHolder.CHANNEL.getName();
-    }
-
-    private static <T> StreamCodec<RegistryFriendlyByteBuf, T> playCodec(
-            StreamCodec<? super RegistryFriendlyByteBuf, T> codec
-    ) {
-        return StreamCodec.of(codec::encode, codec::decode);
-    }
-
-    @Override
-    public void sendToPlayer(ServerPlayer player, CustomPacketPayload payload) {
-        ChannelHolder.CHANNEL.send(payload, player.connection.getConnection());
+    private static final String PROTOCOL_VERSION = "1";
+    private static SimpleChannel channel() {
+        return ChannelHolder.CHANNEL;
     }
 
     private static final class ChannelHolder {
-        private static final Channel<CustomPacketPayload> CHANNEL = ChannelBuilder
-                .named(ResourceLocation.fromNamespaceAndPath(Customers.MODID, "main"))
-                .networkProtocolVersion(1)
-                .payloadChannel()
-                .play()
-                .clientbound()
-                .addMain(
-                        CustomerShiftFinishedPayload.TYPE,
-                        playCodec(CustomerShiftFinishedPayload.STREAM_CODEC),
-                        (payload, context) -> CustomerPayloadClientHandlers.showShiftFinished(payload)
-                )
-                .addMain(
-                        CustomerCounterMarkersPayload.TYPE,
-                        playCodec(CustomerCounterMarkersPayload.STREAM_CODEC),
-                        (payload, context) -> CustomerPayloadClientHandlers.showCounterMarkers(payload)
-                )
-                .addMain(
-                        CustomerSpawnerSnapshotPayload.TYPE,
-                        playCodec(CustomerSpawnerSnapshotPayload.STREAM_CODEC),
-                        (payload, context) -> CustomerPayloadClientHandlers.updateSpawnerSnapshot(payload)
-                )
-                .build();
+        private static final SimpleChannel CHANNEL = createChannel();
 
-        private ChannelHolder() {}
+        private static SimpleChannel createChannel() {
+            SimpleChannel channel = NetworkRegistry.newSimpleChannel(
+                    new ResourceLocation(Customers.MODID, "main"),
+                    () -> PROTOCOL_VERSION,
+                    PROTOCOL_VERSION::equals,
+                    PROTOCOL_VERSION::equals
+            );
+            channel.registerMessage(
+                    0,
+                    CustomerShiftFinishedPayload.class,
+                    (payload, buffer) -> CustomerShiftFinishedPayload.write(buffer, payload),
+                    CustomerShiftFinishedPayload::read,
+                    (payload, context) -> {
+                        context.get().enqueueWork(() -> CustomerPayloadClientHandlers.showShiftFinished(payload));
+                        context.get().setPacketHandled(true);
+                    }
+            );
+            channel.registerMessage(
+                    1,
+                    CustomerCounterMarkersPayload.class,
+                    (payload, buffer) -> CustomerCounterMarkersPayload.write(buffer, payload),
+                    CustomerCounterMarkersPayload::read,
+                    (payload, context) -> {
+                        context.get().enqueueWork(() -> CustomerPayloadClientHandlers.showCounterMarkers(payload));
+                        context.get().setPacketHandled(true);
+                    }
+            );
+            channel.registerMessage(
+                    2,
+                    CustomerSpawnerSnapshotPayload.class,
+                    (payload, buffer) -> CustomerSpawnerSnapshotPayload.write(buffer, payload),
+                    CustomerSpawnerSnapshotPayload::read,
+                    (payload, context) -> {
+                        context.get().enqueueWork(() -> CustomerPayloadClientHandlers.updateSpawnerSnapshot(payload));
+                        context.get().setPacketHandled(true);
+                    }
+            );
+            return channel;
+        }
+    }
+
+    public static void register() {
+        channel();
+    }
+
+    @Override
+    public void sendToPlayer(ServerPlayer player, CustomerCounterMarkersPayload payload) {
+        channel().send(PacketDistributor.PLAYER.with(() -> player), payload);
+    }
+
+    @Override
+    public void sendToPlayer(ServerPlayer player, CustomerShiftFinishedPayload payload) {
+        channel().send(PacketDistributor.PLAYER.with(() -> player), payload);
+    }
+
+    @Override
+    public void sendToPlayer(ServerPlayer player, CustomerSpawnerSnapshotPayload payload) {
+        channel().send(PacketDistributor.PLAYER.with(() -> player), payload);
     }
 }

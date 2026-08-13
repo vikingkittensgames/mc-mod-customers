@@ -58,14 +58,8 @@ public class CustomerVillagerEntityRenderer extends
             PoseStack poseStack,
             float partialTick
     ) {
-        float scale = 0.9375F * entity.getAgeScale();
+        float scale = 0.9375F;
         poseStack.scale(scale, scale, scale);
-    }
-
-    @Override
-    protected float getShadowRadius(CustomerVillagerEntity entity) {
-        float shadowRadius = super.getShadowRadius(entity);
-        return entity.isBaby() ? shadowRadius * 0.5F : shadowRadius;
     }
 
     public static class Model extends VillagerModel<CustomerVillagerEntity> {

@@ -20,7 +20,6 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.client.resources.DefaultPlayerSkin;
-import net.minecraft.client.resources.PlayerSkin;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -95,10 +94,6 @@ public class CustomerShiftFinishedScreen extends Screen {
                 )
                 .bounds(leftPos + (IMAGE_WIDTH - 100) / 2, topPos + IMAGE_HEIGHT - 24, 100, 20)
                 .build());
-    }
-
-    @Override
-    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
     }
 
     @Override
@@ -336,9 +331,9 @@ public class CustomerShiftFinishedScreen extends Screen {
             PlayerInfo playerInfo = connection == null
                     ? null
                     : connection.getPlayerInfo(playerId);
-            PlayerSkin skin = playerInfo == null
-                    ? DefaultPlayerSkin.get(playerId)
-                    : playerInfo.getSkin();
+            ResourceLocation skin = playerInfo == null
+                    ? DefaultPlayerSkin.getDefaultSkin(playerId)
+                    : playerInfo.getSkinLocation();
             PlayerFaceRenderer.draw(
                     graphics,
                     skin,

@@ -42,9 +42,9 @@ class NeoForgePlatformHelperTest {
 
     @Test
     void delegatesModDetectionToNeoForge() {
-        NeoForgePlatformHelper helper = new NeoForgePlatformHelper("mca"::equals);
+        NeoForgePlatformHelper helper = new NeoForgePlatformHelper("optional_mod"::equals);
 
-        assertTrue(helper.isModLoaded("mca"));
+        assertTrue(helper.isModLoaded("optional_mod"));
         assertFalse(helper.isModLoaded("missing"));
     }
 
