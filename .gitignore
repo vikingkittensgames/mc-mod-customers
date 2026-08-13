@@ -39,6 +39,6 @@ run-*/
 **/src/generated/**/.cache/
 repo/
 !**/src/**/repo/
-/logs/
-/inspiration/
-/example-appearance/
+**/logs/
+inspiration/
+example-appearance/
