@@ -5,6 +5,7 @@ plugins {
 
 version = mod_version
 group = mod_group_id
+def customerModName = providers.gradleProperty('mod_name').get()
 
 base {
     archivesName = "${mod_id}-${project.name}-${minecraft_version}"
@@ -65,18 +66,18 @@ repositories {
 
 tasks.named('sourcesJar', Jar) {
     from(rootProject.file('LICENSE')) {
-        rename { "${it}_${mod_name}" }
+        rename { "${it}_${customerModName}" }
     }
 }
 
 tasks.named('jar', Jar) {
     from(rootProject.file('LICENSE')) {
-        rename { "${it}_${mod_name}" }
+        rename { "${it}_${customerModName}" }
     }
 
     manifest {
         attributes([
-                'Specification-Title'   : mod_name,
+                'Specification-Title'   : customerModName,
                 'Specification-Vendor'  : 'Viking Kittens',
                 'Specification-Version' : project.version,
                 'Implementation-Title'  : project.name,
