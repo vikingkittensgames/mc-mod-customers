@@ -57,8 +57,8 @@ class CustomerPickupCounterDemandTest {
                         );
 
         assertEquals(1, taken.size());
-        assertEquals(5, taken.getFirst().stack().getCount());
-        assertEquals(playerId, taken.getFirst().crafterId());
+        assertEquals(5, taken.get(0).stack().getCount());
+        assertEquals(playerId, taken.get(0).crafterId());
         assertTrue(counter.getDisplayItems().isEmpty());
     }
 
@@ -90,14 +90,14 @@ class CustomerPickupCounterDemandTest {
                         );
 
         assertEquals(2, taken.size());
-        assertEquals(3, taken.getFirst().stack().getCount());
-        assertEquals(playerId, taken.getFirst().crafterId());
-        assertEquals(2, taken.getLast().stack().getCount());
-        assertNull(taken.getLast().crafterId());
+        assertEquals(3, taken.get(0).stack().getCount());
+        assertEquals(playerId, taken.get(0).crafterId());
+        assertEquals(2, taken.get(taken.size() - 1).stack().getCount());
+        assertNull(taken.get(taken.size() - 1).crafterId());
         assertTrue(first.getDisplayItems().isEmpty());
         assertEquals(
                 2,
-                second.getDisplayItems().getFirst().getCount()
+                second.getDisplayItems().get(0).getCount()
         );
     }
 
@@ -130,11 +130,11 @@ class CustomerPickupCounterDemandTest {
         assertTrue(taken.isEmpty());
         assertEquals(
                 2,
-                first.getDisplayItems().getFirst().getCount()
+                first.getDisplayItems().get(0).getCount()
         );
         assertEquals(
                 2,
-                second.getDisplayItems().getFirst().getCount()
+                second.getDisplayItems().get(0).getCount()
         );
     }
 
@@ -312,8 +312,8 @@ class CustomerPickupCounterDemandTest {
                 );
 
         assertEquals(1, returned.size());
-        assertEquals(10, returned.getFirst().stack().getCount());
-        assertEquals(crafterId, returned.getFirst().crafterId());
+        assertEquals(10, returned.get(0).stack().getCount());
+        assertEquals(crafterId, returned.get(0).crafterId());
         CustomerPickupCounterBlockEntity.StoredStack stored =
                 counter.removeOldestStored();
         assertEquals(5, stored.stack().getCount());
@@ -338,8 +338,8 @@ class CustomerPickupCounterDemandTest {
                 );
 
         assertEquals(1, returned.size());
-        assertEquals(15, returned.getFirst().stack().getCount());
-        assertEquals(crafterId, returned.getFirst().crafterId());
+        assertEquals(15, returned.get(0).stack().getCount());
+        assertEquals(crafterId, returned.get(0).crafterId());
         assertTrue(counter.getDisplayItems().isEmpty());
     }
 
@@ -371,8 +371,8 @@ class CustomerPickupCounterDemandTest {
                 );
 
         assertEquals(1, returned.size());
-        assertEquals(2, returned.getFirst().stack().getCount());
-        assertEquals(secondOwner, returned.getFirst().crafterId());
+        assertEquals(2, returned.get(0).stack().getCount());
+        assertEquals(secondOwner, returned.get(0).crafterId());
         assertEquals(3, first.removeOldestStored().stack().getCount());
         assertEquals(2, second.removeOldestStored().stack().getCount());
     }
@@ -394,8 +394,8 @@ class CustomerPickupCounterDemandTest {
                 );
 
         assertEquals(1, returned.size());
-        assertEquals(6, returned.getFirst().stack().getCount());
-        assertNull(returned.getFirst().crafterId());
+        assertEquals(6, returned.get(0).stack().getCount());
+        assertNull(returned.get(0).crafterId());
         assertTrue(counter.getDisplayItems().isEmpty());
     }
     @Test
@@ -645,7 +645,7 @@ class CustomerPickupCounterDemandTest {
         assertTrue(ItemStack.isSameItemSameComponents(water, taken.stack()));
         assertTrue(ItemStack.isSameItemSameComponents(
                 awkward,
-                counter.getDisplayItems().getFirst()
+                counter.getDisplayItems().get(0)
         ));
     }
     private static CustomerPickupCounterBlockEntity createCounter() {

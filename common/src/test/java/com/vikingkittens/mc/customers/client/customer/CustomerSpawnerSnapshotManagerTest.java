@@ -112,7 +112,7 @@ class CustomerSpawnerSnapshotManagerTest {
                 CustomerSpawnerSnapshotManager.findBySpawner(spawnerPos)
         );
         assertEquals(
-                Optional.of(newSnapshot.customers().getFirst()),
+                Optional.of(newSnapshot.customers().get(0)),
                 CustomerSpawnerSnapshotManager.findByCustomer(newCustomerId)
         );
     }

@@ -246,8 +246,13 @@ public class SupplierVillagerEntity extends Villager implements CustomersVillage
     }
 
     @Override
-    public boolean isSitting() {
+    public boolean isVillagerSitting() {
         return isPassenger();
+    }
+
+    @Override
+    public boolean isVillagerInWater() {
+        return super.isInWater();
     }
 
     @Override

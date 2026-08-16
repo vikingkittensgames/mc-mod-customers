@@ -40,7 +40,7 @@ public final class MonsterCustomersVillagerAppearance
             case SKELETON -> SoundEvents.SKELETON_AMBIENT;
             case WITCH -> SoundEvents.WITCH_AMBIENT;
             case HUSK -> SoundEvents.HUSK_AMBIENT;
-            case DROWNED -> villager.isInWater()
+            case DROWNED -> villager.isVillagerInWater()
                     ? SoundEvents.DROWNED_AMBIENT_WATER
                     : SoundEvents.DROWNED_AMBIENT;
             case STRAY -> SoundEvents.STRAY_AMBIENT;
@@ -54,7 +54,7 @@ public final class MonsterCustomersVillagerAppearance
             case SKELETON -> SoundEvents.SKELETON_HURT;
             case WITCH -> SoundEvents.WITCH_HURT;
             case HUSK -> SoundEvents.HUSK_HURT;
-            case DROWNED -> villager.isInWater()
+            case DROWNED -> villager.isVillagerInWater()
                     ? SoundEvents.DROWNED_HURT_WATER
                     : SoundEvents.DROWNED_HURT;
             case STRAY -> SoundEvents.STRAY_HURT;
@@ -68,7 +68,7 @@ public final class MonsterCustomersVillagerAppearance
             case SKELETON -> SoundEvents.SKELETON_DEATH;
             case WITCH -> SoundEvents.WITCH_DEATH;
             case HUSK -> SoundEvents.HUSK_DEATH;
-            case DROWNED -> villager.isInWater()
+            case DROWNED -> villager.isVillagerInWater()
                     ? SoundEvents.DROWNED_DEATH_WATER
                     : SoundEvents.DROWNED_DEATH;
             case STRAY -> SoundEvents.STRAY_DEATH;

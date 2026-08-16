@@ -12,6 +12,8 @@ import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
+import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
+
 public class PersistedContainer implements Container {
     private final Runnable changeListener;
     private final Predicate<Player> validity;
@@ -72,7 +74,7 @@ public class PersistedContainer implements Container {
         }
 
         ItemStack existing = getItem(slot);
-        if (!existing.isEmpty() && !ItemStack.isSameItemSameComponents(existing, stack)) {
+        if (!existing.isEmpty() && !ItemStackCUtils.isSameItemAndTags(existing, stack)) {
             return stack;
         }
 

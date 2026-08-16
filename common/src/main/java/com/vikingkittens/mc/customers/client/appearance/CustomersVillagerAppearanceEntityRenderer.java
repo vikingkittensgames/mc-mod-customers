@@ -37,7 +37,7 @@ public final class CustomersVillagerAppearanceEntityRenderer<
     ) {
         CustomersVillagerClientAppearance appearance =
                 CustomersVillagerClientAppearances.get(entity);
-        Vec3 sittingOffset = entity.isSitting() && appearance != null
+        Vec3 sittingOffset = entity.isVillagerSitting() && appearance != null
                 ? appearance.getSittingOffset(entity)
                 : Vec3.ZERO;
         poseStack.pushPose();

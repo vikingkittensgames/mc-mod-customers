@@ -69,8 +69,8 @@ class CustomerSpawnerSnapshotPayloadTest {
         CustomerSpawnerSnapshot decodedSnapshot =
                 decoded.snapshot().orElseThrow();
         CustomerSpawnerSnapshot.Customer decodedCustomer =
-                decodedSnapshot.customers().getFirst();
-        ItemStack decodedCost = decodedCustomer.offerCostItems().getFirst();
+                decodedSnapshot.customers().get(0);
+        ItemStack decodedCost = decodedCustomer.offerCostItems().get(0);
         assertEquals(spawnerPos, decoded.spawnerPos());
         assertEquals(CustomerSpawnerMode.DINNER, decodedSnapshot.spawnerMode());
         assertEquals(Optional.of(bossEventId), decodedSnapshot.bossEventId());

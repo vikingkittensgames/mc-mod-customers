@@ -138,11 +138,11 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
                     }
 
                     if (!untargetedNotTooClosePositions.isEmpty()) {
-                        surroundingPos = untargetedNotTooClosePositions.getFirst();
+                        surroundingPos = untargetedNotTooClosePositions.get(0);
                     } else if (!untargetedPositions.isEmpty()) {
-                        surroundingPos = untargetedPositions.getFirst();
+                        surroundingPos = untargetedPositions.get(0);
                     } else {
-                        surroundingPos = validPositions.getFirst();
+                        surroundingPos = validPositions.get(0);
                     }
                 }
                 targetPos = surroundingPos.getPosition();

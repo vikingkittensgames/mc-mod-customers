@@ -94,13 +94,19 @@ public class CustomerPickupCounterBlock extends BaseEntityBlock {
         if (!LevelCUtils.isClientSide(level)) {
             ItemStack source = player.isCreative() ? stack.copy() : stack;
             ItemStack requested = source;
-            if (player.isShiftKeyDown()) {
+            if (!player.isShiftKeyDown()) {
                 requested = source.copy();
                 requested.setCount(1);
             }
             boolean wanted =
                     counter.hasAssignableCraftedItemConnected(requested);
             if (!wanted) {
+                PlayerCUtils.sendActionBarMessage(
+                        player,
+                        Component.translatable(
+                                "messages.customers.pickup_counter.not_wanted"
+                        )
+                );
                 return ItemInteractionResult
                         .SKIP_DEFAULT_BLOCK_INTERACTION;
             }
@@ -112,7 +118,7 @@ public class CustomerPickupCounterBlock extends BaseEntityBlock {
             boolean inserted =
                     requestedRemainder.getCount() < requested.getCount();
             ItemStack remainder = requestedRemainder;
-            if (player.isShiftKeyDown()) {
+            if (!player.isShiftKeyDown()) {
                 remainder = source.copy();
                 if (inserted) {
                     remainder.shrink(1);
