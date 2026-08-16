@@ -103,4 +103,21 @@ class PersistenceCUtilsTest {
         ));
         assertEquals(25, restored.get(0).getCount());
     }
+
+    @Test
+    void preservesEmptyItemSlots() {
+        CompoundTag tag = new CompoundTag();
+        ItemStack bread = new ItemStack(Items.BREAD);
+        ItemStack carrot = new ItemStack(Items.CARROT);
+
+        PersistenceCUtils.writer(tag, RegistryAccess.EMPTY)
+                .putItemStacks("stacks", List.of(bread, ItemStack.EMPTY, carrot));
+        List<ItemStack> restored = PersistenceCUtils.reader(tag, RegistryAccess.EMPTY)
+                .getItemStacks("stacks");
+
+        assertEquals(3, restored.size());
+        assertTrue(ItemStack.isSameItemSameComponents(bread, restored.get(0)));
+        assertTrue(restored.get(1).isEmpty());
+        assertTrue(ItemStack.isSameItemSameComponents(carrot, restored.get(2)));
+    }
 }

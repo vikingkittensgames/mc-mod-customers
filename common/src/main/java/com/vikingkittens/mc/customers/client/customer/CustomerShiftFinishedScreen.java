@@ -62,11 +62,11 @@ public class CustomerShiftFinishedScreen extends Screen {
     private static final TextureC SPOON_TEXTURE = texture("spoon.png");
     private static final TextureC HALF_STAR_TEXTURE = texture("halfstar.png");
     private static final TextureC NO_STAR_TEXTURE = texture("nostar.png");
-    private static final TextureC BREAKFAST_SHIFT_TEXTURE = texture("shift_breakfast.png");
-    private static final TextureC DAY_SHIFT_TEXTURE = texture("shift_day.png");
-    private static final TextureC DINNER_SHIFT_TEXTURE = texture("shift_dinner.png");
-    private static final TextureC LUNCH_SHIFT_TEXTURE = texture("shift_lunch.png");
-    private static final TextureC NIGHT_SHIFT_TEXTURE = texture("shift_night.png");
+    private static final TextureC BREAKFAST_SHIFT_TEXTURE = texture("mode_breakfast.png");
+    private static final TextureC DAY_SHIFT_TEXTURE = texture("mode_day.png");
+    private static final TextureC DINNER_SHIFT_TEXTURE = texture("mode_dinner.png");
+    private static final TextureC LUNCH_SHIFT_TEXTURE = texture("mode_lunch.png");
+    private static final TextureC NIGHT_SHIFT_TEXTURE = texture("mode_night.png");
 
     private final CustomerShiftFinishedPayload payload;
     private int leftPos;

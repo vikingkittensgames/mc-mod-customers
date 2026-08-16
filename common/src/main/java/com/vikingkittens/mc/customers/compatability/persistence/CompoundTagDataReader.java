@@ -1,6 +1,7 @@
 package com.vikingkittens.mc.customers.compatability.persistence;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -117,7 +118,9 @@ final class CompoundTagDataReader implements DataReader {
         }
         CompoundTag inventoryTag = tag.getCompound(key);
         int size = inventoryTag.getInt("Size");
-        List<ItemStack> stacks = new ArrayList<>(size);
+        List<ItemStack> stacks = new ArrayList<>(
+                Collections.nCopies(size, ItemStack.EMPTY)
+        );
         ListTag itemTags = inventoryTag.getList("Items", Tag.TAG_COMPOUND);
         for (int index = 0; index < itemTags.size(); index++) {
             CompoundTag itemTag = itemTags.getCompound(index);
@@ -126,7 +129,7 @@ final class CompoundTagDataReader implements DataReader {
                 ItemStack.parse(
                         Objects.requireNonNull(registries),
                         itemTag
-                ).ifPresent(stacks::add);
+                ).ifPresent(stack -> stacks.set(slot, stack));
             }
         }
         return List.copyOf(stacks);
