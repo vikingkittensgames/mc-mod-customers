@@ -4,17 +4,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.Checkbox;
-import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.MultiLineLabel;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.client.common.IconsScaleControl;
+import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlockEntity;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlockMenu;
+import com.vikingkittens.mc.customers.customer.CustomerSpawnerLevelSettings;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
 public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<CustomerSpawnerBlockMenu> {
@@ -26,11 +30,21 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
     private static final int TEXTURE_HEIGHT = 256;
     private static final int APPEARANCE_WIDGET_WIDTH = 99;
     private static final int APPEARANCE_TEXT_COLOR = 0x000000;
+    private static final ResourceLocation ARROW_LEFT = texture("arrow_left");
+    private static final ResourceLocation ARROW_LEFT_PRESSED = texture("arrow_left_pressed");
+    private static final ResourceLocation ARROW_RIGHT = texture("arrow_right");
+    private static final ResourceLocation ARROW_RIGHT_PRESSED = texture("arrow_right_pressed");
+    private static final ResourceLocation HALFSTAR_SMALL = texture("halfstar_small");
+    private static final ResourceLocation NOSTAR_SMALL = texture("nostar_small");
+    private static final ResourceLocation STAR_SMALL = texture("star_small");
     private final List<Checkbox> appearanceCheckboxes =
             new ArrayList<>();
     private final List<MultiLineLabel> appearanceLabels =
             new ArrayList<>();
-    private CycleButton<CustomerSpawnerMode> modeButton;
+    private ModeButton modeButton;
+    private TextureButton decrementLevelButton;
+    private TextureButton incrementLevelButton;
+    private IconsScaleControl requiredStars;
     private EditBox maxCustomers;
     private boolean synchronizingAppearanceCheckboxes;
 
@@ -50,24 +64,39 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         super.init();
         appearanceCheckboxes.clear();
         appearanceLabels.clear();
-        modeButton = addRenderableWidget(
-                CycleButton.<CustomerSpawnerMode>builder(
-                                CustomerSpawnerMode::getTitle
-                        )
-                        .withValues(CustomerSpawnerMode.values())
-                        .withInitialValue(menu.getSpawnerMode())
-                        .displayOnlyValue()
-                        .create(
-                                leftPos + 177,
-                                topPos + 29,
-                                63,
-                                20,
-                                Component.empty(),
-                                (button, mode) -> send(
-                                        menu.modeButtonId(mode)
-                                )
-                        )
-        );
+        modeButton = addRenderableWidget(new ModeButton(
+                leftPos + imageWidth - 22,
+                topPos + 6
+        ));
+        decrementLevelButton = addRenderableWidget(new TextureButton(
+                leftPos + 4,
+                topPos + 4,
+                ARROW_LEFT,
+                ARROW_LEFT_PRESSED,
+                menu.decrementLevelButtonId()
+        ));
+        incrementLevelButton = addRenderableWidget(new TextureButton(
+                leftPos + 245,
+                topPos + 4,
+                ARROW_RIGHT,
+                ARROW_RIGHT_PRESSED,
+                menu.incrementLevelButtonId()
+        ));
+        requiredStars = addRenderableWidget(new IconsScaleControl(
+                leftPos + 177,
+                topPos + 29,
+                STAR_SMALL,
+                HALFSTAR_SMALL,
+                NOSTAR_SMALL,
+                16,
+                16,
+                5,
+                CustomerSpawnerLevelSettings.MINIMUM_REQUIRED_STARS,
+                CustomerSpawnerLevelSettings.MAXIMUM_REQUIRED_STARS,
+                0.5F,
+                menu.getRequiredStars(),
+                value -> send(menu.requiredStarsButtonId(value))
+        ));
         maxCustomers = new EditBox(
                 font,
                 leftPos + 177,
@@ -124,7 +153,11 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
 
     @Override
     protected void containerTick() {
-        modeButton.setValue(menu.getSpawnerMode());
+        modeButton.setMode(menu.getSpawnerMode());
+        decrementLevelButton.visible = menu.getSelectedLevel() > 0;
+        incrementLevelButton.visible =
+                menu.getSelectedLevel() < CustomerSpawnerBlockEntity.MAX_LEVELS - 1;
+        requiredStars.setValue(menu.getRequiredStars());
         String synchronizedMaxCustomers =
                 Integer.toString(menu.getMaxCustomers());
         if (
@@ -178,21 +211,30 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
             int mouseX,
             int mouseY
     ) {
-        super.renderLabels(graphics, mouseX, mouseY);
         graphics.drawString(
                 font,
                 Component.translatable(
-                        "screen.customers.customer_spawner.cost"
+                        "screen.customers.customer_spawner.title",
+                        menu.getSpawnerMode().getTitle(),
+                        menu.getSelectedLevel() + 1
                 ),
-                156,
+                24,
                 6,
                 0x404040,
                 false
         );
         graphics.drawString(
                 font,
+                Component.translatable("container.inventory"),
+                8,
+                inventoryLabelY,
+                0x404040,
+                false
+        );
+        graphics.drawString(
+                font,
                 Component.translatable(
-                        "screen.customers.customer_spawner.mode"
+                        "screen.customers.customer_spawner.stars_required"
                 ),
                 177,
                 17,
@@ -254,5 +296,109 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
 
     private void send(int id) {
         minecraft.gameMode.handleInventoryButtonClick(menu.containerId, id);
+    }
+
+    private static ResourceLocation texture(String name) {
+        return ResourceLocation.fromNamespaceAndPath(
+                Customers.MODID,
+                "textures/gui/" + name + ".png"
+        );
+    }
+
+    private static ResourceLocation modeTexture(CustomerSpawnerMode mode) {
+        return texture("mode_" + mode.getSerializedName());
+    }
+
+    private class ModeButton extends AbstractButton {
+        private CustomerSpawnerMode mode = menu.getSpawnerMode();
+
+        private ModeButton(int x, int y) {
+            super(x, y, 16, 16, menu.getSpawnerMode().getTitle());
+        }
+
+        private void setMode(CustomerSpawnerMode mode) {
+            this.mode = mode;
+            setMessage(mode.getTitle());
+        }
+
+        @Override
+        public void onPress() {
+            CustomerSpawnerMode[] modes = CustomerSpawnerMode.values();
+            setMode(modes[(mode.ordinal() + 1) % modes.length]);
+            send(menu.modeButtonId(mode));
+        }
+
+        @Override
+        protected void renderWidget(
+                GuiGraphics graphics,
+                int mouseX,
+                int mouseY,
+                float partialTick
+        ) {
+            graphics.blit(
+                    modeTexture(mode),
+                    getX(),
+                    getY(),
+                    0,
+                    0,
+                    16,
+                    16,
+                    16,
+                    16
+            );
+        }
+
+        @Override
+        protected void updateWidgetNarration(NarrationElementOutput narration) {}
+    }
+
+    private class TextureButton extends AbstractButton {
+        private final ResourceLocation texture;
+        private final ResourceLocation pressedTexture;
+        private final int buttonId;
+
+        private TextureButton(
+                int x,
+                int y,
+                ResourceLocation texture,
+                ResourceLocation pressedTexture,
+                int buttonId
+        ) {
+            super(x, y, 12, 12, Component.empty());
+            this.texture = texture;
+            this.pressedTexture = pressedTexture;
+            this.buttonId = buttonId;
+        }
+
+        @Override
+        public void onPress() {
+            send(buttonId);
+        }
+
+        @Override
+        protected void renderWidget(
+                GuiGraphics graphics,
+                int mouseX,
+                int mouseY,
+                float partialTick
+        ) {
+            ResourceLocation buttonTexture = isHoveredOrFocused()
+                    ? pressedTexture
+                    : texture;
+            graphics.blit(
+                    buttonTexture,
+                    getX(),
+                    getY(),
+                    0,
+                    0,
+                    12,
+                    12,
+                    12,
+                    12
+            );
+        }
+
+        @Override
+        protected void updateWidgetNarration(NarrationElementOutput narration) {}
     }
 }

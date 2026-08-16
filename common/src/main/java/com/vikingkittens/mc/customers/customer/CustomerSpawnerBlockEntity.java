@@ -36,7 +36,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
-import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearanceSettings;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 import com.vikingkittens.mc.customers.common.ContainerUtils;
 import com.vikingkittens.mc.customers.common.SearchUtils;
@@ -47,18 +46,16 @@ import com.vikingkittens.mc.customers.compatability.LevelCUtils;
 import com.vikingkittens.mc.customers.compatability.PlayerCUtils;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
 import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
-import com.vikingkittens.mc.customers.compatability.persistence.PersistedContainer;
 import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
 
 public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvider {
-    static final int CURRENT_DATA_VERSION = 2;
+    static final int CURRENT_DATA_VERSION = 3;
+    public static final int MAX_LEVELS = 8;
     static final int MIN_MAX_CUSTOMERS = 1;
     static final int MAX_MAX_CUSTOMERS = 99;
     static final String TAG_DATA_VERSION = "data_version";
     static final String TAG_MAX_CUSTOMERS = "maxCustomers";
-
-    private final CustomersVillagerAppearanceSettings appearanceSettings =
-            new CustomersVillagerAppearanceSettings();
+    private static final String TAG_LEVEL_SETTINGS = "levelSettings";
     private static final Logger LOGGER = LogUtils.getLogger();
 
     private static final int INVENTORY_ROW_SIZE = 9;
@@ -151,14 +148,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     private boolean needsUpdate = true;
     private long updateDelayTicks = 0;
-    private int maxCustomers = clampMaxCustomers(
-            CustomersServices.config().defaultMaxCustomers()
-    );
-    private final PersistedContainer inventory = new PersistedContainer(
-            INVENTORY_ROW_SIZE * 6,
-            this::setChanged,
-            player -> Container.stillValidBlockEntity(this, player)
-    );
+    private final List<CustomerSpawnerLevelSettings> levelSettings = new ArrayList<>();
     private long spawnCheckTicks = 0;
     private final Set<UUID> customerIds = new HashSet<>();
     private final Map<BlockPos, List<UUID>> reservedTargetCounterPositions = new HashMap<>();
@@ -360,10 +350,35 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     public CustomerSpawnerBlockEntity(BlockPos pos, BlockState blockState) {
         super(CustomerSpawner.CUSTOMER_SPAWNER_ENTITY.get(), pos, blockState);
+        levelSettings.add(createLevelSettings());
+    }
+
+    private CustomerSpawnerLevelSettings createLevelSettings() {
+        return new CustomerSpawnerLevelSettings(
+                CustomersServices.config().defaultMaxCustomers(),
+                this::setChanged,
+                player -> Container.stillValidBlockEntity(this, player)
+        );
+    }
+
+    public CustomerSpawnerLevelSettings getLevelSettings(int levelIndex) {
+        if (levelIndex < 0 || levelIndex >= MAX_LEVELS) {
+            throw new IllegalArgumentException("Customer spawner level index must be between 0 and 7");
+        }
+        while (levelSettings.size() <= levelIndex) {
+            levelSettings.add(createLevelSettings());
+        }
+        return levelSettings.get(levelIndex);
+    }
+
+    private CustomerSpawnerLevelSettings getActiveLevelSettings() {
+        return getLevelSettings(0);
     }
 
     public boolean shouldConfirmBreak() {
-        return ContainerUtils.hasItems(inventory);
+        return levelSettings.stream()
+                .map(CustomerSpawnerLevelSettings::getInventory)
+                .anyMatch(ContainerUtils::hasItems);
     }
 
     static int clampMaxCustomers(int value) {
@@ -375,30 +390,24 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     public int getMaxCustomers() {
-        return maxCustomers;
+        return getActiveLevelSettings().getMaxCustomers();
     }
 
     public void setMaxCustomers(int maxCustomers) {
-        this.maxCustomers = clampMaxCustomers(maxCustomers);
-        setChanged();
+        getActiveLevelSettings().setMaxCustomers(maxCustomers);
     }
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
 
-        try {
-            tag.put("inventory", this.inventory.serializeNBT(registries));
-        } catch (Throwable t) {
-            LOGGER.error("Failed to save inventory", t);
-        }
-
-        writeSpawnerData(PersistenceCUtils.writer(tag));
+        writeSpawnerData(PersistenceCUtils.writer(tag, registries));
     }
     void writeSpawnerData(DataWriter output) {
         output.putInt(TAG_DATA_VERSION, CURRENT_DATA_VERSION);
-        output.putInt(TAG_MAX_CUSTOMERS, maxCustomers);
-        appearanceSettings.write(output);
+        for (CustomerSpawnerLevelSettings settings : levelSettings) {
+            settings.write(output.addChild(TAG_LEVEL_SETTINGS));
+        }
         try {
             output.putUuids("customers", customerIds);
         } catch (Throwable t) {
@@ -416,24 +425,50 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        if (tag.contains("inventory")) {
+        DataReader input = PersistenceCUtils.reader(tag, registries);
+        boolean hasLegacyInventory = tag.contains("inventory");
+        boolean usesLegacyLevelData =
+                input.getInt(TAG_DATA_VERSION).orElse(0) < CURRENT_DATA_VERSION || hasLegacyInventory;
+        if (hasLegacyInventory) {
             try {
-                inventory.deserializeNBT(registries, tag.getCompound("inventory"));
+                getActiveLevelSettings().getPersistedInventory().deserializeNBT(registries, tag.getCompound("inventory"));
             } catch (Throwable t) {
                 LOGGER.error("Failed to load inventory because of error", t);
             }
         }
-        readSpawnerData(PersistenceCUtils.reader(tag));
+        readSpawnerData(input, usesLegacyLevelData);
     }
+
     void readSpawnerData(DataReader input) {
+        readSpawnerData(
+                input,
+                input.getInt(TAG_DATA_VERSION).orElse(0) < CURRENT_DATA_VERSION
+        );
+    }
+
+    private void readSpawnerData(DataReader input, boolean usesLegacyLevelData) {
         int loadedDataVersion =
                 input.getInt(TAG_DATA_VERSION).orElse(0);
-        maxCustomers = clampMaxCustomers(
-                input.getInt(TAG_MAX_CUSTOMERS)
-                        .orElseGet(CustomersServices.config()::defaultMaxCustomers)
-        );
-        migrateData(loadedDataVersion);
-        appearanceSettings.read(input);
+        if (usesLegacyLevelData) {
+            readLegacyLevelSettings(
+                    input,
+                    loadedDataVersion,
+                    getActiveLevelSettings(),
+                    CustomersServices.config().defaultMaxCustomers()
+            );
+        } else {
+            levelSettings.clear();
+            input.getChildren(TAG_LEVEL_SETTINGS).stream()
+                    .limit(MAX_LEVELS)
+                    .forEach(levelInput -> {
+                        CustomerSpawnerLevelSettings settings = createLevelSettings();
+                        settings.read(levelInput);
+                        levelSettings.add(settings);
+                    });
+            if (levelSettings.isEmpty()) {
+                levelSettings.add(createLevelSettings());
+            }
+        }
         try {
             customerIds.clear();
             input.getUuids("customers").forEach(uuid -> {
@@ -456,26 +491,24 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         itemsCrafted.read(input.childOrEmpty("scoreboardItemsCrafted"));
     }
 
-    private void migrateData(int loadedDataVersion) {
-        int dataVersion = Math.max(0, loadedDataVersion);
-        while (dataVersion < CURRENT_DATA_VERSION) {
-            if (dataVersion == 0) {
-                InventoryDataMigrationResult result =
-                        migrateVersion0Inventory(
-                                inventory,
-                                getPaymentItem(),
-                                getMaxCustomersItem(),
-                                maxCustomers
-                        );
-                maxCustomers = result.maxCustomers();
-            } else if (dataVersion != 1) {
-                LOGGER.warn(
-                        "Unable to migrate unknown customer spawner data version {}",
-                        dataVersion
-                );
-                return;
-            }
-            dataVersion++;
+    static void readLegacyLevelSettings(
+            DataReader input,
+            int loadedDataVersion,
+            CustomerSpawnerLevelSettings settings,
+            int defaultMaxCustomers
+    ) {
+        settings.setMaxCustomers(
+                input.getInt(TAG_MAX_CUSTOMERS).orElse(defaultMaxCustomers)
+        );
+        settings.getAppearanceSettings().read(input);
+        if (loadedDataVersion <= 0) {
+            InventoryDataMigrationResult result = migrateVersion0Inventory(
+                    settings.getInventory(),
+                    getPaymentItem(),
+                    getMaxCustomersItem(),
+                    settings.getMaxCustomers()
+            );
+            settings.setMaxCustomers(result.maxCustomers());
         }
     }
 
@@ -652,7 +685,9 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         return Component.translatable("block.customers.customer_spawner_block");
     }
     public void beforeRemove() {
-        Containers.dropContents(level, worldPosition, inventory);
+        for (CustomerSpawnerLevelSettings settings : levelSettings) {
+            Containers.dropContents(level, worldPosition, settings.getInventory());
+        }
 
         for (UUID uuid : customerIds) {
             Entity customerEntity = ((ServerLevel)level).getEntity(uuid);
@@ -666,7 +701,12 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     @Nullable
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
-        return new CustomerSpawnerBlockMenu(containerId, playerInventory, inventory, this);
+        return new CustomerSpawnerBlockMenu(
+                containerId,
+                playerInventory,
+                getActiveLevelSettings().getInventory(),
+                this
+        );
     }
 
     static BlockState updateState(Level level, BlockPos pos, BlockState currentState) {
@@ -757,18 +797,18 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     public List<ResourceLocation> getEnabledAppearanceIds() {
-        return appearanceSettings.getEnabledAppearances();
+        return getActiveLevelSettings().getEnabledAppearanceIds();
     }
 
     public void setEnabledAppearanceIds(
             Collection<ResourceLocation> appearanceIds
     ) {
-        appearanceSettings.setEnabledAppearances(appearanceIds);
-        setChanged();
+        getActiveLevelSettings().setEnabledAppearanceIds(appearanceIds);
     }
 
     public void spawnCustomer() {
-        MerchantOffers offers = getOffersFromInventory(level.getRandom(), inventory);
+        CustomerSpawnerLevelSettings settings = getActiveLevelSettings();
+        MerchantOffers offers = getOffersFromInventory(level.getRandom(), settings.getInventory());
         if (!offers.isEmpty()) {
             BlockState counterBlockState = level.getBlockState(getBlockPos().above());
             BlockState avoidBlockState = level.getBlockState(getBlockPos().below());
@@ -793,7 +833,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 );
                 customer.setAppearanceId(
                         CustomersVillagerAppearances.select(
-                                appearanceSettings.getEnabledAppearances(),
+                                settings.getEnabledAppearanceIds(),
                                 customer,
                                 level.getRandom()::nextInt
                         )
