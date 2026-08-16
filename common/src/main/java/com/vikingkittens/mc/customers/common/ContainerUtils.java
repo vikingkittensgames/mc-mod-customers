@@ -3,6 +3,8 @@ package com.vikingkittens.mc.customers.common;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 
+import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
+
 public final class ContainerUtils {
     private ContainerUtils() {}
 
@@ -17,7 +19,7 @@ public final class ContainerUtils {
         int remaining = stack.getCount();
         for (int slot = 0; slot < container.getContainerSize() && remaining > 0; slot++) {
             ItemStack existing = container.getItem(slot);
-            if (!existing.isEmpty() && ItemStack.isSameItemSameComponents(existing, stack) &&
+            if (!existing.isEmpty() && ItemStackCUtils.isSameItemAndTags(existing, stack) &&
                     container.canPlaceItem(slot, stack)) {
                 int inserted = Math.min(remaining, Math.max(0, container.getMaxStackSize(existing) - existing.getCount()));
                 if (inserted > 0) {
@@ -47,7 +49,7 @@ public final class ContainerUtils {
             ItemStack existing = container.getItem(slot);
             if (existing.isEmpty()) {
                 capacity += container.getMaxStackSize(stack);
-            } else if (ItemStack.isSameItemSameComponents(existing, stack)) {
+            } else if (ItemStackCUtils.isSameItemAndTags(existing, stack)) {
                 capacity += Math.max(0, container.getMaxStackSize(existing) - existing.getCount());
             }
             if (capacity >= stack.getCount()) {

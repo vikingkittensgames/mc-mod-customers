@@ -32,7 +32,7 @@ class McaCustomersVillagerProxyStateTest {
     @Test
     void reportsSittingVillagersAsPassengers() {
         CustomersVillager villager = mock(CustomersVillager.class);
-        when(villager.isSitting()).thenReturn(true);
+        when(villager.isVillagerSitting()).thenReturn(true);
 
         assertTrue(
                 McaCustomersVillagerProxyState.isPassenger(

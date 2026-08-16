@@ -107,7 +107,7 @@ public class CustomerSeatEntity extends Entity {
             level.addFreshEntity(seat);
             created = true;
         } else {
-            seat = existingSeats.getFirst();
+            seat = existingSeats.get(0);
             created = false;
         }
 

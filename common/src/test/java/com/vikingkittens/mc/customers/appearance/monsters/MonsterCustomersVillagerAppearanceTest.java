@@ -85,7 +85,7 @@ class MonsterCustomersVillagerAppearanceTest {
     @Test
     void usesUnderwaterDrownedSounds() {
         CustomersVillager drowned = villager(4.0F / 6.0F);
-        when(drowned.isInWater()).thenReturn(true);
+        when(drowned.isVillagerInWater()).thenReturn(true);
 
         assertEquals(
                 SoundEvents.DROWNED_AMBIENT_WATER,

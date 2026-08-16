@@ -17,6 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.*;
 import net.minecraft.world.entity.Entity;
@@ -38,6 +39,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearanceSettings;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 import com.vikingkittens.mc.customers.common.SearchUtils;
+import com.vikingkittens.mc.customers.compatability.ComponentCUtils;
 import com.vikingkittens.mc.customers.compatability.CustomersServices;
 import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
 import com.vikingkittens.mc.customers.compatability.LevelCUtils;
@@ -360,7 +362,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     static int clampMaxCustomers(int value) {
-        return Math.clamp(
+        return Mth.clamp(
                 value,
                 MIN_MAX_CUSTOMERS,
                 MAX_MAX_CUSTOMERS
@@ -553,9 +555,9 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         );
         customerIds.removeIf(id -> !activeCustomer.test(id));
         if (!customerIds.contains(customerId)) {
-            customerIds.addFirst(customerId);
+            customerIds.add(0, customerId);
         }
-        return customerIds.getLast();
+        return customerIds.get(customerIds.size() - 1);
     }
 
     public UUID getReservedTargetCounterPositionFollowingCustomerId(
@@ -1091,35 +1093,35 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
         sendShiftFinishedPayload(spawnerMode);
 
-        Component summary = Component.translatable(
+        Component summary = ComponentCUtils.withColor(Component.translatable(
                 "messages.customers.scoreboard.summary",
                 spawnerMode.getTitle(),
                 (int)(scoreboardGetPercentage() * 100) + "%"
-        ).withColor(color);
+        ), color);
         sentPlayersMessage(summary);
 
         sentPlayersChat(summary);
-        sentPlayersChat(Component.translatable(
+        sentPlayersChat(ComponentCUtils.withColor(Component.translatable(
                 "messages.customers.scoreboard.detail.total_customers",
                 totalCustomers
-        ).withColor(color));
-        sentPlayersChat(Component.translatable(
+        ), color));
+        sentPlayersChat(ComponentCUtils.withColor(Component.translatable(
                 "messages.customers.scoreboard.detail.customers_served",
                 numCustomersServed
-        ).withColor(color));
-        sentPlayersChat(Component.translatable(
+        ), color));
+        sentPlayersChat(ComponentCUtils.withColor(Component.translatable(
                 "messages.customers.scoreboard.detail.customers_gave_up",
                 numCustomersGaveUp
-        ).withColor(color));
+        ), color));
         for (UUID playerId : itemsServed.playerScores().keySet()) {
             try {
                 Player player = level.getPlayerByUUID(playerId);
-                sentPlayersChat(Component.translatable(
+                sentPlayersChat(ComponentCUtils.withColor(Component.translatable(
                         "messages.customers.scoreboard.detail.player_served_items",
                         player.getDisplayName(),
                         itemsServed.playerScores().get(playerId),
                         totalItemsWanted
-                ).withColor(color));
+                ), color));
             } catch (Throwable t) {
                 LOGGER.warn("Unable to add player score because of error", t);
             }

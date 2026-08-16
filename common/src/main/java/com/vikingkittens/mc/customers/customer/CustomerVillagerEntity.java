@@ -440,7 +440,7 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
         Iterator<ItemStack> iterator = craftedStacks.iterator();
         while (iterator.hasNext() && remainingCount > 0) {
             ItemStack craftedStack = iterator.next();
-            if (!ItemStack.isSameItemSameComponents(
+            if (!ItemStackCUtils.isSameItemAndTags(
                     craftedStack,
                     stack
             )) {
@@ -489,14 +489,14 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
         for (MerchantOffer offer : offers) {
             ItemStack cost = offer.getCostA();
             if (!offer.isOutOfStock()
-                    && offer.getItemCostA().test(stack)) {
+                    && ItemStackCUtils.matchesCost(offer.getItemCostA(), stack)) {
                 wantedCount += cost.getCount();
             }
         }
 
         int craftedCount = 0;
         for (ItemStack craftedStack : craftedStacks) {
-            if (ItemStack.isSameItemSameComponents(
+            if (ItemStackCUtils.isSameItemAndTags(
                     craftedStack,
                     stack
             )) {
@@ -535,7 +535,7 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
 
         ItemStack matchingCraftedStack = craftedStacks.stream()
                 .filter(craftedStack ->
-                        ItemStack.isSameItemSameComponents(
+                        ItemStackCUtils.isSameItemAndTags(
                                 craftedStack,
                                 stack
                         ))
@@ -638,8 +638,13 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
     }
 
     @Override
-    public boolean isSitting() {
+    public boolean isVillagerSitting() {
         return isPassenger();
+    }
+
+    @Override
+    public boolean isVillagerInWater() {
+        return super.isInWater();
     }
 
     @Override

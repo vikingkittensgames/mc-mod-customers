@@ -62,7 +62,7 @@ class CustomerCraftedOfferAssignmentTest {
                 );
 
         assertNull(remainder);
-        assertEquals(25, crafted.getFirst().getCount());
+        assertEquals(25, crafted.get(0).getCount());
     }
 
     /** Returns only the quantity beyond matching customer demand. */
@@ -78,7 +78,7 @@ class CustomerCraftedOfferAssignmentTest {
                 );
 
         assertEquals(5, remainder.getCount());
-        assertEquals(15, crafted.getFirst().getCount());
+        assertEquals(15, crafted.get(0).getCount());
     }
 
     /** Prevents repeated deposits from exceeding the offered quantity. */
@@ -108,7 +108,7 @@ class CustomerCraftedOfferAssignmentTest {
                         extra
                 )
         );
-        assertEquals(10, crafted.getFirst().getCount());
+        assertEquals(10, crafted.get(0).getCount());
     }
 
     /** Combines demand from multiple active offers for the same item. */
@@ -128,7 +128,7 @@ class CustomerCraftedOfferAssignmentTest {
                 );
 
         assertEquals(3, remainder.getCount());
-        assertEquals(15, crafted.getFirst().getCount());
+        assertEquals(15, crafted.get(0).getCount());
     }
 
     /** Previews only outstanding demand without mutating assigned quantities. */
@@ -145,7 +145,7 @@ class CustomerCraftedOfferAssignmentTest {
                 );
 
         assertEquals(6, assignable);
-        assertEquals(4, crafted.getFirst().getCount());
+        assertEquals(4, crafted.get(0).getCount());
     }
 
     @Test
@@ -161,7 +161,7 @@ class CustomerCraftedOfferAssignmentTest {
                 );
 
         assertEquals(6, released);
-        assertEquals(4, crafted.getFirst().getCount());
+        assertEquals(4, crafted.get(0).getCount());
         assertEquals(3, crafted.get(1).getCount());
     }
 
@@ -200,7 +200,7 @@ class CustomerCraftedOfferAssignmentTest {
         assertEquals(5, servedCount);
         assertTrue(offer.isOutOfStock());
         assertEquals(1, crafted.size());
-        assertEquals(Items.APPLE, crafted.getFirst().getItem());
+        assertEquals(Items.APPLE, crafted.get(0).getItem());
         assertTrue(tradedPlayers.contains(crafterId));
     }
     /** Uses the offer's component predicate when matching crafted items. */

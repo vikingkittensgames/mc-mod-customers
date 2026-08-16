@@ -21,6 +21,14 @@ public final class ItemStackCUtils {
     public static ItemStack getCraftingRemainder(ItemStack stack) {
         return CustomersServices.itemStacks().getCraftingRemainder(stack);
     }
+
+    public static boolean isSameItemAndTags(ItemStack first, ItemStack second) {
+        return ItemStack.isSameItemSameComponents(first, second);
+    }
+
+    public static boolean matchesCost(ItemCost cost, ItemStack stack) {
+        return cost.test(stack);
+    }
     /**
      * Creates an offer cost retaining the supplied stack's data components.
      *

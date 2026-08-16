@@ -99,8 +99,8 @@ class PersistenceCUtilsTest {
         assertEquals(1, restored.size());
         assertTrue(ItemStack.isSameItemSameComponents(
                 bread,
-                restored.getFirst()
+                restored.get(0)
         ));
-        assertEquals(25, restored.getFirst().getCount());
+        assertEquals(25, restored.get(0).getCount());
     }
 }

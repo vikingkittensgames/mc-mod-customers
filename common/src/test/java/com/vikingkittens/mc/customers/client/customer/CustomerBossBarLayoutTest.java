@@ -58,10 +58,10 @@ class CustomerBossBarLayoutTest {
                 );
 
         assertEquals(1, layout.groups().size());
-        assertEquals(active, layout.groups().getFirst().customer());
+        assertEquals(active, layout.groups().get(0).customer());
         assertEquals(
                 new CustomerBossBarLayout.Bounds(92, 20, 16, 16),
-                layout.groups().getFirst().bounds()
+                layout.groups().get(0).bounds()
         );
         assertEquals(16, layout.height());
     }
@@ -99,20 +99,20 @@ class CustomerBossBarLayoutTest {
                         182
                 );
 
-        assertTrue(warningLayout.groups().getFirst().includeWarning());
+        assertTrue(warningLayout.groups().get(0).includeWarning());
         assertEquals(
                 new CustomerBossBarLayout.Bounds(90, 20, 20, 16),
-                warningLayout.groups().getFirst().bounds()
+                warningLayout.groups().get(0).bounds()
         );
         assertFalse(
-                notYetWarningLayout.groups().getFirst().includeWarning()
+                notYetWarningLayout.groups().get(0).includeWarning()
         );
         assertEquals(
                 new CustomerBossBarLayout.Bounds(92, 20, 16, 16),
-                notYetWarningLayout.groups().getFirst().bounds()
+                notYetWarningLayout.groups().get(0).bounds()
         );
         assertFalse(
-                unlimitedLayout.groups().getFirst().includeWarning()
+                unlimitedLayout.groups().get(0).includeWarning()
         );
     }
     private static Customer customer(Type type, int itemCount, long ticksSinceTrade, long giveUpTicks) {

@@ -230,9 +230,9 @@ class CustomerSpawnerBlockEntityTest {
 
         assertEquals(1, offers.size());
         assertTrue(
-                offers.getFirst().getItemCostA().item().value()
+                offers.get(0).getItemCostA().item().value()
                                 == paymentItem
-                        || offers.getFirst().getItemCostA().item().value()
+                        || offers.get(0).getItemCostA().item().value()
                                 == maximumItem
         );
     }
@@ -250,7 +250,7 @@ class CustomerSpawnerBlockEntityTest {
                 inventory,
                 paymentItem,
                 maximumItem
-        ).getFirst();
+        ).get(0);
 
         assertSame(wantedItem, offer.getItemCostA().item().value());
         assertEquals(1, offer.getItemCostA().count());
@@ -274,7 +274,7 @@ class CustomerSpawnerBlockEntityTest {
                 inventory,
                 paymentItem,
                 maximumItem
-        ).getFirst();
+        ).get(0);
 
         assertEquals(3, offer.getItemCostA().count());
         assertEquals(6, offer.getResult().getCount());
@@ -299,7 +299,7 @@ class CustomerSpawnerBlockEntityTest {
                 inventory,
                 defaultPaymentItem,
                 createItem()
-        ).getFirst();
+        ).get(0);
 
         assertSame(
                 configuredPaymentItem,
@@ -330,7 +330,7 @@ class CustomerSpawnerBlockEntityTest {
         assertEquals(1, offers.size());
         assertSame(
                 secondItem,
-                offers.getFirst().getItemCostA().item().value()
+                offers.get(0).getItemCostA().item().value()
         );
     }
 

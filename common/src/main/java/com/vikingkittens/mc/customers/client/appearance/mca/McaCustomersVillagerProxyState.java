@@ -25,7 +25,7 @@ final class McaCustomersVillagerProxyState {
     ) {
         CustomersVillager villager =
                 source == null ? null : source.get();
-        return villager != null && villager.isSitting();
+        return villager != null && villager.isVillagerSitting();
     }
 
     static @Nullable Entity vehicle(

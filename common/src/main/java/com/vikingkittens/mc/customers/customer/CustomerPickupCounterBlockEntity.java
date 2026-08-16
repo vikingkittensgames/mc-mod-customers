@@ -37,6 +37,7 @@ import net.minecraft.world.phys.Vec3;
 import com.vikingkittens.mc.customers.common.OfferUtils;
 import com.vikingkittens.mc.customers.common.SearchUtils;
 import com.vikingkittens.mc.customers.compatability.ItemInsertionTarget;
+import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
 import com.vikingkittens.mc.customers.compatability.LevelCUtils;
 import com.vikingkittens.mc.customers.compatability.PlayerCUtils;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
@@ -156,7 +157,9 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
                         offers,
                         stacksWithIncoming
                 );
-        int acceptedCount = combinedAllocation.stackCounts().getLast();
+        int acceptedCount = combinedAllocation.stackCounts().get(
+                combinedAllocation.stackCounts().size() - 1
+        );
         Map<CustomerSpawnerBlockEntity, Integer>
                 acceptedBySpawner = new LinkedHashMap<>();
         for (int index = 0; index < customerOffers.size(); index++) {
@@ -407,7 +410,7 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
                         crafterIds[slot],
                         storedStack.crafterId()
                 )
-                && ItemStack.isSameItemSameComponents(
+                && ItemStackCUtils.isSameItemAndTags(
                         existing,
                         storedStack.stack()
                 );
@@ -645,7 +648,7 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
                         first.crafterId(),
                         second.crafterId()
                 )
-                && ItemStack.isSameItemSameComponents(
+                && ItemStackCUtils.isSameItemAndTags(
                         first.stack(),
                         second.stack()
                 );
@@ -1072,7 +1075,7 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
                     slot++) {
                 ItemStack stored =
                         counter.inventory.getItem(slot);
-                if (offer.getItemCostA().test(stored)) {
+                if (ItemStackCUtils.matchesCost(offer.getItemCostA(), stored)) {
                     available += stored.getCount();
                 }
             }
@@ -1089,7 +1092,7 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
                     && remaining > 0) {
                 ItemStack stored =
                         counter.inventory.getItem(slot);
-                if (!offer.getItemCostA().test(stored)) {
+                if (!ItemStackCUtils.matchesCost(offer.getItemCostA(), stored)) {
                     slot++;
                     continue;
                 }
@@ -1141,7 +1144,7 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
         return takeMatchingStoredStack(
                 counters,
                 requested,
-                stored -> ItemStack.isSameItemSameComponents(
+                stored -> ItemStackCUtils.isSameItemAndTags(
                         stored,
                         requested
                 )
@@ -1162,7 +1165,7 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
         return takeMatchingStoredStack(
                 counters,
                 offer.getCostA(),
-                offer.getItemCostA()::test
+                stored -> ItemStackCUtils.matchesCost(offer.getItemCostA(), stored)
         );
     }
 
