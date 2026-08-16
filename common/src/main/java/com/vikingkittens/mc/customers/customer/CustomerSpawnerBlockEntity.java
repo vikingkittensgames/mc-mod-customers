@@ -463,7 +463,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                                 maxCustomers
                         );
                 maxCustomers = result.maxCustomers();
-            } else {
+            } else if (dataVersion != 1) {
                 LOGGER.warn(
                         "Unable to migrate unknown customer spawner data version {}",
                         dataVersion
