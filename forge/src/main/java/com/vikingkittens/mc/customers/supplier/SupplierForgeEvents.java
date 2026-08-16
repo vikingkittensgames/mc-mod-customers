@@ -8,8 +8,11 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
+import net.minecraftforge.event.level.BlockEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
 
+import com.vikingkittens.mc.customers.common.BlockBreakConfirmation;
 import com.vikingkittens.mc.customers.compatability.LevelCUtils;
 
 public final class SupplierForgeEvents {
@@ -19,6 +22,7 @@ public final class SupplierForgeEvents {
         modEventBus.addListener(SupplierForgeEvents::addCreative);
         modEventBus.addListener(SupplierForgeEvents::registerAttributes);
         MinecraftForge.EVENT_BUS.addListener(SupplierForgeEvents::onEntityLeaveLevel);
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, SupplierForgeEvents::onSupplierSpawnerBreak);
     }
 
     static void registerAttributes(EntityAttributeCreationEvent event) {
@@ -30,6 +34,21 @@ public final class SupplierForgeEvents {
                 event.getEntity() instanceof SupplierVillagerEntity supplier &&
                 supplier.getRemovalReason() == Entity.RemovalReason.CHANGED_DIMENSION) {
             supplier.discard();
+        }
+    }
+
+    static void onSupplierSpawnerBreak(BlockEvent.BreakEvent event) {
+        if (event.getPlayer() instanceof net.minecraft.server.level.ServerPlayer player &&
+                event.getState().getBlock() instanceof SupplierSpawnerBlock &&
+                event.getLevel().getBlockEntity(event.getPos()) instanceof SupplierSpawnerBlockEntity spawner &&
+                spawner.shouldConfirmBreak()) {
+            event.setCanceled(BlockBreakConfirmation.shouldCancelBreak(
+                    player,
+                    event.getPos(),
+                    spawner,
+                    "screen.customers.break_confirmation.supplier_spawner_title",
+                    "screen.customers.break_confirmation.message"
+            ));
         }
     }
 

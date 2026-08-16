@@ -8,9 +8,13 @@ import net.minecraft.server.level.ServerPlayer;
 
 import net.minecraftforge.network.Channel;
 import net.minecraftforge.network.ChannelBuilder;
+import net.minecraftforge.network.PacketDistributor;
 
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.client.customer.CustomerPayloadClientHandlers;
+import com.vikingkittens.mc.customers.common.BlockBreakConfirmation;
+import com.vikingkittens.mc.customers.common.BlockBreakConfirmationConfirmPayload;
+import com.vikingkittens.mc.customers.common.BlockBreakConfirmationPromptPayload;
 import com.vikingkittens.mc.customers.customer.CustomerCounterMarkersPayload;
 import com.vikingkittens.mc.customers.customer.CustomerShiftFinishedPayload;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerSnapshotPayload;
@@ -29,6 +33,11 @@ public final class ForgeNetworkHelper implements INetworkHelper {
     @Override
     public void sendToPlayer(ServerPlayer player, CustomPacketPayload payload) {
         ChannelHolder.CHANNEL.send(payload, player.connection.getConnection());
+    }
+
+    @Override
+    public void sendToServer(CustomPacketPayload payload) {
+        ChannelHolder.CHANNEL.send(payload, PacketDistributor.SERVER.noArg());
     }
 
     private static final class ChannelHolder {
@@ -52,6 +61,21 @@ public final class ForgeNetworkHelper implements INetworkHelper {
                         CustomerSpawnerSnapshotPayload.TYPE,
                         playCodec(CustomerSpawnerSnapshotPayload.STREAM_CODEC),
                         (payload, context) -> CustomerPayloadClientHandlers.updateSpawnerSnapshot(payload)
+                )
+                .addMain(
+                        BlockBreakConfirmationPromptPayload.TYPE,
+                        playCodec(BlockBreakConfirmationPromptPayload.STREAM_CODEC),
+                        (payload, context) -> CustomerPayloadClientHandlers.showBlockBreakConfirmation(payload)
+                )
+                .serverbound()
+                .addMain(
+                        BlockBreakConfirmationConfirmPayload.TYPE,
+                        playCodec(BlockBreakConfirmationConfirmPayload.STREAM_CODEC),
+                        (payload, context) -> {
+                            if (context.getSender() != null) {
+                                BlockBreakConfirmation.confirm(context.getSender(), payload.playerId(), payload.token());
+                            }
+                        }
                 )
                 .build();
 
