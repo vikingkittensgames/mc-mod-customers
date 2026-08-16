@@ -32,6 +32,9 @@ bin/
 ### Mac OS ###
 .DS_Store
 
+### Temp Files ###
+**/*-autosave.kra
+
 ### Minecraft Modding ###
 run/
 run-*/
@@ -42,3 +45,4 @@ repo/
 **/logs/
 inspiration/
 example-appearance/
+/customers-skins-*
