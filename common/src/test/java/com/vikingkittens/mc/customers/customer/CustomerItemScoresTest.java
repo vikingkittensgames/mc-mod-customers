@@ -5,6 +5,10 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
+import net.minecraft.nbt.CompoundTag;
+
+import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -66,5 +70,23 @@ class CustomerItemScoresTest {
         assertEquals(Map.of(), scores.playerScores());
         assertEquals(0, scores.automatedScore());
         assertEquals(0, scores.total());
+    }
+
+    @Test
+    void persistsPlayerAndAutomatedScores() {
+        CustomerItemScores scores = new CustomerItemScores();
+        UUID playerId = UUID.randomUUID();
+        CompoundTag tag = new CompoundTag();
+        scores.add(playerId, 3);
+        scores.add(null, 4);
+
+        scores.write(PersistenceCUtils.writer(tag));
+
+        CustomerItemScores restored = new CustomerItemScores();
+        restored.read(PersistenceCUtils.reader(tag));
+
+        assertEquals(Map.of(playerId, 3), restored.playerScores());
+        assertEquals(4, restored.automatedScore());
+        assertEquals(7, restored.total());
     }
 }

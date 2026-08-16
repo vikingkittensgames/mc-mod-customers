@@ -217,8 +217,8 @@ the materials and decoration used in a kitchen, restaurant, shop, or market stan
 
 ### Placing and Taking Items
 
-Right-click a pickup counter while holding an item stack to place the entire held stack
-onto the counter. Sneak-right-click while holding a stack to place only one item. Right-click
+Right-click a pickup counter while holding an item stack to place one item onto the counter.
+Sneak-right-click while holding a stack to place the requested portion of that stack. Right-click
 with an empty hand to take the entire oldest stack. The counter does not open an inventory
 screen; all item handling happens directly through these interactions.
 

@@ -41,6 +41,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class CustomerSpawnerBlockEntityTest {
+
+    @Test
+    void calculatesTheScoreFromServedItemsOnly() {
+        assertEquals(0.5F,
+                CustomerSpawnerBlockEntity.calculateScorePercentage(4, 8));
+        assertEquals(1.0F,
+                CustomerSpawnerBlockEntity.calculateScorePercentage(12, 8));
+        assertEquals(0.0F,
+                CustomerSpawnerBlockEntity.calculateScorePercentage(0, 0));
+    }
     @BeforeAll
     static void bootstrapMinecraft() {
         MinecraftTestBootstrap.bootstrap();

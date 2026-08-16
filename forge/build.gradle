@@ -119,5 +119,16 @@ def generateModMetadata = tasks.register('generateModMetadata', ProcessResources
 sourceSets.main.resources.srcDir generateModMetadata
 
 tasks.named('jar').configure {
+    dependsOn('runData')
     finalizedBy('reobfJar')
+}
+
+tasks.named('build').configure {
+    dependsOn(tasks.named('runData'))
+}
+
+tasks.configureEach {
+    if (name == 'runClient') {
+        dependsOn('runData')
+    }
 }

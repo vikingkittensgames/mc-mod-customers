@@ -71,7 +71,7 @@ class CustomerPickupCounterBlockTest {
     }
 
     @Test
-    void insertsHeldStackOnTheServer() {
+    void insertsOneHeldItemOnTheServer() {
         CustomerPickupCounterBlock block = createBlock();
         Level level = mock(Level.class);
         Player player = mock(Player.class);
@@ -79,9 +79,14 @@ class CustomerPickupCounterBlockTest {
                 mock(CustomerPickupCounterBlockEntity.class);
         ItemStack held = new ItemStack(Items.BREAD, 25);
         when(level.getBlockEntity(BlockPos.ZERO)).thenReturn(counter);
-        when(counter.hasAssignableCraftedItemConnected(held))
+        when(counter.hasAssignableCraftedItemConnected(
+                any(ItemStack.class)
+        ))
                 .thenReturn(true);
-        when(counter.insertCraftedStackConnected(player, held))
+        when(counter.insertCraftedStackConnected(
+                eq(player),
+                any(ItemStack.class)
+        ))
                 .thenReturn(ItemStack.EMPTY);
 
         InteractionResult result = block.useItemOn(
@@ -95,15 +100,20 @@ class CustomerPickupCounterBlockTest {
         );
 
         assertEquals(InteractionResult.SUCCESS, result);
-        verify(counter).insertCraftedStackConnected(player, held);
+        verify(counter).insertCraftedStackConnected(
+                eq(player),
+                argThat(inserted -> inserted.is(Items.BREAD)
+                        && inserted.getCount() == 1)
+        );
         verify(player).setItemInHand(
-                InteractionHand.MAIN_HAND,
-                ItemStack.EMPTY
+                eq(InteractionHand.MAIN_HAND),
+                argThat(remainder -> remainder.is(Items.BREAD)
+                        && remainder.getCount() == 24)
         );
     }
 
     @Test
-    void insertsOneItemWhenThePlayerIsSneaking() {
+    void insertsTheHeldStackWhenThePlayerIsSneaking() {
         CustomerPickupCounterBlock block = createBlock();
         Level level = mock(Level.class);
         Player player = mock(Player.class);
@@ -132,16 +142,10 @@ class CustomerPickupCounterBlockTest {
         );
 
         assertEquals(InteractionResult.SUCCESS, result);
-        verify(counter).insertCraftedStackConnected(
-                eq(player),
-                argThat(inserted ->
-                        inserted.is(Items.BREAD)
-                                && inserted.getCount() == 1)
-        );
+        verify(counter).insertCraftedStackConnected(player, held);
         verify(player).setItemInHand(
                 eq(InteractionHand.MAIN_HAND),
-                argThat(remainder -> remainder.is(Items.BREAD)
-                        && remainder.getCount() == 24)
+                argThat(ItemStack::isEmpty)
         );
     }
 
@@ -203,9 +207,14 @@ class CustomerPickupCounterBlockTest {
         ItemStack held = new ItemStack(Items.APPLE);
         ItemStack rejected = held.copy();
         when(level.getBlockEntity(BlockPos.ZERO)).thenReturn(counter);
-        when(counter.hasAssignableCraftedItemConnected(held))
+        when(counter.hasAssignableCraftedItemConnected(
+                any(ItemStack.class)
+        ))
                 .thenReturn(true);
-        when(counter.insertCraftedStackConnected(player, held))
+        when(counter.insertCraftedStackConnected(
+                eq(player),
+                any(ItemStack.class)
+        ))
                 .thenReturn(rejected);
 
         InteractionResult result = block.useItemOn(
@@ -219,7 +228,11 @@ class CustomerPickupCounterBlockTest {
         );
 
         assertEquals(InteractionResult.SUCCESS, result);
-        verify(player).setItemInHand(InteractionHand.MAIN_HAND, rejected);
+        verify(player).setItemInHand(
+                eq(InteractionHand.MAIN_HAND),
+                argThat(remainder -> remainder.is(Items.APPLE)
+                        && remainder.getCount() == 1)
+        );
         verify(player).displayClientMessage(
                 Component.translatable(
                         "messages.customers.pickup_counter.full"
@@ -229,7 +242,7 @@ class CustomerPickupCounterBlockTest {
     }
 
     @Test
-    void passesAnUnwantedSneakingHopperToItemPlacement() {
+    void passesAnUnwantedItemToItemPlacementAndMessagesThePlayer() {
         CustomerPickupCounterBlock block = createBlock();
         Level level = mock(Level.class);
         Player player = mock(Player.class);
@@ -237,7 +250,6 @@ class CustomerPickupCounterBlockTest {
                 mock(CustomerPickupCounterBlockEntity.class);
         ItemStack held = new ItemStack(Items.HOPPER);
         when(level.getBlockEntity(BlockPos.ZERO)).thenReturn(counter);
-        when(player.isShiftKeyDown()).thenReturn(true);
         when(counter.hasAssignableCraftedItemConnected(held))
                 .thenReturn(false);
 
@@ -260,11 +272,53 @@ class CustomerPickupCounterBlockTest {
                 eq(InteractionHand.MAIN_HAND),
                 any(ItemStack.class)
         );
-        verify(player, never()).displayClientMessage(
-                any(Component.class),
-                eq(true)
+        verify(player).displayClientMessage(
+                Component.translatable(
+                        "messages.customers.pickup_counter.not_wanted"
+                ),
+                true
         );
     }
+
+    @Test
+    void passesAnUnwantedSneakingHopperToItemPlacementAndMessagesThePlayer() {
+        CustomerPickupCounterBlock block = createBlock();
+        Level level = mock(Level.class);
+        Player player = mock(Player.class);
+        CustomerPickupCounterBlockEntity counter =
+                mock(CustomerPickupCounterBlockEntity.class);
+        ItemStack held = new ItemStack(Items.HOPPER);
+        when(level.getBlockEntity(BlockPos.ZERO)).thenReturn(counter);
+        when(player.isShiftKeyDown()).thenReturn(true);
+        when(counter.hasAssignableCraftedItemConnected(held)).thenReturn(false);
+
+        InteractionResult result = block.useItemOn(
+                held,
+                mock(BlockState.class),
+                level,
+                BlockPos.ZERO,
+                player,
+                InteractionHand.MAIN_HAND,
+                mock(BlockHitResult.class)
+        );
+
+        assertEquals(InteractionResult.PASS, result);
+        verify(counter, never()).insertCraftedStackConnected(
+                eq(player),
+                any(ItemStack.class)
+        );
+        verify(player, never()).setItemInHand(
+                eq(InteractionHand.MAIN_HAND),
+                any(ItemStack.class)
+        );
+        verify(player).displayClientMessage(
+                Component.translatable(
+                        "messages.customers.pickup_counter.not_wanted"
+                ),
+                true
+        );
+    }
+
     private static CustomerPickupCounterBlock createBlock() {
         return mock(
                 CustomerPickupCounterBlock.class,
