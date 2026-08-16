@@ -50,7 +50,7 @@ import com.vikingkittens.mc.customers.compatability.persistence.PersistedContain
 import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
 
 public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvider {
-    static final int CURRENT_DATA_VERSION = 1;
+    static final int CURRENT_DATA_VERSION = 2;
     static final int MIN_MAX_CUSTOMERS = 1;
     static final int MAX_MAX_CUSTOMERS = 99;
     static final String TAG_DATA_VERSION = "data_version";
@@ -400,6 +400,12 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             LOGGER.error("Failed to save customers", t);
         }
         saveReservedTargetCounterPositions(output, reservedTargetCounterPositions);
+        output.putInt("scoreboardTotalCustomers", totalCustomers);
+        output.putInt("scoreboardCustomersServed", numCustomersServed);
+        output.putInt("scoreboardItemsWanted", totalItemsWanted);
+        output.putInt("scoreboardCustomersGaveUp", numCustomersGaveUp);
+        itemsServed.write(output.child("scoreboardItemsServed"));
+        itemsCrafted.write(output.child("scoreboardItemsCrafted"));
     }
 
     @Override
@@ -437,6 +443,12 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         }
         reservedTargetCounterPositions.clear();
         reservedTargetCounterPositions.putAll(loadReservedTargetCounterPositions(input));
+        totalCustomers = input.getInt("scoreboardTotalCustomers").orElse(0);
+        numCustomersServed = input.getInt("scoreboardCustomersServed").orElse(0);
+        totalItemsWanted = input.getInt("scoreboardItemsWanted").orElse(0);
+        numCustomersGaveUp = input.getInt("scoreboardCustomersGaveUp").orElse(0);
+        itemsServed.read(input.childOrEmpty("scoreboardItemsServed"));
+        itemsCrafted.read(input.childOrEmpty("scoreboardItemsCrafted"));
     }
 
     private void migrateData(int loadedDataVersion) {
@@ -736,6 +748,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             int count
     ) {
         itemsCrafted.add(playerId, count);
+        setChanged();
     }
 
     public List<ResourceLocation> getEnabledAppearanceIds() {
@@ -782,8 +795,6 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 );
                 customerIds.add(customer.getUUID());
                 setChanged();
-                scoreboardAddCustomer();
-                scoreboardAddItemsWanted(offers.size());
             }
         }
     }
@@ -1040,7 +1051,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     private float scoreboardGetPercentage() {
-        return ((float)itemsServed.total() / (float)totalItemsWanted);
+        return totalItemsWanted <= 0 ? 0.0F : Mth.clamp((float)itemsServed.total() / totalItemsWanted, 0.0F, 1.0F);
     }
 
     private void sendShiftFinishedPayload(CustomerSpawnerMode spawnerMode) {
@@ -1149,18 +1160,22 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     public void scoreboardAddCustomer() {
         totalCustomers++;
+        setChanged();
     }
 
     public void scoreboardAddItemsWanted(int numItemsWanted) {
         totalItemsWanted += numItemsWanted;
+        setChanged();
     }
 
     public void scoreboardAddCustomerServed() {
         numCustomersServed++;
+        setChanged();
     }
 
     public void scoreboardAddCustomerGaveUp() {
         numCustomersGaveUp++;
+        setChanged();
     }
 
     /**
@@ -1174,6 +1189,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             int itemCount
     ) {
         itemsServed.add(playerId, itemCount);
+        setChanged();
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, CustomerSpawnerBlockEntity entity) {
