@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "E": {
+      "item": "minecraft:emerald"
+    },
+    "G": {
+      "item": "minecraft:gold_ingot"
+    },
+    "V": {
+      "item": "minecraft:stripped_acacia_log"
+    }
+  },
+  "pattern": [
+    "VGV",
+    "VEV",
+    "VVV"
+  ],
+  "result": {
+    "item": "customers:acacia_customer_payment_box"
+  },
+  "show_notification": true
+}
