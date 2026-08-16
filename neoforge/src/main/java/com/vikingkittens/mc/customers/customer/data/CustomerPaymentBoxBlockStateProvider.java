@@ -158,6 +158,10 @@ public class CustomerPaymentBoxBlockStateProvider
                     .translation(0.0F, 1.0F, 0.0F)
                     .scale(0.6F)
                     .end()
+                    .transform(ItemDisplayContext.GROUND)
+                    .translation(0.0F, 3.0F, 0.0F)
+                    .scale(0.5F)
+                    .end()
                     .end();
         }
     }

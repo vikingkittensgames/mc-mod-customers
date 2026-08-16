@@ -112,6 +112,10 @@ public class CustomerPickupCounterBlockStateProvider
                     .translation(0.0F, 3.0F, 0.0F)
                     .scale(0.8F)
                     .end()
+                    .transform(ItemDisplayContext.GROUND)
+                    .translation(0.0F, 3.0F, 0.0F)
+                    .scale(0.5F)
+                    .end()
                     .end();
         }
     }
