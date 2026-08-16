@@ -10,9 +10,12 @@ import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.Event;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
 
+import com.vikingkittens.mc.customers.common.BlockBreakConfirmation;
 import com.vikingkittens.mc.customers.compatability.LevelCUtils;
 
 public final class CustomerForgeEvents {
@@ -24,6 +27,7 @@ public final class CustomerForgeEvents {
         MinecraftForge.EVENT_BUS.addListener(CustomerForgeEvents::onEntityLeaveLevel);
         MinecraftForge.EVENT_BUS.addListener(CustomerForgeEvents::onPickupCounterInteract);
         MinecraftForge.EVENT_BUS.addListener(CustomerForgeEvents::onCustomerInteract);
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, CustomerForgeEvents::onCustomerSpawnerBreak);
     }
 
     static void registerAttributes(EntityAttributeCreationEvent event) {
@@ -49,6 +53,21 @@ public final class CustomerForgeEvents {
         if (CustomerInteractions.tryQuickSell(event.getEntity(), event.getHand(), event.getTarget())) {
             event.setCancellationResult(InteractionResult.SUCCESS);
             event.setCanceled(true);
+        }
+    }
+
+    static void onCustomerSpawnerBreak(BlockEvent.BreakEvent event) {
+        if (event.getPlayer() instanceof net.minecraft.server.level.ServerPlayer player &&
+                event.getState().getBlock() instanceof CustomerSpawnerBlock &&
+                event.getLevel().getBlockEntity(event.getPos()) instanceof CustomerSpawnerBlockEntity spawner &&
+                spawner.shouldConfirmBreak()) {
+            event.setCanceled(BlockBreakConfirmation.shouldCancelBreak(
+                    player,
+                    event.getPos(),
+                    spawner,
+                    "screen.customers.break_confirmation.customer_spawner_title",
+                    "screen.customers.break_confirmation.message"
+            ));
         }
     }
 

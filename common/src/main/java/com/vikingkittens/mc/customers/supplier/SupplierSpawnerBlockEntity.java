@@ -29,6 +29,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearanceSettings;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
+import com.vikingkittens.mc.customers.common.ContainerUtils;
 import com.vikingkittens.mc.customers.common.SearchUtils;
 import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
 import com.vikingkittens.mc.customers.compatability.LevelCUtils;
@@ -96,6 +97,10 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     public SupplierSpawnerBlockEntity(BlockPos pos, BlockState blockState) {
         super(SupplierSpawner.SUPPLIER_SPAWNER_ENTITY.get(), pos, blockState);
+    }
+
+    public boolean shouldConfirmBreak() {
+        return ContainerUtils.hasItems(inventory);
     }
 
     @Override

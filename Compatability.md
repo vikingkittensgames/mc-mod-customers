@@ -30,6 +30,13 @@ Classes are grouped by the Minecraft concept they adapt and use the `CUtils` suf
 
 ## Common and Server Compatibility
 
+### INetworkHelper
+
+`INetworkHelper` provides the shared clientbound and serverbound payload transport used by block
+break confirmations. Forge registers both directions on its payload channel; NeoForge registers
+them with its payload registrar. Functionality code uses `sendToPlayer` or `sendToServer` without
+depending on either loader's transport API.
+
 ### EntityCUtils
 
 Package:

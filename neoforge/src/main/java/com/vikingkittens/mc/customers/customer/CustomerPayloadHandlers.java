@@ -5,6 +5,7 @@ import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.vikingkittens.mc.customers.client.customer.CustomerPayloadClientHandlers;
+import com.vikingkittens.mc.customers.common.BlockBreakConfirmationPromptPayload;
 
 public final class CustomerPayloadHandlers {
     private CustomerPayloadHandlers() {}
@@ -12,6 +13,12 @@ public final class CustomerPayloadHandlers {
     public static void handleShiftFinished(CustomerShiftFinishedPayload payload, IPayloadContext context) {
         if (FMLEnvironment.dist == Dist.CLIENT) {
             CustomerPayloadClientHandlers.showShiftFinished(payload);
+        }
+    }
+
+    public static void handleBlockBreakConfirmation(BlockBreakConfirmationPromptPayload payload, IPayloadContext context) {
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            CustomerPayloadClientHandlers.showBlockBreakConfirmation(payload);
         }
     }
 
