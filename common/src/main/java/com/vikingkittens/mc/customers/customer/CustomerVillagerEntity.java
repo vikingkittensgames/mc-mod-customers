@@ -772,10 +772,31 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
     }
 
     public void setState(CustomerState state) {
+        setState(state, true);
+    }
+
+    private void setState(CustomerState state, boolean runEntryBehavior) {
+        CustomerState previousState = this.state;
         this.state = state;
         entityData.set(DATA_CUSTOMER_STATE, state == null ? -1 : state.ordinal());
         ticksInState = 0;
         ticksSinceTrade = 0;
+        if (runEntryBehavior && previousState != state && state != null) {
+            switch (state) {
+                case BUYING -> scoreboardRegisterBuyingCustomer();
+                default -> {}
+            }
+        }
+    }
+
+    private void scoreboardRegisterBuyingCustomer() {
+        if (!LevelCUtils.isClientSide(level())
+                && level().getBlockEntity(spawnerPos) instanceof CustomerSpawnerBlockEntity spawner) {
+            spawner.scoreboardAddCustomer();
+            spawner.scoreboardAddItemsWanted(getOffers().stream()
+                    .mapToInt(offer -> offer.getCostA().getCount())
+                    .sum());
+        }
     }
 
     public long getTicksInState() {
@@ -906,7 +927,7 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
         readAppearanceData(input);
         input.getString(TAG_STATE).ifPresent(stateName -> {
             try {
-                setState(CustomerState.valueOf(stateName));
+                setState(CustomerState.valueOf(stateName), false);
             } catch (IllegalArgumentException exception) {
                 LOGGER.warn("Ignoring unknown customer state while loading: {}", stateName);
             }
