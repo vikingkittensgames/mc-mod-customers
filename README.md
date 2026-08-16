@@ -40,6 +40,9 @@ Open the Customer Spawner interface and change its **Max** setting to control th
 of customers for that individual spawner. Customers that are done buying and are leaving do not
 count toward this maximum.
 
+Breaking a customer or supplier spawner that still contains items asks for confirmation. Cancel or
+press Escape to keep the configured spawner in place.
+
 During timed shifts, the customer maximum starts low, ramps up to the spawner's configured
 maximum, and ramps down over the final portion of the shift. The longer
 Day and Night Shifts ramp up more gradually than the shorter meal shifts.

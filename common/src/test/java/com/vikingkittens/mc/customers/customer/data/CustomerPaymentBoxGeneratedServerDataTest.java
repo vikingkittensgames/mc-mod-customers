@@ -19,8 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class CustomerPaymentBoxGeneratedServerDataTest {
     private static final List<Path> GENERATED = List.of(
-            Path.of("../forge/src/generated/resources/data/customers"),
-            Path.of("../neoforge/src/generated/resources/data/customers")
+            Path.of("../forge/src/generated/resources/data/customers")
     );
 
     @BeforeAll
@@ -36,10 +35,10 @@ final class CustomerPaymentBoxGeneratedServerDataTest {
                 : CustomerOverlayBlockVariants.ALL) {
             String name = CustomerPaymentBox.getBlockName(variant);
             Path recipePath = generated.resolve(
-                    "recipe/" + name + ".json"
+                    "recipes/" + name + ".json"
             );
             Path lootPath = generated.resolve(
-                    "loot_table/blocks/" + name + ".json"
+                    "loot_tables/blocks/" + name + ".json"
             );
 
             assertTrue(Files.exists(recipePath));
@@ -76,7 +75,7 @@ final class CustomerPaymentBoxGeneratedServerDataTest {
             assertEquals(
                     "customers:" + name,
                     recipe.getAsJsonObject("result")
-                            .get("id")
+                            .get("item")
                             .getAsString()
             );
 

@@ -8,6 +8,15 @@ import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
 public final class ContainerUtils {
     private ContainerUtils() {}
 
+    public static boolean hasItems(Container container) {
+        for (int slot = 0; slot < container.getContainerSize(); slot++) {
+            if (!container.getItem(slot).isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static boolean tryInsertStacked(Container container, ItemStack stack) {
         if (stack.isEmpty()) {
             return true;

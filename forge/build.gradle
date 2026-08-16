@@ -57,6 +57,18 @@ sourceSets.main.resources {
     exclude('**/.cache/**')
 }
 
+tasks.named('processResources', ProcessResources) {
+    from(configurations.commonResources) {
+        include('data/customers/loot_table/**')
+        eachFile { details ->
+            details.path = details.path.replace(
+                    'data/customers/loot_table/',
+                    'data/customers/loot_tables/'
+            )
+        }
+    }
+}
+
 spotless {
     java {
         target 'src/main/java/**/*.java', 'src/test/java/**/*.java'

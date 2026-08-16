@@ -37,6 +37,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearanceSettings;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
+import com.vikingkittens.mc.customers.common.ContainerUtils;
 import com.vikingkittens.mc.customers.common.SearchUtils;
 import com.vikingkittens.mc.customers.compatability.ComponentCUtils;
 import com.vikingkittens.mc.customers.compatability.CustomersServices;
@@ -358,6 +359,10 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     public CustomerSpawnerBlockEntity(BlockPos pos, BlockState blockState) {
         super(CustomerSpawner.CUSTOMER_SPAWNER_ENTITY.get(), pos, blockState);
+    }
+
+    public boolean shouldConfirmBreak() {
+        return ContainerUtils.hasItems(inventory);
     }
 
     static int clampMaxCustomers(int value) {

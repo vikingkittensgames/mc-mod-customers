@@ -18,8 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CustomerPickupCounterGeneratedModelTest {
     private static final Map<Path, String> GENERATED = Map.of(
-            Path.of("../forge/src/generated/resources"), "forge:composite",
-            Path.of("../neoforge/src/generated/resources"), "neoforge:composite"
+            Path.of("../forge/src/generated/resources"), "forge:composite"
     );
 
     /** Initializes Minecraft item registries used by pickup-counter variants. */
@@ -90,6 +89,8 @@ class CustomerPickupCounterGeneratedModelTest {
             ).getAsJsonObject();
             JsonObject gui = item.getAsJsonObject("display")
                     .getAsJsonObject("gui");
+            JsonObject ground = item.getAsJsonObject("display")
+                    .getAsJsonObject("ground");
             assertEquals(
                     45.0F,
                     gui.getAsJsonArray("rotation").get(0).getAsFloat()
@@ -105,6 +106,14 @@ class CustomerPickupCounterGeneratedModelTest {
             assertEquals(
                     3.0F,
                     gui.getAsJsonArray("translation").get(1).getAsFloat()
+            );
+            assertEquals(
+                    3.0F,
+                    ground.getAsJsonArray("translation").get(1).getAsFloat()
+            );
+            assertEquals(
+                    0.5F,
+                    ground.getAsJsonArray("scale").get(0).getAsFloat()
             );
             assertEquals(
                     generation.getValue(),

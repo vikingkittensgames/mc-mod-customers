@@ -45,6 +45,10 @@ Forge's `SimpleChannel`. Common payload records retain FriendlyByteBuf read and
 write methods, while Forge registers message IDs and schedules client handlers
 on the main thread.
 
+Block-break confirmation uses this same split: the common prompt and confirm
+records have `FriendlyByteBuf` serialization, while the Forge compatibility
+network helper assigns their `SimpleChannel` message IDs and directions.
+
 ### Blocks, recipes, loot, and GUI
 
 1.20.1 blocks use `Block#use` for empty-hand and item interactions and do not
@@ -52,6 +56,10 @@ use the newer block codec hooks. Recipes use `Consumer<FinishedRecipe>`, loot
 providers do not receive registry providers, and GUI sprite rendering uses
 `GuiGraphics.blit` with explicit texture dimensions. Checkboxes use the 1.20
 constructor and synchronize through an `onPress` override.
+
+Minecraft 1.21.1 uses `data/<namespace>/loot_table`, while Minecraft 1.20.1
+uses `data/<namespace>/loot_tables`. Forge resource processing copies the
+common loot tables to the 1.20.1 path for the Forge build.
 
 ### MCA appearance
 

@@ -30,6 +30,13 @@ Classes are grouped by the Minecraft concept they adapt and use the `CUtils` suf
 
 ## Common and Server Compatibility
 
+### INetworkHelper
+
+`INetworkHelper` provides the shared clientbound and serverbound payload transport used by block
+break confirmations. Forge registers both directions on its payload channel; NeoForge registers
+them with its payload registrar. Functionality code uses `sendToPlayer` or `sendToServer` without
+depending on either loader's transport API.
+
 ### EntityCUtils
 
 Package:
@@ -596,6 +603,7 @@ version-specific behavior in those classes whenever method signatures allow it.
 | Payload networking | `CustomPacketPayload` and `StreamCodec` | Forge `SimpleChannel` and `FriendlyByteBuf` |
 | Boss-bar rendering | Boss-bar sprites rendered with `GuiGraphics.blitSprite` | `textures/gui/bars.png` atlas rendered with `GuiGraphics.blit` UV offsets |
 | Recipe generation | `RecipeOutput` | recipe consumer callbacks |
+| Loot-table resource path | `data/<namespace>/loot_table` | `data/<namespace>/loot_tables`; Forge `processResources` copies the common tables to this path |
 
 `ItemStackCUtils` owns item comparison, crafting, and offer-cost construction.
 Network and persistence adapters own the loader/version-specific serialization.

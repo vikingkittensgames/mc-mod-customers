@@ -52,4 +52,15 @@ class ContainerUtilsTest {
         assertTrue(ContainerUtils.tryInsertStacked(container, ItemStack.EMPTY));
         assertTrue(container.isEmpty());
     }
+
+    @Test
+    void identifiesWhetherAnyContainerSlotHasItems() {
+        SimpleContainer container = new SimpleContainer(2);
+
+        assertFalse(ContainerUtils.hasItems(container));
+
+        container.setItem(1, new ItemStack(Items.APPLE));
+
+        assertTrue(ContainerUtils.hasItems(container));
+    }
 }

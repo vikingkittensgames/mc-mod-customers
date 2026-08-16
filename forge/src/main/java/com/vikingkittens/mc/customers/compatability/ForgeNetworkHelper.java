@@ -3,12 +3,16 @@ package com.vikingkittens.mc.customers.compatability;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 
+import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.client.customer.CustomerPayloadClientHandlers;
+import com.vikingkittens.mc.customers.common.BlockBreakConfirmation;
+import com.vikingkittens.mc.customers.common.BlockBreakConfirmationConfirmPayload;
+import com.vikingkittens.mc.customers.common.BlockBreakConfirmationPromptPayload;
 import com.vikingkittens.mc.customers.customer.CustomerCounterMarkersPayload;
 import com.vikingkittens.mc.customers.customer.CustomerShiftFinishedPayload;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerSnapshotPayload;
@@ -59,6 +63,33 @@ public final class ForgeNetworkHelper implements INetworkHelper {
                         context.get().setPacketHandled(true);
                     }
             );
+            channel.registerMessage(
+                    3,
+                    BlockBreakConfirmationPromptPayload.class,
+                    (payload, buffer) -> BlockBreakConfirmationPromptPayload.write(buffer, payload),
+                    BlockBreakConfirmationPromptPayload::read,
+                    (payload, context) -> {
+                        context.get().enqueueWork(() -> CustomerPayloadClientHandlers.showBlockBreakConfirmation(payload));
+                        context.get().setPacketHandled(true);
+                    },
+                    java.util.Optional.of(NetworkDirection.PLAY_TO_CLIENT)
+            );
+            channel.registerMessage(
+                    4,
+                    BlockBreakConfirmationConfirmPayload.class,
+                    (payload, buffer) -> BlockBreakConfirmationConfirmPayload.write(buffer, payload),
+                    BlockBreakConfirmationConfirmPayload::read,
+                    (payload, context) -> {
+                        context.get().enqueueWork(() -> {
+                            ServerPlayer player = context.get().getSender();
+                            if (player != null) {
+                                BlockBreakConfirmation.confirm(player, payload.playerId(), payload.token());
+                            }
+                        });
+                        context.get().setPacketHandled(true);
+                    },
+                    java.util.Optional.of(NetworkDirection.PLAY_TO_SERVER)
+            );
             return channel;
         }
     }
@@ -70,6 +101,16 @@ public final class ForgeNetworkHelper implements INetworkHelper {
     @Override
     public void sendToPlayer(ServerPlayer player, CustomerCounterMarkersPayload payload) {
         channel().send(PacketDistributor.PLAYER.with(() -> player), payload);
+    }
+
+    @Override
+    public void sendToPlayer(ServerPlayer player, BlockBreakConfirmationPromptPayload payload) {
+        channel().send(PacketDistributor.PLAYER.with(() -> player), payload);
+    }
+
+    @Override
+    public void sendToServer(BlockBreakConfirmationConfirmPayload payload) {
+        channel().sendToServer(payload);
     }
 
     @Override
