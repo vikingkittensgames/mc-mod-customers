@@ -13,8 +13,10 @@ import com.vikingkittens.mc.customers.Customers;
 
 public record CustomerLeaderboardOpenPayload(
         BlockPos leaderboardPos,
-        Map<CustomerLeaderboardScores.Key, Float> scores
+        Map<CustomerLeaderboardScores.Key, Score> scores
 ) implements CustomPacketPayload {
+    public record Score(float value, boolean levelPassed) {}
+
     public static final Type<CustomerLeaderboardOpenPayload> TYPE = new Type<>(
             ResourceLocation.fromNamespaceAndPath(Customers.MODID, "customer_leaderboard_open")
     );
@@ -35,7 +37,10 @@ public record CustomerLeaderboardOpenPayload(
                     target.writeVarInt(key.level());
                     target.writeUUID(key.playerId());
                 },
-                FriendlyByteBuf::writeFloat
+                (target, score) -> {
+                    target.writeFloat(score.value());
+                    target.writeBoolean(score.levelPassed());
+                }
         );
     }
 
@@ -50,7 +55,7 @@ public record CustomerLeaderboardOpenPayload(
                                 source.readVarInt(),
                                 source.readUUID()
                         ),
-                        FriendlyByteBuf::readFloat
+                        source -> new Score(source.readFloat(), source.readBoolean())
                 )
         );
     }

@@ -1,7 +1,9 @@
 package com.vikingkittens.mc.customers.customer;
 
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -94,10 +96,20 @@ public class CustomerLeaderboardBlockEntity extends BlockEntity {
             addFakeScores();
         }
         */
-        CustomersServices.network().sendToPlayer(
-                player,
-                new CustomerLeaderboardOpenPayload(worldPosition, scores.scores())
-        );
+        Map<CustomerLeaderboardScores.Key, CustomerLeaderboardOpenPayload.Score> payloadScores = new HashMap<>();
+        scores.scores().forEach((key, score) -> {
+            boolean levelPassed = false;
+            BlockEntity blockEntity = level.getBlockEntity(key.spawnerPosition());
+            if (blockEntity instanceof CustomerSpawnerBlockEntity spawner) {
+                levelPassed = score >= spawner.getLevelRequiredScore(key.level() - 1);
+            } else if (key.playerId().getMostSignificantBits() == 0L
+                    && key.playerId().getLeastSignificantBits() >= 0L
+                    && key.playerId().getLeastSignificantBits() < 7L) {
+                levelPassed = score >= 0.6F;
+            }
+            payloadScores.put(key, new CustomerLeaderboardOpenPayload.Score(score, levelPassed));
+        });
+        CustomersServices.network().sendToPlayer(player, new CustomerLeaderboardOpenPayload(worldPosition, payloadScores));
     }
 
     @Override

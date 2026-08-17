@@ -52,6 +52,9 @@ public class CustomerShiftFinishedScreen extends Screen {
     private static final SoundEvent BONK_SOUND = SoundEvent.createVariableRangeEvent(
             ResourceLocation.fromNamespaceAndPath(Customers.MODID, "bonk")
     );
+    private static final SoundEvent TADA_SOUND = SoundEvent.createVariableRangeEvent(
+            ResourceLocation.fromNamespaceAndPath(Customers.MODID, "tada")
+    );
 
     private static final TextureC RECEIPT_TEXTURE = texture("reciept.png");
     private static final TextureC STAR_TEXTURE = texture("star.png");
@@ -192,7 +195,7 @@ public class CustomerShiftFinishedScreen extends Screen {
         }
         long elapsedMillis = Util.getMillis() - animationStartMillis;
         if (!checkmarkSoundPlayed && elapsedMillis >= CHECKMARK_START_MILLIS) {
-            Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(BLING_SOUND, 1.0F));
+            Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(TADA_SOUND, 1.0F));
             checkmarkSoundPlayed = true;
         }
         int checkmarkX = leftPos + (IMAGE_WIDTH - STAR_SIZE) / 2;

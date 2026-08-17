@@ -52,27 +52,28 @@ class CustomerLeaderboardBlockScreenTest {
                                 1,
                                 new UUID(0L, 1L)
                         ),
-                        0.8F,
+                        new CustomerLeaderboardOpenPayload.Score(0.8F, true),
                         new CustomerLeaderboardScores.Key(
                                 breakfastPosition,
                                 CustomerSpawnerMode.BREAKFAST,
                                 2,
                                 new UUID(0L, 2L)
                         ),
-                        0.6F,
+                        new CustomerLeaderboardOpenPayload.Score(0.6F, false),
                         new CustomerLeaderboardScores.Key(
                                 dinnerPosition,
                                 CustomerSpawnerMode.DINNER,
                                 1,
                                 new UUID(0L, 3L)
                         ),
-                        0.4F
+                        new CustomerLeaderboardOpenPayload.Score(0.4F, false)
                 ));
 
         assertEquals(2, groups.size());
         assertEquals(breakfastPosition, groups.get(0).spawnerPosition());
         assertEquals(CustomerSpawnerMode.BREAKFAST, groups.get(0).spawnerMode());
         assertEquals(List.of(1, 2), groups.get(0).levels());
+        assertTrue(groups.get(0).scoresForLevel(1).getFirst().levelPassed());
         assertEquals(dinnerPosition, groups.get(1).spawnerPosition());
         assertEquals(CustomerSpawnerMode.DINNER, groups.get(1).spawnerMode());
     }
@@ -89,14 +90,14 @@ class CustomerLeaderboardBlockScreenTest {
                                 1,
                                 first
                         ),
-                        0.1F,
+                        new CustomerLeaderboardOpenPayload.Score(0.1F, false),
                         new CustomerLeaderboardScores.Key(
                                 BlockPos.ZERO,
                                 CustomerSpawnerMode.LUNCH,
                                 1,
                                 second
                         ),
-                        0.9F
+                        new CustomerLeaderboardOpenPayload.Score(0.9F, true)
                 ));
 
         assertEquals(
@@ -117,7 +118,7 @@ class CustomerLeaderboardBlockScreenTest {
                                 1,
                                 new UUID(0L, 1L)
                         ),
-                        1.0F
+                        new CustomerLeaderboardOpenPayload.Score(1.0F, true)
                 ));
         List<CustomerLeaderboardBlockScreen.ScoreGroup> twoDinnerGroups =
                 CustomerLeaderboardBlockScreen.getScoreGroups(Map.of(
@@ -127,14 +128,14 @@ class CustomerLeaderboardBlockScreenTest {
                                 1,
                                 new UUID(0L, 1L)
                         ),
-                        1.0F,
+                        new CustomerLeaderboardOpenPayload.Score(1.0F, true),
                         new CustomerLeaderboardScores.Key(
                                 new BlockPos(1, 64, 1),
                                 CustomerSpawnerMode.DINNER,
                                 1,
                                 new UUID(0L, 2L)
                         ),
-                        0.4F
+                        new CustomerLeaderboardOpenPayload.Score(0.4F, false)
                 ));
 
         assertFalse(CustomerLeaderboardBlockScreen.shouldShowSpawnerPosition(
