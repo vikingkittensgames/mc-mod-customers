@@ -596,6 +596,7 @@ activity appears with redstone as its profile image:
 
 When a Customer Leaderboard is within the configured distance, it saves each participating
 player's best completed shift percentage for that Customer Spawner, mode, and level.
+Completed levels are marked with a checkmark on the Customer Leaderboard.
 
 ![scoreboard.png](screenshots/scoreboard.png)
 

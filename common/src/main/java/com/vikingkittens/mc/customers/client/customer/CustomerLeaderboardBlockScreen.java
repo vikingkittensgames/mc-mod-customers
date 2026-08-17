@@ -52,6 +52,7 @@ public class CustomerLeaderboardBlockScreen extends Screen {
     private static final ResourceLocation HALF_STAR = texture("halfstar_small");
     private static final ResourceLocation NO_STAR = texture("nostar_small");
     private static final ResourceLocation STAR = texture("star_small");
+    private static final ResourceLocation CHECKMARK = texture("checkmark_small");
 
     private final List<ScoreGroup> groups;
     private int currentGroupIndex;
@@ -221,8 +222,8 @@ public class CustomerLeaderboardBlockScreen extends Screen {
                 false
         );
 
-        int starsX = x + CONTENT_WIDTH - STAR_COUNT * ICON_SIZE;
-        String percentage = Math.round(score.score() * 100.0F) + "%";
+        int starsX = x + CONTENT_WIDTH - STAR_COUNT * ICON_SIZE - 18;
+        String percentage = Math.round(score.value() * 100.0F) + "%";
         graphics.drawString(
                 font,
                 percentage,
@@ -233,8 +234,21 @@ public class CustomerLeaderboardBlockScreen extends Screen {
         );
         for (int index = 0; index < STAR_COUNT; index++) {
             graphics.blit(
-                    getStarTexture(score.score(), index),
+                    getStarTexture(score.value(), index),
                     starsX + index * ICON_SIZE,
+                    getRowElementY(y, ICON_SIZE),
+                    0,
+                    0,
+                    ICON_SIZE,
+                    ICON_SIZE,
+                    ICON_SIZE,
+                    ICON_SIZE
+            );
+        }
+        if (score.levelPassed()) {
+            graphics.blit(
+                    CHECKMARK,
+                    starsX + STAR_COUNT * ICON_SIZE + 2,
                     getRowElementY(y, ICON_SIZE),
                     0,
                     0,
@@ -277,7 +291,7 @@ public class CustomerLeaderboardBlockScreen extends Screen {
         };
     }
 
-    static List<ScoreGroup> getScoreGroups(Map<CustomerLeaderboardScores.Key, Float> scores) {
+    static List<ScoreGroup> getScoreGroups(Map<CustomerLeaderboardScores.Key, CustomerLeaderboardOpenPayload.Score> scores) {
         Map<ScoreGroupKey, Map<Integer, List<ScoreEntry>>> entriesByGroup = new HashMap<>();
         scores.forEach((key, score) -> entriesByGroup
                 .computeIfAbsent(
@@ -285,11 +299,11 @@ public class CustomerLeaderboardBlockScreen extends Screen {
                         ignored -> new HashMap<>()
                 )
                 .computeIfAbsent(key.level(), ignored -> new ArrayList<>())
-                .add(new ScoreEntry(key.playerId(), score)));
+                .add(new ScoreEntry(key.playerId(), score.value(), score.levelPassed())));
         return entriesByGroup.entrySet().stream()
                 .map(entry -> {
                     entry.getValue().values().forEach(entries -> entries.sort(
-                            Comparator.comparing(ScoreEntry::score)
+                            Comparator.comparing(ScoreEntry::value)
                                     .reversed()
                                     .thenComparing(ScoreEntry::playerId)
                     ));
@@ -318,7 +332,7 @@ public class CustomerLeaderboardBlockScreen extends Screen {
         return position.getX() + ", " + position.getY() + ", " + position.getZ();
     }
 
-    record ScoreEntry(UUID playerId, float score) {}
+    record ScoreEntry(UUID playerId, float value, boolean levelPassed) {}
 
     record ScoreGroup(
             BlockPos spawnerPosition,
