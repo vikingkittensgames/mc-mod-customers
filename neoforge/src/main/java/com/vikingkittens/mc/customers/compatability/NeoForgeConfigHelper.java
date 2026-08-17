@@ -19,6 +19,11 @@ public final class NeoForgeConfigHelper implements IConfigHelper {
     }
 
     @Override
+    public int maxLeaderboardDistance() {
+        return Config.MAX_LEADERBOARD_DISTANCE.get();
+    }
+
+    @Override
     public int defaultMaxCustomers() {
         return Config.MAX_CUSTOMERS.get();
     }

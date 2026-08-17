@@ -16,6 +16,7 @@ import com.vikingkittens.mc.customers.common.BlockBreakConfirmation;
 import com.vikingkittens.mc.customers.common.BlockBreakConfirmationConfirmPayload;
 import com.vikingkittens.mc.customers.common.BlockBreakConfirmationPromptPayload;
 import com.vikingkittens.mc.customers.customer.CustomerCounterMarkersPayload;
+import com.vikingkittens.mc.customers.customer.CustomerLeaderboardOpenPayload;
 import com.vikingkittens.mc.customers.customer.CustomerShiftFinishedPayload;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerSnapshotPayload;
 
@@ -51,6 +52,11 @@ public final class ForgeNetworkHelper implements INetworkHelper {
                         CustomerShiftFinishedPayload.TYPE,
                         playCodec(CustomerShiftFinishedPayload.STREAM_CODEC),
                         (payload, context) -> CustomerPayloadClientHandlers.showShiftFinished(payload)
+                )
+                .addMain(
+                        CustomerLeaderboardOpenPayload.TYPE,
+                        playCodec(CustomerLeaderboardOpenPayload.STREAM_CODEC),
+                        (payload, context) -> CustomerPayloadClientHandlers.showLeaderboard(payload)
                 )
                 .addMain(
                         CustomerCounterMarkersPayload.TYPE,

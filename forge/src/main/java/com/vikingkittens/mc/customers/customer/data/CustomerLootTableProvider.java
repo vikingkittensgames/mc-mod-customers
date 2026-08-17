@@ -19,7 +19,8 @@ public final class CustomerLootTableProvider extends LootTableProvider {
                 Set.of(),
                 List.of(
                         new SubProviderEntry(CustomerPickupCounterBlockLootSubProvider::new, LootContextParamSets.BLOCK),
-                        new SubProviderEntry(CustomerPaymentBoxBlockLootSubProvider::new, LootContextParamSets.BLOCK)
+                        new SubProviderEntry(CustomerPaymentBoxBlockLootSubProvider::new, LootContextParamSets.BLOCK),
+                        new SubProviderEntry(CustomerLeaderboardBlockLootSubProvider::new, LootContextParamSets.BLOCK)
                 ),
                 registries
         );

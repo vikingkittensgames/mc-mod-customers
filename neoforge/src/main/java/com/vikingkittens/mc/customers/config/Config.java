@@ -19,6 +19,9 @@ public class Config {
     public static final ModConfigSpec.IntValue MAX_COUNTER_DISTANCE = BUILDER
             .defineInRange("maxCounterDistance", 64, 1, Integer.MAX_VALUE);
 
+    public static final ModConfigSpec.IntValue MAX_LEADERBOARD_DISTANCE = BUILDER
+            .defineInRange("maxLeaderboardDistance", 64, 1, Integer.MAX_VALUE);
+
     public static final ModConfigSpec.IntValue MAX_CUSTOMERS = BUILDER
             .defineInRange("maxCustomers", 4, 1, Integer.MAX_VALUE);
 

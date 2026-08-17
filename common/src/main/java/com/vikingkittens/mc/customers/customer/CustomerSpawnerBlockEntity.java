@@ -1148,6 +1148,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         }
 
         sendShiftFinishedPayload(spawnerMode);
+        sendScoresToLeaderboard(spawnerMode);
 
         Component summary = ComponentCUtils.withColor(Component.translatable(
                 "messages.customers.scoreboard.summary",
@@ -1181,6 +1182,23 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             } catch (Throwable t) {
                 LOGGER.warn("Unable to add player score because of error", t);
             }
+        }
+    }
+
+    private void sendScoresToLeaderboard(CustomerSpawnerMode spawnerMode) {
+        CustomerLeaderboardBlockEntity leaderboard = CustomerLeaderboardBlockEntity.findClosest(
+                level,
+                worldPosition,
+                CustomersServices.config().maxLeaderboardDistance()
+        );
+        if (leaderboard == null) {
+            return;
+        }
+
+        Set<UUID> playerIds = new HashSet<>(itemsServed.playerScores().keySet());
+        playerIds.addAll(itemsCrafted.playerScores().keySet());
+        for (UUID playerId : playerIds) {
+            leaderboard.addScore(worldPosition, spawnerMode, 1, playerId, scoreboardGetPercentage());
         }
     }
 

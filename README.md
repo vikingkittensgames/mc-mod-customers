@@ -594,6 +594,9 @@ At the end of a shift where at least one player or Automated system crafted or s
 item, you and the other players will get a scoreboard showing how well you did. Automated
 activity appears with redstone as its profile image:
 
+When a Customer Leaderboard is within the configured distance, it saves each participating
+player's best completed shift percentage for that Customer Spawner, mode, and level.
+
 ![scoreboard.png](screenshots/scoreboard.png)
 
 ## Automation
@@ -679,6 +682,7 @@ disabled by default and can be enabled with the `enableBuildCommands` configurat
 | Customer Spawner Recipe | `enableCustomerSpawnerBlockRecipe` | Enables the crafting recipe for the Customer Spawner Block. | `true`  |
 | Supplier Spawner Recipe | `enableSupplierSpawnerBlockRecipe` | Enables the crafting recipe for the Supplier Spawner Block. | `true`  |
 | Maximum Counter Distance | `maxCounterDistance` | Sets the maximum distance in blocks between a Customer Spawner and the counters its customers can find. | `64`    |
+| Max Leaderboard Distance | `maxLeaderboardDistance` | Sets the maximum distance in blocks between a Customer Spawner and the Customer Leaderboard where its shift scores are saved. | `64` |
 | Maximum Customers | `maxCustomers` | Sets the maximum number of customers that each Customer Spawner tries to keep spawned. | `4`     |
 | Customer Give Up Seconds | `customerGiveUpSeconds` | Sets how many seconds a customer waits without completing a trade before giving up and leaving. | `120`   |
 | Enable Build Commands | `enableBuildCommands` | Enables the customer and supplier build inspection commands. | `false` |

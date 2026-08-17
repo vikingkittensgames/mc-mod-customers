@@ -9,7 +9,6 @@ import java.util.UUID;
 
 import org.jetbrains.annotations.Nullable;
 
-import com.mojang.authlib.GameProfile;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
@@ -17,10 +16,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.PlayerFaceRenderer;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.multiplayer.ClientPacketListener;
-import net.minecraft.client.multiplayer.PlayerInfo;
-import net.minecraft.client.resources.DefaultPlayerSkin;
-import net.minecraft.client.resources.PlayerSkin;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -30,9 +25,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.client.common.PlayerProfileUtils;
 import com.vikingkittens.mc.customers.client.compatability.GuiGraphicsCUtils;
 import com.vikingkittens.mc.customers.client.compatability.TextureC;
-import com.vikingkittens.mc.customers.compatability.ProfileCUtils;
 import com.vikingkittens.mc.customers.customer.CustomerShiftFinishedPayload;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
@@ -305,20 +300,7 @@ public class CustomerShiftFinishedScreen extends Screen {
         }
     }
     private String getPlayerName(@Nullable UUID playerId) {
-        if (playerId == null) {
-            return "";
-        }
-        Minecraft minecraft = Minecraft.getInstance();
-        ClientPacketListener connection = minecraft.getConnection();
-        PlayerInfo playerInfo = connection == null
-                ? null
-                : connection.getPlayerInfo(playerId);
-        GameProfile profile = playerInfo == null
-                ? null
-                : playerInfo.getProfile();
-        return profile == null
-                ? playerId.toString().substring(0, 8)
-                : ProfileCUtils.getName(profile);
+        return playerId == null ? "" : PlayerProfileUtils.getName(playerId);
     }
     private void renderScoreEntry(
             GuiGraphics graphics,
@@ -330,18 +312,9 @@ public class CustomerShiftFinishedScreen extends Screen {
         if (scoreEntry.automated()) {
             renderAutomatedIcon(graphics, x, y);
         } else {
-            UUID playerId = scoreEntry.playerId();
-            Minecraft minecraft = Minecraft.getInstance();
-            ClientPacketListener connection = minecraft.getConnection();
-            PlayerInfo playerInfo = connection == null
-                    ? null
-                    : connection.getPlayerInfo(playerId);
-            PlayerSkin skin = playerInfo == null
-                    ? DefaultPlayerSkin.get(playerId)
-                    : playerInfo.getSkin();
             PlayerFaceRenderer.draw(
                     graphics,
-                    skin,
+                    PlayerProfileUtils.getPicture(scoreEntry.playerId()),
                     x,
                     y,
                     PLAYER_HEAD_SIZE

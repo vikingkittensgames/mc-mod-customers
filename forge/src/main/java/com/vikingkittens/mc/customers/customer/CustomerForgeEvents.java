@@ -28,6 +28,7 @@ public final class CustomerForgeEvents {
         MinecraftForge.EVENT_BUS.addListener(CustomerForgeEvents::onPickupCounterInteract);
         MinecraftForge.EVENT_BUS.addListener(CustomerForgeEvents::onCustomerInteract);
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, CustomerForgeEvents::onCustomerSpawnerBreak);
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, CustomerForgeEvents::onCustomerLeaderboardBreak);
     }
 
     static void registerAttributes(EntityAttributeCreationEvent event) {
@@ -71,9 +72,25 @@ public final class CustomerForgeEvents {
         }
     }
 
+    static void onCustomerLeaderboardBreak(BlockEvent.BreakEvent event) {
+        if (event.getPlayer() instanceof net.minecraft.server.level.ServerPlayer player &&
+                event.getState().getBlock() instanceof CustomerLeaderboardBlock &&
+                event.getLevel().getBlockEntity(event.getPos()) instanceof CustomerLeaderboardBlockEntity leaderboard &&
+                leaderboard.shouldConfirmBreak()) {
+            event.setCanceled(BlockBreakConfirmation.shouldCancelBreak(
+                    player,
+                    event.getPos(),
+                    leaderboard,
+                    "screen.customers.break_confirmation.customer_leaderboard_title",
+                    "screen.customers.break_confirmation.customer_leaderboard_message"
+            ));
+        }
+    }
+
     private static void addCreative(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.FUNCTIONAL_BLOCKS) {
             event.accept(CustomerSpawner.CUSTOMER_SPAWNER_ITEM.get());
+            event.accept(CustomerLeaderboard.ITEM.get());
             CustomerPickupCounter.ITEMS.values().forEach(item -> event.accept(item.get()));
         }
     }

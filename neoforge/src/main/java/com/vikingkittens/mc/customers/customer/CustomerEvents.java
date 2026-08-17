@@ -48,6 +48,11 @@ public class CustomerEvents {
                 CustomerPayloadHandlers::handleShiftFinished
         );
         registrar.playToClient(
+                CustomerLeaderboardOpenPayload.TYPE,
+                CustomerLeaderboardOpenPayload.STREAM_CODEC,
+                CustomerPayloadHandlers::handleLeaderboard
+        );
+        registrar.playToClient(
                 BlockBreakConfirmationPromptPayload.TYPE,
                 BlockBreakConfirmationPromptPayload.STREAM_CODEC,
                 CustomerPayloadHandlers::handleBlockBreakConfirmation
@@ -110,6 +115,22 @@ public class CustomerEvents {
                     spawner,
                     "screen.customers.break_confirmation.customer_spawner_title",
                     "screen.customers.break_confirmation.message"
+            ));
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void onCustomerLeaderboardBreak(BlockEvent.BreakEvent event) {
+        if (event.getPlayer() instanceof ServerPlayer player &&
+                event.getState().getBlock() instanceof CustomerLeaderboardBlock &&
+                event.getLevel().getBlockEntity(event.getPos()) instanceof CustomerLeaderboardBlockEntity leaderboard &&
+                leaderboard.shouldConfirmBreak()) {
+            event.setCanceled(BlockBreakConfirmation.shouldCancelBreak(
+                    player,
+                    event.getPos(),
+                    leaderboard,
+                    "screen.customers.break_confirmation.customer_leaderboard_title",
+                    "screen.customers.break_confirmation.customer_leaderboard_message"
             ));
         }
     }

@@ -16,6 +16,12 @@ public final class CustomerPayloadHandlers {
         }
     }
 
+    public static void handleLeaderboard(CustomerLeaderboardOpenPayload payload, IPayloadContext context) {
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            CustomerPayloadClientHandlers.showLeaderboard(payload);
+        }
+    }
+
     public static void handleBlockBreakConfirmation(BlockBreakConfirmationPromptPayload payload, IPayloadContext context) {
         if (FMLEnvironment.dist == Dist.CLIENT) {
             CustomerPayloadClientHandlers.showBlockBreakConfirmation(payload);

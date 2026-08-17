@@ -26,6 +26,10 @@ public class CustomerLootTableProvider
                         new SubProviderEntry(
                                 CustomerPaymentBoxBlockLootSubProvider::new,
                                 LootContextParamSets.BLOCK
+                        ),
+                        new SubProviderEntry(
+                                CustomerLeaderboardBlockLootSubProvider::new,
+                                LootContextParamSets.BLOCK
                         )
                 ),
                 registries
