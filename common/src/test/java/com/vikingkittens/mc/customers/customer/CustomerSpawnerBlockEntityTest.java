@@ -42,6 +42,25 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class CustomerSpawnerBlockEntityTest {
+    @Test
+    void findsTheFirstLevelThePlayerHasNotPassed() {
+        assertEquals(1, CustomerSpawnerBlockEntity.getFirstUnfinishedLevel(
+                levelIndex -> levelIndex == 0 ? 0.5D : 0.25D,
+                levelIndex -> 0.4D
+        ));
+    }
+
+    @Test
+    void usesTheLowestActiveLevelForAllNearbyPlayers() {
+        UUID firstPlayer = UUID.randomUUID();
+        UUID secondPlayer = UUID.randomUUID();
+
+        assertEquals(1, CustomerSpawnerBlockEntity.getLowestActiveLevel(
+                List.of(firstPlayer, secondPlayer),
+                playerId -> playerId.equals(firstPlayer) ? 3 : 1
+        ));
+    }
+
     @BeforeAll
     static void bootstrapMinecraft() {
         MinecraftTestBootstrap.bootstrap();

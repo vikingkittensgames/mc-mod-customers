@@ -38,6 +38,7 @@ public class CustomerShiftFinishedScreen extends Screen {
     private static final int STAR_SIZE = 32;
     private static final int STAR_GAP = 8;
     private static final long STAR_ANIMATION_MILLIS = 500L;
+    private static final long CHECKMARK_START_MILLIS = STAR_ANIMATION_MILLIS * 6;
     private static final int PLAYER_HEAD_SIZE = 12;
     private static final int PLAYER_CARD_MARGIN = 16;
     private static final int PLAYER_CARD_GAP = 4;
@@ -54,6 +55,7 @@ public class CustomerShiftFinishedScreen extends Screen {
 
     private static final TextureC RECEIPT_TEXTURE = texture("reciept.png");
     private static final TextureC STAR_TEXTURE = texture("star.png");
+    private static final TextureC CHECKMARK_TEXTURE = texture("checkmark.png");
     private static final TextureC SPOON_TEXTURE = texture("spoon.png");
     private static final TextureC HALF_STAR_TEXTURE = texture("halfstar.png");
     private static final TextureC NO_STAR_TEXTURE = texture("nostar.png");
@@ -68,6 +70,7 @@ public class CustomerShiftFinishedScreen extends Screen {
     private int topPos;
     private long animationStartMillis;
     private final boolean[] starSoundsPlayed = new boolean[5];
+    private boolean checkmarkSoundPlayed;
 
     public CustomerShiftFinishedScreen(CustomerShiftFinishedPayload payload) {
         super(Component.translatable("screen.customers.shift_finished"));
@@ -84,6 +87,7 @@ public class CustomerShiftFinishedScreen extends Screen {
         topPos = (height - IMAGE_HEIGHT) / 2;
         animationStartMillis = Util.getMillis();
         Arrays.fill(starSoundsPlayed, false);
+        checkmarkSoundPlayed = false;
         addRenderableWidget(Button.builder(
                         Component.translatable("screen.customers.shift_finished.close"),
                         button -> onClose()
@@ -116,6 +120,7 @@ public class CustomerShiftFinishedScreen extends Screen {
         );
         renderShiftSummary(graphics);
         renderStars(graphics);
+        renderCheckmark(graphics);
         renderCustomerTotals(graphics);
         renderPlayerScores(graphics);
         graphics.flush();
@@ -179,6 +184,43 @@ public class CustomerShiftFinishedScreen extends Screen {
                 1.0F
         );
         return easeOutElastic(progress);
+    }
+
+    private void renderCheckmark(GuiGraphics graphics) {
+        if (!payload.levelPassed()) {
+            return;
+        }
+        long elapsedMillis = Util.getMillis() - animationStartMillis;
+        if (!checkmarkSoundPlayed && elapsedMillis >= CHECKMARK_START_MILLIS) {
+            Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(BLING_SOUND, 1.0F));
+            checkmarkSoundPlayed = true;
+        }
+        int checkmarkX = leftPos + (IMAGE_WIDTH - STAR_SIZE) / 2;
+        int checkmarkY = topPos + (IMAGE_HEIGHT - STAR_SIZE) / 2;
+        float centerX = checkmarkX + STAR_SIZE / 2.0F;
+        float centerY = checkmarkY + STAR_SIZE / 2.0F;
+        float scale = getCheckmarkScale(elapsedMillis);
+        GuiGraphicsCUtils.pushTransform(graphics);
+        GuiGraphicsCUtils.translate(graphics, centerX, centerY);
+        GuiGraphicsCUtils.scale(graphics, scale, scale);
+        GuiGraphicsCUtils.translate(graphics, -centerX, -centerY);
+        GuiGraphicsCUtils.blit(
+                graphics,
+                CHECKMARK_TEXTURE,
+                checkmarkX,
+                checkmarkY,
+                0.0F,
+                0.0F,
+                STAR_SIZE,
+                STAR_SIZE,
+                STAR_SIZE,
+                STAR_SIZE
+        );
+        GuiGraphicsCUtils.popTransform(graphics);
+    }
+
+    static float getCheckmarkScale(long elapsedMillis) {
+        return getStarScale(elapsedMillis - CHECKMARK_START_MILLIS, 0);
     }
 
     static float easeOutElastic(float progress) {

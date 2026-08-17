@@ -94,6 +94,7 @@
   "screen.customers.shift_finished.close": "Close",
   "screen.customers.customer_spawner.stars_required": "Stars Required",
   "screen.customers.customer_spawner.title": "Customer Spawner - %s - Level %s",
+  "screen.customers.customer_spawner.progress_title": "%s - Level %s",
   "screen.customers.customer_leaderboard": "Customer Leaderboard",
   "screen.customers.customer_leaderboard.group_with_position": "%s - (%s)",
   "screen.customers.customer_leaderboard.level": "Level %s",
