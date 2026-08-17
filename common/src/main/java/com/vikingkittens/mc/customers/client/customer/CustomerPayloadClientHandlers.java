@@ -6,6 +6,7 @@ import net.minecraft.client.Minecraft;
 import com.vikingkittens.mc.customers.client.common.BlockBreakConfirmationScreen;
 import com.vikingkittens.mc.customers.common.BlockBreakConfirmationPromptPayload;
 import com.vikingkittens.mc.customers.customer.CustomerCounterMarkersPayload;
+import com.vikingkittens.mc.customers.customer.CustomerLeaderboardOpenPayload;
 import com.vikingkittens.mc.customers.customer.CustomerShiftFinishedPayload;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerSnapshotPayload;
 
@@ -14,6 +15,10 @@ public final class CustomerPayloadClientHandlers {
 
     public static void showShiftFinished(CustomerShiftFinishedPayload payload) {
         Minecraft.getInstance().setScreen(new CustomerShiftFinishedScreen(payload));
+    }
+
+    public static void showLeaderboard(CustomerLeaderboardOpenPayload payload) {
+        Minecraft.getInstance().setScreen(new CustomerLeaderboardBlockScreen(payload));
     }
 
     public static void showBlockBreakConfirmation(BlockBreakConfirmationPromptPayload payload) {

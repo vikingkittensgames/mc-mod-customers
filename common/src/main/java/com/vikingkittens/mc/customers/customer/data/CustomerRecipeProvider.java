@@ -11,8 +11,11 @@ import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Ingredient;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.customer.CustomerLeaderboard;
+import com.vikingkittens.mc.customers.customer.CustomerLeaderboardBlock;
 import com.vikingkittens.mc.customers.customer.CustomerPaymentBox;
 import com.vikingkittens.mc.customers.customer.CustomerPaymentBoxBlock;
 import com.vikingkittens.mc.customers.customer.CustomerPickupCounter;
@@ -30,6 +33,7 @@ public final class CustomerRecipeProvider extends RecipeProvider {
     protected void buildRecipes(RecipeOutput output) {
         buildPickupCounterRecipes(output);
         buildPaymentBoxRecipes(output);
+        buildLeaderboardRecipe(output);
     }
 
     private void buildPickupCounterRecipes(RecipeOutput output) {
@@ -97,5 +101,36 @@ public final class CustomerRecipeProvider extends RecipeProvider {
                             )
                     );
         }
+    }
+
+    private void buildLeaderboardRecipe(RecipeOutput output) {
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, CustomerLeaderboard.BLOCK.get())
+                .pattern("SIS")
+                .pattern("PEP")
+                .pattern("SXS")
+                .define('S', Ingredient.of(
+                        Items.STRIPPED_ACACIA_LOG,
+                        Items.STRIPPED_BIRCH_LOG,
+                        Items.STRIPPED_CHERRY_LOG,
+                        Items.STRIPPED_DARK_OAK_LOG,
+                        Items.STRIPPED_JUNGLE_LOG,
+                        Items.STRIPPED_MANGROVE_LOG,
+                        Items.STRIPPED_OAK_LOG,
+                        Items.STRIPPED_SPRUCE_LOG,
+                        Items.STRIPPED_CRIMSON_STEM,
+                        Items.STRIPPED_WARPED_STEM
+                ))
+                .define('I', Items.IRON_INGOT)
+                .define('P', Items.PAPER)
+                .define('E', Items.EMERALD)
+                .define('X', Items.INK_SAC)
+                .unlockedBy(getHasName(Items.PAPER), has(Items.PAPER))
+                .save(
+                        output,
+                        ResourceLocation.fromNamespaceAndPath(
+                                Customers.MODID,
+                                CustomerLeaderboardBlock.NAME
+                        )
+                );
     }
 }

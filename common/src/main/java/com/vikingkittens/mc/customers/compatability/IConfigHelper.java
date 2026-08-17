@@ -7,6 +7,8 @@ public interface IConfigHelper {
 
     int maxCounterDistance();
 
+    int maxLeaderboardDistance();
+
     int defaultMaxCustomers();
 
     int customerGiveUpSeconds();

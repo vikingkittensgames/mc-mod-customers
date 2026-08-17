@@ -17,6 +17,11 @@ public final class VanillaConfigHelper implements IConfigHelper {
     }
 
     @Override
+    public int maxLeaderboardDistance() {
+        return 64;
+    }
+
+    @Override
     public int defaultMaxCustomers() {
         return 4;
     }

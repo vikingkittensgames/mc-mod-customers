@@ -11,6 +11,11 @@ class ConfigTest {
     }
 
     @Test
+    void maxLeaderboardDistanceDefaultsTo64() {
+        assertEquals(64, Config.MAX_LEADERBOARD_DISTANCE.getDefault());
+    }
+
+    @Test
     void maxCustomersDefaultsTo4() {
         assertEquals(4, Config.MAX_CUSTOMERS.getDefault());
     }

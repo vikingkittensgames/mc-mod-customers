@@ -27,6 +27,13 @@ public final class CustomersData {
                 )
         );
         generator.addProvider(
+                event.includeClient(),
+                new CustomerLeaderboardBlockStateProvider(
+                        output,
+                        event.getExistingFileHelper()
+                )
+        );
+        generator.addProvider(
                 event.includeServer(),
                 new CustomerRecipeProvider(output, event.getLookupProvider())
         );

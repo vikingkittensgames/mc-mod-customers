@@ -19,6 +19,7 @@ public final class CustomerPaymentBoxNeoForgeEvents {
     private static void addCreative(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.FUNCTIONAL_BLOCKS) {
             CustomerPaymentBox.ITEMS.values().forEach(item -> event.accept(item.get()));
+            event.accept(CustomerLeaderboard.ITEM.get());
         }
     }
 
