@@ -21,6 +21,7 @@ class CustomerShiftFinishedPayloadTest {
         CustomerShiftFinishedPayload original = new CustomerShiftFinishedPayload(
                 CustomerSpawnerMode.LUNCH,
                 0.75F,
+                true,
                 12,
                 8,
                 3,
@@ -45,6 +46,7 @@ class CustomerShiftFinishedPayloadTest {
         CustomerShiftFinishedPayload payload = new CustomerShiftFinishedPayload(
                 CustomerSpawnerMode.DINNER,
                 0.5F,
+                false,
                 10,
                 5,
                 2,
@@ -70,6 +72,7 @@ class CustomerShiftFinishedPayloadTest {
                 new CustomerShiftFinishedPayload(
                         CustomerSpawnerMode.BREAKFAST,
                         1.0F,
+                        true,
                         3,
                         3,
                         0,
