@@ -9,6 +9,8 @@ public final class ForgeConfigHelper implements IConfigHelper {
             BUILDER.define("enableCustomerSpawnerBlockRecipe", true);
     private static final ForgeConfigSpec.BooleanValue SUPPLIER_SPAWNER_RECIPE =
             BUILDER.define("enableSupplierSpawnerBlockRecipe", true);
+    private static final ForgeConfigSpec.BooleanValue CUSTOMER_LEADERBOARD_RECIPE =
+            BUILDER.define("enableCustomerLeaderboardBlockRecipe", true);
     private static final ForgeConfigSpec.IntValue MAX_COUNTER_DISTANCE =
             BUILDER.defineInRange("maxCounterDistance", 64, 1, Integer.MAX_VALUE);
     private static final ForgeConfigSpec.IntValue MAX_LEADERBOARD_DISTANCE =
@@ -30,6 +32,11 @@ public final class ForgeConfigHelper implements IConfigHelper {
     @Override
     public boolean supplierSpawnerRecipeEnabled() {
         return SUPPLIER_SPAWNER_RECIPE.get();
+    }
+
+    @Override
+    public boolean customerLeaderboardRecipeEnabled() {
+        return CUSTOMER_LEADERBOARD_RECIPE.get();
     }
 
     @Override

@@ -27,6 +27,14 @@ class RecipeEnabledConditionTest {
     }
 
     @Test
+    void usesCustomerLeaderboardRecipeSetting() {
+        IConfigHelper config = mock(IConfigHelper.class);
+        when(config.customerLeaderboardRecipeEnabled()).thenReturn(true);
+
+        assertTrue(new RecipeEnabledCondition(RecipeEnabledCondition.CUSTOMER_LEADERBOARD_BLOCK).test(config));
+    }
+
+    @Test
     void rejectsUnknownRecipeSetting() {
         assertFalse(new RecipeEnabledCondition("unknown").test(mock(IConfigHelper.class)));
     }
