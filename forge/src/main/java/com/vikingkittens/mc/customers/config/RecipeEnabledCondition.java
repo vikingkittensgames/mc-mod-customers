@@ -13,6 +13,7 @@ import com.vikingkittens.mc.customers.compatability.IConfigHelper;
 public record RecipeEnabledCondition(String recipe) implements ICondition {
     public static final String CUSTOMER_SPAWNER_BLOCK = "customer_spawner_block";
     public static final String SUPPLIER_SPAWNER_BLOCK = "supplier_spawner_block";
+    public static final String CUSTOMER_LEADERBOARD_BLOCK = "customer_leaderboard_block";
     public static final MapCodec<RecipeEnabledCondition> CODEC = RecordCodecBuilder.mapCodec(
             builder -> builder
                     .group(Codec.STRING.fieldOf("recipe").forGetter(RecipeEnabledCondition::recipe))
@@ -28,6 +29,7 @@ public record RecipeEnabledCondition(String recipe) implements ICondition {
         return switch (recipe) {
             case CUSTOMER_SPAWNER_BLOCK -> config.customerSpawnerRecipeEnabled();
             case SUPPLIER_SPAWNER_BLOCK -> config.supplierSpawnerRecipeEnabled();
+            case CUSTOMER_LEADERBOARD_BLOCK -> config.customerLeaderboardRecipeEnabled();
             default -> false;
         };
     }

@@ -682,6 +682,7 @@ disabled by default and can be enabled with the `enableBuildCommands` configurat
 | --- | --- | --- |---------|
 | Customer Spawner Recipe | `enableCustomerSpawnerBlockRecipe` | Enables the crafting recipe for the Customer Spawner Block. | `true`  |
 | Supplier Spawner Recipe | `enableSupplierSpawnerBlockRecipe` | Enables the crafting recipe for the Supplier Spawner Block. | `true`  |
+| Customer Leaderboard Recipe | `enableCustomerLeaderboardBlockRecipe` | Enables the crafting recipe for the Customer Leaderboard Block. | `true` |
 | Maximum Counter Distance | `maxCounterDistance` | Sets the maximum distance in blocks between a Customer Spawner and the counters its customers can find. | `64`    |
 | Max Leaderboard Distance | `maxLeaderboardDistance` | Sets the maximum distance in blocks between a Customer Spawner and the Customer Leaderboard where its shift scores are saved. | `64` |
 | Maximum Customers | `maxCustomers` | Sets the maximum number of customers that each Customer Spawner tries to keep spawned. | `4`     |

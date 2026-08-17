@@ -15,6 +15,7 @@ class CustomersServicesTest {
         assertEquals(VanillaConfigHelper.class, config.getClass());
         assertEquals(true, config.customerSpawnerRecipeEnabled());
         assertEquals(true, config.supplierSpawnerRecipeEnabled());
+        assertEquals(true, config.customerLeaderboardRecipeEnabled());
         assertEquals(64, config.maxCounterDistance());
         assertEquals(4, config.defaultMaxCustomers());
         assertEquals(120, config.customerGiveUpSeconds());

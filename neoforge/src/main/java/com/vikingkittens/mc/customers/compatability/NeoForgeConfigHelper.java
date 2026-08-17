@@ -14,6 +14,11 @@ public final class NeoForgeConfigHelper implements IConfigHelper {
     }
 
     @Override
+    public boolean customerLeaderboardRecipeEnabled() {
+        return Config.ENABLE_CUSTOMER_LEADERBOARD_BLOCK_RECIPE.get();
+    }
+
+    @Override
     public int maxCounterDistance() {
         return Config.MAX_COUNTER_DISTANCE.get();
     }

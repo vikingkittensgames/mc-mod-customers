@@ -11,6 +11,7 @@ import com.vikingkittens.mc.customers.compatability.CustomersServices;
 public record RecipeEnabledCondition(String recipe) implements ICondition {
     public static final String CUSTOMER_SPAWNER_BLOCK = "customer_spawner_block";
     public static final String SUPPLIER_SPAWNER_BLOCK = "supplier_spawner_block";
+    public static final String CUSTOMER_LEADERBOARD_BLOCK = "customer_leaderboard_block";
 
     public static final MapCodec<RecipeEnabledCondition> CODEC = RecordCodecBuilder.mapCodec(
             builder -> builder
@@ -23,6 +24,7 @@ public record RecipeEnabledCondition(String recipe) implements ICondition {
         return switch (recipe) {
             case CUSTOMER_SPAWNER_BLOCK -> CustomersServices.config().customerSpawnerRecipeEnabled();
             case SUPPLIER_SPAWNER_BLOCK -> CustomersServices.config().supplierSpawnerRecipeEnabled();
+            case CUSTOMER_LEADERBOARD_BLOCK -> CustomersServices.config().customerLeaderboardRecipeEnabled();
             default -> false;
         };
     }

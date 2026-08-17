@@ -5,6 +5,8 @@ public interface IConfigHelper {
 
     boolean supplierSpawnerRecipeEnabled();
 
+    boolean customerLeaderboardRecipeEnabled();
+
     int maxCounterDistance();
 
     int maxLeaderboardDistance();

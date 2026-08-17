@@ -16,6 +16,10 @@ public class Config {
             .comment("Whether the supplier spawner block recipe is enabled.")
             .define("enableSupplierSpawnerBlockRecipe", true);
 
+    public static final ModConfigSpec.BooleanValue ENABLE_CUSTOMER_LEADERBOARD_BLOCK_RECIPE = BUILDER
+            .comment("Whether the customer leaderboard block recipe is enabled.")
+            .define("enableCustomerLeaderboardBlockRecipe", true);
+
     public static final ModConfigSpec.IntValue MAX_COUNTER_DISTANCE = BUILDER
             .defineInRange("maxCounterDistance", 64, 1, Integer.MAX_VALUE);
 
