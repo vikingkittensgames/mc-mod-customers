@@ -45,7 +45,26 @@ class CustomerSpawnerBlockEntityTest {
     @Test
     void findsTheFirstLevelThePlayerHasNotPassed() {
         assertEquals(1, CustomerSpawnerBlockEntity.getFirstUnfinishedLevel(
+                List.of(0, 1),
                 levelIndex -> levelIndex == 0 ? 0.5D : 0.25D,
+                levelIndex -> 0.4D
+        ));
+    }
+
+    @Test
+    void skipsLevelsWithoutConfiguredInventoryItems() {
+        assertEquals(2, CustomerSpawnerBlockEntity.getFirstUnfinishedLevel(
+                List.of(0, 2),
+                levelIndex -> levelIndex == 0 ? 0.5D : 0.25D,
+                levelIndex -> 0.4D
+        ));
+    }
+
+    @Test
+    void usesTheHighestConfiguredLevelAfterPassingEveryConfiguredLevel() {
+        assertEquals(2, CustomerSpawnerBlockEntity.getFirstUnfinishedLevel(
+                List.of(0, 2),
+                levelIndex -> 1.0D,
                 levelIndex -> 0.4D
         ));
     }
