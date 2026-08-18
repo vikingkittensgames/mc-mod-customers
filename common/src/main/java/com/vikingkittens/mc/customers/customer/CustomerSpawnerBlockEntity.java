@@ -382,14 +382,26 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     int getActiveLevel() {
         CustomerLeaderboardBlockEntity leaderboard = getActiveLevelLeaderboard();
-        if (leaderboard == null || playerIds.isEmpty()) {
+        List<Integer> configuredLevelIndexes = getConfiguredLevelIndexes();
+        if (leaderboard == null || playerIds.isEmpty() || configuredLevelIndexes.isEmpty()) {
             return 0;
         }
         CustomerSpawnerMode spawnerMode = getBlockState().getValue(CustomerSpawnerBlock.STATE_SPAWN_MODE);
         return getLowestActiveLevel(playerIds, playerId -> getFirstUnfinishedLevel(
+                configuredLevelIndexes,
                 levelIndex -> leaderboard.getScore(worldPosition, spawnerMode, levelIndex + 1, playerId),
                 this::getLevelRequiredScore
         ));
+    }
+
+    private List<Integer> getConfiguredLevelIndexes() {
+        List<Integer> configuredLevelIndexes = new ArrayList<>();
+        for (int levelIndex = 0; levelIndex < levelSettings.size(); levelIndex++) {
+            if (ContainerUtils.hasItems(levelSettings.get(levelIndex).getInventory())) {
+                configuredLevelIndexes.add(levelIndex);
+            }
+        }
+        return configuredLevelIndexes;
     }
 
     float getLevelRequiredScore(int levelIndex) {
@@ -414,13 +426,17 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         return playerIds.stream().mapToInt(getPlayerActiveLevel::apply).min().orElse(0);
     }
 
-    static int getFirstUnfinishedLevel(IntToDoubleFunction getScore, IntToDoubleFunction getRequiredScore) {
-        for (int levelIndex = 0; levelIndex < MAX_LEVELS; levelIndex++) {
+    static int getFirstUnfinishedLevel(
+            List<Integer> configuredLevelIndexes,
+            IntToDoubleFunction getScore,
+            IntToDoubleFunction getRequiredScore
+    ) {
+        for (int levelIndex : configuredLevelIndexes) {
             if (getScore.applyAsDouble(levelIndex) < getRequiredScore.applyAsDouble(levelIndex)) {
                 return levelIndex;
             }
         }
-        return MAX_LEVELS - 1;
+        return configuredLevelIndexes.isEmpty() ? 0 : configuredLevelIndexes.getLast();
     }
 
     public boolean shouldConfirmBreak() {
