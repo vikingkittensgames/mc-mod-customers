@@ -2,8 +2,11 @@ name: Build
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
 jobs:
-  build:
+  build-all-loaders:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -26,5 +29,22 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
-      - name: Build with Gradle
-        run: ./gradlew build
+      - name: Verify formatting and build both loaders
+        run: ./gradlew --no-daemon clean spotlessCheck testAllLoaders runDataForge runDataNeoForge buildAllLoaders
+
+      - name: Verify generated data is current
+        run: git diff --check && git diff --exit-code -- forge/src/generated neoforge/src/generated
+
+      - name: Upload Forge JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: customers-forge
+          path: forge/build/libs/*.jar
+          if-no-files-found: error
+
+      - name: Upload NeoForge JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: customers-neoforge
+          path: neoforge/build/libs/*.jar
+          if-no-files-found: error
