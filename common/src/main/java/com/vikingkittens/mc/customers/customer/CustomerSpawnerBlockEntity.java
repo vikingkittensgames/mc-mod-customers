@@ -36,6 +36,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
@@ -354,7 +355,11 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     public CustomerSpawnerBlockEntity(BlockPos pos, BlockState blockState) {
-        super(CustomerSpawner.CUSTOMER_SPAWNER_ENTITY.get(), pos, blockState);
+        this(CustomerSpawner.CUSTOMER_SPAWNER_ENTITY.get(), pos, blockState);
+    }
+
+    CustomerSpawnerBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
+        super(type, pos, blockState);
         levelSettings.add(createLevelSettings());
     }
 
@@ -495,7 +500,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 input.getInt(TAG_DATA_VERSION).orElse(0) < CURRENT_DATA_VERSION || hasLegacyInventory;
         if (hasLegacyInventory) {
             try {
-                getActiveLevelSettings().getPersistedInventory().deserializeNBT(registries, tag.getCompound("inventory"));
+                getLevelSettings(0).getPersistedInventory().deserializeNBT(registries, tag.getCompound("inventory"));
             } catch (Throwable t) {
                 LOGGER.error("Failed to load inventory because of error", t);
             }
@@ -517,7 +522,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             readLegacyLevelSettings(
                     input,
                     loadedDataVersion,
-                    getActiveLevelSettings(),
+                    getLevelSettings(0),
                     CustomersServices.config().defaultMaxCustomers()
             );
         } else {

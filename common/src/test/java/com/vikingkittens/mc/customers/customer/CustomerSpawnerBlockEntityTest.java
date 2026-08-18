@@ -22,6 +22,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.trading.MerchantOffers;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
@@ -29,6 +31,7 @@ import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
 import com.vikingkittens.mc.customers.compatability.persistence.PersistedContainer;
 import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -67,6 +70,22 @@ class CustomerSpawnerBlockEntityTest {
                 levelIndex -> 1.0D,
                 levelIndex -> 0.4D
         ));
+    }
+
+    @Test
+    void loadsLegacyLevelDataBeforeBeingAttachedToALevel() {
+        BlockEntityType<?> type = mock(BlockEntityType.class);
+        BlockState state = mock(BlockState.class);
+        when(type.isValid(state)).thenReturn(true);
+        CustomerSpawnerBlockEntity entity = new CustomerSpawnerBlockEntity(
+                type,
+                BlockPos.ZERO,
+                state
+        );
+        CompoundTag tag = new CompoundTag();
+        tag.putInt(CustomerSpawnerBlockEntity.TAG_DATA_VERSION, 2);
+
+        assertDoesNotThrow(() -> entity.readSpawnerData(PersistenceCUtils.reader(tag)));
     }
 
     @Test
