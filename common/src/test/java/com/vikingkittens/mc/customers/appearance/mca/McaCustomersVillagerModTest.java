@@ -23,6 +23,16 @@ class McaCustomersVillagerModTest {
     }
 
     @Test
+    void supportsMcaWhenItIsLoadedAndHasTheRequiredApi() {
+        assertTrue(McaCustomersVillagerMod.isSupported("mca"::equals, () -> true));
+    }
+
+    @Test
+    void doesNotSupportMcaWhenItsRequiredApiIsMissing() {
+        assertFalse(McaCustomersVillagerMod.isSupported("mca"::equals, () -> false));
+    }
+
+    @Test
     void reportsMcaMissingWhenItsModIdIsAbsent() {
         assertFalse(McaCustomersVillagerMod.isLoaded(ignored -> false));
     }

@@ -18,7 +18,7 @@ public final class McaCustomersVillagerClientEvents {
     public static void registerAppearances(
             EntityRenderersEvent.RegisterRenderers event
     ) {
-        if (!McaCustomersVillagerMod.isLoaded()) {
+        if (!McaCustomersVillagerMod.isSupported()) {
             return;
         }
         CustomersVillagerClientAppearances.register(

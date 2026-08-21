@@ -9,7 +9,6 @@ import net.conczin.mca.entity.ai.Genetics;
 import net.conczin.mca.entity.ai.relationship.Gender;
 import net.conczin.mca.registry.EntitiesMCA;
 import net.conczin.mca.resources.ClothingList;
-import net.conczin.mca.resources.HairList;
 import net.conczin.mca.resources.WeightedPool;
 import org.jetbrains.annotations.Nullable;
 
@@ -168,19 +167,13 @@ final class McaCustomersVillagerProxy extends VillagerEntityMCA
             }
         }
 
-        HairList hair = HairList.getInstance();
+        McaCustomersVillagerHairPools.Selection hair =
+                McaCustomersVillagerHairPools.select(
+                        getGenetics().getGender(),
+                        variation.hairChoice()
+                );
         if (hair != null) {
-            WeightedPool.Entry<String> selected =
-                    McaCustomersVillagerWeightedSelector.select(
-                            hair.getPool(getGenetics().getGender())
-                                    .getEntries(),
-                            WeightedPool.Entry::getWeight,
-                            variation.hairChoice(),
-                            null
-                    );
-            if (selected != null) {
-                setHair(selected.getValue());
-            }
+            McaCustomersVillagerHairPools.apply(this, hair);
         }
     }
 }

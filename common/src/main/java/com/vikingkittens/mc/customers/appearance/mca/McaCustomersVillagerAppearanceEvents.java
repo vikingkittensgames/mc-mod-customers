@@ -9,7 +9,7 @@ public final class McaCustomersVillagerAppearanceEvents {
     private McaCustomersVillagerAppearanceEvents() {}
 
     public static void initialize() {
-        if (initialized || !McaCustomersVillagerMod.isLoaded()) {
+        if (initialized || !McaCustomersVillagerMod.isSupported()) {
             return;
         }
         CustomersServices.registration().register(

@@ -20,7 +20,7 @@ public final class McaCustomersVillagerForgeClientEvents {
 
     @SubscribeEvent
     public static void registerAppearances(EntityRenderersEvent.RegisterRenderers event) {
-        if (McaCustomersVillagerMod.isLoaded()) {
+        if (McaCustomersVillagerMod.isSupported()) {
             CustomersVillagerClientAppearances.register(
                     McaCustomersVillagerAppearance.ID,
                     McaCustomersVillagerClientAppearance::new

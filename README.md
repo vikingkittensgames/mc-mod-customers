@@ -20,7 +20,8 @@ me adding more features:
 ## Supported Minecraft Versions
 
 For now we support Minecraft versions:
-* 1.21.1
+* 1.20.1 - Forge
+* 1.21.1 - Forge & NeoForge
 * 1.21.11 (delayed update)
 
 ## Mod Loader
@@ -562,10 +563,11 @@ code-defined appearance.
 ### Minecraft Comes Alive Appearance
 
 The **Minecraft Comes Alive** appearance is supported for Minecraft 1.21.1 and
-newer only. When Minecraft Comes Alive Reborn is installed on a supported
-version, the appearance becomes available in Customer and Supplier Spawners. It
-uses MCA's human villager models, genetics, skin layers, clothing, hairstyles,
-and configured villager voices, including its yes and no trade responses, while
+newer only, with MCA Reborn version 7.7.9 or newer for Minecraft 1.21.1. When
+Minecraft Comes Alive Reborn is installed on a supported version, the appearance
+becomes available in Customer and Supplier Spawners. It uses
+MCA's human villager models, genetics, skin layers, clothing, hairstyles, and
+configured villager voices, including its yes and no trade responses, while
 preserving normal Customer and Supplier behavior, including sitting while
 waiting. The saved appearance variation keeps each villager's MCA appearance
 consistent. Customers and Suppliers using this appearance are always rendered
