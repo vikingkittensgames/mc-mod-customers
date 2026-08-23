@@ -9,6 +9,7 @@ import net.minecraft.network.FriendlyByteBuf;
 public record CustomerShiftFinishedPayload(
         CustomerSpawnerMode spawnerMode,
         float percentComplete,
+        boolean levelPassed,
         int totalCustomers,
         int numCustomersServed,
         int numCustomersGaveUp,
@@ -50,6 +51,7 @@ public record CustomerShiftFinishedPayload(
     public static void write(FriendlyByteBuf buffer, CustomerShiftFinishedPayload payload) {
         buffer.writeEnum(payload.spawnerMode());
         buffer.writeFloat(payload.percentComplete());
+        buffer.writeBoolean(payload.levelPassed());
         buffer.writeVarInt(payload.totalCustomers());
         buffer.writeVarInt(payload.numCustomersServed());
         buffer.writeVarInt(payload.numCustomersGaveUp());
@@ -71,6 +73,7 @@ public record CustomerShiftFinishedPayload(
         return new CustomerShiftFinishedPayload(
                 buffer.readEnum(CustomerSpawnerMode.class),
                 buffer.readFloat(),
+                buffer.readBoolean(),
                 buffer.readVarInt(),
                 buffer.readVarInt(),
                 buffer.readVarInt(),

@@ -601,6 +601,7 @@ version-specific behavior in those classes whenever method signatures allow it.
 | Interaction result | `ItemInteractionResult` for `useItemOn` | `InteractionResult` for block use; unsupported items return `PASS` |
 | Project interface methods that expose Minecraft state | Project-owned method names are safe | Use project-owned names such as `isVillagerInWater()` and call vanilla state methods only inside their implementation so `reobfJar` does not remap an interface contract as a Minecraft override |
 | Payload networking | `CustomPacketPayload` and `StreamCodec` | Forge `SimpleChannel` and `FriendlyByteBuf` |
+| Customer leaderboard payload | payload type registration and `StreamCodec` | `SimpleChannel` message registration with `FriendlyByteBuf` read/write methods |
 | Boss-bar rendering | Boss-bar sprites rendered with `GuiGraphics.blitSprite` | `textures/gui/bars.png` atlas rendered with `GuiGraphics.blit` UV offsets |
 | Recipe generation | `RecipeOutput` | recipe consumer callbacks |
 | Loot-table resource path | `data/<namespace>/loot_table` | `data/<namespace>/loot_tables`; Forge `processResources` copies the common tables to this path |
@@ -625,6 +626,9 @@ Additional 1.20.1 Forge details:
 | Player faces | `PlayerFaceRenderer` accepts a skin `ResourceLocation`; `PlayerInfo#getSkinLocation` supplies online textures. |
 | Checkboxes | Construct `Checkbox` directly and override `onPress` for menu synchronization. |
 | Render layers | 1.20 layer helpers use explicit RGBA values and an older argument layout. |
+| Custom screens | Use `renderBackground(GuiGraphics)` and the three-argument `mouseScrolled` callback. |
+| Customer levels | The shared level settings and NBT migration logic run unchanged; 1.20 persistence writes them through the legacy `CompoundTag` adapter. |
+| Leaderboards | The shared score storage, level selection, and screen model are retained; Forge sends the leaderboard payload through `SimpleChannel`. |
 
 The 1.20.1 test helpers load `BuiltInRegistries` under the bootstrap guard before
 calling `Bootstrap.bootStrap()`. This avoids the circular registry initialization

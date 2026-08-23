@@ -4,6 +4,7 @@ import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 import com.vikingkittens.mc.customers.appearance.monsters.MonsterCustomersVillagerAppearanceEvents;
 import com.vikingkittens.mc.customers.appearance.skins.SkinCustomersVillagerAppearanceEvents;
 import com.vikingkittens.mc.customers.customer.Customer;
+import com.vikingkittens.mc.customers.customer.CustomerLeaderboard;
 import com.vikingkittens.mc.customers.customer.CustomerPaymentBox;
 import com.vikingkittens.mc.customers.customer.CustomerPickupCounter;
 import com.vikingkittens.mc.customers.customer.CustomerSeat;
@@ -24,6 +25,7 @@ public final class Customers {
         CustomerSeat.initialize();
         CustomerSpawner.initialize();
         CustomerPickupCounter.initialize();
+        CustomerLeaderboard.initialize();
         Customer.initialize();
         SupplierSpawner.initialize();
         Supplier.initialize();

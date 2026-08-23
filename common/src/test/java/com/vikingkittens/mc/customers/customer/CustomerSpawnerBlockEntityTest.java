@@ -43,6 +43,44 @@ import static org.mockito.Mockito.when;
 class CustomerSpawnerBlockEntityTest {
 
     @Test
+    void findsTheFirstLevelThePlayerHasNotPassed() {
+        assertEquals(1, CustomerSpawnerBlockEntity.getFirstUnfinishedLevel(
+                List.of(0, 1),
+                levelIndex -> levelIndex == 0 ? 0.5D : 0.25D,
+                levelIndex -> 0.4D
+        ));
+    }
+
+    @Test
+    void skipsLevelsWithoutConfiguredInventoryItems() {
+        assertEquals(2, CustomerSpawnerBlockEntity.getFirstUnfinishedLevel(
+                List.of(0, 2),
+                levelIndex -> levelIndex == 0 ? 0.5D : 0.25D,
+                levelIndex -> 0.4D
+        ));
+    }
+
+    @Test
+    void usesTheHighestConfiguredLevelAfterPassingEveryConfiguredLevel() {
+        assertEquals(2, CustomerSpawnerBlockEntity.getFirstUnfinishedLevel(
+                List.of(0, 2),
+                levelIndex -> 1.0D,
+                levelIndex -> 0.4D
+        ));
+    }
+
+    @Test
+    void usesTheLowestActiveLevelForAllNearbyPlayers() {
+        UUID firstPlayer = UUID.randomUUID();
+        UUID secondPlayer = UUID.randomUUID();
+
+        assertEquals(1, CustomerSpawnerBlockEntity.getLowestActiveLevel(
+                List.of(firstPlayer, secondPlayer),
+                playerId -> playerId.equals(firstPlayer) ? 3 : 1
+        ));
+    }
+
+    @Test
     void calculatesTheScoreFromServedItemsOnly() {
         assertEquals(0.5F,
                 CustomerSpawnerBlockEntity.calculateScorePercentage(4, 8));

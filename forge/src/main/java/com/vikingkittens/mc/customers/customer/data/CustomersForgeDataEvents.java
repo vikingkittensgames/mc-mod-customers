@@ -29,6 +29,10 @@ public final class CustomersForgeDataEvents {
                 new CustomerPaymentBoxBlockStateProvider(output, event.getExistingFileHelper())
         );
         generator.addProvider(
+                event.includeClient(),
+                new CustomerLeaderboardBlockStateProvider(output, event.getExistingFileHelper())
+        );
+        generator.addProvider(
                 event.includeServer(),
                 new CustomerRecipeProvider(output, event.getLookupProvider())
         );

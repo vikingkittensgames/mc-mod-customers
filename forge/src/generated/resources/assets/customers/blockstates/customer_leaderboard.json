@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "customers:block/leaderboard_block",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "customers:block/leaderboard_block"
+    },
+    "facing=south": {
+      "model": "customers:block/leaderboard_block",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "customers:block/leaderboard_block",
+      "y": 270
+    }
+  }
+}

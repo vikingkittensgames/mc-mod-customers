@@ -14,6 +14,7 @@ import com.vikingkittens.mc.customers.common.BlockBreakConfirmation;
 import com.vikingkittens.mc.customers.common.BlockBreakConfirmationConfirmPayload;
 import com.vikingkittens.mc.customers.common.BlockBreakConfirmationPromptPayload;
 import com.vikingkittens.mc.customers.customer.CustomerCounterMarkersPayload;
+import com.vikingkittens.mc.customers.customer.CustomerLeaderboardOpenPayload;
 import com.vikingkittens.mc.customers.customer.CustomerShiftFinishedPayload;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerSnapshotPayload;
 
@@ -90,6 +91,16 @@ public final class ForgeNetworkHelper implements INetworkHelper {
                     },
                     java.util.Optional.of(NetworkDirection.PLAY_TO_SERVER)
             );
+            channel.registerMessage(
+                    5,
+                    CustomerLeaderboardOpenPayload.class,
+                    (payload, buffer) -> CustomerLeaderboardOpenPayload.write(buffer, payload),
+                    CustomerLeaderboardOpenPayload::read,
+                    (payload, context) -> {
+                        context.get().enqueueWork(() -> CustomerPayloadClientHandlers.showLeaderboard(payload));
+                        context.get().setPacketHandled(true);
+                    }
+            );
             return channel;
         }
     }
@@ -115,6 +126,11 @@ public final class ForgeNetworkHelper implements INetworkHelper {
 
     @Override
     public void sendToPlayer(ServerPlayer player, CustomerShiftFinishedPayload payload) {
+        channel().send(PacketDistributor.PLAYER.with(() -> player), payload);
+    }
+
+    @Override
+    public void sendToPlayer(ServerPlayer player, CustomerLeaderboardOpenPayload payload) {
         channel().send(PacketDistributor.PLAYER.with(() -> player), payload);
     }
 

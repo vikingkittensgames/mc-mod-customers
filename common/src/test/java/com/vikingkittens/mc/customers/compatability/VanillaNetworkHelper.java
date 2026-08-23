@@ -5,6 +5,7 @@ import net.minecraft.server.level.ServerPlayer;
 import com.vikingkittens.mc.customers.common.BlockBreakConfirmationConfirmPayload;
 import com.vikingkittens.mc.customers.common.BlockBreakConfirmationPromptPayload;
 import com.vikingkittens.mc.customers.customer.CustomerCounterMarkersPayload;
+import com.vikingkittens.mc.customers.customer.CustomerLeaderboardOpenPayload;
 import com.vikingkittens.mc.customers.customer.CustomerShiftFinishedPayload;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerSnapshotPayload;
 
@@ -20,6 +21,9 @@ public final class VanillaNetworkHelper implements INetworkHelper {
 
     @Override
     public void sendToPlayer(ServerPlayer player, CustomerShiftFinishedPayload payload) {}
+
+    @Override
+    public void sendToPlayer(ServerPlayer player, CustomerLeaderboardOpenPayload payload) {}
 
     @Override
     public void sendToPlayer(ServerPlayer player, CustomerSpawnerSnapshotPayload payload) {}

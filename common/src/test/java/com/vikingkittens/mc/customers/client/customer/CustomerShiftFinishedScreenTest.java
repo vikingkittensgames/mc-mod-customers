@@ -94,6 +94,13 @@ class CustomerShiftFinishedScreenTest {
     }
 
     @Test
+    void delaysTheCompletionCheckmarkUntilAfterTheStarAnimation() {
+        assertEquals(0.0F, CustomerShiftFinishedScreen.getCheckmarkScale(2999L));
+        assertTrue(CustomerShiftFinishedScreen.getCheckmarkScale(3250L) > 1.0F);
+        assertEquals(1.0F, CustomerShiftFinishedScreen.getCheckmarkScale(3500L));
+    }
+
+    @Test
     void playsFilledStarSoundWhenItsAnimationStarts() {
         assertEquals(false, CustomerShiftFinishedScreen.shouldPlayStarSound(
                 499L, 1, false));

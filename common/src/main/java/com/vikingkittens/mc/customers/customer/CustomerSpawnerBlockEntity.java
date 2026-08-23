@@ -1,6 +1,8 @@
 package com.vikingkittens.mc.customers.customer;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.IntToDoubleFunction;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -33,9 +35,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
-import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearanceSettings;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 import com.vikingkittens.mc.customers.common.ContainerUtils;
 import com.vikingkittens.mc.customers.common.SearchUtils;
@@ -46,23 +48,22 @@ import com.vikingkittens.mc.customers.compatability.LevelCUtils;
 import com.vikingkittens.mc.customers.compatability.PlayerCUtils;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
 import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
-import com.vikingkittens.mc.customers.compatability.persistence.PersistedContainer;
 import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
 
 public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvider {
-    static final int CURRENT_DATA_VERSION = 2;
+    static final int CURRENT_DATA_VERSION = 3;
+    public static final int MAX_LEVELS = 8;
     static final int MIN_MAX_CUSTOMERS = 1;
     static final int MAX_MAX_CUSTOMERS = 99;
     static final String TAG_DATA_VERSION = "data_version";
     static final String TAG_MAX_CUSTOMERS = "maxCustomers";
-
-    private final CustomersVillagerAppearanceSettings appearanceSettings =
-            new CustomersVillagerAppearanceSettings();
+    private static final String TAG_LEVEL_SETTINGS = "levelSettings";
     private static final Logger LOGGER = LogUtils.getLogger();
 
     private static final int INVENTORY_ROW_SIZE = 9;
     private static final int SPAWN_CHECK_MAX_TICKS = 4;
     private static final int RESERVATION_CLEANUP_LOAD_GRACE_TICKS = 20 * 30;
+    private static final long ACTIVE_LEVEL_LEADERBOARD_LOOKUP_TICKS = 20L;
     private static final double PLAYER_VIEW_RANGE = 64.0D;
 
     static Item getPaymentItem() {
@@ -150,19 +151,14 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     private boolean needsUpdate = true;
     private long updateDelayTicks = 0;
-    private int maxCustomers = clampMaxCustomers(
-            CustomersServices.config().defaultMaxCustomers()
-    );
-    private final PersistedContainer inventory = new PersistedContainer(
-            INVENTORY_ROW_SIZE * 6,
-            this::setChanged,
-            player -> Container.stillValidBlockEntity(this, player)
-    );
+    private final List<CustomerSpawnerLevelSettings> levelSettings = new ArrayList<>();
     private long spawnCheckTicks = 0;
     private final Set<UUID> customerIds = new HashSet<>();
     private final Map<BlockPos, List<UUID>> reservedTargetCounterPositions = new HashMap<>();
     private int reservationCleanupLoadTicks;
     private ServerBossEvent progressBar;
+    private CustomerLeaderboardBlockEntity activeLevelLeaderboard;
+    private long lastActiveLevelLeaderboardLookupTick = Long.MIN_VALUE;
     private final Set<UUID> playerIds = new HashSet<>();
     private long ticksSinceUpdateSpawned = 0;
     private long ticksSinceUpdatePlayers = 0;
@@ -358,11 +354,102 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     public CustomerSpawnerBlockEntity(BlockPos pos, BlockState blockState) {
-        super(CustomerSpawner.CUSTOMER_SPAWNER_ENTITY.get(), pos, blockState);
+        this(CustomerSpawner.CUSTOMER_SPAWNER_ENTITY.get(), pos, blockState);
+    }
+
+    CustomerSpawnerBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
+        super(type, pos, blockState);
+        levelSettings.add(createLevelSettings());
+    }
+
+    private CustomerSpawnerLevelSettings createLevelSettings() {
+        return new CustomerSpawnerLevelSettings(
+                CustomersServices.config().defaultMaxCustomers(),
+                this::setChanged,
+                player -> Container.stillValidBlockEntity(this, player)
+        );
+    }
+
+    public CustomerSpawnerLevelSettings getLevelSettings(int levelIndex) {
+        if (levelIndex < 0 || levelIndex >= MAX_LEVELS) {
+            throw new IllegalArgumentException("Customer spawner level index must be between 0 and 7");
+        }
+        while (levelSettings.size() <= levelIndex) {
+            levelSettings.add(createLevelSettings());
+        }
+        return levelSettings.get(levelIndex);
+    }
+
+    private CustomerSpawnerLevelSettings getActiveLevelSettings() {
+        return getLevelSettings(getActiveLevel());
+    }
+
+    int getActiveLevel() {
+        CustomerLeaderboardBlockEntity leaderboard = getActiveLevelLeaderboard();
+        List<Integer> configuredLevelIndexes = getConfiguredLevelIndexes();
+        if (leaderboard == null || playerIds.isEmpty() || configuredLevelIndexes.isEmpty()) {
+            return 0;
+        }
+        CustomerSpawnerMode spawnerMode = getBlockState().getValue(CustomerSpawnerBlock.STATE_SPAWN_MODE);
+        return getLowestActiveLevel(playerIds, playerId -> getFirstUnfinishedLevel(
+                configuredLevelIndexes,
+                levelIndex -> leaderboard.getScore(worldPosition, spawnerMode, levelIndex + 1, playerId),
+                this::getLevelRequiredScore
+        ));
+    }
+
+    private List<Integer> getConfiguredLevelIndexes() {
+        List<Integer> configuredLevelIndexes = new ArrayList<>();
+        for (int levelIndex = 0; levelIndex < levelSettings.size(); levelIndex++) {
+            if (ContainerUtils.hasItems(levelSettings.get(levelIndex).getInventory())) {
+                configuredLevelIndexes.add(levelIndex);
+            }
+        }
+        return configuredLevelIndexes;
+    }
+
+    float getLevelRequiredScore(int levelIndex) {
+        return getLevelSettings(levelIndex).getRequiredStars() / 5.0F;
+    }
+
+    private CustomerLeaderboardBlockEntity getActiveLevelLeaderboard() {
+        if (level == null) {
+            return null;
+        }
+        long gameTime = level.getGameTime();
+        if (lastActiveLevelLeaderboardLookupTick == Long.MIN_VALUE
+                || gameTime - lastActiveLevelLeaderboardLookupTick >= ACTIVE_LEVEL_LEADERBOARD_LOOKUP_TICKS) {
+            activeLevelLeaderboard = CustomerLeaderboardBlockEntity.findClosest(
+                    level,
+                    worldPosition,
+                    CustomersServices.config().maxLeaderboardDistance()
+            );
+            lastActiveLevelLeaderboardLookupTick = gameTime;
+        }
+        return activeLevelLeaderboard;
+    }
+
+    static int getLowestActiveLevel(Collection<UUID> playerIds, Function<UUID, Integer> getPlayerActiveLevel) {
+        return playerIds.stream().mapToInt(getPlayerActiveLevel::apply).min().orElse(0);
+    }
+
+    static int getFirstUnfinishedLevel(
+            List<Integer> configuredLevelIndexes,
+            IntToDoubleFunction getScore,
+            IntToDoubleFunction getRequiredScore
+    ) {
+        for (int levelIndex : configuredLevelIndexes) {
+            if (getScore.applyAsDouble(levelIndex) < getRequiredScore.applyAsDouble(levelIndex)) {
+                return levelIndex;
+            }
+        }
+        return configuredLevelIndexes.isEmpty() ? 0 : configuredLevelIndexes.get(configuredLevelIndexes.size() - 1);
     }
 
     public boolean shouldConfirmBreak() {
-        return ContainerUtils.hasItems(inventory);
+        return levelSettings.stream()
+                .map(CustomerSpawnerLevelSettings::getInventory)
+                .anyMatch(ContainerUtils::hasItems);
     }
 
     static int clampMaxCustomers(int value) {
@@ -374,30 +461,24 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     public int getMaxCustomers() {
-        return maxCustomers;
+        return getActiveLevelSettings().getMaxCustomers();
     }
 
     public void setMaxCustomers(int maxCustomers) {
-        this.maxCustomers = clampMaxCustomers(maxCustomers);
-        setChanged();
+        getActiveLevelSettings().setMaxCustomers(maxCustomers);
     }
 
     @Override
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
 
-        try {
-            tag.put("inventory", this.inventory.serializeNBT());
-        } catch (Throwable t) {
-            LOGGER.error("Failed to save inventory", t);
-        }
-
         writeSpawnerData(PersistenceCUtils.writer(tag));
     }
     void writeSpawnerData(DataWriter output) {
         output.putInt(TAG_DATA_VERSION, CURRENT_DATA_VERSION);
-        output.putInt(TAG_MAX_CUSTOMERS, maxCustomers);
-        appearanceSettings.write(output);
+        for (CustomerSpawnerLevelSettings settings : levelSettings) {
+            settings.write(output.addChild(TAG_LEVEL_SETTINGS));
+        }
         try {
             output.putUuids("customers", customerIds);
         } catch (Throwable t) {
@@ -415,24 +496,45 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     @Override
     public void load(CompoundTag tag) {
         super.load(tag);
-        if (tag.contains("inventory")) {
+        DataReader input = PersistenceCUtils.reader(tag);
+        boolean hasLegacyInventory = tag.contains("inventory");
+        boolean usesLegacyLevelData = input.getInt(TAG_DATA_VERSION).orElse(0) < CURRENT_DATA_VERSION || hasLegacyInventory;
+        if (hasLegacyInventory) {
             try {
-                inventory.deserializeNBT(tag.getCompound("inventory"));
+                getLevelSettings(0).getPersistedInventory().deserializeNBT(tag.getCompound("inventory"));
             } catch (Throwable t) {
                 LOGGER.error("Failed to load inventory because of error", t);
             }
         }
-        readSpawnerData(PersistenceCUtils.reader(tag));
+        readSpawnerData(input, usesLegacyLevelData);
     }
+
     void readSpawnerData(DataReader input) {
-        int loadedDataVersion =
-                input.getInt(TAG_DATA_VERSION).orElse(0);
-        maxCustomers = clampMaxCustomers(
-                input.getInt(TAG_MAX_CUSTOMERS)
-                        .orElseGet(CustomersServices.config()::defaultMaxCustomers)
-        );
-        migrateData(loadedDataVersion);
-        appearanceSettings.read(input);
+        readSpawnerData(input, input.getInt(TAG_DATA_VERSION).orElse(0) < CURRENT_DATA_VERSION);
+    }
+
+    private void readSpawnerData(DataReader input, boolean usesLegacyLevelData) {
+        int loadedDataVersion = input.getInt(TAG_DATA_VERSION).orElse(0);
+        if (usesLegacyLevelData) {
+            readLegacyLevelSettings(
+                    input,
+                    loadedDataVersion,
+                    getLevelSettings(0),
+                    CustomersServices.config().defaultMaxCustomers()
+            );
+        } else {
+            levelSettings.clear();
+            input.getChildren(TAG_LEVEL_SETTINGS).stream()
+                    .limit(MAX_LEVELS)
+                    .forEach(levelInput -> {
+                        CustomerSpawnerLevelSettings settings = createLevelSettings();
+                        settings.read(levelInput);
+                        levelSettings.add(settings);
+                    });
+            if (levelSettings.isEmpty()) {
+                levelSettings.add(createLevelSettings());
+            }
+        }
         try {
             customerIds.clear();
             input.getUuids("customers").forEach(uuid -> {
@@ -455,26 +557,22 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         itemsCrafted.read(input.childOrEmpty("scoreboardItemsCrafted"));
     }
 
-    private void migrateData(int loadedDataVersion) {
-        int dataVersion = Math.max(0, loadedDataVersion);
-        while (dataVersion < CURRENT_DATA_VERSION) {
-            if (dataVersion == 0) {
-                InventoryDataMigrationResult result =
-                        migrateVersion0Inventory(
-                                inventory,
-                                getPaymentItem(),
-                                getMaxCustomersItem(),
-                                maxCustomers
-                        );
-                maxCustomers = result.maxCustomers();
-            } else if (dataVersion != 1) {
-                LOGGER.warn(
-                        "Unable to migrate unknown customer spawner data version {}",
-                        dataVersion
-                );
-                return;
-            }
-            dataVersion++;
+    static void readLegacyLevelSettings(
+            DataReader input,
+            int loadedDataVersion,
+            CustomerSpawnerLevelSettings settings,
+            int defaultMaxCustomers
+    ) {
+        settings.setMaxCustomers(input.getInt(TAG_MAX_CUSTOMERS).orElse(defaultMaxCustomers));
+        settings.getAppearanceSettings().read(input);
+        if (loadedDataVersion <= 0) {
+            InventoryDataMigrationResult result = migrateVersion0Inventory(
+                    settings.getInventory(),
+                    getPaymentItem(),
+                    getMaxCustomersItem(),
+                    settings.getMaxCustomers()
+            );
+            settings.setMaxCustomers(result.maxCustomers());
         }
     }
 
@@ -651,7 +749,9 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         return Component.translatable("block.customers.customer_spawner_block");
     }
     public void beforeRemove() {
-        Containers.dropContents(level, worldPosition, inventory);
+        for (CustomerSpawnerLevelSettings settings : levelSettings) {
+            Containers.dropContents(level, worldPosition, settings.getInventory());
+        }
 
         for (UUID uuid : customerIds) {
             Entity customerEntity = ((ServerLevel)level).getEntity(uuid);
@@ -665,7 +765,12 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     @Nullable
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
-        return new CustomerSpawnerBlockMenu(containerId, playerInventory, inventory, this);
+        return new CustomerSpawnerBlockMenu(
+                containerId,
+                playerInventory,
+                getActiveLevelSettings().getInventory(),
+                this
+        );
     }
 
     static BlockState updateState(Level level, BlockPos pos, BlockState currentState) {
@@ -756,18 +861,18 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     public List<ResourceLocation> getEnabledAppearanceIds() {
-        return appearanceSettings.getEnabledAppearances();
+        return getActiveLevelSettings().getEnabledAppearanceIds();
     }
 
     public void setEnabledAppearanceIds(
             Collection<ResourceLocation> appearanceIds
     ) {
-        appearanceSettings.setEnabledAppearances(appearanceIds);
-        setChanged();
+        getActiveLevelSettings().setEnabledAppearanceIds(appearanceIds);
     }
 
     public void spawnCustomer() {
-        MerchantOffers offers = getOffersFromInventory(level.getRandom(), inventory);
+        CustomerSpawnerLevelSettings settings = getActiveLevelSettings();
+        MerchantOffers offers = getOffersFromInventory(level.getRandom(), settings.getInventory());
         if (!offers.isEmpty()) {
             BlockState counterBlockState = level.getBlockState(getBlockPos().above());
             BlockState avoidBlockState = level.getBlockState(getBlockPos().below());
@@ -792,7 +897,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 );
                 customer.setAppearanceId(
                         CustomersVillagerAppearances.select(
-                                appearanceSettings.getEnabledAppearances(),
+                                settings.getEnabledAppearanceIds(),
                                 customer,
                                 level.getRandom()::nextInt
                         )
@@ -1064,10 +1169,11 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 : Mth.clamp((float) itemsServed / itemsWanted, 0.0F, 1.0F);
     }
 
-    private void sendShiftFinishedPayload(CustomerSpawnerMode spawnerMode) {
+    private void sendShiftFinishedPayload(CustomerSpawnerMode spawnerMode, int activeLevel) {
         CustomerShiftFinishedPayload payload = new CustomerShiftFinishedPayload(
                 spawnerMode,
                 scoreboardGetPercentage(),
+                scoreboardGetPercentage() >= getLevelRequiredScore(activeLevel),
                 totalCustomers,
                 numCustomersServed,
                 numCustomersGaveUp,
@@ -1112,7 +1218,9 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             color = 0xFE8B00;
         }
 
-        sendShiftFinishedPayload(spawnerMode);
+        int activeLevel = getActiveLevel();
+        sendShiftFinishedPayload(spawnerMode, activeLevel);
+        sendScoresToLeaderboard(spawnerMode, activeLevel);
 
         Component summary = ComponentCUtils.withColor(Component.translatable(
                 "messages.customers.scoreboard.summary",
@@ -1146,6 +1254,23 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             } catch (Throwable t) {
                 LOGGER.warn("Unable to add player score because of error", t);
             }
+        }
+    }
+
+    private void sendScoresToLeaderboard(CustomerSpawnerMode spawnerMode, int activeLevel) {
+        CustomerLeaderboardBlockEntity leaderboard = CustomerLeaderboardBlockEntity.findClosest(
+                level,
+                worldPosition,
+                CustomersServices.config().maxLeaderboardDistance()
+        );
+        if (leaderboard == null) {
+            return;
+        }
+
+        Set<UUID> scorePlayerIds = new HashSet<>(itemsServed.playerScores().keySet());
+        scorePlayerIds.addAll(itemsCrafted.playerScores().keySet());
+        for (UUID playerId : scorePlayerIds) {
+            leaderboard.addScore(worldPosition, spawnerMode, activeLevel + 1, playerId, scoreboardGetPercentage());
         }
     }
 
@@ -1269,7 +1394,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                     if (CustomerSpawnerMode.shouldShowProgress(spawnerMode)) {
                         if (entity.progressBar == null) {
                             entity.progressBar = new ServerBossEvent(
-                                    spawnerMode.getTitle(),
+                                    getProgressBarTitle(spawnerMode, entity.getActiveLevel()),
                                     BossEvent.BossBarColor.GREEN,
                                     BossEvent.BossBarOverlay.PROGRESS
                             );
@@ -1279,7 +1404,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                             entity.updatePlayers();
                         }
                         entity.progressBar.setProgress(1.0F - progress);
-                        Component progressBarTitle = spawnerMode.getTitle();
+                        Component progressBarTitle = getProgressBarTitle(spawnerMode, entity.getActiveLevel());
                         if (entity.progressBar.getName().getString() != progressBarTitle.getString()) {
                             entity.progressBar.setName(progressBarTitle);
                         }
@@ -1320,5 +1445,13 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             }
             entity.spawnCheckTicks++;
         }
+    }
+
+    private static Component getProgressBarTitle(CustomerSpawnerMode spawnerMode, int levelIndex) {
+        return Component.translatable(
+                "screen.customers.customer_spawner.progress_title",
+                spawnerMode.getTitle(),
+                levelIndex + 1
+        );
     }
 }

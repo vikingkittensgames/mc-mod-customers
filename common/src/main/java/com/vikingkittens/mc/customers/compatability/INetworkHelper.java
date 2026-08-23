@@ -5,6 +5,7 @@ import net.minecraft.server.level.ServerPlayer;
 import com.vikingkittens.mc.customers.common.BlockBreakConfirmationConfirmPayload;
 import com.vikingkittens.mc.customers.common.BlockBreakConfirmationPromptPayload;
 import com.vikingkittens.mc.customers.customer.CustomerCounterMarkersPayload;
+import com.vikingkittens.mc.customers.customer.CustomerLeaderboardOpenPayload;
 import com.vikingkittens.mc.customers.customer.CustomerShiftFinishedPayload;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerSnapshotPayload;
 
@@ -16,6 +17,8 @@ public interface INetworkHelper {
     void sendToPlayer(ServerPlayer player, CustomerCounterMarkersPayload payload);
 
     void sendToPlayer(ServerPlayer player, CustomerShiftFinishedPayload payload);
+
+    void sendToPlayer(ServerPlayer player, CustomerLeaderboardOpenPayload payload);
 
     void sendToPlayer(ServerPlayer player, CustomerSpawnerSnapshotPayload payload);
 }

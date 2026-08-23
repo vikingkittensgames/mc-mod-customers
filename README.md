@@ -20,7 +20,8 @@ me adding more features:
 ## Supported Minecraft Versions
 
 For now we support Minecraft versions:
-* 1.21.1
+* 1.20.1 - Forge
+* 1.21.1 - Forge & NeoForge
 * 1.21.11 (delayed update)
 
 ## Mod Loader
@@ -588,9 +589,51 @@ end, and a heads up view of what all active customers want for that shift.
 
 At the end of a shift where at least one player or Automated system crafted or served an
 item, you and the other players will get a scoreboard showing how well you did. Automated
-activity appears with redstone as its profile image:
+activity appears with redstone as its profile image. Along with the number of stars earned
+for that shift, the scoreboard shows a green checkmark when you earned enough stars to pass
+the current level:
 
 ![scoreboard.png](screenshots/scoreboard.png)
+
+### Levels and Leaderboards
+
+Customer Spawner Blocks support a progression of levels, with each level configured in the
+Customer Spawner UI. Each level has a required number of stars, and the Customer Leaderboard
+stores players' previous shift scores to determine which level a spawner should use.
+
+#### Configuring Levels
+
+You can configure up to eight levels in the Customer Spawner UI. Each level has its own
+inventory of items customers want to buy, maximum number of customers, enabled appearances,
+and number of stars required to pass the level.
+
+![level1.png](screenshots/level1.png)
+
+![level2.png](screenshots/level2.png)
+
+![level3.png](screenshots/level3.png)
+
+Use earlier levels for simpler shifts with fewer item options, easier items to craft, and
+fewer customers. Later levels can increase the variety and complexity of requested items
+and raise the maximum number of customers. When a shift starts, the Customer Spawner reviews
+all players in the area against the closest Customer Leaderboard and their saved scores. It
+finds the lowest level those players should be on and uses that level for the shift.
+
+#### Leaderboards
+
+The Customer Leaderboard stores each Customer Spawner shift score by spawner, mode, level,
+and player. Place a Customer Leaderboard in your build so players can see how they and others
+are doing. It shows the stars each player earned for a level and a green checkmark when that
+player has passed the level.
+
+![leaderboard-block.png](screenshots/leaderboard-block.png)
+
+![leaderboard.png](screenshots/leaderboard.png)
+
+Craft a Customer Leaderboard with stripped logs around an iron ingot, paper, emerald, and
+ink sac.
+
+![leaderboard-crafting.png](screenshots/leaderboard-crafting.png)
 
 ## Automation
 
@@ -674,7 +717,9 @@ disabled by default and can be enabled with the `enableBuildCommands` configurat
 | --- | --- | --- |---------|
 | Customer Spawner Recipe | `enableCustomerSpawnerBlockRecipe` | Enables the crafting recipe for the Customer Spawner Block. | `true`  |
 | Supplier Spawner Recipe | `enableSupplierSpawnerBlockRecipe` | Enables the crafting recipe for the Supplier Spawner Block. | `true`  |
+| Customer Leaderboard Recipe | `enableCustomerLeaderboardBlockRecipe` | Enables the crafting recipe for the Customer Leaderboard Block. | `true` |
 | Maximum Counter Distance | `maxCounterDistance` | Sets the maximum distance in blocks between a Customer Spawner and the counters its customers can find. | `64`    |
+| Max Leaderboard Distance | `maxLeaderboardDistance` | Sets the maximum distance in blocks between a Customer Spawner and the Customer Leaderboard where its shift scores are saved. | `64` |
 | Maximum Customers | `maxCustomers` | Sets the maximum number of customers that each Customer Spawner tries to keep spawned. | `4`     |
 | Customer Give Up Seconds | `customerGiveUpSeconds` | Sets how many seconds a customer waits without completing a trade before giving up and leaving. | `120`   |
 | Enable Build Commands | `enableBuildCommands` | Enables the customer and supplier build inspection commands. | `false` |
