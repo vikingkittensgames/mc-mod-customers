@@ -602,6 +602,7 @@ version-specific behavior in those classes whenever method signatures allow it.
 | Project interface methods that expose Minecraft state | Project-owned method names are safe | Use project-owned names such as `isVillagerInWater()` and call vanilla state methods only inside their implementation so `reobfJar` does not remap an interface contract as a Minecraft override |
 | Payload networking | `CustomPacketPayload` and `StreamCodec` | Forge `SimpleChannel` and `FriendlyByteBuf` |
 | Customer leaderboard payload | payload type registration and `StreamCodec` | `SimpleChannel` message registration with `FriendlyByteBuf` read/write methods |
+| Block tag resource path | `data/<namespace>/tags/block` | `data/<namespace>/tags/blocks` |
 | Boss-bar rendering | Boss-bar sprites rendered with `GuiGraphics.blitSprite` | `textures/gui/bars.png` atlas rendered with `GuiGraphics.blit` UV offsets |
 | Recipe generation | `RecipeOutput` | recipe consumer callbacks |
 | Loot-table resource path | `data/<namespace>/loot_table` | `data/<namespace>/loot_tables`; Forge `processResources` copies the common tables to this path |

@@ -73,6 +73,10 @@ Minecraft 1.21.1 uses `data/<namespace>/loot_table`, while Minecraft 1.20.1
 uses `data/<namespace>/loot_tables`. Forge resource processing copies the
 common loot tables to the 1.20.1 path for the Forge build.
 
+Minecraft 1.21.1 uses `data/<namespace>/tags/block` for block tags, while
+Minecraft 1.20.1 uses `data/<namespace>/tags/blocks`. The Customers avoid-block
+tags use the 1.20.1 path on this branch.
+
 ### MCA appearance
 
 The MCA Appearance is intentionally not included in the Minecraft 1.20.1 port.

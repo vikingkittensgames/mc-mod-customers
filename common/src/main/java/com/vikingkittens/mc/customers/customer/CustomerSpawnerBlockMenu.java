@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -16,6 +17,7 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 
@@ -24,7 +26,8 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
     private static final int SELECTED_LEVEL_DATA_INDEX = 1;
     private static final int MAX_CUSTOMERS_DATA_INDEX = 2;
     private static final int REQUIRED_STARS_DATA_INDEX = 3;
-    private static final int APPEARANCE_DATA_START = 4;
+    private static final int AVOID_BLOCK_DATA_INDEX = 4;
+    private static final int APPEARANCE_DATA_START = 5;
     private static final int DECREMENT_LEVEL_BUTTON_ID = 100;
     private static final int INCREMENT_LEVEL_BUTTON_ID = 101;
     private static final int MAX_CUSTOMERS_BUTTON_ID_START = 200;
@@ -95,6 +98,19 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
     public float getRequiredStars() {
         return data.get(REQUIRED_STARS_DATA_INDEX) / 2.0F;
     }
+
+    public boolean hasAvoidBlock() {
+        return CustomerCounter.canUseAsAvoidBlock(getAvoidBlock().defaultBlockState());
+    }
+
+    public ItemStack getAvoidBlockItem() {
+        return hasAvoidBlock() ? new ItemStack(getAvoidBlock()) : ItemStack.EMPTY;
+    }
+
+    private Block getAvoidBlock() {
+        return BuiltInRegistries.BLOCK.byId(data.get(AVOID_BLOCK_DATA_INDEX));
+    }
+
     public List<ResourceLocation> getAppearanceIds() { return appearanceIds; }
     public Component getAppearanceName(int index) {
         return CustomersVillagerAppearances.getName(
@@ -174,6 +190,11 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
                 CustomerSpawnerLevelSettings settings = entity.getLevelSettings(selectedLevel);
                 if (index == MAX_CUSTOMERS_DATA_INDEX) return settings.getMaxCustomers();
                 if (index == REQUIRED_STARS_DATA_INDEX) return Math.round(settings.getRequiredStars() * 2.0F);
+                if (index == AVOID_BLOCK_DATA_INDEX) {
+                    return BuiltInRegistries.BLOCK.getId(
+                            entity.getLevel().getBlockState(entity.getBlockPos().below()).getBlock()
+                    );
+                }
                 return settings.getEnabledAppearanceIds().contains(appearanceIds.get(index - APPEARANCE_DATA_START)) ? 1 : 0;
             }
             @Override public void set(int index, int value) {}
