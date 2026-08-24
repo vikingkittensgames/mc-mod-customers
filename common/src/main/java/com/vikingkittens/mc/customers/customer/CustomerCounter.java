@@ -50,6 +50,32 @@ public final class CustomerCounter {
             Entity collisionEntity,
             BlockState avoidState
     ) {
+        if (!canUseAsAvoidBlock(avoidState)) {
+            avoidState = null;
+        }
+        List<SurroundingPosition> result = findValidSurroundingPositionsWithAvoidState(
+                level,
+                counterPositions,
+                collisionEntity,
+                avoidState
+        );
+        return !result.isEmpty() || avoidState == null
+                ? result
+                : findValidSurroundingPositionsWithAvoidState(level, counterPositions, collisionEntity, null);
+    }
+
+    public static boolean canUseAsAvoidBlock(BlockState state) {
+        return state != null
+                && !state.isAir()
+                && (state.is(CustomerBlockTags.CAN_AVOID) || !state.is(CustomerBlockTags.CAN_NOT_AVOID));
+    }
+
+    private static List<SurroundingPosition> findValidSurroundingPositionsWithAvoidState(
+            Level level,
+            List<BlockPos> counterPositions,
+            Entity collisionEntity,
+            BlockState avoidState
+    ) {
         List<SurroundingPosition> result = new ArrayList<>();
         for (BlockPos counterPos : counterPositions) {
             for (Direction direction : Direction.Plane.HORIZONTAL) {
@@ -79,7 +105,7 @@ public final class CustomerCounter {
     ) {
         int x = counterPos.getX() + dx;
         int z = counterPos.getZ() + dz;
-        int checkY = counterPos.getY() - 1;
+        int checkY = counterPos.getY();
         if (!isValidSurroundingPosition(
                 level, new BlockPos(x, checkY, z), collisionEntity, avoidState
         )) {
@@ -135,6 +161,9 @@ public final class CustomerCounter {
             Entity collisionEntity,
             BlockState avoidState
     ) {
+        if (!canUseAsAvoidBlock(avoidState)) {
+            avoidState = null;
+        }
         BlockPos navigationPosition = surroundingPosition.getPosition();
         BlockPos blockBelow = navigationPosition.below();
         BlockState blockBelowState = level.getBlockState(blockBelow);

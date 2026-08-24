@@ -13,6 +13,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
 
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.client.common.IconsScaleControl;
@@ -30,6 +31,8 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
     private static final int TEXTURE_HEIGHT = 256;
     private static final int APPEARANCE_WIDGET_WIDTH = 99;
     private static final int APPEARANCE_TEXT_COLOR = 0x000000;
+    private static final int AVOID_ICON_X = 213;
+    private static final int AVOID_ICON_Y = 65;
     private static final ResourceLocation ARROW_LEFT = texture("arrow_left");
     private static final ResourceLocation ARROW_LEFT_PRESSED = texture("arrow_left_pressed");
     private static final ResourceLocation ARROW_RIGHT = texture("arrow_right");
@@ -223,6 +226,17 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                 0x404040,
                 false
         );
+        if (menu.hasAvoidBlock()) {
+            graphics.drawString(
+                    font,
+                    Component.translatable("screen.customers.customer_spawner.avoid"),
+                    213,
+                    53,
+                    0x404040,
+                    false
+            );
+            graphics.renderItem(menu.getAvoidBlockItem(), AVOID_ICON_X, AVOID_ICON_Y);
+        }
         graphics.drawString(
                 font,
                 Component.translatable("container.inventory"),
@@ -274,6 +288,19 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         super.render(graphics, mouseX, mouseY, partialTick);
         renderAppearanceLabels(graphics);
         renderTooltip(graphics, mouseX, mouseY);
+        renderAvoidBlockTooltip(graphics, mouseX, mouseY);
+    }
+
+    private void renderAvoidBlockTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
+        if (!menu.hasAvoidBlock()
+                || mouseX < leftPos + AVOID_ICON_X
+                || mouseX >= leftPos + AVOID_ICON_X + 16
+                || mouseY < topPos + AVOID_ICON_Y
+                || mouseY >= topPos + AVOID_ICON_Y + 16) {
+            return;
+        }
+        ItemStack avoidBlockItem = menu.getAvoidBlockItem();
+        graphics.renderTooltip(font, avoidBlockItem, mouseX, mouseY);
     }
 
     private void renderAppearanceLabels(GuiGraphics graphics) {

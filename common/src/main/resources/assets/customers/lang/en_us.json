@@ -100,6 +100,7 @@
   "screen.customers.customer_leaderboard.level": "Level %s",
   "screen.customers.customer_spawner.max": "Max",
   "screen.customers.customer_spawner.appearance": "Appearance",
+  "screen.customers.customer_spawner.avoid": "Avoid",
   "screen.customers.customer_spawner.cost": "Cost",
   "screen.customers.supplier_spawner.appearance": "Appearance",
   "screen.customers.break_confirmation.customer_spawner_title": "Confirm Breaking Customer Spawner",

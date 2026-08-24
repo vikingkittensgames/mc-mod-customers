@@ -1,6 +1,6 @@
 # Customers Minecraft Mod for NeoForge
 
-![resturant.png](screenshots/resturant.png)
+![resturant.png](screenshots/ |resturant.png)
 
 ## Overview
 
@@ -168,6 +168,24 @@ Customers search for all blocks of this type within 64 blocks by default and go 
 trying to avoid one that already has a customer next to it. The search distance can be changed
 with the `maxCounterDistance` configuration option.
 
+In your builds you can use full blocks as the counter or table itself:
+
+| Spawner Setup | Build |
+|--------------|-------|
+| ![counter-spawner-full.png](screenshots/counter-spawner-full.png) | ![counter-full.png](screenshots/counter-full.png) |
+
+a topper block like carpet of candle:
+
+| Spawner Setup | Build                                                 |
+|---------------|-------------------------------------------------------|
+| ![counter-spawner-topper.png](screenshots/counter-spawner-topper.png) | ![counter-topper.png](screenshots/counter-topper.png) |
+
+or even custom blocks provided by other mods like furniture:
+
+| Spawner Setup | Build                                                  |
+|---------------|--------------------------------------------------------|
+| ![counter-spawner-custom.png](screenshots/counter-spawner-custom.png) | ![counter-custom.png](screenshots/counter-custom.png)  |
+
 ### Avoid Block
 
 When a Customer looks for a spot to go to next to your counter or table-top blocks it will
@@ -176,6 +194,56 @@ under the customer spawner block.  This can be used to set of builds like a coun
 you only want the customers to go to one side of it because the other side if the kitchen.
 On the other side of the counter use a different block for the kitchen tiles and put that
 same kitchen floor block under the customer spawner.
+If avoiding that block leaves no valid positions around the matching counters, Customers
+ignores the avoid block so the customer can still be served.
+
+Customers normally allows any non-air block under a Customer Spawner to be used as the
+avoid block. By default, dirt, grass blocks, sand, and snow cannot be used as avoid blocks.
+These blocks are common around builds and can otherwise cause unexpected customer routing
+when an avoid block was not deliberately set up.
+
+Players can override these rules with a normal Minecraft data pack. Create the following
+file inside a data pack placed in the world's `datapacks` folder:
+
+```text
+your-data-pack/
+├── pack.mcmeta
+└── data/
+    └── customers/
+        └── tags/
+            └── block/
+                └── can_avoid.json
+```
+
+For example, this `can_avoid.json` explicitly allows grass blocks and dirt to be used as
+avoid blocks, overriding Customers' default protection:
+
+```json
+{
+  "replace": false,
+  "values": [
+    "minecraft:grass_block",
+    "minecraft:dirt"
+  ]
+}
+```
+
+Mods can provide the same override by including
+`data/customers/tags/block/can_avoid.json` in their resources. Keep `"replace": false` so
+the mod or data pack adds to the existing tag instead of replacing other entries.
+
+Data packs and mods can add blocks to `customers:can_not_avoid` to prevent them from being
+used as avoid blocks. `customers:can_avoid` always takes priority. For example, this
+prevents stone from being used:
+
+```json
+{
+  "replace": false,
+  "values": [
+    "minecraft:stone"
+  ]
+}
+```
 
 ## Customer Pickup Counter Blocks
 
