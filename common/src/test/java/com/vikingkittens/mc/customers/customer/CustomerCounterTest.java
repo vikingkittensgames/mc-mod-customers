@@ -18,6 +18,7 @@ import net.minecraft.world.phys.AABB;
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -46,6 +47,30 @@ class CustomerCounterTest {
     }
 
     @Test
+    void appliesAvoidBlockTagPrecedence() {
+        BlockState air = mock(BlockState.class);
+        when(air.isAir()).thenReturn(true);
+
+        assertFalse(CustomerCounter.canUseAsAvoidBlock(air));
+        assertTrue(CustomerCounter.canUseAsAvoidBlock(createAvoidState(false, false)));
+        assertFalse(CustomerCounter.canUseAsAvoidBlock(createAvoidState(true, false)));
+        assertTrue(CustomerCounter.canUseAsAvoidBlock(createAvoidState(true, true)));
+    }
+
+    @Test
+    void findsPositionBesideCounterOnGroundAtTheCounterHeight() {
+        BlockPos counter = new BlockPos(0, 10, 0);
+        BlockPos target = new BlockPos(1, 10, 0);
+        Map<BlockPos, BlockState> states = new HashMap<>();
+        states.put(target, Blocks.AIR.defaultBlockState());
+        states.put(target.above(), Blocks.AIR.defaultBlockState());
+        states.put(target.above(2), Blocks.AIR.defaultBlockState());
+        states.put(target.below(), Blocks.STONE.defaultBlockState());
+
+        assertEquals(List.of(target), findPositions(counter, states, null));
+    }
+
+    @Test
     void ignoresDiagonalPosition() {
         BlockPos counter = new BlockPos(0, 10, 0);
         BlockPos diagonalPosition = new BlockPos(1, 9, 1);
@@ -58,20 +83,42 @@ class CustomerCounterTest {
         assertTrue(findPositions(counter, states, null).isEmpty());
     }
     @Test
-    void rejectsAvoidBlockPosition() {
+    void usesAvoidedPositionWhenNoOtherPositionExists() {
         BlockPos counter = new BlockPos(0, 10, 0);
         BlockPos target = new BlockPos(1, 9, 0);
         Map<BlockPos, BlockState> states = new HashMap<>();
-        states.put(target, Blocks.RED_CARPET.defaultBlockState());
+        states.put(target, Blocks.AIR.defaultBlockState());
         states.put(target.above(), Blocks.AIR.defaultBlockState());
         states.put(target.above(2), Blocks.AIR.defaultBlockState());
-        states.put(target.below(), Blocks.STONE.defaultBlockState());
+        states.put(target.below(), Blocks.RED_CONCRETE.defaultBlockState());
 
-        assertTrue(findPositions(
+        assertEquals(List.of(target), findPositions(
                 counter,
                 states,
-                Blocks.RED_CARPET.defaultBlockState()
-        ).isEmpty());
+                Blocks.RED_CONCRETE.defaultBlockState()
+        ));
+    }
+
+    @Test
+    void prefersPositionsThatDoNotUseTheAvoidBlock() {
+        BlockPos counter = new BlockPos(0, 10, 0);
+        BlockPos avoidedTarget = new BlockPos(1, 9, 0);
+        BlockPos allowedTarget = new BlockPos(0, 9, -1);
+        Map<BlockPos, BlockState> states = new HashMap<>();
+        states.put(avoidedTarget, Blocks.AIR.defaultBlockState());
+        states.put(avoidedTarget.above(), Blocks.AIR.defaultBlockState());
+        states.put(avoidedTarget.above(2), Blocks.AIR.defaultBlockState());
+        states.put(avoidedTarget.below(), Blocks.RED_CONCRETE.defaultBlockState());
+        states.put(allowedTarget, Blocks.AIR.defaultBlockState());
+        states.put(allowedTarget.above(), Blocks.AIR.defaultBlockState());
+        states.put(allowedTarget.above(2), Blocks.AIR.defaultBlockState());
+        states.put(allowedTarget.below(), Blocks.STONE.defaultBlockState());
+
+        assertEquals(List.of(allowedTarget), findPositions(
+                counter,
+                states,
+                Blocks.RED_CONCRETE.defaultBlockState()
+        ));
     }
 
     @Test
@@ -205,5 +252,13 @@ class CustomerCounterTest {
                 ).stream()
                 .map(CustomerCounter.SurroundingPosition::getPosition)
                 .toList();
+    }
+
+    private static BlockState createAvoidState(boolean canNotAvoid, boolean canAvoid) {
+        BlockState state = mock(BlockState.class);
+        when(state.isAir()).thenReturn(false);
+        when(state.is(CustomerBlockTags.CAN_NOT_AVOID)).thenReturn(canNotAvoid);
+        when(state.is(CustomerBlockTags.CAN_AVOID)).thenReturn(canAvoid);
+        return state;
     }
 }

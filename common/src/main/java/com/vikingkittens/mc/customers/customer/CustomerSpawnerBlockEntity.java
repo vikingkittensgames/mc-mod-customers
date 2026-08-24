@@ -881,6 +881,9 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         if (!offers.isEmpty()) {
             BlockState counterBlockState = level.getBlockState(getBlockPos().above());
             BlockState avoidBlockState = level.getBlockState(getBlockPos().below());
+            if (!CustomerCounter.canUseAsAvoidBlock(avoidBlockState)) {
+                avoidBlockState = null;
+            }
             CustomerSpawnerMode spawnerMode =
                     getBlockState().getValue(
                             CustomerSpawnerBlock.STATE_SPAWN_MODE
