@@ -23,4 +23,14 @@ class CustomerSpawnerBlockMenuTest {
         assertFalse(CustomerSpawnerBlockMenu.isValidMaxCustomersText("100"));
         assertFalse(CustomerSpawnerBlockMenu.isValidMaxCustomersText("abc"));
     }
+
+    @Test
+    void validatesPetPercentageText() {
+        assertTrue(CustomerSpawnerBlockMenu.isValidPetPercentageText(""));
+        assertTrue(CustomerSpawnerBlockMenu.isValidPetPercentageText("0"));
+        assertTrue(CustomerSpawnerBlockMenu.isValidPetPercentageText("100"));
+        assertFalse(CustomerSpawnerBlockMenu.isValidPetPercentageText("-1"));
+        assertFalse(CustomerSpawnerBlockMenu.isValidPetPercentageText("101"));
+        assertFalse(CustomerSpawnerBlockMenu.isValidPetPercentageText("abc"));
+    }
 }

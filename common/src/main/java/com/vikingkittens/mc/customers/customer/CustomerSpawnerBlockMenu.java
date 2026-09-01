@@ -26,16 +26,20 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
     private static final int SELECTED_LEVEL_DATA_INDEX = 1;
     private static final int MAX_CUSTOMERS_DATA_INDEX = 2;
     private static final int REQUIRED_STARS_DATA_INDEX = 3;
-    private static final int AVOID_BLOCK_DATA_INDEX = 4;
-    private static final int APPEARANCE_DATA_START = 5;
+    private static final int PET_PERCENTAGE_DATA_INDEX = 4;
+    private static final int AVOID_BLOCK_DATA_INDEX = 5;
+    private static final int APPEARANCE_DATA_START = 6;
+    private static final int PET_TYPE_BUTTON_ID_START = 2000;
     private static final int DECREMENT_LEVEL_BUTTON_ID = 100;
     private static final int INCREMENT_LEVEL_BUTTON_ID = 101;
     private static final int MAX_CUSTOMERS_BUTTON_ID_START = 200;
+    private static final int PET_PERCENTAGE_BUTTON_ID_START = 300;
     private static final int REQUIRED_STARS_BUTTON_ID_START = 400;
     private final Container container;
     private final ContainerData data;
     private final CustomerSpawnerBlockEntity blockEntity;
     private final List<ResourceLocation> appearanceIds;
+    private final List<CustomerPet.PetType> petTypes;
     private final RegistryAccess registryAccess;
     private int selectedLevel;
 
@@ -51,8 +55,9 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
         registryAccess = playerInventory.player.registryAccess();
         appearanceIds = CustomersVillagerAppearances
                 .getAvailableAppearanceIds(registryAccess);
+        petTypes = CustomerPet.getAvailablePetTypes(playerInventory.player.level());
         data = blockEntity == null
-                ? new SimpleContainerData(APPEARANCE_DATA_START + appearanceIds.size())
+                ? new SimpleContainerData(getDataSlotCount())
                 : createData(blockEntity);
         addDataSlots(data);
         this.container.startOpen(playerInventory.player);
@@ -83,6 +88,16 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
         }
     }
 
+    public static boolean isValidPetPercentageText(String value) {
+        if (value.isEmpty()) return true;
+        try {
+            int parsed = Integer.parseInt(value);
+            return parsed >= 0 && parsed <= 100;
+        } catch (NumberFormatException ignored) {
+            return false;
+        }
+    }
+
     public CustomerSpawnerMode getSpawnerMode() {
         return CustomerSpawnerMode.values()[Mth.clamp(data.get(0), 0, CustomerSpawnerMode.values().length - 1)];
     }
@@ -94,6 +109,8 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
     public int getMaxCustomers() { return data.get(MAX_CUSTOMERS_DATA_INDEX); }
 
     public float getRequiredStars() { return data.get(REQUIRED_STARS_DATA_INDEX) / 2.0F; }
+
+    public int getPetPercentagePercent() { return data.get(PET_PERCENTAGE_DATA_INDEX); }
 
     public boolean hasAvoidBlock() {
         return CustomerCounter.canUseAsAvoidBlock(getAvoidBlock().defaultBlockState());
@@ -115,12 +132,19 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
         );
     }
     public boolean isAppearanceEnabled(int index) { return data.get(APPEARANCE_DATA_START + index) != 0; }
+    public List<CustomerPet.PetType> getPetTypes() { return petTypes; }
+    public Component getPetTypeName(int index) { return petTypes.get(index).name(); }
+    public boolean isPetTypeEnabled(int index) { return data.get(getPetTypeDataStart() + index) != 0; }
     public int modeButtonId(CustomerSpawnerMode mode) { return mode.ordinal(); }
     public int decrementLevelButtonId() { return DECREMENT_LEVEL_BUTTON_ID; }
     public int incrementLevelButtonId() { return INCREMENT_LEVEL_BUTTON_ID; }
     public int maxCustomersButtonId(int value) { return MAX_CUSTOMERS_BUTTON_ID_START + value; }
+    public int petPercentageButtonId(int value) {
+        return PET_PERCENTAGE_BUTTON_ID_START + Mth.clamp(value, 0, 100);
+    }
     public int requiredStarsButtonId(float value) { return REQUIRED_STARS_BUTTON_ID_START + Math.round(value * 2.0F); }
     public int appearanceButtonId(int index) { return 1000 + index; }
+    public int petTypeButtonId(int index) { return PET_TYPE_BUTTON_ID_START + index; }
 
     @Override
     public boolean clickMenuButton(Player player, int id) {
@@ -144,6 +168,12 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
             blockEntity.getLevelSettings(selectedLevel).setMaxCustomers(id - MAX_CUSTOMERS_BUTTON_ID_START);
             return true;
         }
+        if (id >= PET_PERCENTAGE_BUTTON_ID_START && id <= PET_PERCENTAGE_BUTTON_ID_START + 100) {
+            blockEntity.getLevelSettings(selectedLevel).setPetPercentage(
+                    CustomerSpawnerLevelSettings.percentToPetPercentage(id - PET_PERCENTAGE_BUTTON_ID_START)
+            );
+            return true;
+        }
         if (id > REQUIRED_STARS_BUTTON_ID_START && id <= REQUIRED_STARS_BUTTON_ID_START + 10) {
             blockEntity.getLevelSettings(selectedLevel).setRequiredStars(
                     (id - REQUIRED_STARS_BUTTON_ID_START) / 2.0F
@@ -158,6 +188,17 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
             ResourceLocation appearance = appearanceIds.get(index);
             if (!enabled.remove(appearance)) enabled.add(appearance);
             blockEntity.getLevelSettings(selectedLevel).setEnabledAppearanceIds(enabled);
+            return true;
+        }
+        index = id - PET_TYPE_BUTTON_ID_START;
+        if (index >= 0 && index < petTypes.size()) {
+            CustomerSpawnerLevelSettings settings = blockEntity.getLevelSettings(selectedLevel);
+            String petTypeId = petTypes.get(index).entityId();
+            settings.setPetTypeEnabled(
+                    petTypeId,
+                    !settings.isPetTypeEnabled(petTypeId),
+                    petTypes.stream().map(CustomerPet.PetType::entityId).toList()
+            );
             return true;
         }
         return false;
@@ -186,16 +227,30 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
                 CustomerSpawnerLevelSettings settings = entity.getLevelSettings(selectedLevel);
                 if (index == MAX_CUSTOMERS_DATA_INDEX) return settings.getMaxCustomers();
                 if (index == REQUIRED_STARS_DATA_INDEX) return Math.round(settings.getRequiredStars() * 2.0F);
+                if (index == PET_PERCENTAGE_DATA_INDEX) {
+                    return CustomerSpawnerLevelSettings.petPercentageToPercent(settings.getPetPercentage());
+                }
                 if (index == AVOID_BLOCK_DATA_INDEX) {
                     return BuiltInRegistries.BLOCK.getId(
                             entity.getLevel().getBlockState(entity.getBlockPos().below()).getBlock()
                     );
                 }
+                if (index >= getPetTypeDataStart() && index < getDataSlotCount()) {
+                    return settings.isPetTypeEnabled(petTypes.get(index - getPetTypeDataStart()).entityId()) ? 1 : 0;
+                }
                 return settings.getEnabledAppearanceIds().contains(appearanceIds.get(index - APPEARANCE_DATA_START)) ? 1 : 0;
             }
             @Override public void set(int index, int value) {}
-            @Override public int getCount() { return APPEARANCE_DATA_START + appearanceIds.size(); }
+            @Override public int getCount() { return getDataSlotCount(); }
         };
+    }
+
+    private int getPetTypeDataStart() {
+        return APPEARANCE_DATA_START + appearanceIds.size();
+    }
+
+    private int getDataSlotCount() {
+        return getPetTypeDataStart() + petTypes.size();
     }
 
     private class LevelContainer implements Container {

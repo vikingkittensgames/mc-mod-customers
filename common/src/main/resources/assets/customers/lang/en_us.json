@@ -99,6 +99,7 @@
   "screen.customers.customer_leaderboard.group_with_position": "%s - (%s)",
   "screen.customers.customer_leaderboard.level": "Level %s",
   "screen.customers.customer_spawner.max": "Max",
+  "screen.customers.customer_spawner.pets": "Pets",
   "screen.customers.customer_spawner.appearance": "Appearance",
   "screen.customers.customer_spawner.avoid": "Avoid",
   "screen.customers.customer_spawner.cost": "Cost",
@@ -129,4 +130,3 @@
   "customers.configuration.enableBuildCommands": "Enable Build Commands",
   "customers.configuration.enableQuickSell": "Enable Quick Sell"
 }
-
