@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -26,6 +27,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
+import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
 import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
 import com.vikingkittens.mc.customers.compatability.persistence.PersistedContainer;
@@ -599,6 +601,49 @@ class CustomerSpawnerBlockEntityTest {
                 CustomerSpawnerBlockEntity.loadReservedTargetCounterPositions(reader);
 
         assertEquals(reservations, loaded);
+    }
+
+    @Test
+    void appendsPetFoodOfferPaidWithOneOfTheFirstOfferPaymentItem() {
+        MerchantOffers offers = new MerchantOffers();
+        offers.add(new MerchantOffer(
+                ItemStackCUtils.createItemCost(new ItemStack(Items.BREAD), 1),
+                Optional.empty(),
+                new ItemStack(Items.EMERALD, 3),
+                1,
+                0,
+                0
+        ));
+
+        assertTrue(CustomerSpawnerBlockEntity.addPetFoodOffer(offers, new ItemStack(Items.COD, 8)));
+
+        assertEquals(2, offers.size());
+        MerchantOffer petOffer = offers.get(1);
+        assertSame(Items.COD, petOffer.getItemCostA().item().value());
+        assertEquals(1, petOffer.getItemCostA().count());
+        assertSame(Items.EMERALD, petOffer.getResult().getItem());
+        assertEquals(1, petOffer.getResult().getCount());
+    }
+
+    @Test
+    void roundTripsCustomerPetPairs() {
+        UUID firstCustomerId = UUID.randomUUID();
+        UUID firstPetId = UUID.randomUUID();
+        UUID secondCustomerId = UUID.randomUUID();
+        UUID secondPetId = UUID.randomUUID();
+        Map<UUID, UUID> customerPets = Map.of(
+                firstCustomerId,
+                firstPetId,
+                secondCustomerId,
+                secondPetId
+        );
+
+        CompoundTag tag = new CompoundTag();
+        DataWriter writer = PersistenceCUtils.writer(tag);
+        CustomerSpawnerBlockEntity.saveCustomerPets(writer, customerPets);
+        DataReader reader = PersistenceCUtils.reader(tag);
+
+        assertEquals(customerPets, CustomerSpawnerBlockEntity.loadCustomerPets(reader));
     }
 
     @Test

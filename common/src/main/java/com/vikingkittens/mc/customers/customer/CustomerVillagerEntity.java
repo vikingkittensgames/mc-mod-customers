@@ -398,6 +398,7 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
         if (spawnerPos != null
                 && level().getBlockEntity(spawnerPos)
                         instanceof CustomerSpawnerBlockEntity spawner) {
+            spawner.playPetLoveIfFed(getUUID(), offer.getCostA());
             for (CustomerPickupCounterBlockEntity.StoredStack consumed
                     : consumedStacks) {
                 spawner.scoreboardAddItemsServed(
@@ -1088,6 +1089,7 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
                 tradedWithPlayers.add(tradingPlayer.getUUID());
                 playHappy();
                 if (level().getBlockEntity(spawnerPos) instanceof CustomerSpawnerBlockEntity spawner) {
+                    spawner.playPetLoveIfFed(getUUID(), offer.getCostA());
                     spawner.scoreboardAddItemsServed(
                             tradingPlayer.getUUID(),
                             offer.getCostA().getCount()

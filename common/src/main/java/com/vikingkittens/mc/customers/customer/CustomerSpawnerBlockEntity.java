@@ -59,6 +59,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     static final String TAG_DATA_VERSION = "data_version";
     static final String TAG_MAX_CUSTOMERS = "maxCustomers";
     private static final String TAG_LEVEL_SETTINGS = "levelSettings";
+    private static final String TAG_CUSTOMER_PETS = "customerPets";
     private static final Logger LOGGER = LogUtils.getLogger();
 
     private static final int INVENTORY_ROW_SIZE = 9;
@@ -145,6 +146,23 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         );
     }
 
+    static boolean addPetFoodOffer(MerchantOffers offers, ItemStack petFood) {
+        if (offers.isEmpty() || petFood.isEmpty()) {
+            return false;
+        }
+        ItemStack payment = offers.getFirst().getResult().copy();
+        payment.setCount(1);
+        offers.add(new MerchantOffer(
+                ItemStackCUtils.createItemCost(petFood, 1),
+                Optional.empty(),
+                payment,
+                1,
+                0,
+                0
+        ));
+        return true;
+    }
+
     public static final String NAME = "customer_spawner_block_entity";
 
     private boolean ticksDisabled = false;
@@ -163,6 +181,8 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     private final Set<UUID> playerIds = new HashSet<>();
     private long ticksSinceUpdateSpawned = 0;
     private long ticksSinceUpdatePlayers = 0;
+    private final Map<UUID, UUID> customerPets = new HashMap<>();
+    private boolean needsCustomerPetGoalSetup;
     private int totalCustomers = 0;
     private int numCustomersServed = 0;
     private int totalItemsWanted = 0;
@@ -482,6 +502,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         } catch (Throwable t) {
             LOGGER.error("Failed to save customers", t);
         }
+        saveCustomerPets(output, customerPets);
         saveReservedTargetCounterPositions(output, reservedTargetCounterPositions);
         output.putInt("scoreboardTotalCustomers", totalCustomers);
         output.putInt("scoreboardCustomersServed", numCustomersServed);
@@ -550,6 +571,9 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         } catch (Throwable t) {
             LOGGER.error("Failed to load customers because of error", t);
         }
+        customerPets.clear();
+        customerPets.putAll(loadCustomerPets(input));
+        needsCustomerPetGoalSetup = !customerPets.isEmpty();
         reservedTargetCounterPositions.clear();
         reservedTargetCounterPositions.putAll(loadReservedTargetCounterPositions(input));
         totalCustomers = input.getInt("scoreboardTotalCustomers").orElse(0);
@@ -649,6 +673,29 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             );
         }
         return reservations;
+    }
+
+    static void saveCustomerPets(
+            DataWriter output,
+            Map<UUID, UUID> customerPets
+    ) {
+        customerPets.forEach((customerId, petId) -> {
+            DataWriter petOutput = output.addChild(TAG_CUSTOMER_PETS);
+            petOutput.putUuid("customerId", customerId);
+            petOutput.putUuid("petId", petId);
+        });
+    }
+
+    static Map<UUID, UUID> loadCustomerPets(DataReader input) {
+        Map<UUID, UUID> loadedCustomerPets = new HashMap<>();
+        for (DataReader petInput : input.getChildren(TAG_CUSTOMER_PETS)) {
+            Optional<UUID> customerId = petInput.getUuid("customerId");
+            Optional<UUID> petId = petInput.getUuid("petId");
+            if (customerId.isPresent() && petId.isPresent()) {
+                loadedCustomerPets.put(customerId.get(), petId.get());
+            }
+        }
+        return loadedCustomerPets;
     }
 
     public UUID tryReserveTargetCounterPosition(BlockPos targetPosition, UUID customerId) {
@@ -911,6 +958,20 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                         )
                 );
                 customerIds.add(customer.getUUID());
+                if (settings.getPetPercentage() > 0.0F &&
+                        level.getRandom().nextFloat() < settings.getPetPercentage()) {
+                    UUID petId = CustomerPet.spawnRandomPetFor(
+                            level,
+                            customer.getUUID(),
+                            settings.getEnabledPetTypes(CustomerPet.getAvailablePetTypeIds(level))
+                    );
+                    if (petId != null) {
+                        customerPets.put(customer.getUUID(), petId);
+                        if (addPetFoodOffer(offers, CustomerPet.getFoodForPet(level, petId))) {
+                            customer.setOffers(offers);
+                        }
+                    }
+                }
                 setChanged();
             }
         }
@@ -934,6 +995,46 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             }
         }
         customerIds.removeAll(idsToRemove);
+        customerPets.keySet().removeIf(customerId -> !customerIds.contains(customerId));
+        if (level instanceof ServerLevel serverLevel &&
+                reservationCleanupLoadTicks >= RESERVATION_CLEANUP_LOAD_GRACE_TICKS) {
+            customerPets.entrySet().removeIf(entry -> {
+                Entity pet = serverLevel.getEntity(entry.getValue());
+                return pet == null || !pet.isAlive() || pet.isRemoved();
+            });
+        }
+        if (needsCustomerPetGoalSetup) {
+            setupLoadedCustomerPetGoals();
+        }
+    }
+
+    private void setupLoadedCustomerPetGoals() {
+        if (!(level instanceof ServerLevel serverLevel)) {
+            return;
+        }
+        boolean unresolved = false;
+        for (Map.Entry<UUID, UUID> customerPet : customerPets.entrySet()) {
+            Entity customer = serverLevel.getEntity(customerPet.getKey());
+            Entity pet = serverLevel.getEntity(customerPet.getValue());
+            if (customer == null || pet == null) {
+                unresolved = true;
+                continue;
+            }
+            CustomerPet.setupGoals(level, customerPet.getValue(), customerPet.getKey());
+        }
+        needsCustomerPetGoalSetup =
+                unresolved && reservationCleanupLoadTicks < RESERVATION_CLEANUP_LOAD_GRACE_TICKS;
+    }
+
+    void playPetLoveIfFed(UUID customerId, ItemStack tradedItem) {
+        UUID petId = customerPets.get(customerId);
+        if (petId == null) {
+            return;
+        }
+        ItemStack petFood = CustomerPet.getFoodForPet(level, petId);
+        if (!petFood.isEmpty() && ItemStackCUtils.isSameItemAndTags(petFood, tradedItem)) {
+            CustomerPet.playLove(level, petId);
+        }
     }
 
     private long countActiveCustomers() {
@@ -1365,6 +1466,9 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             entity.ticksSinceUpdatePlayers++;
 
             if (entity.spawnCheckTicks > SPAWN_CHECK_MAX_TICKS) {
+                if (entity.needsCustomerPetGoalSetup) {
+                    entity.setupLoadedCustomerPetGoals();
+                }
                 entity.updateSpawned();
 
                 CustomerSpawnerMode spawnerMode = state.getValue(CustomerSpawnerBlock.STATE_SPAWN_MODE);

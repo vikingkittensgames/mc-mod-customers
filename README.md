@@ -447,6 +447,55 @@ will pick a random block to walk to 32 blocks away that has 2 air blocks above i
 that they can actually path to.  They will then walk to this block and once they get
 there despawn.
 
+## Customer Pets
+
+Customer Spawners can give some customers a small pet that follows them around while
+they are visiting. Pets are chosen from animal entity types that accept at least one
+registered item as food. Customers with pets get one extra trade for their pet's food.
+That extra trade asks for 1 of the pet food item and pays 1 of the same item type used
+as the first trade's payment. For example, if the customer's first trade pays emeralds,
+the pet food trade pays 1 emerald.
+
+Pets disappear when their customer leaves, dies, or is no longer tracked by the spawner.
+When a player gives the customer the pet's food, the pet shows heart particles.
+
+Open the Customer Spawner interface and use the **Pets** percentage setting to control
+how often spawned customers have pets. The value is set per spawner level. `0%` means
+customers from that level never have pets, and `100%` means every customer from that
+level tries to have a pet.
+
+Click the underlined **Pets** label in the Customer Spawner interface to open the pet
+type list for the selected level. Each discovered pet type has a checkbox. By default,
+all discovered pet types are enabled for each level. Turning off a pet type prevents
+that level from choosing it, and turning off every pet type means customers from that
+level will not spawn pets even when the **Pets** percentage is above `0%`.
+
+Server owners can prevent specific animals from being used as customer pets with a normal
+Minecraft data pack. Create the following file inside a data pack placed in the world's
+`datapacks` folder:
+
+```text
+your-data-pack/
+├── pack.mcmeta
+└── data/
+    └── customers/
+        └── tags/
+            └── entity_type/
+                └── can_not_be_pet.json
+```
+
+For example, this `can_not_be_pet.json` prevents cats and wolves from being selected as
+customer pets:
+
+```json
+{
+  "values": [
+    "minecraft:cat",
+    "minecraft:wolf"
+  ]
+}
+```
+
 ## Appearances
 
 The appearance of Customers and Suppliers is extensible. An appearance controls how
