@@ -8,6 +8,7 @@ import net.minecraft.world.entity.ai.util.DefaultRandomPos;
 import net.minecraft.world.phys.Vec3;
 
 import com.vikingkittens.mc.customers.common.ai.MobMoveToGoal;
+import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlockEntity;
 import com.vikingkittens.mc.customers.customer.CustomerState;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 
@@ -56,6 +57,10 @@ public class CustomerLeaveGoal extends MobMoveToGoal {
     @Override
     protected void onDone() {
         // LOGGER.debug("Reached despawn");
+        if (customer.getSpawnerPos() != null &&
+                customer.level().getBlockEntity(customer.getSpawnerPos()) instanceof CustomerSpawnerBlockEntity spawner) {
+            spawner.removeCustomer(customer.getUUID());
+        }
         customer.discard();
     }
 }

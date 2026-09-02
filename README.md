@@ -452,9 +452,8 @@ there despawn.
 Customer Spawners can give some customers a small pet that follows them around while
 they are visiting. Pets are chosen from animal entity types that accept at least one
 registered item as food. Customers with pets get one extra trade for their pet's food.
-That extra trade asks for 1 of the pet food item and pays 1 of the same item type used
-as the first trade's payment. For example, if the customer's first trade pays emeralds,
-the pet food trade pays 1 emerald.
+That extra trade asks for 1 of the pet food item and uses the item in the upper-right
+slot of the Pets panel as its payment. Leave that slot empty to pay one emerald.
 
 Pets disappear when their customer leaves, dies, or is no longer tracked by the spawner.
 When a player gives the customer the pet's food, the pet shows heart particles.
@@ -469,6 +468,9 @@ type list for the selected level. Each discovered pet type has a checkbox. By de
 all discovered pet types are enabled for each level. Turning off a pet type prevents
 that level from choosing it, and turning off every pet type means customers from that
 level will not spawn pets even when the **Pets** percentage is above `0%`.
+The **All** checkbox selects or clears every discovered pet type for the level. Click a
+pet's food icon to cycle through every item that pet accepts as food. The selected food
+is saved for that level and becomes the customer's extra pet-food trade.
 
 Server owners can prevent specific animals from being used as customer pets with a normal
 Minecraft data pack. Create the following file inside a data pack placed in the world's

@@ -1,5 +1,7 @@
 package com.vikingkittens.mc.customers.customer;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -7,14 +9,17 @@ import org.junit.jupiter.api.Test;
 
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
+import com.vikingkittens.mc.customers.customer.pets.CustomerPet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CustomerSpawnerLevelSettingsTest {
     @BeforeAll
@@ -60,7 +65,7 @@ class CustomerSpawnerLevelSettingsTest {
                 List.of("minecraft:cat", "minecraft:wolf"),
                 settings.getEnabledPetTypes(List.of("minecraft:cat", "minecraft:wolf"))
         );
-        assertEquals(54, settings.getInventory().getContainerSize());
+        assertEquals(55, settings.getInventory().getContainerSize());
         assertEquals(
                 List.of(CustomersVillagerAppearances.DEFAULT),
                 settings.getEnabledAppearanceIds()
@@ -127,5 +132,59 @@ class CustomerSpawnerLevelSettingsTest {
         loaded.read(PersistenceCUtils.reader(tag, RegistryAccess.EMPTY));
 
         assertEquals(List.of(), loaded.getEnabledPetTypes(List.of("minecraft:cat")));
+    }
+
+    @Test
+    void enablesAndDisablesAllPetTypes() {
+        CustomerSpawnerLevelSettings settings = new CustomerSpawnerLevelSettings(4, () -> {}, player -> true);
+        List<String> petTypeIds = List.of("minecraft:cat", "minecraft:wolf");
+
+        settings.setPetTypesEnabled(petTypeIds, true);
+
+        assertEquals(petTypeIds, settings.getEnabledPetTypes(petTypeIds));
+
+        settings.setPetTypesEnabled(petTypeIds, false);
+
+        assertEquals(List.of(), settings.getEnabledPetTypes(petTypeIds));
+    }
+
+    @Test
+    void cyclesAndPersistsSelectedPetFood() {
+        CustomerPet.PetType petType = new CustomerPet.PetType(
+                "minecraft:cat",
+                Component.literal("Cat"),
+                List.of(Items.COD.getDefaultInstance(), Items.SALMON.getDefaultInstance())
+        );
+        CustomerSpawnerLevelSettings saved = new CustomerSpawnerLevelSettings(4, () -> {}, player -> true);
+        saved.initializePetFoods(List.of(petType));
+
+        assertEquals(Items.COD, saved.getPetFood(petType).getItem());
+
+        saved.cyclePetFood(petType);
+        assertEquals(Items.SALMON, saved.getPetFood(petType).getItem());
+
+        CompoundTag tag = new CompoundTag();
+        saved.write(PersistenceCUtils.writer(tag, RegistryAccess.EMPTY));
+
+        CustomerSpawnerLevelSettings loaded = new CustomerSpawnerLevelSettings(4, () -> {}, player -> true);
+        loaded.read(PersistenceCUtils.reader(tag, RegistryAccess.EMPTY));
+
+        assertEquals(Items.SALMON, loaded.getPetFood(petType).getItem());
+    }
+
+    @Test
+    void loadsLegacyOfferInventoryWithAnEmptyPetFoodCostSlot() {
+        List<ItemStack> legacyInventory = new ArrayList<>(
+                Collections.nCopies(CustomerSpawnerLevelSettings.OFFER_INVENTORY_SIZE, ItemStack.EMPTY)
+        );
+        legacyInventory.set(0, new ItemStack(Items.BREAD, 2));
+        CompoundTag tag = new CompoundTag();
+        PersistenceCUtils.writer(tag, RegistryAccess.EMPTY).putItemStacks("inventory", legacyInventory);
+
+        CustomerSpawnerLevelSettings settings = new CustomerSpawnerLevelSettings(4, () -> {}, player -> true);
+        settings.read(PersistenceCUtils.reader(tag, RegistryAccess.EMPTY));
+
+        assertEquals(Items.BREAD, settings.getInventory().getItem(0).getItem());
+        assertTrue(settings.getPetFoodCost().isEmpty());
     }
 }

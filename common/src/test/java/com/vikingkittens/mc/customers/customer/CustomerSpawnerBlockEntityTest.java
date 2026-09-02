@@ -615,14 +615,28 @@ class CustomerSpawnerBlockEntityTest {
                 0
         ));
 
-        assertTrue(CustomerSpawnerBlockEntity.addPetFoodOffer(offers, new ItemStack(Items.COD, 8)));
+        assertTrue(CustomerSpawnerBlockEntity.addPetFoodOffer(
+                offers,
+                new ItemStack(Items.COD, 8),
+                new ItemStack(Items.DIAMOND, 3)
+        ));
 
         assertEquals(2, offers.size());
         MerchantOffer petOffer = offers.get(1);
         assertSame(Items.COD, petOffer.getItemCostA().item().value());
         assertEquals(1, petOffer.getItemCostA().count());
-        assertSame(Items.EMERALD, petOffer.getResult().getItem());
-        assertEquals(1, petOffer.getResult().getCount());
+        assertSame(Items.DIAMOND, petOffer.getResult().getItem());
+        assertEquals(3, petOffer.getResult().getCount());
+
+        MerchantOffers defaultPaymentOffers = new MerchantOffers();
+        defaultPaymentOffers.add(offers.getFirst());
+        assertTrue(CustomerSpawnerBlockEntity.addPetFoodOffer(
+                defaultPaymentOffers,
+                new ItemStack(Items.COD),
+                ItemStack.EMPTY
+        ));
+        assertEquals(Items.EMERALD, defaultPaymentOffers.get(1).getResult().getItem());
+        assertEquals(1, defaultPaymentOffers.get(1).getResult().getCount());
     }
 
     @Test
