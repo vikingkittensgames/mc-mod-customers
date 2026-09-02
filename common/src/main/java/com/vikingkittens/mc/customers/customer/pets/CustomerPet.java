@@ -1,13 +1,14 @@
-package com.vikingkittens.mc.customers.customer;
+package com.vikingkittens.mc.customers.customer.pets;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.EnumSet;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.function.ToIntFunction;
+import java.util.stream.StreamSupport;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -18,20 +19,21 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
-import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.GoalSelector;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.animal.FlyingAnimal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -39,7 +41,12 @@ import net.minecraft.world.level.Level;
 
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.compatability.EntityCUtils;
+import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
 import com.vikingkittens.mc.customers.compatability.LevelCUtils;
+import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
+import com.vikingkittens.mc.customers.customer.pets.ai.CustomerPetFollowCustomerGoal;
+import com.vikingkittens.mc.customers.customer.pets.ai.CustomerPetSitNextToCustomerGoal;
+import com.vikingkittens.mc.customers.customer.pets.ai.CustomerPetSitWhenOrderedToGoal;
 
 public final class CustomerPet {
     public static final TagKey<EntityType<?>> CAN_NOT_BE_PET = TagKey.create(
@@ -49,11 +56,7 @@ public final class CustomerPet {
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final byte ANIMAL_HEARTS_EVENT = 18;
     private static final float CUSTOMER_HEIGHT = 1.95F;
-    private static final float MAX_PET_HEIGHT = CUSTOMER_HEIGHT / 2.0F;
-    private static final double FOLLOW_SPEED = 0.75D;
-    private static final float FOLLOW_START_DISTANCE = 5.0F;
-    private static final float FOLLOW_STOP_DISTANCE = 2.0F;
-    private static final double TELEPORT_DISTANCE_SQR = 144.0D;
+    private static final float MAX_PET_HEIGHT = CUSTOMER_HEIGHT * 0.5F;
     private static final Field GOAL_SELECTOR_FIELD = getSelectorField("goalSelector");
     private static final Field TARGET_SELECTOR_FIELD = getSelectorField("targetSelector");
 
@@ -62,11 +65,11 @@ public final class CustomerPet {
     private CustomerPet() {
     }
 
-    public static @Nullable UUID spawnRandomPetFor(Level level, UUID customerId) {
+    public static @Nullable SpawnedPet spawnRandomPetFor(Level level, UUID customerId) {
         return spawnRandomPetFor(level, customerId, null);
     }
 
-    public static @Nullable UUID spawnRandomPetFor(
+    public static @Nullable SpawnedPet spawnRandomPetFor(
             Level level,
             UUID customerId,
             @Nullable Collection<String> enabledPetIds
@@ -93,7 +96,7 @@ public final class CustomerPet {
         EntityCUtils.snapTo(pet, customer.position(), customer.getYRot(), customer.getXRot());
         if (preparePet(pet, customerId)) {
             serverLevel.addFreshEntity(pet);
-            return pet.getUUID();
+            return new SpawnedPet(pet.getUUID(), petType.entityId);
         }
         return null;
     }
@@ -113,29 +116,32 @@ public final class CustomerPet {
         }
     }
 
-    public static ItemStack getFoodForPet(Level level, UUID petId) {
+    public static void discard(Level level, UUID petId) {
+        if (level instanceof ServerLevel serverLevel &&
+                serverLevel.getEntity(petId) instanceof Animal pet) {
+            pet.discard();
+        }
+    }
+
+    public static @Nullable String getPetTypeId(Level level, UUID petId) {
         findAllPossiblePets(level);
         if (!(level instanceof ServerLevel serverLevel)) {
-            return ItemStack.EMPTY;
+            return null;
         }
 
         Entity entity = serverLevel.getEntity(petId);
         if (!(entity instanceof Animal)) {
-            return ItemStack.EMPTY;
+            return null;
         }
 
         String entityId = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString();
-        return pets.stream()
-                .filter(pet -> pet.entityId.equals(entityId))
-                .findFirst()
-                .map(pet -> pet.food.copy())
-                .orElse(ItemStack.EMPTY);
+        return pets.stream().anyMatch(pet -> pet.entityId.equals(entityId)) ? entityId : null;
     }
 
     public static List<PetType> getAvailablePetTypes(Level level) {
         findAllPossiblePets(level);
         return pets.stream()
-                .map(pet -> new PetType(pet.entityId, pet.name))
+                .map(pet -> new PetType(pet.entityId, pet.name, pet.foods))
                 .toList();
     }
 
@@ -153,12 +159,13 @@ public final class CustomerPet {
                 level,
                 BuiltInRegistries.ENTITY_TYPE,
                 BuiltInRegistries.ITEM,
-                BuiltInRegistries.ENTITY_TYPE::getKey
+                BuiltInRegistries.ENTITY_TYPE::getKey,
+                BuiltInRegistries.ITEM::getId
         );
         pets.forEach(pet -> LOGGER.info(
-                "Discovered customer pet {} with food {}",
+                "Discovered customer pet {} with foods {}",
                 pet.entityId,
-                BuiltInRegistries.ITEM.getKey(pet.food.getItem())
+                pet.foods.stream().map(stack -> BuiltInRegistries.ITEM.getKey(stack.getItem())).toList()
         ));
     }
 
@@ -166,9 +173,13 @@ public final class CustomerPet {
             Level level,
             Iterable<EntityType<?>> entityTypes,
             Iterable<Item> items,
-            Function<EntityType<?>, ResourceLocation> getEntityId
+            Function<EntityType<?>, ResourceLocation> getEntityId,
+            ToIntFunction<Item> getItemId
     ) {
         List<Pet> discoveredPets = new ArrayList<>();
+        List<Item> sortedItems = StreamSupport.stream(items.spliterator(), false)
+                .sorted(Comparator.comparingInt(getItemId))
+                .toList();
         for (EntityType<?> entityType : entityTypes) {
             if (entityType.is(CAN_NOT_BE_PET)) {
                 continue;
@@ -177,13 +188,15 @@ public final class CustomerPet {
             if (animal == null) {
                 continue;
             }
-            Optional<ItemStack> food = findFood(animal, items);
-            food.ifPresent(stack -> discoveredPets.add(new Pet(
-                    getEntityId.apply(entityType).toString(),
-                    entityType.getDescription(),
-                    petLevel -> createConfiguredAnimal(entityType, petLevel),
-                    stack
-            )));
+            List<ItemStack> foods = findFoods(animal, sortedItems);
+            if (!foods.isEmpty()) {
+                discoveredPets.add(new Pet(
+                        getEntityId.apply(entityType).toString(),
+                        entityType.getDescription(),
+                        petLevel -> createAnimal(entityType, petLevel),
+                        foods
+                ));
+            }
         }
         return List.copyOf(discoveredPets);
     }
@@ -196,22 +209,23 @@ public final class CustomerPet {
         }
     }
 
-    private static Optional<ItemStack> findFood(Animal animal, Iterable<Item> items) {
+    private static List<ItemStack> findFoods(Animal animal, List<Item> items) {
+        List<ItemStack> foods = new ArrayList<>();
         for (Item item : items) {
             ItemStack stack = item.getDefaultInstance();
             if (!stack.isEmpty() && animal.isFood(stack)) {
-                return Optional.of(stack.copy());
+                foods.add(stack.copy());
             }
         }
-        return Optional.empty();
-    }
-
-    private static Animal createConfiguredAnimal(EntityType<?> entityType, Level level) {
-        Animal animal = createAnimal(entityType, level);
-        if (animal != null) {
-            configurePetSize(animal);
+        if (foods.isEmpty() && animal instanceof FlyingAnimal) {
+            for (Item item : items) {
+                ItemStack stack = item.getDefaultInstance();
+                if (!stack.isEmpty() && stack.is(ItemTags.PARROT_FOOD)) {
+                    foods.add(stack.copy());
+                }
+            }
         }
-        return animal;
+        return List.copyOf(foods);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -242,9 +256,18 @@ public final class CustomerPet {
         if (goalSelector == null || targetSelector == null) {
             return false;
         }
-        pet.setInvisible(true);
+        if (pet.level() instanceof ServerLevel serverLevel && serverLevel.getEntity(pet.getUUID()) != pet) {
+            pet.finalizeSpawn(
+                    serverLevel,
+                    serverLevel.getCurrentDifficultyAt(pet.blockPosition()),
+                    MobSpawnType.EVENT,
+                    null
+            );
+            configurePetSize(pet);
+        }
+        pet.setInvulnerable(true);
         pet.setNoAi(false);
-        pet.noPhysics = true;
+        pet.noPhysics = false;
         pet.setTarget(null);
         pet.removeAllGoals(goal -> true);
         targetSelector.removeAllGoals(goal -> true);
@@ -256,8 +279,12 @@ public final class CustomerPet {
             tamablePet.setOrderedToSit(false);
         }
         goalSelector.addGoal(0, new FloatGoal(pet));
-        goalSelector.addGoal(1, new LookAtPlayerGoal(pet, Player.class, 8.0F));
-        goalSelector.addGoal(2, new FollowCustomerGoal(pet, customerId));
+        goalSelector.addGoal(1, new CustomerPetSitNextToCustomerGoal(pet, customerId));
+        if (pet instanceof TamableAnimal tamablePet) {
+            goalSelector.addGoal(2, new CustomerPetSitWhenOrderedToGoal(tamablePet, customerId));
+        }
+        goalSelector.addGoal(3, new CustomerPetFollowCustomerGoal(pet, customerId));
+        goalSelector.addGoal(4, new LookAtPlayerGoal(pet, Player.class, 8.0F));
         return true;
     }
 
@@ -286,79 +313,32 @@ public final class CustomerPet {
         final String entityId;
         final Component name;
         final Function<Level, Animal> supplier;
-        final ItemStack food;
+        final List<ItemStack> foods;
 
-        private Pet(String entityId, Component name, Function<Level, Animal> supplier, ItemStack food) {
+        private Pet(String entityId, Component name, Function<Level, Animal> supplier, List<ItemStack> foods) {
             this.entityId = entityId;
             this.name = name;
             this.supplier = supplier;
-            this.food = food.copy();
+            this.foods = foods.stream().map(ItemStack::copy).toList();
         }
     }
 
-    public record PetType(String entityId, Component name) {}
-
-    private static final class FollowCustomerGoal extends Goal {
-        private final Animal pet;
-        private final UUID customerId;
-        private LivingEntity customer;
-        private int timeToRecalculatePath;
-
-        private FollowCustomerGoal(Animal pet, UUID customerId) {
-            this.pet = pet;
-            this.customerId = customerId;
-            setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
+    public record PetType(String entityId, Component name, List<ItemStack> foods) {
+        public PetType {
+            foods = foods.stream().map(ItemStack::copy).toList();
         }
 
-        @Override
-        public boolean canUse() {
-            return hasLivingCustomerOrDiscardPet() &&
-                    pet.distanceToSqr(customer) >= FOLLOW_START_DISTANCE * FOLLOW_START_DISTANCE;
+        public ItemStack getFood(@Nullable ItemStack selectedFood) {
+            return foods.stream()
+                    .filter(food -> selectedFood != null && ItemStackCUtils.isSameItemAndTags(food, selectedFood))
+                    .findFirst()
+                    .map(ItemStack::copy)
+                    .orElseGet(() -> foods.getFirst().copy());
         }
 
-        @Override
-        public boolean canContinueToUse() {
-            return hasLivingCustomerOrDiscardPet() &&
-                    pet.distanceToSqr(customer) > FOLLOW_STOP_DISTANCE * FOLLOW_STOP_DISTANCE;
-        }
-
-        @Override
-        public void stop() {
-            customer = null;
-            pet.getNavigation().stop();
-        }
-
-        @Override
-        public void tick() {
-            if (!hasLivingCustomerOrDiscardPet()) {
-                return;
-            }
-            pet.getLookControl().setLookAt(customer, 10.0F, pet.getMaxHeadXRot());
-            if (pet.distanceToSqr(customer) >= TELEPORT_DISTANCE_SQR) {
-                EntityCUtils.snapTo(pet, customer.position(), customer.getYRot(), customer.getXRot());
-                pet.getNavigation().stop();
-            } else if (--timeToRecalculatePath <= 0) {
-                timeToRecalculatePath = adjustedTickDelay(10);
-                pet.getNavigation().moveTo(customer, FOLLOW_SPEED);
-            }
-        }
-
-        private boolean hasLivingCustomerOrDiscardPet() {
-            customer = findCustomer();
-            if (customer != null) {
-                return true;
-            }
-            pet.discard();
-            return false;
-        }
-
-        private LivingEntity findCustomer() {
-            if (pet.level() instanceof ServerLevel serverLevel &&
-                    serverLevel.getEntity(customerId) instanceof CustomerVillagerEntity customer &&
-                    customer.isAlive()) {
-                return customer;
-            }
-            return null;
-        }
+        @Override public List<ItemStack> foods() { return foods.stream().map(ItemStack::copy).toList(); }
     }
+
+    public record SpawnedPet(UUID id, String petTypeId) {}
+
 }

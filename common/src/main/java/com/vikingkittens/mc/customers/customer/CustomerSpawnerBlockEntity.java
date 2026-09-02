@@ -50,6 +50,7 @@ import com.vikingkittens.mc.customers.compatability.PlayerCUtils;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
 import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
 import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
+import com.vikingkittens.mc.customers.customer.pets.CustomerPet;
 
 public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvider {
     static final int CURRENT_DATA_VERSION = 3;
@@ -82,10 +83,14 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             Supplier<Item> defaultPaymentItem
     ) {
         MerchantOffers offers = new MerchantOffers();
-        int numRows = inventory.getContainerSize() / INVENTORY_ROW_SIZE;
+        int offerInventorySize = Math.min(
+                inventory.getContainerSize(),
+                CustomerSpawnerLevelSettings.OFFER_INVENTORY_SIZE
+        );
+        int numRows = offerInventorySize / INVENTORY_ROW_SIZE;
         List<ItemStack> rowCosts = new ArrayList<>();
         List<List<ItemStack>> rowItems = new ArrayList<>();
-        for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
+        for (int slot = 0; slot < offerInventorySize; slot++) {
             int row = slot / INVENTORY_ROW_SIZE;
             int column = slot % INVENTORY_ROW_SIZE;
             if (rowCosts.size() <= row) {
@@ -146,16 +151,15 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         );
     }
 
-    static boolean addPetFoodOffer(MerchantOffers offers, ItemStack petFood) {
+    static boolean addPetFoodOffer(MerchantOffers offers, ItemStack petFood, ItemStack payment) {
         if (offers.isEmpty() || petFood.isEmpty()) {
             return false;
         }
-        ItemStack payment = offers.getFirst().getResult().copy();
-        payment.setCount(1);
+        ItemStack paymentStack = payment.isEmpty() ? new ItemStack(getPaymentItem()) : payment.copy();
         offers.add(new MerchantOffer(
                 ItemStackCUtils.createItemCost(petFood, 1),
                 Optional.empty(),
-                payment,
+                paymentStack,
                 1,
                 0,
                 0
@@ -811,6 +815,9 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 customerEntity.discard();
             }
         }
+        for (UUID customerId : new ArrayList<>(customerPets.keySet())) {
+            discardCustomerPet(customerId);
+        }
         customerIds.clear();
     }
 
@@ -960,14 +967,20 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 customerIds.add(customer.getUUID());
                 if (settings.getPetPercentage() > 0.0F &&
                         level.getRandom().nextFloat() < settings.getPetPercentage()) {
-                    UUID petId = CustomerPet.spawnRandomPetFor(
+                    List<CustomerPet.PetType> petTypes = CustomerPet.getAvailablePetTypes(level);
+                    settings.initializePetFoods(petTypes);
+                    CustomerPet.SpawnedPet pet = CustomerPet.spawnRandomPetFor(
                             level,
                             customer.getUUID(),
-                            settings.getEnabledPetTypes(CustomerPet.getAvailablePetTypeIds(level))
+                            settings.getEnabledPetTypes(petTypes.stream().map(CustomerPet.PetType::entityId).toList())
                     );
-                    if (petId != null) {
-                        customerPets.put(customer.getUUID(), petId);
-                        if (addPetFoodOffer(offers, CustomerPet.getFoodForPet(level, petId))) {
+                    if (pet != null) {
+                        customerPets.put(customer.getUUID(), pet.id());
+                        CustomerPet.PetType petType = petTypes.stream()
+                                .filter(type -> type.entityId().equals(pet.petTypeId()))
+                                .findFirst()
+                                .orElseThrow();
+                        if (addPetFoodOffer(offers, settings.getPetFood(petType), settings.getPetFoodCost())) {
                             customer.setOffers(offers);
                         }
                     }
@@ -986,7 +999,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                     if (!customer.isAlive() || customer.isRemoved()) {
                         idsToRemove.add(customerId);
                     }
-                } else {
+                } else if (reservationCleanupLoadTicks >= RESERVATION_CLEANUP_LOAD_GRACE_TICKS) {
                     idsToRemove.add(customerId);
                 }
             } catch (Throwable t) {
@@ -994,8 +1007,15 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 idsToRemove.add(customerId);
             }
         }
+        for (UUID customerId : idsToRemove) {
+            discardCustomerPet(customerId);
+        }
         customerIds.removeAll(idsToRemove);
-        customerPets.keySet().removeIf(customerId -> !customerIds.contains(customerId));
+        for (UUID customerId : new ArrayList<>(customerPets.keySet())) {
+            if (!customerIds.contains(customerId)) {
+                discardCustomerPet(customerId);
+            }
+        }
         if (level instanceof ServerLevel serverLevel &&
                 reservationCleanupLoadTicks >= RESERVATION_CLEANUP_LOAD_GRACE_TICKS) {
             customerPets.entrySet().removeIf(entry -> {
@@ -1006,6 +1026,19 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         if (needsCustomerPetGoalSetup) {
             setupLoadedCustomerPetGoals();
         }
+    }
+
+    private void discardCustomerPet(UUID customerId) {
+        UUID petId = customerPets.remove(customerId);
+        if (petId != null) {
+            CustomerPet.discard(level, petId);
+        }
+    }
+
+    public void removeCustomer(UUID customerId) {
+        customerIds.remove(customerId);
+        discardCustomerPet(customerId);
+        setChanged();
     }
 
     private void setupLoadedCustomerPetGoals() {
@@ -1031,7 +1064,15 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         if (petId == null) {
             return;
         }
-        ItemStack petFood = CustomerPet.getFoodForPet(level, petId);
+        String petTypeId = CustomerPet.getPetTypeId(level, petId);
+        if (petTypeId == null) {
+            return;
+        }
+        CustomerPet.PetType petType = CustomerPet.getAvailablePetTypes(level).stream()
+                .filter(type -> type.entityId().equals(petTypeId))
+                .findFirst()
+                .orElseThrow();
+        ItemStack petFood = getActiveLevelSettings().getPetFood(petType);
         if (!petFood.isEmpty() && ItemStackCUtils.isSameItemAndTags(petFood, tradedItem)) {
             CustomerPet.playLove(level, petId);
         }

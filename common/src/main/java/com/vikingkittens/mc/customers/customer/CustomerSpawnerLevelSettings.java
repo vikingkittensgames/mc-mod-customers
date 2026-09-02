@@ -2,6 +2,7 @@ package com.vikingkittens.mc.customers.customer;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.function.Predicate;
@@ -13,22 +14,27 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearanceSettings;
+import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
 import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
 import com.vikingkittens.mc.customers.compatability.persistence.PersistedContainer;
+import com.vikingkittens.mc.customers.customer.pets.CustomerPet;
 
 public final class CustomerSpawnerLevelSettings {
     public static final float MINIMUM_REQUIRED_STARS = 0.5F;
     public static final float MAXIMUM_REQUIRED_STARS = 5.0F;
     public static final float DEFAULT_REQUIRED_STARS = 3.0F;
     public static final float DEFAULT_PET_PERCENTAGE = 0.0F;
-    public static final int INVENTORY_SIZE = 54;
+    public static final int OFFER_INVENTORY_SIZE = 54;
+    public static final int PET_FOOD_COST_SLOT = OFFER_INVENTORY_SIZE;
+    public static final int INVENTORY_SIZE = OFFER_INVENTORY_SIZE + 1;
 
     private static final String TAG_APPEARANCE_SETTINGS = "appearanceSettings";
     private static final String TAG_INVENTORY = "inventory";
     private static final String TAG_MAX_CUSTOMERS = "maxCustomers";
     private static final String TAG_PET_TYPES_CUSTOMIZED = "petTypesCustomized";
     private static final String TAG_ENABLED_PET_TYPES = "enabledPetTypes";
+    private static final String TAG_PET_FOODS = "petFoods";
     private static final String TAG_PET_PERCENTAGE = "petPercentage";
     private static final String TAG_REQUIRED_STARS = "requiredStars";
 
@@ -40,6 +46,7 @@ public final class CustomerSpawnerLevelSettings {
     private float petPercentage = DEFAULT_PET_PERCENTAGE;
     private boolean petTypesCustomized;
     private final LinkedHashSet<String> enabledPetTypes = new LinkedHashSet<>();
+    private final LinkedHashMap<String, ItemStack> petFoods = new LinkedHashMap<>();
     private int maxCustomers;
 
     public CustomerSpawnerLevelSettings(
@@ -54,6 +61,10 @@ public final class CustomerSpawnerLevelSettings {
 
     public Container getInventory() {
         return inventory;
+    }
+
+    public ItemStack getPetFoodCost() {
+        return inventory.getItem(PET_FOOD_COST_SLOT);
     }
 
     PersistedContainer getPersistedInventory() {
@@ -118,6 +129,48 @@ public final class CustomerSpawnerLevelSettings {
         changeListener.run();
     }
 
+    public void setPetTypesEnabled(Collection<String> availablePetTypeIds, boolean enabled) {
+        petTypesCustomized = true;
+        enabledPetTypes.clear();
+        if (enabled) {
+            enabledPetTypes.addAll(availablePetTypeIds);
+        }
+        changeListener.run();
+    }
+
+    public void initializePetFoods(Collection<CustomerPet.PetType> availablePetTypes) {
+        boolean changed = false;
+        for (CustomerPet.PetType petType : availablePetTypes) {
+            ItemStack existingFood = petFoods.get(petType.entityId());
+            ItemStack selectedFood = petType.getFood(existingFood);
+            if (existingFood == null || !ItemStackCUtils.isSameItemAndTags(selectedFood, existingFood)) {
+                petFoods.put(petType.entityId(), selectedFood);
+                changed = true;
+            }
+        }
+        if (changed) {
+            changeListener.run();
+        }
+    }
+
+    public ItemStack getPetFood(CustomerPet.PetType petType) {
+        return petType.getFood(petFoods.get(petType.entityId()));
+    }
+
+    public void cyclePetFood(CustomerPet.PetType petType) {
+        List<ItemStack> foods = petType.foods();
+        ItemStack selectedFood = getPetFood(petType);
+        int index = 0;
+        for (int foodIndex = 0; foodIndex < foods.size(); foodIndex++) {
+            if (ItemStackCUtils.isSameItemAndTags(foods.get(foodIndex), selectedFood)) {
+                index = foodIndex;
+                break;
+            }
+        }
+        petFoods.put(petType.entityId(), foods.get((index + 1) % foods.size()));
+        changeListener.run();
+    }
+
     public List<ResourceLocation> getEnabledAppearanceIds() {
         return appearanceSettings.getEnabledAppearances();
     }
@@ -144,6 +197,15 @@ public final class CustomerSpawnerLevelSettings {
         petTypesCustomized = input.getBoolean(TAG_PET_TYPES_CUSTOMIZED);
         enabledPetTypes.clear();
         enabledPetTypes.addAll(input.getStrings(TAG_ENABLED_PET_TYPES));
+        petFoods.clear();
+        for (DataReader petFoodInput : input.getChildren(TAG_PET_FOODS)) {
+            petFoodInput.getString("petTypeId").ifPresent(petTypeId -> {
+                List<ItemStack> food = petFoodInput.getItemStacks("food");
+                if (!food.isEmpty()) {
+                    petFoods.put(petTypeId, food.getFirst());
+                }
+            });
+        }
         appearanceSettings.read(input.childOrEmpty(TAG_APPEARANCE_SETTINGS));
 
         List<ItemStack> itemStacks = input.getItemStacks(TAG_INVENTORY);
@@ -158,6 +220,11 @@ public final class CustomerSpawnerLevelSettings {
         output.putFloat(TAG_PET_PERCENTAGE, petPercentage);
         output.putBoolean(TAG_PET_TYPES_CUSTOMIZED, petTypesCustomized);
         output.putStrings(TAG_ENABLED_PET_TYPES, enabledPetTypes);
+        petFoods.forEach((petTypeId, food) -> {
+            DataWriter petFoodOutput = output.addChild(TAG_PET_FOODS);
+            petFoodOutput.putString("petTypeId", petTypeId);
+            petFoodOutput.putItemStacks("food", List.of(food));
+        });
         appearanceSettings.write(output.child(TAG_APPEARANCE_SETTINGS));
 
         List<ItemStack> itemStacks = new ArrayList<>(inventory.getContainerSize());

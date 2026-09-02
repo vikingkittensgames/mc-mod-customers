@@ -20,16 +20,19 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
+import com.vikingkittens.mc.customers.customer.pets.CustomerPet;
 
 public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
-    public static final int CONTAINER_SIZE = 54;
+    public static final int CONTAINER_SIZE = CustomerSpawnerLevelSettings.INVENTORY_SIZE;
     private static final int SELECTED_LEVEL_DATA_INDEX = 1;
     private static final int MAX_CUSTOMERS_DATA_INDEX = 2;
     private static final int REQUIRED_STARS_DATA_INDEX = 3;
     private static final int PET_PERCENTAGE_DATA_INDEX = 4;
     private static final int AVOID_BLOCK_DATA_INDEX = 5;
     private static final int APPEARANCE_DATA_START = 6;
+    private static final int PET_TYPES_ALL_BUTTON_ID = 1999;
     private static final int PET_TYPE_BUTTON_ID_START = 2000;
+    private static final int PET_TYPE_FOOD_BUTTON_ID_START = 3000;
     private static final int DECREMENT_LEVEL_BUTTON_ID = 100;
     private static final int INCREMENT_LEVEL_BUTTON_ID = 101;
     private static final int MAX_CUSTOMERS_BUTTON_ID_START = 200;
@@ -41,7 +44,9 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
     private final List<ResourceLocation> appearanceIds;
     private final List<CustomerPet.PetType> petTypes;
     private final RegistryAccess registryAccess;
+    private final Slot petFoodCostSlot;
     private int selectedLevel;
+    private boolean petFoodCostSlotVisible;
 
     public CustomerSpawnerBlockMenu(int id, Inventory inventory) {
         this(id, inventory, new SimpleContainer(CONTAINER_SIZE), null);
@@ -56,6 +61,9 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
         appearanceIds = CustomersVillagerAppearances
                 .getAvailableAppearanceIds(registryAccess);
         petTypes = CustomerPet.getAvailablePetTypes(playerInventory.player.level());
+        if (blockEntity != null) {
+            blockEntity.getLevelSettings(selectedLevel).initializePetFoods(petTypes);
+        }
         data = blockEntity == null
                 ? new SimpleContainerData(getDataSlotCount())
                 : createData(blockEntity);
@@ -66,6 +74,17 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
                 addSlot(new Slot(this.container, column + row * 9, getContainerSlotX(column), 18 + row * 18));
             }
         }
+        petFoodCostSlot = addSlot(new Slot(
+                this.container,
+                CustomerSpawnerLevelSettings.PET_FOOD_COST_SLOT,
+                408,
+                4
+        ) {
+            @Override
+            public boolean isActive() {
+                return blockEntity != null || petFoodCostSlotVisible;
+            }
+        });
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < 9; column++) {
                 addSlot(new Slot(playerInventory, column + row * 9 + 9, 8 + column * 18, 140 + row * 18));
@@ -76,6 +95,10 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
 
     static int getContainerSlotX(int column) {
         return 8 + column * 18 + (column == 8 ? 4 : 0);
+    }
+
+    public void setPetFoodCostSlotVisible(boolean visible) {
+        petFoodCostSlotVisible = visible;
     }
 
     public static boolean isValidMaxCustomersText(String value) {
@@ -134,7 +157,22 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
     public boolean isAppearanceEnabled(int index) { return data.get(APPEARANCE_DATA_START + index) != 0; }
     public List<CustomerPet.PetType> getPetTypes() { return petTypes; }
     public Component getPetTypeName(int index) { return petTypes.get(index).name(); }
+    public ItemStack getPetTypeFood(int index) {
+        ItemStack food = BuiltInRegistries.ITEM.byId(data.get(getPetTypeFoodDataStart() + index)).getDefaultInstance();
+        return food.isEmpty() ? petTypes.get(index).getFood(null) : food;
+    }
     public boolean isPetTypeEnabled(int index) { return data.get(getPetTypeDataStart() + index) != 0; }
+    public boolean areAllPetTypesEnabled() {
+        if (petTypes.isEmpty()) {
+            return false;
+        }
+        for (int index = 0; index < petTypes.size(); index++) {
+            if (!isPetTypeEnabled(index)) {
+                return false;
+            }
+        }
+        return true;
+    }
     public int modeButtonId(CustomerSpawnerMode mode) { return mode.ordinal(); }
     public int decrementLevelButtonId() { return DECREMENT_LEVEL_BUTTON_ID; }
     public int incrementLevelButtonId() { return INCREMENT_LEVEL_BUTTON_ID; }
@@ -144,7 +182,9 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
     }
     public int requiredStarsButtonId(float value) { return REQUIRED_STARS_BUTTON_ID_START + Math.round(value * 2.0F); }
     public int appearanceButtonId(int index) { return 1000 + index; }
+    public int petTypesAllButtonId() { return PET_TYPES_ALL_BUTTON_ID; }
     public int petTypeButtonId(int index) { return PET_TYPE_BUTTON_ID_START + index; }
+    public int petTypeFoodButtonId(int index) { return PET_TYPE_FOOD_BUTTON_ID_START + index; }
 
     @Override
     public boolean clickMenuButton(Player player, int id) {
@@ -156,7 +196,7 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
         }
         if (id == INCREMENT_LEVEL_BUTTON_ID && selectedLevel < CustomerSpawnerBlockEntity.MAX_LEVELS - 1) {
             selectedLevel++;
-            blockEntity.getLevelSettings(selectedLevel);
+            blockEntity.getLevelSettings(selectedLevel).initializePetFoods(petTypes);
             broadcastChanges();
             return true;
         }
@@ -188,6 +228,19 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
             ResourceLocation appearance = appearanceIds.get(index);
             if (!enabled.remove(appearance)) enabled.add(appearance);
             blockEntity.getLevelSettings(selectedLevel).setEnabledAppearanceIds(enabled);
+            return true;
+        }
+        if (id == PET_TYPES_ALL_BUTTON_ID) {
+            CustomerSpawnerLevelSettings settings = blockEntity.getLevelSettings(selectedLevel);
+            settings.setPetTypesEnabled(
+                    petTypes.stream().map(CustomerPet.PetType::entityId).toList(),
+                    !areAllPetTypesEnabled()
+            );
+            return true;
+        }
+        index = id - PET_TYPE_FOOD_BUTTON_ID_START;
+        if (index >= 0 && index < petTypes.size()) {
+            blockEntity.getLevelSettings(selectedLevel).cyclePetFood(petTypes.get(index));
             return true;
         }
         index = id - PET_TYPE_BUTTON_ID_START;
@@ -235,7 +288,12 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
                             entity.getLevel().getBlockState(entity.getBlockPos().below()).getBlock()
                     );
                 }
-                if (index >= getPetTypeDataStart() && index < getDataSlotCount()) {
+                if (index >= getPetTypeFoodDataStart() && index < getDataSlotCount()) {
+                    return BuiltInRegistries.ITEM.getId(
+                            settings.getPetFood(petTypes.get(index - getPetTypeFoodDataStart())).getItem()
+                    );
+                }
+                if (index >= getPetTypeDataStart() && index < getPetTypeFoodDataStart()) {
                     return settings.isPetTypeEnabled(petTypes.get(index - getPetTypeDataStart()).entityId()) ? 1 : 0;
                 }
                 return settings.getEnabledAppearanceIds().contains(appearanceIds.get(index - APPEARANCE_DATA_START)) ? 1 : 0;
@@ -249,8 +307,12 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
         return APPEARANCE_DATA_START + appearanceIds.size();
     }
 
-    private int getDataSlotCount() {
+    private int getPetTypeFoodDataStart() {
         return getPetTypeDataStart() + petTypes.size();
+    }
+
+    private int getDataSlotCount() {
+        return getPetTypeFoodDataStart() + petTypes.size();
     }
 
     private class LevelContainer implements Container {

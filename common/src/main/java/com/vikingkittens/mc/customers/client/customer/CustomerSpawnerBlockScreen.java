@@ -5,7 +5,6 @@ import java.util.List;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
-import net.minecraft.client.gui.components.Checkbox;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.MultiLineLabel;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
@@ -35,16 +34,17 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
     private static final int MAX_CUSTOMERS_X = 177;
     private static final int PET_PERCENTAGE_X = 200;
     private static final int PET_PERCENT_SIGN_X = 229;
-    private static final int PET_PANEL_SHIFT = 142;
+    private static final int PET_PANEL_SHIFT = 90;
     private static final int PET_PANEL_GAP = 2;
     private static final int PET_PANEL_WIDTH = 140;
-    private static final int PET_PANEL_HEIGHT = 166;
+    private static final int PET_PANEL_HEIGHT = 222;
     private static final int PET_PANEL_TITLE_X = 8;
     private static final int PET_PANEL_TITLE_Y = 8;
     private static final int PET_PANEL_LIST_X = 8;
-    private static final int PET_PANEL_LIST_Y = 24;
+    private static final int PET_PANEL_ALL_Y = 24;
+    private static final int PET_PANEL_LIST_Y = 42;
     private static final int PET_PANEL_LIST_WIDTH = 124;
-    private static final int PET_PANEL_LIST_HEIGHT = 134;
+    private static final int PET_PANEL_LIST_HEIGHT = 172;
     private static final int PET_PANEL_ROW_HEIGHT = 18;
     private static final int PET_PANEL_CHECKBOX_SIZE = 10;
     private static final int PET_PANEL_SCROLLBAR_WIDTH = 4;
@@ -59,8 +59,8 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
     private static final ResourceLocation HALFSTAR_SMALL = texture("halfstar_small");
     private static final ResourceLocation NOSTAR_SMALL = texture("nostar_small");
     private static final ResourceLocation STAR_SMALL = texture("star_small");
-    private static final ResourceLocation SIDE_PANEL_140 = texture("side-panel140");
-    private final List<Checkbox> appearanceCheckboxes =
+    private static final ResourceLocation PET_PANEL = texture("pet-panel");
+    private final List<AppearanceCheckbox> appearanceCheckboxes =
             new ArrayList<>();
     private final List<MultiLineLabel> appearanceLabels =
             new ArrayList<>();
@@ -70,7 +70,6 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
     private IconsScaleControl requiredStars;
     private EditBox maxCustomers;
     private EditBox petPercentage;
-    private boolean synchronizingAppearanceCheckboxes;
     private boolean petPanelOpen;
     private int petScrollOffset;
     private int lastSelectedLevel;
@@ -92,6 +91,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         if (petPanelOpen) {
             leftPos -= PET_PANEL_SHIFT;
         }
+        menu.setPetFoodCostSlotVisible(petPanelOpen);
         lastSelectedLevel = menu.getSelectedLevel();
         appearanceCheckboxes.clear();
         appearanceLabels.clear();
@@ -173,26 +173,17 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
 
         int y = 101;
         int appearanceTextWidth = APPEARANCE_WIDGET_WIDTH
-                - Checkbox.getBoxSize(font)
+                - PET_PANEL_CHECKBOX_SIZE
                 - 4;
         for (int index = 0; index < menu.getAppearanceIds().size(); index++) {
-            int appearanceIndex = index;
             Component appearanceName = menu.getAppearanceName(index);
-            Checkbox checkbox = addRenderableWidget(
-                    Checkbox.builder(Component.empty(), font)
-                            .pos(leftPos + 177, topPos + y)
-                            .selected(menu.isAppearanceEnabled(index))
-                            .onValueChange((changedCheckbox, selected) -> {
-                                if (!synchronizingAppearanceCheckboxes) {
-                                    send(menu.appearanceButtonId(
-                                            appearanceIndex
-                                    ));
-                                }
-                            })
-                            .build()
+            AppearanceCheckbox checkbox = addRenderableWidget(
+                    new AppearanceCheckbox(
+                            leftPos + 177,
+                            topPos + y,
+                            index
+                    )
             );
-            checkbox.setWidth(APPEARANCE_WIDGET_WIDTH);
-            checkbox.setMessage(appearanceName);
             appearanceCheckboxes.add(checkbox);
             appearanceLabels.add(MultiLineLabel.create(
                     font,
@@ -229,21 +220,6 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
             petPercentage.setValue(synchronizedPetPercentage);
         }
 
-        synchronizingAppearanceCheckboxes = true;
-        for (
-                int index = 0;
-                index < appearanceCheckboxes.size();
-                index++
-        ) {
-            Checkbox checkbox = appearanceCheckboxes.get(index);
-            if (
-                    checkbox.selected()
-                            != menu.isAppearanceEnabled(index)
-            ) {
-                checkbox.onPress();
-            }
-        }
-        synchronizingAppearanceCheckboxes = false;
         if (lastSelectedLevel != menu.getSelectedLevel()) {
             lastSelectedLevel = menu.getSelectedLevel();
             petScrollOffset = 0;
@@ -270,7 +246,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         );
         if (petPanelOpen) {
             graphics.blit(
-                    SIDE_PANEL_140,
+                    PET_PANEL,
                     getPetPanelX(),
                     topPos,
                     0,
@@ -391,6 +367,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         renderPetPanel(graphics);
         renderTooltip(graphics, mouseX, mouseY);
         renderAvoidBlockTooltip(graphics, mouseX, mouseY);
+        renderPetFoodTooltip(graphics, mouseX, mouseY);
     }
 
     @Override
@@ -443,17 +420,32 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         graphics.renderTooltip(font, avoidBlockItem, mouseX, mouseY);
     }
 
+    private void renderPetFoodTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
+        if (!petPanelOpen || !isInPetPanelList(mouseX, mouseY)) {
+            return;
+        }
+        int row = ((int)mouseY - topPos - PET_PANEL_LIST_Y + petScrollOffset) / PET_PANEL_ROW_HEIGHT;
+        if (row < 0 || row >= menu.getPetTypes().size()) {
+            return;
+        }
+        int foodIconX = getPetPanelX() + PET_PANEL_LIST_X + PET_PANEL_CHECKBOX_SIZE + 4;
+        int foodIconY = topPos + PET_PANEL_LIST_Y + row * PET_PANEL_ROW_HEIGHT - petScrollOffset + 1;
+        if (mouseX >= foodIconX && mouseX < foodIconX + 16 && mouseY >= foodIconY && mouseY < foodIconY + 16) {
+            graphics.renderTooltip(font, menu.getPetTypeFood(row), mouseX, mouseY);
+        }
+    }
+
     private void renderAppearanceLabels(GuiGraphics graphics) {
         for (int index = 0; index < appearanceCheckboxes.size(); index++) {
-            Checkbox checkbox = appearanceCheckboxes.get(index);
+            AppearanceCheckbox checkbox = appearanceCheckboxes.get(index);
             MultiLineLabel label = appearanceLabels.get(index);
             int labelHeight = label.getLineCount() * font.lineHeight;
             int labelY = checkbox.getY()
-                    + Checkbox.getBoxSize(font) / 2
+                    + PET_PANEL_CHECKBOX_SIZE / 2
                     - labelHeight / 2;
             label.renderLeftAlignedNoShadow(
                     graphics,
-                    checkbox.getX() + Checkbox.getBoxSize(font) + 4,
+                    checkbox.getX() + PET_PANEL_CHECKBOX_SIZE + 4,
                     labelY,
                     font.lineHeight,
                     APPEARANCE_TEXT_COLOR
@@ -474,6 +466,20 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                 0x404040,
                 false
         );
+        renderPetCheckbox(
+                graphics,
+                menu.areAllPetTypesEnabled(),
+                panelX + PET_PANEL_LIST_X,
+                topPos + PET_PANEL_ALL_Y
+        );
+        graphics.drawString(
+                font,
+                Component.translatable("screen.customers.customer_spawner.all"),
+                panelX + PET_PANEL_LIST_X + PET_PANEL_CHECKBOX_SIZE + 4,
+                topPos + PET_PANEL_ALL_Y + (PET_PANEL_CHECKBOX_SIZE - font.lineHeight) / 2,
+                0x000000,
+                false
+        );
         int listX = panelX + PET_PANEL_LIST_X;
         int listY = topPos + PET_PANEL_LIST_Y;
         graphics.enableScissor(
@@ -492,19 +498,24 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
 
     private void renderPetTypeRow(GuiGraphics graphics, int index, int x, int y) {
         int checkboxY = y + (PET_PANEL_ROW_HEIGHT - PET_PANEL_CHECKBOX_SIZE) / 2;
-        graphics.fill(x, checkboxY, x + PET_PANEL_CHECKBOX_SIZE, checkboxY + PET_PANEL_CHECKBOX_SIZE, 0xFF000000);
-        graphics.fill(x + 1, checkboxY + 1, x + PET_PANEL_CHECKBOX_SIZE - 1, checkboxY + PET_PANEL_CHECKBOX_SIZE - 1, 0xFFFFFFFF);
-        if (menu.isPetTypeEnabled(index)) {
-            graphics.fill(x + 3, checkboxY + 3, x + PET_PANEL_CHECKBOX_SIZE - 3, checkboxY + PET_PANEL_CHECKBOX_SIZE - 3, 0xFF000000);
-        }
+        renderPetCheckbox(graphics, menu.isPetTypeEnabled(index), x, checkboxY);
+        graphics.renderItem(menu.getPetTypeFood(index), x + PET_PANEL_CHECKBOX_SIZE + 4, y + 1);
         graphics.drawString(
                 font,
                 menu.getPetTypeName(index),
-                x + PET_PANEL_CHECKBOX_SIZE + 4,
+                x + PET_PANEL_CHECKBOX_SIZE + 24,
                 y + (PET_PANEL_ROW_HEIGHT - font.lineHeight) / 2,
                 0x000000,
                 false
         );
+    }
+
+    private void renderPetCheckbox(GuiGraphics graphics, boolean selected, int x, int y) {
+        graphics.fill(x, y, x + PET_PANEL_CHECKBOX_SIZE, y + PET_PANEL_CHECKBOX_SIZE, 0xFF000000);
+        graphics.fill(x + 1, y + 1, x + PET_PANEL_CHECKBOX_SIZE - 1, y + PET_PANEL_CHECKBOX_SIZE - 1, 0xFFFFFFFF);
+        if (selected) {
+            graphics.fill(x + 3, y + 3, x + PET_PANEL_CHECKBOX_SIZE - 3, y + PET_PANEL_CHECKBOX_SIZE - 3, 0xFF000000);
+        }
     }
 
     private void renderPetPanelScrollbar(GuiGraphics graphics, int listX, int listY) {
@@ -532,12 +543,20 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
     }
 
     private boolean clickPetPanel(double mouseX, double mouseY) {
+        if (isInPetPanelAll(mouseX, mouseY)) {
+            send(menu.petTypesAllButtonId());
+            return true;
+        }
         if (!isInPetPanelList(mouseX, mouseY)) {
             return false;
         }
         int row = ((int)mouseY - topPos - PET_PANEL_LIST_Y + petScrollOffset) / PET_PANEL_ROW_HEIGHT;
         if (row >= 0 && row < menu.getPetTypes().size()) {
-            send(menu.petTypeButtonId(row));
+            int foodX = getPetPanelX() + PET_PANEL_LIST_X + PET_PANEL_CHECKBOX_SIZE + 4;
+            int rowY = topPos + PET_PANEL_LIST_Y + row * PET_PANEL_ROW_HEIGHT - petScrollOffset;
+            send(mouseX >= foodX && mouseX < foodX + 16 && mouseY >= rowY + 1 && mouseY < rowY + 17
+                    ? menu.petTypeFoodButtonId(row)
+                    : menu.petTypeButtonId(row));
             return true;
         }
         return false;
@@ -557,6 +576,14 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                 mouseX < panelX + PET_PANEL_LIST_X + PET_PANEL_LIST_WIDTH &&
                 mouseY >= topPos + PET_PANEL_LIST_Y &&
                 mouseY < topPos + PET_PANEL_LIST_Y + PET_PANEL_LIST_HEIGHT;
+    }
+
+    private boolean isInPetPanelAll(double mouseX, double mouseY) {
+        int panelX = getPetPanelX();
+        return mouseX >= panelX + PET_PANEL_LIST_X &&
+                mouseX < panelX + PET_PANEL_LIST_X + PET_PANEL_LIST_WIDTH &&
+                mouseY >= topPos + PET_PANEL_ALL_Y &&
+                mouseY < topPos + PET_PANEL_ALL_Y + PET_PANEL_ROW_HEIGHT;
     }
 
     private int getPetPanelX() {
@@ -623,6 +650,28 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                     16,
                     16
             );
+        }
+
+        @Override
+        protected void updateWidgetNarration(NarrationElementOutput narration) {}
+    }
+
+    private class AppearanceCheckbox extends AbstractButton {
+        private final int appearanceIndex;
+
+        private AppearanceCheckbox(int x, int y, int appearanceIndex) {
+            super(x, y, PET_PANEL_CHECKBOX_SIZE, PET_PANEL_CHECKBOX_SIZE, Component.empty());
+            this.appearanceIndex = appearanceIndex;
+        }
+
+        @Override
+        public void onPress() {
+            send(menu.appearanceButtonId(appearanceIndex));
+        }
+
+        @Override
+        protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+            renderPetCheckbox(graphics, menu.isAppearanceEnabled(appearanceIndex), getX(), getY());
         }
 
         @Override
