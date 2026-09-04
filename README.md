@@ -455,6 +455,12 @@ registered item as food. Customers with pets get one extra trade for their pet's
 That extra trade asks for 1 of the pet food item and uses the item in the upper-right
 slot of the Pets panel as its payment. Leave that slot empty to pay one emerald.
 
+![pets1.png](screenshots/pets1.png)![pets2.png](screenshots/pets2.png)
+
+Pets can even be additional animals from mods like Animal Garden:
+
+![pets-mods1.png](screenshots/pets-mods1.png)![pets-mods2.png](screenshots/pets-mods2.png)
+
 Pets disappear when their customer leaves, dies, or is no longer tracked by the spawner.
 When a player gives the customer the pet's food, the pet shows heart particles.
 
@@ -462,6 +468,8 @@ Open the Customer Spawner interface and use the **Pets** percentage setting to c
 how often spawned customers have pets. The value is set per spawner level. `0%` means
 customers from that level never have pets, and `100%` means every customer from that
 level tries to have a pet.
+
+![pets-settings.png](screenshots/pets-settings.png)
 
 Click the underlined **Pets** label in the Customer Spawner interface to open the pet
 type list for the selected level. Each discovered pet type has a checkbox. By default,
