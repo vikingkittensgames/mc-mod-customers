@@ -13,8 +13,8 @@ import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.RegistrationInfo;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
@@ -48,7 +48,7 @@ public final class VanillaRegistrationHelper implements IRegistrationHelper {
             String name,
             Supplier<? extends I> valueFactory
     ) {
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(Customers.MODID, name);
+        Identifier id = Identifier.fromNamespaceAndPath(Customers.MODID, name);
         ResourceKey<T> key = ResourceKey.create(registryKey, id);
         if (!registries.containsKey(registryKey)) {
             return new CustomersRegistryEntry<>(key, valueFactory);

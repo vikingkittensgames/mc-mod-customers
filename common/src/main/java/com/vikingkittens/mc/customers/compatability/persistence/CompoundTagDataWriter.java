@@ -1,130 +1,139 @@
 package com.vikingkittens.mc.customers.compatability.persistence;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 
+import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtUtils;
-import net.minecraft.nbt.StringTag;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueOutput;
 
-/**
- * Adapts the shared persistence writer to Minecraft 1.21.1 compound tags.
- */
 final class CompoundTagDataWriter implements DataWriter {
-    private final CompoundTag tag;
-    private final HolderLookup.Provider registries;
-    private final Map<String, ListTag> childLists = new HashMap<>();
+    private final CompoundTag target;
+    private final TagValueOutput rootOutput;
+    private final ValueOutput output;
+    private final String appendedChildrenKey;
 
     CompoundTagDataWriter(CompoundTag tag) {
-        this(tag, null);
+        this(tag, RegistryAccess.EMPTY);
     }
 
-    CompoundTagDataWriter(
-            CompoundTag tag,
-            HolderLookup.Provider registries
+    CompoundTagDataWriter(CompoundTag tag, HolderLookup.Provider registries) {
+        this(
+                tag,
+                registries == RegistryAccess.EMPTY
+                        ? TagValueOutput.createWithoutContext(ProblemReporter.DISCARDING)
+                        : TagValueOutput.createWithContext(ProblemReporter.DISCARDING, registries),
+                null,
+                null
+        );
+    }
+
+    private CompoundTagDataWriter(
+            CompoundTag target,
+            TagValueOutput rootOutput,
+            ValueOutput output,
+            String appendedChildrenKey
     ) {
-        this.tag = tag;
-        this.registries = registries;
+        this.target = target;
+        this.rootOutput = rootOutput;
+        this.output = output == null ? rootOutput : output;
+        this.appendedChildrenKey = appendedChildrenKey;
     }
 
     @Override
     public void putString(String key, String value) {
-        tag.putString(key, value);
+        output.putString(key, value);
+        commit();
     }
 
     @Override
     public void putFloat(String key, float value) {
-        tag.putFloat(key, value);
+        output.putFloat(key, value);
+        commit();
     }
 
     @Override
     public void putInt(String key, int value) {
-        tag.putInt(key, value);
+        output.putInt(key, value);
+        commit();
     }
 
     @Override
     public void putStrings(String key, Collection<String> values) {
-        ListTag stringTags = new ListTag();
-        values.stream()
-                .map(StringTag::valueOf)
-                .forEach(stringTags::add);
-        tag.put(key, stringTags);
+        ValueOutput.TypedOutputList<String> outputList = output.list(key, Codec.STRING);
+        values.forEach(outputList::add);
+        commit();
     }
 
     @Override
     public void putBoolean(String key, boolean value) {
-        tag.putBoolean(key, value);
+        output.putBoolean(key, value);
+        commit();
     }
 
     @Override
     public void putBlockPos(String key, BlockPos value) {
-        tag.put(key, NbtUtils.writeBlockPos(value));
+        output.store(key, BlockPos.CODEC, value);
+        commit();
     }
 
     @Override
     public void putBlockState(String key, BlockState value) {
-        tag.put(key, NbtUtils.writeBlockState(value));
+        output.store(key, BlockState.CODEC, value);
+        commit();
     }
 
     @Override
     public void putUuid(String key, UUID value) {
-        tag.putUUID(key, value);
+        output.store(key, UUIDUtil.CODEC, value);
+        commit();
     }
 
     @Override
     public void putUuids(String key, Collection<UUID> values) {
-        ListTag uuidTags = new ListTag();
-        values.stream()
-                .map(NbtUtils::createUUID)
-                .forEach(uuidTags::add);
-        tag.put(key, uuidTags);
+        ValueOutput.TypedOutputList<UUID> outputList = output.list(key, UUIDUtil.CODEC);
+        values.forEach(outputList::add);
+        commit();
     }
 
     @Override
     public void putItemStacks(String key, List<ItemStack> values) {
-        ListTag itemTags = new ListTag();
-        for (int slot = 0; slot < values.size(); slot++) {
-            ItemStack stack = values.get(slot);
-            if (!stack.isEmpty()) {
-                CompoundTag itemTag = new CompoundTag();
-                itemTag.putInt("Slot", slot);
-                itemTags.add(stack.save(
-                        Objects.requireNonNull(registries),
-                        itemTag
-                ));
-            }
-        }
-        CompoundTag inventoryTag = new CompoundTag();
-        inventoryTag.put("Items", itemTags);
-        inventoryTag.putInt("Size", values.size());
-        tag.put(key, inventoryTag);
+        ValueOutput.TypedOutputList<ItemStack> outputList = output.list(key, ItemStack.OPTIONAL_CODEC);
+        values.forEach(outputList::add);
+        commit();
     }
 
     @Override
     public DataWriter child(String key) {
-        CompoundTag childTag = new CompoundTag();
-        tag.put(key, childTag);
-        return new CompoundTagDataWriter(childTag, registries);
+        return new CompoundTagDataWriter(target, rootOutput, output.child(key), null);
     }
 
     @Override
     public DataWriter addChild(String key) {
-        ListTag childList = childLists.computeIfAbsent(key, ignored -> {
-            ListTag newList = new ListTag();
-            tag.put(key, newList);
-            return newList;
-        });
-        CompoundTag childTag = new CompoundTag();
-        childList.add(childTag);
-        return new CompoundTagDataWriter(childTag, registries);
+        return new CompoundTagDataWriter(target, rootOutput, output.childrenList(key).addChild(), key);
+    }
+
+    private void commit() {
+        CompoundTag result = rootOutput.buildResult();
+        if (appendedChildrenKey != null) {
+            ListTag existing = target.getList(appendedChildrenKey).orElse(new ListTag());
+            ListTag added = result.getList(appendedChildrenKey).orElse(new ListTag());
+            for (int index = 0; index < added.size(); index++) {
+                added.getCompound(index).ifPresent(existing::add);
+            }
+            result.remove(appendedChildrenKey);
+            target.put(appendedChildrenKey, existing);
+        }
+        target.merge(result);
     }
 }

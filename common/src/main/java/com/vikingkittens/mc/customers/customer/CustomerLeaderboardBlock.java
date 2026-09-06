@@ -8,7 +8,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -22,7 +21,7 @@ import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
@@ -30,7 +29,7 @@ import com.vikingkittens.mc.customers.compatability.LevelCUtils;
 
 public class CustomerLeaderboardBlock extends BaseEntityBlock {
     public static final String NAME = "customer_leaderboard";
-    public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
+    public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
 
     private static final MapCodec<CustomerLeaderboardBlock> CODEC = simpleCodec(CustomerLeaderboardBlock::new);
     private static final VoxelShape NORTH_SHAPE = Block.box(2.0D, 0.0D, 0.0D, 14.0D, 16.0D, 2.0D);
@@ -98,7 +97,7 @@ public class CustomerLeaderboardBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(
+    protected InteractionResult useItemOn(
             ItemStack stack,
             BlockState state,
             Level level,
@@ -107,7 +106,7 @@ public class CustomerLeaderboardBlock extends BaseEntityBlock {
             InteractionHand hand,
             BlockHitResult hitResult
     ) {
-        return openLeaderboard(level, pos, player) ? ItemInteractionResult.SUCCESS : ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return openLeaderboard(level, pos, player) ? InteractionResult.SUCCESS : InteractionResult.PASS;
     }
 
     @Override

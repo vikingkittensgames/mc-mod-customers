@@ -7,27 +7,30 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Checkbox;
 import net.minecraft.client.gui.components.MultiLineLabel;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.client.compatability.GuiGraphicsCUtils;
 import com.vikingkittens.mc.customers.supplier.SupplierSpawnerBlockMenu;
 
 public class SupplierSpawnerBlockScreen
         extends AbstractContainerScreen<SupplierSpawnerBlockMenu> {
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(
+    private static final Identifier TEXTURE =
+            Identifier.fromNamespaceAndPath(
                     Customers.MODID,
                     "textures/gui/supplier_spawner_ui.png"
             );
     private static final int TEXTURE_WIDTH = 288;
     private static final int TEXTURE_HEIGHT = 256;
     private static final int APPEARANCE_WIDGET_WIDTH = 99;
-    private static final int APPEARANCE_TEXT_COLOR = 0x000000;
+    private static final int APPEARANCE_TEXT_COLOR = 0xFF000000;
     private final List<Checkbox> appearanceCheckboxes =
             new ArrayList<>();
-    private final List<MultiLineLabel> appearanceLabels =
+    private final List<Component> appearanceLabels =
             new ArrayList<>();
     private boolean synchronizingAppearanceCheckboxes;
 
@@ -79,11 +82,7 @@ public class SupplierSpawnerBlockScreen
             checkbox.setWidth(APPEARANCE_WIDGET_WIDTH);
             checkbox.setMessage(appearanceName);
             appearanceCheckboxes.add(checkbox);
-            appearanceLabels.add(MultiLineLabel.create(
-                    font,
-                    appearanceName,
-                    appearanceTextWidth
-            ));
+            appearanceLabels.add(appearanceName);
             y += 20;
         }
     }
@@ -97,7 +96,7 @@ public class SupplierSpawnerBlockScreen
             Checkbox checkbox = appearanceCheckboxes.get(index);
             if (checkbox.selected()
                     != menu.isAppearanceEnabled(index)) {
-                checkbox.onPress();
+                checkbox.onPress(new MouseButtonEvent(0, 0, new MouseButtonInfo(0, 0)));
             }
         }
         synchronizingAppearanceCheckboxes = false;
@@ -110,7 +109,8 @@ public class SupplierSpawnerBlockScreen
             int mouseX,
             int mouseY
     ) {
-        graphics.blit(
+        GuiGraphicsCUtils.blit(
+                graphics,
                 TEXTURE,
                 leftPos,
                 topPos,
@@ -137,7 +137,7 @@ public class SupplierSpawnerBlockScreen
                 ),
                 177,
                 17,
-                0x404040,
+                0xFF404040,
                 false
         );
     }
@@ -162,21 +162,25 @@ public class SupplierSpawnerBlockScreen
                 index < appearanceCheckboxes.size();
                 index++) {
             Checkbox checkbox = appearanceCheckboxes.get(index);
-            MultiLineLabel label = appearanceLabels.get(index);
-            int labelHeight =
-                    label.getLineCount() * font.lineHeight;
+            Component label = appearanceLabels.get(index);
+            List<net.minecraft.util.FormattedCharSequence> lines = font.split(
+                    label,
+                    APPEARANCE_WIDGET_WIDTH - Checkbox.getBoxSize(font) - 4
+            );
+            int labelHeight = lines.size() * font.lineHeight;
             int labelY = checkbox.getY()
                     + Checkbox.getBoxSize(font) / 2
                     - labelHeight / 2;
-            label.renderLeftAlignedNoShadow(
-                    graphics,
-                    checkbox.getX()
-                            + Checkbox.getBoxSize(font)
-                            + 4,
-                    labelY,
-                    font.lineHeight,
-                    APPEARANCE_TEXT_COLOR
-            );
+            for (int line = 0; line < lines.size(); line++) {
+                graphics.drawString(
+                        font,
+                        lines.get(line),
+                        checkbox.getX() + Checkbox.getBoxSize(font) + 4,
+                        labelY + line * font.lineHeight,
+                        APPEARANCE_TEXT_COLOR,
+                        false
+                );
+            }
         }
     }
 

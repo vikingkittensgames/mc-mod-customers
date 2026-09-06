@@ -6,10 +6,11 @@ import java.util.List;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.ContainerUser;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -41,7 +42,7 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
     private final Container container;
     private final ContainerData data;
     private final CustomerSpawnerBlockEntity blockEntity;
-    private final List<ResourceLocation> appearanceIds;
+    private final List<Identifier> appearanceIds;
     private final List<CustomerPet.PetType> petTypes;
     private final RegistryAccess registryAccess;
     private final Slot petFoodCostSlot;
@@ -147,7 +148,7 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
         return BuiltInRegistries.BLOCK.byId(data.get(AVOID_BLOCK_DATA_INDEX));
     }
 
-    public List<ResourceLocation> getAppearanceIds() { return appearanceIds; }
+    public List<Identifier> getAppearanceIds() { return appearanceIds; }
     public Component getAppearanceName(int index) {
         return CustomersVillagerAppearances.getName(
                 appearanceIds.get(index),
@@ -222,10 +223,10 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
         }
         int index = id - 1000;
         if (index >= 0 && index < appearanceIds.size()) {
-            List<ResourceLocation> enabled = new ArrayList<>(
+            List<Identifier> enabled = new ArrayList<>(
                     blockEntity.getLevelSettings(selectedLevel).getEnabledAppearanceIds()
             );
-            ResourceLocation appearance = appearanceIds.get(index);
+            Identifier appearance = appearanceIds.get(index);
             if (!enabled.remove(appearance)) enabled.add(appearance);
             blockEntity.getLevelSettings(selectedLevel).setEnabledAppearanceIds(enabled);
             return true;
@@ -335,7 +336,7 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
         @Override public void setChanged() { getCurrentContainer().setChanged(); }
         @Override public boolean stillValid(Player player) { return getCurrentContainer().stillValid(player); }
         @Override public void clearContent() { getCurrentContainer().clearContent(); }
-        @Override public void startOpen(Player player) { getCurrentContainer().startOpen(player); }
-        @Override public void stopOpen(Player player) { getCurrentContainer().stopOpen(player); }
+        @Override public void startOpen(ContainerUser user) { getCurrentContainer().startOpen(user); }
+        @Override public void stopOpen(ContainerUser user) { getCurrentContainer().stopOpen(user); }
     }
 }

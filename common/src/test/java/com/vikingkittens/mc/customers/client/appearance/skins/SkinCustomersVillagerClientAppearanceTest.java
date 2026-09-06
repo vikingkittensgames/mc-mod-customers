@@ -4,7 +4,9 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.player.PlayerModelType;
+import net.minecraft.world.entity.player.PlayerSkin;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearance;
 import com.vikingkittens.mc.customers.appearance.skins.SkinCustomersVillagerDefinition;
@@ -39,7 +41,7 @@ class SkinCustomersVillagerClientAppearanceTest {
     void preservesClientRendererSettings() {
         SkinCustomersVillagerDefinition skin =
                 new SkinCustomersVillagerDefinition(
-                        ResourceLocation.parse("example:alex"),
+                        Identifier.parse("example:alex"),
                         SkinCustomersVillagerModel.SLIM,
                         false,
                         1.1F,
@@ -52,5 +54,24 @@ class SkinCustomersVillagerClientAppearanceTest {
         assertEquals(1.1F, skin.scale());
         assertEquals(0.4F, skin.shadowRadius());
         assertEquals(0.2F, skin.nameTagOffset());
+    }
+
+    @Test
+    void createsAResourceAssetForThePackagedSkinTexture() {
+        Identifier texture = Identifier.parse(
+                "customers:textures/customers/skins/alex.png"
+        );
+        PlayerSkin skin =
+                SkinCustomersVillagerRenderer.createPlayerSkin(
+                        texture,
+                        true
+                );
+
+        assertEquals(
+                Identifier.parse("customers:customers/skins/alex"),
+                skin.body().id()
+        );
+        assertEquals(texture, skin.body().texturePath());
+        assertEquals(PlayerModelType.SLIM, skin.model());
     }
 }

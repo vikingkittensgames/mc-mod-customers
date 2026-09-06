@@ -5,14 +5,15 @@ import java.util.function.Consumer;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 
 public class IconsScaleControl extends AbstractWidget {
-    private final ResourceLocation fullIcon;
-    private final ResourceLocation halfIcon;
-    private final ResourceLocation emptyIcon;
+    private final Identifier fullIcon;
+    private final Identifier halfIcon;
+    private final Identifier emptyIcon;
     private final int iconWidth;
     private final int iconHeight;
     private final int iconCount;
@@ -25,9 +26,9 @@ public class IconsScaleControl extends AbstractWidget {
     public IconsScaleControl(
             int x,
             int y,
-            ResourceLocation fullIcon,
-            ResourceLocation halfIcon,
-            ResourceLocation emptyIcon,
+            Identifier fullIcon,
+            Identifier halfIcon,
+            Identifier emptyIcon,
             int iconWidth,
             int iconHeight,
             int iconCount,
@@ -60,7 +61,8 @@ public class IconsScaleControl extends AbstractWidget {
     }
 
     @Override
-    public void onClick(double mouseX, double mouseY) {
+    public void onClick(MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
         int iconIndex = Mth.clamp(
                 ((int)mouseX - getX()) / iconWidth,
                 0,
@@ -80,7 +82,7 @@ public class IconsScaleControl extends AbstractWidget {
     ) {
         for (int iconIndex = 0; iconIndex < iconCount; iconIndex++) {
             float remaining = value - iconIndex;
-            ResourceLocation icon = remaining >= 1.0F
+            Identifier icon = remaining >= 1.0F
                     ? fullIcon
                     : remaining >= increment ? halfIcon : emptyIcon;
             graphics.blit(

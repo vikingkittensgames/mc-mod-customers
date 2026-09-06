@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "E": "minecraft:emerald",
+    "G": "minecraft:gold_ingot",
+    "V": "minecraft:stripped_spruce_log"
+  },
+  "pattern": [
+    "VGV",
+    "VEV",
+    "VVV"
+  ],
+  "result": {
+    "count": 1,
+    "id": "customers:spruce_customer_payment_box"
+  }
+}

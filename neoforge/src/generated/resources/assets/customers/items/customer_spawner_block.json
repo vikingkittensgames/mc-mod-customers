@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "customers:item/customer_spawner_block"
+  }
+}

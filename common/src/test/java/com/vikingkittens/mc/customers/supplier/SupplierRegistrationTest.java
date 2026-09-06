@@ -3,7 +3,7 @@ package com.vikingkittens.mc.customers.supplier;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 import com.vikingkittens.mc.customers.compatability.CustomersRegistryEntry;
@@ -28,7 +28,7 @@ class SupplierRegistrationTest {
                 Supplier.SUPPLIER_PROFESSION
         );
         assertEquals(
-                ResourceLocation.parse("customers:supplier"),
+                Identifier.parse("customers:supplier"),
                 Supplier.SUPPLIER_PROFESSION.getId()
         );
     }

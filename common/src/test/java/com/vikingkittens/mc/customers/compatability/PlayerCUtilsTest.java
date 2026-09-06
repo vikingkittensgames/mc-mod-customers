@@ -26,7 +26,7 @@ class PlayerCUtilsTest {
 
         PlayerCUtils.sendSystemMessage(player, message);
 
-        verify(player).sendSystemMessage(message);
+        verify(player).displayClientMessage(message, false);
     }
     @Test
     void sendsActionBarMessage() {
@@ -41,7 +41,7 @@ class PlayerCUtilsTest {
     void getsServerLevel() {
         ServerPlayer player = mock(ServerPlayer.class);
         ServerLevel level = mock(ServerLevel.class);
-        when(player.serverLevel()).thenReturn(level);
+        when(player.level()).thenReturn(level);
 
         assertSame(level, PlayerCUtils.getServerLevel(player));
     }

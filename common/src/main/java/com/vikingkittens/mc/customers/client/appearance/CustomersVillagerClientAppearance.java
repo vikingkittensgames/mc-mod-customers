@@ -6,7 +6,7 @@ import net.minecraft.world.phys.Vec3;
 import com.vikingkittens.mc.customers.appearance.CustomersVillager;
 
 public interface CustomersVillagerClientAppearance {
-    MobRenderer<?, ?> getRenderer(CustomersVillager villager);
+    MobRenderer<?, ?, ?> getRenderer(CustomersVillager villager);
 
     default float getNameTagOffset(CustomersVillager villager) {
         return 0.0F;

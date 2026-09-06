@@ -15,7 +15,7 @@ public final class PlayerCUtils {
             Player player,
             Component message
     ) {
-        player.sendSystemMessage(message);
+        player.displayClientMessage(message, false);
     }
     public static void sendActionBarMessage(
             Player player,
@@ -24,7 +24,7 @@ public final class PlayerCUtils {
         player.displayClientMessage(message, true);
     }
     public static ServerLevel getServerLevel(ServerPlayer player) {
-        return player.serverLevel();
+        return player.level();
     }
     public static void closeContainer(Player player) {
         CustomersServices.platform().closeContainer(player);

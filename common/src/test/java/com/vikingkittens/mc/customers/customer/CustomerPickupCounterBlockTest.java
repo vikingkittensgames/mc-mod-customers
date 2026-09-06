@@ -7,7 +7,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -85,7 +84,7 @@ class CustomerPickupCounterBlockTest {
         when(counter.insertCraftedStackConnected(eq(player), any(ItemStack.class)))
                 .thenReturn(ItemStack.EMPTY);
 
-        ItemInteractionResult result = block.useItemOn(
+        InteractionResult result = block.useItemOn(
                 held,
                 mock(BlockState.class),
                 level,
@@ -95,7 +94,7 @@ class CustomerPickupCounterBlockTest {
                 mock(BlockHitResult.class)
         );
 
-        assertEquals(ItemInteractionResult.SUCCESS, result);
+        assertEquals(InteractionResult.SUCCESS, result);
         verify(counter).insertCraftedStackConnected(
                 eq(player),
                 argThat(inserted -> inserted.is(Items.BREAD)
@@ -127,7 +126,7 @@ class CustomerPickupCounterBlockTest {
         ))
                 .thenReturn(ItemStack.EMPTY);
 
-        ItemInteractionResult result = block.useItemOn(
+        InteractionResult result = block.useItemOn(
                 held,
                 mock(BlockState.class),
                 level,
@@ -137,7 +136,7 @@ class CustomerPickupCounterBlockTest {
                 mock(BlockHitResult.class)
         );
 
-        assertEquals(ItemInteractionResult.SUCCESS, result);
+        assertEquals(InteractionResult.SUCCESS, result);
         verify(counter).insertCraftedStackConnected(
                 eq(player),
                 argThat(inserted ->
@@ -182,7 +181,7 @@ class CustomerPickupCounterBlockTest {
                 mock(CustomerPickupCounterBlockEntity.class);
         when(level.getBlockEntity(BlockPos.ZERO)).thenReturn(counter);
 
-        ItemInteractionResult result = block.useItemOn(
+        InteractionResult result = block.useItemOn(
                 ItemStack.EMPTY,
                 mock(BlockState.class),
                 level,
@@ -193,7 +192,7 @@ class CustomerPickupCounterBlockTest {
         );
 
         assertEquals(
-                ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION,
+                InteractionResult.PASS,
                 result
         );
     }
@@ -213,7 +212,7 @@ class CustomerPickupCounterBlockTest {
         when(counter.insertCraftedStackConnected(eq(player), any(ItemStack.class)))
                 .thenReturn(rejected);
 
-        ItemInteractionResult result = block.useItemOn(
+        InteractionResult result = block.useItemOn(
                 held,
                 mock(BlockState.class),
                 level,
@@ -223,7 +222,7 @@ class CustomerPickupCounterBlockTest {
                 mock(BlockHitResult.class)
         );
 
-        assertEquals(ItemInteractionResult.SUCCESS, result);
+        assertEquals(InteractionResult.SUCCESS, result);
         verify(player).setItemInHand(
                 eq(InteractionHand.MAIN_HAND),
                 argThat(remainder -> remainder.is(Items.APPLE)
@@ -250,7 +249,7 @@ class CustomerPickupCounterBlockTest {
         when(counter.hasAssignableCraftedItemConnected(held))
                 .thenReturn(false);
 
-        ItemInteractionResult result = block.useItemOn(
+        InteractionResult result = block.useItemOn(
                 held,
                 mock(BlockState.class),
                 level,
@@ -261,7 +260,7 @@ class CustomerPickupCounterBlockTest {
         );
 
         assertEquals(
-                ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION,
+                InteractionResult.PASS,
                 result
         );
         verify(counter, never()).insertCraftedStackConnected(
@@ -290,7 +289,7 @@ class CustomerPickupCounterBlockTest {
         when(level.getBlockEntity(BlockPos.ZERO)).thenReturn(counter);
         when(counter.hasAssignableCraftedItemConnected(any(ItemStack.class))).thenReturn(false);
 
-        ItemInteractionResult result = block.useItemOn(
+        InteractionResult result = block.useItemOn(
                 held,
                 mock(BlockState.class),
                 level,
@@ -300,7 +299,7 @@ class CustomerPickupCounterBlockTest {
                 mock(BlockHitResult.class)
         );
 
-        assertEquals(ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION, result);
+        assertEquals(InteractionResult.PASS, result);
         verify(counter, never()).insertCraftedStackConnected(eq(player), any(ItemStack.class));
         verify(player, never()).setItemInHand(eq(InteractionHand.MAIN_HAND), any(ItemStack.class));
         verify(player).displayClientMessage(

@@ -8,19 +8,23 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillager;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearance;
+import com.vikingkittens.mc.customers.compatability.RegistryCUtils;
 
 public final class SkinPackCustomersVillagerAppearance implements CustomersVillagerAppearance {
     private final Registry<SkinCustomersVillagerDefinition> skins;
     private final SkinPackCustomersVillagerDefinition skinPack;
 
     public SkinPackCustomersVillagerAppearance(RegistryAccess registryAccess, SkinPackCustomersVillagerDefinition skinPack) {
-        this.skins = registryAccess.registryOrThrow(SkinCustomersVillagerRegistries.SKINS);
+        this.skins = RegistryCUtils.lookupOrThrow(
+                registryAccess,
+                SkinCustomersVillagerRegistries.SKINS
+        );
         this.skinPack = skinPack;
     }
 
@@ -35,7 +39,8 @@ public final class SkinPackCustomersVillagerAppearance implements CustomersVilla
     }
 
     public Optional<SkinCustomersVillagerDefinition> getSkin(CustomersVillager villager) {
-        return selectSkinId(getAvailableSkinIds(), villager.getVariationSeed()).map(skins::get);
+        return selectSkinId(getAvailableSkinIds(), villager.getVariationSeed())
+                .map(identifier -> RegistryCUtils.getValue(skins, identifier));
     }
 
     @Override
@@ -68,14 +73,14 @@ public final class SkinPackCustomersVillagerAppearance implements CustomersVilla
         return getSound(villager, SkinCustomersVillagerSound.NO);
     }
 
-    static Optional<ResourceLocation> selectSkinId(List<ResourceLocation> skinIds, float variationSeed) {
+    static Optional<Identifier> selectSkinId(List<Identifier> skinIds, float variationSeed) {
         if (skinIds.isEmpty()) return Optional.empty();
         float boundedSeed = Mth.clamp(variationSeed, 0.0F, Math.nextDown(1.0F));
         int index = Math.min((int)(boundedSeed * skinIds.size()), skinIds.size() - 1);
         return Optional.of(skinIds.get(index));
     }
 
-    private List<ResourceLocation> getAvailableSkinIds() {
+    private List<Identifier> getAvailableSkinIds() {
         return skinPack.skins().stream().filter(skins::containsKey).toList();
     }
 

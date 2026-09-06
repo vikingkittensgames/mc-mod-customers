@@ -31,6 +31,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -308,36 +310,38 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(
-            CompoundTag tag,
-            HolderLookup.Provider registries
-    ) {
-        super.saveAdditional(tag, registries);
-        tag.put(TAG_INVENTORY, inventory.serializeNBT(registries));
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        inventory.write(output.child(TAG_INVENTORY));
         writeStackMetadata(
-                PersistenceCUtils.writer(tag),
+                PersistenceCUtils.writer(output),
                 inventory,
                 crafterIds
         );
     }
 
     @Override
-    protected void loadAdditional(
-            CompoundTag tag,
-            HolderLookup.Provider registries
-    ) {
-        super.loadAdditional(tag, registries);
-        if (tag.contains(TAG_INVENTORY)) {
-            inventory.deserializeNBT(
-                    registries,
-                    tag.getCompound(TAG_INVENTORY)
-            );
-        }
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        inventory.read(input.childOrEmpty(TAG_INVENTORY));
         readStackMetadata(
-                PersistenceCUtils.reader(tag),
+                PersistenceCUtils.reader(input),
                 inventory,
                 crafterIds
         );
+    }
+
+    public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        tag.put(TAG_INVENTORY, inventory.serializeNBT(registries));
+        writeStackMetadata(PersistenceCUtils.writer(tag, registries), inventory, crafterIds);
+    }
+
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        inventory.deserializeNBT(
+                registries,
+                tag.getCompound(TAG_INVENTORY).orElse(new CompoundTag())
+        );
+        readStackMetadata(PersistenceCUtils.reader(tag, registries), inventory, crafterIds);
     }
 
     @Override

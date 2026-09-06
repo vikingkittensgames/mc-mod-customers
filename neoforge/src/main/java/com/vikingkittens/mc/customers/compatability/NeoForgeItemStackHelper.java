@@ -5,8 +5,7 @@ import net.minecraft.world.item.ItemStack;
 public final class NeoForgeItemStackHelper implements IItemStackHelper {
     @Override
     public ItemStack getCraftingRemainder(ItemStack stack) {
-        return stack.hasCraftingRemainingItem()
-                ? stack.getCraftingRemainingItem()
-                : ItemStack.EMPTY;
+        ItemStack remainder = stack.getItem().getCraftingRemainder();
+        return remainder == null ? ItemStack.EMPTY : remainder.copy();
     }
 }

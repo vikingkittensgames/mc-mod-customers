@@ -2,14 +2,17 @@ package com.vikingkittens.mc.customers.client.customer;
 
 import java.util.List;
 
+import org.joml.Matrix4f;
+
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.Util;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -28,9 +31,16 @@ public final class CustomerCounterMarkerRenderer {
     private static final float SURROUNDING_BLUE = 28.0F / 255.0F;
     private static final float SURROUNDING_ALPHA = 0.6F;
 
-    public static void render(PoseStack poseStack, Vec3 cameraPosition) {
+    public static void render(
+            PoseStack poseStack,
+            CameraRenderState cameraRenderState,
+            Matrix4f modelViewMatrix
+    ) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level == null) {
+            return;
+        }
+        if (!cameraRenderState.initialized) {
             return;
         }
 
@@ -42,6 +52,7 @@ public final class CustomerCounterMarkerRenderer {
         }
 
         float bob = CustomerCounterMarkerManager.getBobOffset(currentTime);
+        Vec3 cameraPosition = cameraRenderState.pos;
         MultiBufferSource.BufferSource bufferSource =
                 minecraft.renderBuffers().bufferSource();
 
@@ -98,6 +109,11 @@ public final class CustomerCounterMarkerRenderer {
                     );
                 })
                 .toList();
-        RenderingCUtils.renderDebugBoxes(poseStack, cameraPosition, surroundingBoxes);
+        RenderingCUtils.renderDebugBoxes(
+                poseStack,
+                cameraRenderState,
+                modelViewMatrix,
+                surroundingBoxes
+        );
     }
 }

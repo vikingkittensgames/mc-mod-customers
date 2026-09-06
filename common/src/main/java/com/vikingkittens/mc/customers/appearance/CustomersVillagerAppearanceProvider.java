@@ -5,7 +5,7 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * Supplies appearances whose IDs and definitions come from sources other than
@@ -14,11 +14,11 @@ import net.minecraft.resources.ResourceLocation;
 public interface CustomersVillagerAppearanceProvider {
     @Nullable
     CustomersVillagerAppearance get(
-            ResourceLocation appearanceId,
+            Identifier appearanceId,
             RegistryAccess registryAccess
     );
 
-    Stream<ResourceLocation> getAvailableIds(
+    Stream<Identifier> getAvailableIds(
             RegistryAccess registryAccess
     );
 }

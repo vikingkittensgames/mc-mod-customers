@@ -9,12 +9,10 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.trading.ItemCost;
-import net.minecraft.world.level.Level;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -28,27 +26,20 @@ class ItemStackCUtilsTest {
     void appliesCraftedItemBehavior() {
         ItemStack stack = mock(ItemStack.class);
         Player player = mock(Player.class);
-        Level level = mock(Level.class);
-        when(player.level()).thenReturn(level);
 
         ItemStackCUtils.onCraftedBy(stack, player, 3);
 
-        verify(stack).onCraftedBy(level, player, 3);
+        verify(stack).onCraftedBy(player, 3);
     }
     @Test
     void getsCraftingRemainder() {
-        ItemStack stack = mock(ItemStack.class);
-        ItemStack remainder = mock(ItemStack.class);
-        when(stack.hasCraftingRemainingItem()).thenReturn(true);
-        when(stack.getCraftingRemainingItem()).thenReturn(remainder);
+        ItemStack remainder = ItemStackCUtils.getCraftingRemainder(new ItemStack(Items.MILK_BUCKET));
 
-        assertSame(remainder, ItemStackCUtils.getCraftingRemainder(stack));
+        assertTrue(remainder.is(Items.BUCKET));
     }
     @Test
     void returnsEmptyStackWithoutCraftingRemainder() {
-        ItemStack stack = mock(ItemStack.class);
-
-        assertSame(ItemStack.EMPTY, ItemStackCUtils.getCraftingRemainder(stack));
+        assertTrue(ItemStackCUtils.getCraftingRemainder(new ItemStack(Items.STONE)).isEmpty());
     }
     /** Preserves stack components when creating an offer cost. */
     @Test

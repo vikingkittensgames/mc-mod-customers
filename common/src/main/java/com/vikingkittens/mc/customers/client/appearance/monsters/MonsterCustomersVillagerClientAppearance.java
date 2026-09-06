@@ -1,11 +1,10 @@
 package com.vikingkittens.mc.customers.client.appearance.monsters;
 
 import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillager;
 import com.vikingkittens.mc.customers.appearance.monsters.MonsterCustomersVillagerVariation;
@@ -14,12 +13,12 @@ import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 
 public final class MonsterCustomersVillagerClientAppearance
         implements CustomersVillagerClientAppearance {
-    private final MobRenderer<?, ?> zombie;
-    private final MobRenderer<?, ?> skeleton;
-    private final MobRenderer<?, ?> witch;
-    private final MobRenderer<?, ?> husk;
-    private final MobRenderer<?, ?> drowned;
-    private final MobRenderer<?, ?> stray;
+    private final MobRenderer<?, ?, ?> zombie;
+    private final MobRenderer<?, ?, ?> skeleton;
+    private final MobRenderer<?, ?, ?> witch;
+    private final MobRenderer<?, ?, ?> husk;
+    private final MobRenderer<?, ?, ?> drowned;
+    private final MobRenderer<?, ?, ?> stray;
 
     public MonsterCustomersVillagerClientAppearance(
             EntityRendererProvider.Context context
@@ -27,8 +26,7 @@ public final class MonsterCustomersVillagerClientAppearance
         zombie = humanoid(
                 context,
                 ModelLayers.ZOMBIE,
-                ModelLayers.ZOMBIE_INNER_ARMOR,
-                ModelLayers.ZOMBIE_OUTER_ARMOR,
+                ModelLayers.ZOMBIE_ARMOR,
                 "textures/entity/zombie/zombie.png",
                 true,
                 1.0F
@@ -36,8 +34,7 @@ public final class MonsterCustomersVillagerClientAppearance
         skeleton = humanoid(
                 context,
                 ModelLayers.SKELETON,
-                ModelLayers.SKELETON_INNER_ARMOR,
-                ModelLayers.SKELETON_OUTER_ARMOR,
+                ModelLayers.SKELETON_ARMOR,
                 "textures/entity/skeleton/skeleton.png",
                 false,
                 1.0F
@@ -46,8 +43,7 @@ public final class MonsterCustomersVillagerClientAppearance
         husk = humanoid(
                 context,
                 ModelLayers.HUSK,
-                ModelLayers.HUSK_INNER_ARMOR,
-                ModelLayers.HUSK_OUTER_ARMOR,
+                ModelLayers.HUSK_ARMOR,
                 "textures/entity/zombie/husk.png",
                 true,
                 1.0625F
@@ -57,8 +53,7 @@ public final class MonsterCustomersVillagerClientAppearance
                 humanoid(
                         context,
                         ModelLayers.DROWNED,
-                        ModelLayers.DROWNED_INNER_ARMOR,
-                        ModelLayers.DROWNED_OUTER_ARMOR,
+                        ModelLayers.DROWNED_ARMOR,
                         "textures/entity/zombie/drowned.png",
                         true,
                         1.0F
@@ -70,7 +65,7 @@ public final class MonsterCustomersVillagerClientAppearance
                         ),
                         true
                 ),
-                ResourceLocation.withDefaultNamespace(
+                Identifier.withDefaultNamespace(
                         "textures/entity/zombie/drowned_outer_layer.png"
                 )
         );
@@ -80,17 +75,16 @@ public final class MonsterCustomersVillagerClientAppearance
                 humanoid(
                         context,
                         ModelLayers.STRAY,
-                        ModelLayers.STRAY_INNER_ARMOR,
-                        ModelLayers.STRAY_OUTER_ARMOR,
+                        ModelLayers.STRAY_ARMOR,
                         "textures/entity/skeleton/stray.png",
                         false,
                         1.0F
                 );
         strayRenderer.addOverlay(
-                new HumanoidModel<CustomerVillagerEntity>(
+                new HumanoidModel<>(
                         context.bakeLayer(ModelLayers.STRAY_OUTER_LAYER)
                 ),
-                ResourceLocation.withDefaultNamespace(
+                Identifier.withDefaultNamespace(
                         "textures/entity/skeleton/stray_overlay.png"
                 )
         );
@@ -98,7 +92,7 @@ public final class MonsterCustomersVillagerClientAppearance
     }
 
     @Override
-    public MobRenderer<?, ?> getRenderer(CustomersVillager villager) {
+    public MobRenderer<?, ?, ?> getRenderer(CustomersVillager villager) {
         return switch (variation(villager)) {
             case ZOMBIE -> zombie;
             case SKELETON -> skeleton;
@@ -119,9 +113,8 @@ public final class MonsterCustomersVillagerClientAppearance
 
     private static MonsterCustomersVillagerHumanoidRenderer humanoid(
             EntityRendererProvider.Context context,
-            ModelLayerLocation modelLayer,
-            ModelLayerLocation innerArmor,
-            ModelLayerLocation outerArmor,
+            net.minecraft.client.model.geom.ModelLayerLocation modelLayer,
+            net.minecraft.client.renderer.entity.ArmorModelSet<net.minecraft.client.model.geom.ModelLayerLocation> armorLayers,
             String texture,
             boolean zombieArms,
             float scale
@@ -129,9 +122,8 @@ public final class MonsterCustomersVillagerClientAppearance
         return new MonsterCustomersVillagerHumanoidRenderer(
                 context,
                 modelLayer,
-                innerArmor,
-                outerArmor,
-                ResourceLocation.withDefaultNamespace(texture),
+                armorLayers,
+                Identifier.withDefaultNamespace(texture),
                 zombieArms,
                 scale
         );

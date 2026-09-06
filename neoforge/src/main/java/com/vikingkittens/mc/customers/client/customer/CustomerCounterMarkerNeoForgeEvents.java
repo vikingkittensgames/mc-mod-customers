@@ -12,9 +12,11 @@ public final class CustomerCounterMarkerNeoForgeEvents {
     private CustomerCounterMarkerNeoForgeEvents() {}
 
     @SubscribeEvent
-    public static void render(RenderLevelStageEvent event) {
-        if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_BLOCK_ENTITIES) {
-            CustomerCounterMarkerRenderer.render(event.getPoseStack(), event.getCamera().getPosition());
-        }
+    public static void render(RenderLevelStageEvent.AfterEntities event) {
+        CustomerCounterMarkerRenderer.render(
+                event.getPoseStack(),
+                event.getLevelRenderState().cameraRenderState,
+                event.getModelViewMatrix()
+        );
     }
 }

@@ -34,6 +34,5 @@ plugins {
 rootProject.name = 'mc-mod-customers'
 
 include('common')
-include('forge')
 include('neoforge')
 include('testsupport')

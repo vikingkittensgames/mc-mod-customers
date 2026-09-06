@@ -1,10 +1,10 @@
 package com.vikingkittens.mc.customers.client.customer;
 
-import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.Util;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.item.ItemStack;
 
@@ -110,7 +110,7 @@ public final class CustomerBossBarRenderer {
                 bossEvent.getName(),
                 titleX,
                 y - 9,
-                0xFFFFFF
+                0xFFFFFFFF
         );
 
         for (CustomerBossBarLayout.Group group : layout.groups()) {

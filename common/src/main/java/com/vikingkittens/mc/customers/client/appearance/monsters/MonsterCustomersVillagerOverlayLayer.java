@@ -2,27 +2,21 @@ package com.vikingkittens.mc.customers.client.appearance.monsters;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
-import net.minecraft.resources.ResourceLocation;
-
-import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
+import net.minecraft.client.renderer.entity.state.ZombieRenderState;
+import net.minecraft.resources.Identifier;
 
 final class MonsterCustomersVillagerOverlayLayer
-        extends RenderLayer<
-                CustomerVillagerEntity,
-                MonsterCustomersVillagerHumanoidRenderer.Model> {
-    private final HumanoidModel<CustomerVillagerEntity> overlayModel;
-    private final ResourceLocation texture;
+        extends RenderLayer<ZombieRenderState, MonsterCustomersVillagerHumanoidRenderer.Model> {
+    private final HumanoidModel<ZombieRenderState> overlayModel;
+    private final Identifier texture;
 
     MonsterCustomersVillagerOverlayLayer(
-            RenderLayerParent<
-                            CustomerVillagerEntity,
-                            MonsterCustomersVillagerHumanoidRenderer.Model>
-                    renderer,
-            HumanoidModel<CustomerVillagerEntity> overlayModel,
-            ResourceLocation texture
+            RenderLayerParent<ZombieRenderState, MonsterCustomersVillagerHumanoidRenderer.Model> renderer,
+            HumanoidModel<ZombieRenderState> overlayModel,
+            Identifier texture
     ) {
         super(renderer);
         this.overlayModel = overlayModel;
@@ -30,33 +24,15 @@ final class MonsterCustomersVillagerOverlayLayer
     }
 
     @Override
-    public void render(
+    public void submit(
             PoseStack poseStack,
-            MultiBufferSource buffer,
+            SubmitNodeCollector nodeCollector,
             int packedLight,
-            CustomerVillagerEntity entity,
-            float limbSwing,
-            float limbSwingAmount,
-            float partialTick,
-            float ageInTicks,
-            float netHeadYaw,
-            float headPitch
+            ZombieRenderState renderState,
+            float yRot,
+            float xRot
     ) {
-        coloredCutoutModelCopyLayerRender(
-                getParentModel(),
-                overlayModel,
-                texture,
-                poseStack,
-                buffer,
-                packedLight,
-                entity,
-                limbSwing,
-                limbSwingAmount,
-                ageInTicks,
-                netHeadYaw,
-                headPitch,
-                partialTick,
-                -1
-        );
+        overlayModel.setupAnim(renderState);
+        renderColoredCutoutModel(overlayModel, texture, poseStack, nodeCollector, packedLight, renderState, -1, 0);
     }
 }

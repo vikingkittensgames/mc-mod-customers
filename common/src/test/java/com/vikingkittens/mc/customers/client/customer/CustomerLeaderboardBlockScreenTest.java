@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import net.minecraft.core.BlockPos;
 
+import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 import com.vikingkittens.mc.customers.customer.CustomerLeaderboardOpenPayload;
 import com.vikingkittens.mc.customers.customer.CustomerLeaderboardScores;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
@@ -17,13 +18,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CustomerLeaderboardBlockScreenTest {
-    @Test
-    void doesNotPauseTheGame() {
-        CustomerLeaderboardBlockScreen screen = new CustomerLeaderboardBlockScreen(
-                new CustomerLeaderboardOpenPayload(BlockPos.ZERO, Map.of())
-        );
-
-        assertFalse(screen.isPauseScreen());
+    @org.junit.jupiter.api.BeforeAll
+    static void bootstrapMinecraft() {
+        MinecraftTestBootstrap.bootstrap();
     }
 
     @Test

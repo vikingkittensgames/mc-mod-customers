@@ -9,7 +9,8 @@ import org.mockito.InOrder;
 import org.mockito.MockedStatic;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.level.Level;
@@ -36,8 +37,18 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class SupplierVillagerEntityTest {
-    private static final ResourceLocation TEST_APPEARANCE =
-            ResourceLocation.parse("example:test");
+    private static final Identifier TEST_APPEARANCE =
+            Identifier.parse("example:test");
+
+    @Test
+    void overridesVanillaVillagerBrainTick() throws NoSuchMethodException {
+        assertEquals(
+                SupplierVillagerEntity.class,
+                SupplierVillagerEntity.class
+                        .getDeclaredMethod("customServerAiStep", ServerLevel.class)
+                        .getDeclaringClass()
+        );
+    }
 
     @BeforeAll
     static void bootstrapMinecraft() {
@@ -153,7 +164,7 @@ class SupplierVillagerEntityTest {
         }
 
         InOrder validationOrder = inOrder(supplier, navigation);
-        validationOrder.verify(supplier).moveTo(candidatePos, 0, 0);
+        validationOrder.verify(supplier).snapTo(candidatePos, 0, 0);
         validationOrder.verify(supplier).setOnGround(true);
         validationOrder.verify(navigation).createPath(navigationTarget, 0);
     }

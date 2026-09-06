@@ -6,7 +6,9 @@ import org.jetbrains.annotations.Nullable;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.item.ItemModelResolver;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -28,7 +30,7 @@ public final class CustomerWantedItemsRenderer {
             Entity renderedEntity,
             boolean nameTagRendered,
             PoseStack poseStack,
-            MultiBufferSource buffer,
+            SubmitNodeCollector nodeCollector,
             int packedLight
     ) {
         CustomerVillagerEntity customer = getRenderedCustomer(renderedEntity);
@@ -53,7 +55,7 @@ public final class CustomerWantedItemsRenderer {
             offset += appearanceNameTagOffset - nameTagOffset;
         }
         poseStack.translate(0, customer.getBbHeight() + offset, 0);
-        poseStack.mulPose(minecraft.getEntityRenderDispatcher().cameraOrientation());
+        poseStack.mulPose(minecraft.gameRenderer.getMainCamera().rotation());
         poseStack.translate(0.0F, nameTagOffset, 0.0F);
 
         float iconSpacing = 0.5F;
@@ -61,16 +63,25 @@ public final class CustomerWantedItemsRenderer {
         for (int index = 0; index < offerDisplayItems.size(); index++) {
             poseStack.pushPose();
             poseStack.translate(startX + index * iconSpacing, 0, 0);
-            minecraft.getItemRenderer().renderStatic(
+            ItemStackRenderState itemRenderState = new ItemStackRenderState();
+            ItemModelResolver itemModelResolver = minecraft.getItemModelResolver();
+            itemModelResolver.updateForTopItem(
+                    itemRenderState,
                     offerDisplayItems.get(index),
                     ItemDisplayContext.GROUND,
-                    packedLight,
-                    OverlayTexture.NO_OVERLAY,
-                    poseStack,
-                    buffer,
                     customer.level(),
-                    0
+                    null,
+                    customer.getId()
             );
+            if (!itemRenderState.isEmpty()) {
+                itemRenderState.submit(
+                        poseStack,
+                        nodeCollector,
+                        packedLight,
+                        OverlayTexture.NO_OVERLAY,
+                        0
+                );
+            }
             poseStack.popPose();
         }
         poseStack.popPose();

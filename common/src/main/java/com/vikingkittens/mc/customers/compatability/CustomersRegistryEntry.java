@@ -3,8 +3,8 @@ package com.vikingkittens.mc.customers.compatability;
 import java.util.Objects;
 import java.util.function.Supplier;
 
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 
 public final class CustomersRegistryEntry<T, I extends T> implements Supplier<I> {
     private final ResourceKey<T> key;
@@ -27,7 +27,7 @@ public final class CustomersRegistryEntry<T, I extends T> implements Supplier<I>
         return key;
     }
 
-    public ResourceLocation getId() {
-        return key.location();
+    public Identifier getId() {
+        return RegistryCUtils.getIdentifier(key);
     }
 }

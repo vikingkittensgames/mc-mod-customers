@@ -17,7 +17,7 @@ public final class CustomersRegistry<T> implements Supplier<Registry<T>> {
 
     @Override
     public Registry<T> get() {
-        return Objects.requireNonNull(registry.get(), () -> "Registry is not available yet: " + key.location());
+        return Objects.requireNonNull(registry.get(), () -> "Registry is not available yet: " + RegistryCUtils.getIdentifier(key));
     }
 
     public ResourceKey<Registry<T>> getKey() {

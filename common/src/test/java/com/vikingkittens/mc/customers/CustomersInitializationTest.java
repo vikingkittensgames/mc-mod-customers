@@ -3,7 +3,7 @@ package com.vikingkittens.mc.customers;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 import com.vikingkittens.mc.customers.appearance.monsters.MonsterCustomersVillagerAppearanceEvents;
@@ -28,30 +28,30 @@ class CustomersInitializationTest {
         Customers.initialize();
 
         assertEquals(
-                ResourceLocation.parse("customers:default"),
+                Identifier.parse("customers:default"),
                 CustomersVillagerAppearances.DEFAULT_APPEARANCE.getId()
         );
         assertEquals(
-                ResourceLocation.parse("customers:monsters"),
+                Identifier.parse("customers:monsters"),
                 MonsterCustomersVillagerAppearanceEvents.APPEARANCE.getId()
         );
         assertEquals(
-                ResourceLocation.parse("customers:customer_payment_box_block_entity"),
+                Identifier.parse("customers:customer_payment_box_block_entity"),
                 CustomerPaymentBox.BLOCK_ENTITY.getId()
         );
-        assertEquals(ResourceLocation.parse("customers:customer_seat"), CustomerSeat.ENTITY_TYPE.getId());
-        assertEquals(ResourceLocation.parse("customers:customer_villager"), Customer.CUSTOMER_VILLAGER.getId());
+        assertEquals(Identifier.parse("customers:customer_seat"), CustomerSeat.ENTITY_TYPE.getId());
+        assertEquals(Identifier.parse("customers:customer_villager"), Customer.CUSTOMER_VILLAGER.getId());
         assertEquals(
-                ResourceLocation.parse("customers:customer_spawner_block"),
+                Identifier.parse("customers:customer_spawner_block"),
                 CustomerSpawner.CUSTOMER_SPAWNER_BLOCK.getId()
         );
         assertEquals(
-                ResourceLocation.parse("customers:customer_pickup_counter"),
+                Identifier.parse("customers:customer_pickup_counter"),
                 CustomerPickupCounter.BLOCK_ENTITY.getId()
         );
-        assertEquals(ResourceLocation.parse("customers:supplier_villager"), Supplier.SUPPLIER_VILLAGER.getId());
+        assertEquals(Identifier.parse("customers:supplier_villager"), Supplier.SUPPLIER_VILLAGER.getId());
         assertEquals(
-                ResourceLocation.parse("customers:supplier_spawner_block"),
+                Identifier.parse("customers:supplier_spawner_block"),
                 SupplierSpawner.SUPPLIER_SPAWNER_BLOCK.getId()
         );
     }

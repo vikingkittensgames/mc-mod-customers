@@ -28,6 +28,10 @@ com.vikingkittens.mc.customers.client.compatability
 
 Classes are grouped by the Minecraft concept they adapt and use the `CUtils` suffix.
 
+`GuiGraphicsCUtils`, `BossBarCUtils`, and `RenderingCUtils` keep 1.21.11 GUI
+pipelines, matrix transforms, boss-bar sprites, and debug-gizmo submissions out
+of feature renderers. Loader event types remain in loader-specific modules.
+
 ## Common and Server Compatibility
 
 ### INetworkHelper
@@ -154,7 +158,7 @@ public static ItemCost createItemCost(
 | Method | Minecraft 1.21.1 | Minecraft 1.21.11 |
 | --- | --- | --- |
 | `onCraftedBy` | `stack.onCraftedBy(player.level(), player, count)` | `stack.onCraftedBy(player, count)` |
-| `getCraftingRemainder` | Check `hasCraftingRemainingItem()`, then call `getCraftingRemainingItem()` | Call `stack.getCraftingRemainder()` |
+| `getCraftingRemainder` | Check `hasCraftingRemainingItem()`, then call `getCraftingRemainingItem()` | Call `stack.getItem().getCraftingRemainder()` |
 | `createItemCost` | Construct with `DataComponentPredicate.allOf(stack.getComponents())` | Construct with `DataComponentExactPredicate.allOf(stack.getComponents())` |
 
 Both implementations return an empty `ItemStack` when no crafting remainder exists.
@@ -544,7 +548,20 @@ This class may centralize customer render-data extraction where a stable API is 
 | --- | --- |
 | Models and render layers read directly from entities | Post-extraction modifiers populate reusable entity render states |
 
+Minecraft 1.21.11 skin render states carry the resolved packaged texture
+identifier directly. Mouse handlers identify the primary mouse button with
+`MouseButtonEvent.button() == 0`; `InputWithModifiers.isLeft()` refers to the
+left-arrow key.
+
 Renderer inheritance, renderer generics, model setup signatures, and event registration remain version-specific.
+
+Minecraft 1.21.11 item rendering requires an item definition under `assets/<namespace>/items` in addition to the model under `assets/<namespace>/models/item`. Its NeoForge `serverData` pass writes to a separate generated-resource directory so server generation cannot remove committed client models as stale output.
+
+NeoForge 21.11 data listeners use the concrete `GatherDataEvent.Client` and `GatherDataEvent.Server` event types. Client-bound payload callbacks use `IPayloadContext.enqueueWork(...)` before updating screens or render state.
+
+Minecraft 1.21.11 recipe ingredients are resource-location strings rather than `item` or `tag` objects. Tag ingredients use a `#` prefix, and ingredient alternatives are arrays of resource-location strings.
+
+NeoForge 21.11 exposes standard `Container` implementations through `VanillaContainerWrapper.of(container)`. `ItemStacksResourceHandler` copies a supplied list and must not be used when transfers need to update the original persisted container.
 
 ## Version-Specific Integration Code
 
@@ -567,6 +584,8 @@ The following changes should not be hidden behind static compatibility methods b
 - classes that only moved packages
 
 Shared business logic should be extracted beneath these integration points whenever practical.
+
+Custom customer and supplier villagers retain an empty version-specific `customServerAiStep` override so the vanilla villager brain does not compete with their custom professions and goal lifecycle.
 
 ## Implementation Order
 
@@ -605,7 +624,14 @@ The 1.20.1 Forge port keeps the shared compatibility class names and places vers
 
 `ItemStackCUtils` owns item comparison, crafting, and offer-cost construction. Network and persistence adapters own loader/version-specific serialization.
 
-The MCA Appearance is supported only for Minecraft 1.21.1 and newer. The Minecraft 1.20.1 Forge port does not include MCA integration or its dependency.
+The MCA Appearance is available only in the Minecraft 1.21.1 build. The Minecraft 1.20.1 Forge and Minecraft 1.21.11 NeoForge ports do not include MCA integration or its dependency.
+
+The Minecraft 1.21.11 branch excludes Forge from the Gradle project graph and
+builds and tests only the shared and NeoForge modules.
+
+`RegistryCUtils` owns Minecraft-version-specific registry access. Feature code
+uses it to read registry identifiers, look up registries, and resolve values by
+identifier.
 
 Additional 1.20.1 Forge details:
 

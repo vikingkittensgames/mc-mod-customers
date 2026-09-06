@@ -1,9 +1,8 @@
 package com.vikingkittens.mc.customers.client.compatability;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.BossEvent;
 
@@ -13,7 +12,7 @@ import net.minecraft.world.BossEvent;
 public final class BossBarCUtils {
     private static final int BAR_WIDTH = 182;
     private static final int BAR_HEIGHT = 5;
-    private static final ResourceLocation[] BAR_BACKGROUND_SPRITES = {
+    private static final Identifier[] BAR_BACKGROUND_SPRITES = {
         sprite("pink_background"),
         sprite("blue_background"),
         sprite("red_background"),
@@ -22,7 +21,7 @@ public final class BossBarCUtils {
         sprite("purple_background"),
         sprite("white_background")
     };
-    private static final ResourceLocation[] BAR_PROGRESS_SPRITES = {
+    private static final Identifier[] BAR_PROGRESS_SPRITES = {
         sprite("pink_progress"),
         sprite("blue_progress"),
         sprite("red_progress"),
@@ -31,13 +30,13 @@ public final class BossBarCUtils {
         sprite("purple_progress"),
         sprite("white_progress")
     };
-    private static final ResourceLocation[] OVERLAY_BACKGROUND_SPRITES = {
+    private static final Identifier[] OVERLAY_BACKGROUND_SPRITES = {
         sprite("notched_6_background"),
         sprite("notched_10_background"),
         sprite("notched_12_background"),
         sprite("notched_20_background")
     };
-    private static final ResourceLocation[] OVERLAY_PROGRESS_SPRITES = {
+    private static final Identifier[] OVERLAY_PROGRESS_SPRITES = {
         sprite("notched_6_progress"),
         sprite("notched_10_progress"),
         sprite("notched_12_progress"),
@@ -90,11 +89,11 @@ public final class BossBarCUtils {
             int y,
             BossEvent bossEvent,
             int width,
-            ResourceLocation[] barSprites,
-            ResourceLocation[] overlaySprites
+            Identifier[] barSprites,
+            Identifier[] overlaySprites
     ) {
-        RenderSystem.enableBlend();
         graphics.blitSprite(
+                RenderPipelines.GUI_TEXTURED,
                 barSprites[bossEvent.getColor().ordinal()],
                 BAR_WIDTH,
                 BAR_HEIGHT,
@@ -107,6 +106,7 @@ public final class BossBarCUtils {
         );
         if (bossEvent.getOverlay() != BossEvent.BossBarOverlay.PROGRESS) {
             graphics.blitSprite(
+                    RenderPipelines.GUI_TEXTURED,
                     overlaySprites[bossEvent.getOverlay().ordinal() - 1],
                     BAR_WIDTH,
                     BAR_HEIGHT,
@@ -118,10 +118,9 @@ public final class BossBarCUtils {
                     BAR_HEIGHT
             );
         }
-        RenderSystem.disableBlend();
     }
 
-    private static ResourceLocation sprite(String name) {
-        return ResourceLocation.withDefaultNamespace("boss_bar/" + name);
+    private static Identifier sprite(String name) {
+        return Identifier.withDefaultNamespace("boss_bar/" + name);
     }
 }

@@ -6,7 +6,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
@@ -47,8 +47,8 @@ class CustomersVillagerAppearanceSettingsTest {
     void roundTripsDistinctRegisteredAndUnknownAppearanceIds() {
         CustomersVillagerAppearanceSettings settings =
                 new CustomersVillagerAppearanceSettings();
-        ResourceLocation optionalAppearance =
-                ResourceLocation.parse("optional_mod:mca");
+        Identifier optionalAppearance =
+                Identifier.parse("optional_mod:mca");
         settings.setEnabledAppearances(List.of(
                 optionalAppearance,
                 CustomersVillagerAppearances.DEFAULT,

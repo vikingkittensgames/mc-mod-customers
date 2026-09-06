@@ -17,15 +17,16 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityReference;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -51,7 +52,7 @@ import com.vikingkittens.mc.customers.customer.pets.ai.CustomerPetSitWhenOrdered
 public final class CustomerPet {
     public static final TagKey<EntityType<?>> CAN_NOT_BE_PET = TagKey.create(
             Registries.ENTITY_TYPE,
-            ResourceLocation.fromNamespaceAndPath(Customers.MODID, "can_not_be_pet")
+            Identifier.fromNamespaceAndPath(Customers.MODID, "can_not_be_pet")
     );
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final byte ANIMAL_HEARTS_EVENT = 18;
@@ -173,7 +174,7 @@ public final class CustomerPet {
             Level level,
             Iterable<EntityType<?>> entityTypes,
             Iterable<Item> items,
-            Function<EntityType<?>, ResourceLocation> getEntityId,
+            Function<EntityType<?>, Identifier> getEntityId,
             ToIntFunction<Item> getItemId
     ) {
         List<Pet> discoveredPets = new ArrayList<>();
@@ -260,7 +261,7 @@ public final class CustomerPet {
             pet.finalizeSpawn(
                     serverLevel,
                     serverLevel.getCurrentDifficultyAt(pet.blockPosition()),
-                    MobSpawnType.EVENT,
+                    EntitySpawnReason.EVENT,
                     null
             );
             configurePetSize(pet);
@@ -275,7 +276,7 @@ public final class CustomerPet {
         pet.getBrain().clearMemories();
         if (pet instanceof TamableAnimal tamablePet) {
             tamablePet.setTame(true, false);
-            tamablePet.setOwnerUUID(customerId);
+            tamablePet.setOwnerReference(EntityReference.of(customerId));
             tamablePet.setOrderedToSit(false);
         }
         goalSelector.addGoal(0, new FloatGoal(pet));

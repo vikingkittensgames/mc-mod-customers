@@ -8,9 +8,11 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 
+import com.vikingkittens.mc.customers.compatability.BlockCUtils;
 import com.vikingkittens.mc.customers.compatability.CustomersRegistryEntry;
 import com.vikingkittens.mc.customers.compatability.CustomersServices;
 import com.vikingkittens.mc.customers.compatability.IRegistrationHelper;
+import com.vikingkittens.mc.customers.compatability.ItemCUtils;
 
 public class SupplierSpawner {
     private static final IRegistrationHelper REGISTRATIONS =
@@ -25,7 +27,7 @@ public class SupplierSpawner {
                     Registries.BLOCK,
                     SupplierSpawnerBlock.NAME,
                     () -> new SupplierSpawnerBlock(
-                            BlockBehaviour.Properties.of()
+                            BlockCUtils.setId(BlockBehaviour.Properties.of(), SupplierSpawnerBlock.NAME)
                     )
             );
 
@@ -54,7 +56,7 @@ public class SupplierSpawner {
                     SupplierSpawnerBlock.NAME,
                     () -> new BlockItem(
                             SUPPLIER_SPAWNER_BLOCK.get(),
-                            new Item.Properties()
+                            ItemCUtils.setId(new Item.Properties(), SupplierSpawnerBlock.NAME)
                     )
             );
 

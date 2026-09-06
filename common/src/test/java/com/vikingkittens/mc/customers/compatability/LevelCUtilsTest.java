@@ -26,22 +26,22 @@ class LevelCUtilsTest {
     @Test
     void readsDaytimeState() {
         Level level = mock(Level.class);
-        when(level.isDay()).thenReturn(true);
+        when(level.isBrightOutside()).thenReturn(true);
 
         assertTrue(LevelCUtils.isDaytime(level));
     }
     @Test
     void readsNighttimeState() {
         Level level = mock(Level.class);
-        when(level.isNight()).thenReturn(false);
+        when(level.isDarkOutside()).thenReturn(false);
 
         assertFalse(LevelCUtils.isNighttime(level));
     }
     @Test
     void readsBuildHeightBounds() {
         LevelHeightAccessor level = mock(LevelHeightAccessor.class);
-        when(level.getMinBuildHeight()).thenReturn(-64);
-        when(level.getMaxBuildHeight()).thenReturn(320);
+        when(level.getMinY()).thenReturn(-64);
+        when(level.getMaxY()).thenReturn(320);
 
         assertEquals(-64, LevelCUtils.getMinBuildHeight(level));
         assertEquals(320, LevelCUtils.getMaxBuildHeight(level));

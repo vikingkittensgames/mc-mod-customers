@@ -13,12 +13,8 @@
     "EEE"
   ],
   "key": {
-    "E": {
-      "item": "minecraft:emerald"
-    },
-    "B": {
-      "tag": "minecraft:beds"
-    }
+    "E": "minecraft:emerald",
+    "B": "#minecraft:beds"
   },
   "result": {
     "id": "customers:customer_spawner_block",

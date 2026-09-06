@@ -23,9 +23,3 @@ versionRange="${minecraft_version_range}"
 ordering="NONE"
 side="BOTH"
 
-[[dependencies.${mod_id}]]
-modId="mca"
-mandatory=false
-versionRange="${mca_version_range}"
-ordering="AFTER"
-side="BOTH"

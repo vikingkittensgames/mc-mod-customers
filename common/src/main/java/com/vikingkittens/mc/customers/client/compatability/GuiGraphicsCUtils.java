@@ -2,7 +2,8 @@ package com.vikingkittens.mc.customers.client.compatability;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 /**
@@ -25,7 +26,34 @@ public final class GuiGraphicsCUtils {
             int textureHeight
     ) {
         graphics.blit(
-                toResourceLocation(texture),
+                RenderPipelines.GUI_TEXTURED,
+                toIdentifier(texture),
+                x,
+                y,
+                u,
+                v,
+                width,
+                height,
+                textureWidth,
+                textureHeight
+        );
+    }
+
+    public static void blit(
+            GuiGraphics graphics,
+            Identifier texture,
+            int x,
+            int y,
+            float u,
+            float v,
+            int width,
+            int height,
+            int textureWidth,
+            int textureHeight
+    ) {
+        graphics.blit(
+                RenderPipelines.GUI_TEXTURED,
+                texture,
                 x,
                 y,
                 u,
@@ -38,11 +66,11 @@ public final class GuiGraphicsCUtils {
     }
 
     public static void pushTransform(GuiGraphics graphics) {
-        graphics.pose().pushPose();
+        graphics.pose().pushMatrix();
     }
 
     public static void popTransform(GuiGraphics graphics) {
-        graphics.pose().popPose();
+        graphics.pose().popMatrix();
     }
 
     public static void translate(
@@ -50,7 +78,7 @@ public final class GuiGraphicsCUtils {
             float x,
             float y
     ) {
-        graphics.pose().translate(x, y, 0.0F);
+        graphics.pose().translate(x, y);
     }
 
     public static void scale(
@@ -58,7 +86,7 @@ public final class GuiGraphicsCUtils {
             float x,
             float y
     ) {
-        graphics.pose().scale(x, y, 1.0F);
+        graphics.pose().scale(x, y);
     }
 
     /**
@@ -85,8 +113,8 @@ public final class GuiGraphicsCUtils {
         popTransform(graphics);
     }
 
-    private static ResourceLocation toResourceLocation(TextureC texture) {
-        return ResourceLocation.fromNamespaceAndPath(
+    private static Identifier toIdentifier(TextureC texture) {
+        return Identifier.fromNamespaceAndPath(
                 texture.namespace(),
                 texture.path()
         );

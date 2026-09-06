@@ -4,12 +4,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class NeoForgeItemStackHelperTest {
     @BeforeAll
@@ -19,16 +18,13 @@ class NeoForgeItemStackHelperTest {
 
     @Test
     void returnsLoaderCraftingRemainder() {
-        ItemStack stack = mock(ItemStack.class);
-        ItemStack remainder = mock(ItemStack.class);
-        when(stack.hasCraftingRemainingItem()).thenReturn(true);
-        when(stack.getCraftingRemainingItem()).thenReturn(remainder);
+        ItemStack remainder = new NeoForgeItemStackHelper().getCraftingRemainder(new ItemStack(Items.MILK_BUCKET));
 
-        assertSame(remainder, new NeoForgeItemStackHelper().getCraftingRemainder(stack));
+        assertTrue(remainder.is(Items.BUCKET));
     }
 
     @Test
     void returnsEmptyStackWithoutCraftingRemainder() {
-        assertSame(ItemStack.EMPTY, new NeoForgeItemStackHelper().getCraftingRemainder(mock(ItemStack.class)));
+        assertTrue(new NeoForgeItemStackHelper().getCraftingRemainder(new ItemStack(Items.STONE)).isEmpty());
     }
 }

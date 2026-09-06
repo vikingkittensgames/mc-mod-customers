@@ -3,7 +3,7 @@ package com.vikingkittens.mc.customers.appearance;
 import java.util.Optional;
 
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
@@ -16,9 +16,9 @@ public interface CustomersVillager {
 
     boolean isSpecial();
 
-    ResourceLocation getAppearanceId();
+    Identifier getAppearanceId();
 
-    void setAppearanceId(ResourceLocation appearanceId);
+    void setAppearanceId(Identifier appearanceId);
 
     float getVariationSeed();
 

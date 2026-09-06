@@ -7,10 +7,8 @@ import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.*;
 import net.minecraft.world.entity.player.Inventory;
@@ -26,6 +24,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearanceSettings;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
@@ -104,16 +104,16 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
 
         try {
-            tag.put("inventory", this.inventory.serializeNBT(registries));
+            this.inventory.write(output.child("inventory"));
         } catch (Throwable t) {
             LOGGER.error("Failed to save inventory", t);
         }
 
-        writeSpawnerData(PersistenceCUtils.writer(tag));
+        writeSpawnerData(PersistenceCUtils.writer(output));
     }
     void writeSpawnerData(DataWriter output) {
         output.putInt(TAG_DATA_VERSION, CURRENT_DATA_VERSION);
@@ -123,18 +123,18 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
 
-        if (tag.contains("inventory")) {
+        if (input.child("inventory").isPresent()) {
             try {
-                inventory.deserializeNBT(registries, tag.getCompound("inventory"));
+                inventory.read(input.childOrEmpty("inventory"));
             } catch (Throwable t) {
                 LOGGER.error("Failed to load inventory because of error", t);
             }
         }
 
-        readSpawnerData(PersistenceCUtils.reader(tag));
+        readSpawnerData(PersistenceCUtils.reader(input));
     }
     void readSpawnerData(DataReader input) {
         int loadedDataVersion =
@@ -251,12 +251,12 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
         level.setBlock(getBlockPos(), newState, Block.UPDATE_ALL);
     }
 
-    public List<ResourceLocation> getEnabledAppearanceIds() {
+    public List<Identifier> getEnabledAppearanceIds() {
         return appearanceSettings.getEnabledAppearances();
     }
 
     public void setEnabledAppearanceIds(
-            Collection<ResourceLocation> appearanceIds
+            Collection<Identifier> appearanceIds
     ) {
         appearanceSettings.setEnabledAppearances(appearanceIds);
         setChanged();

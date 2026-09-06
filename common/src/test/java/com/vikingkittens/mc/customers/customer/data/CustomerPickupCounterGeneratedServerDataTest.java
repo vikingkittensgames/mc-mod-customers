@@ -18,8 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class CustomerPickupCounterGeneratedServerDataTest {
     private static final List<Path> GENERATED = List.of(
-            Path.of("../forge/src/generated/resources/data/customers"),
-            Path.of("../neoforge/src/generated/resources/data/customers")
+            Path.of("../neoforge/src/generated/serverResources/data/customers")
     );
 
     @BeforeAll
@@ -55,8 +54,7 @@ final class CustomerPickupCounterGeneratedServerDataTest {
             assertEquals(
                     "minecraft:iron_ingot",
                     recipe.getAsJsonObject("key")
-                            .getAsJsonObject("I")
-                            .get("item")
+                            .get("I")
                             .getAsString()
             );
             assertEquals(

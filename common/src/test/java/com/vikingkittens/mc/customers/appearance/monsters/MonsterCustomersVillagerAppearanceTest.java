@@ -3,7 +3,7 @@ package com.vikingkittens.mc.customers.appearance.monsters;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
@@ -31,7 +31,7 @@ class MonsterCustomersVillagerAppearanceTest {
     @Test
     void ownsItsAppearanceId() {
         assertEquals(
-                ResourceLocation.parse("customers:monsters"),
+                Identifier.parse("customers:monsters"),
                 MonsterCustomersVillagerAppearance.ID
         );
     }

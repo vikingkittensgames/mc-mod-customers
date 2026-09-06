@@ -5,10 +5,10 @@ import org.jetbrains.annotations.Nullable;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
@@ -24,7 +24,7 @@ import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -36,7 +36,7 @@ public class CustomerPaymentBoxBlock extends BaseEntityBlock {
             simpleCodec(CustomerPaymentBoxBlock::new);
     private static final VoxelShape SHAPE = Block.box(1.0D, 0.0D, 1.0D, 15.0D, 14.0D, 15.0D);
 
-    public static final DirectionProperty FACING =
+    public static final EnumProperty<Direction> FACING =
             HorizontalDirectionalBlock.FACING;
 
     public CustomerPaymentBoxBlock(Properties properties) {
@@ -88,7 +88,7 @@ public class CustomerPaymentBoxBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(
+    protected InteractionResult useItemOn(
             ItemStack stack,
             BlockState state,
             Level level,
@@ -98,7 +98,7 @@ public class CustomerPaymentBoxBlock extends BaseEntityBlock {
             BlockHitResult hitResult
     ) {
         openContainer(level, pos, player);
-        return ItemInteractionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     @Override
@@ -129,20 +129,16 @@ public class CustomerPaymentBoxBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected void onRemove(
+    protected void affectNeighborsAfterRemoval(
             BlockState state,
-            Level level,
+            ServerLevel level,
             BlockPos pos,
-            BlockState newState,
             boolean movedByPiston
     ) {
-        Containers.dropContentsOnDestroy(
-                state,
-                newState,
-                level,
-                pos
-        );
-        super.onRemove(state, level, pos, newState, movedByPiston);
+        if (level.getBlockEntity(pos) instanceof CustomerPaymentBoxBlockEntity paymentBox) {
+            Containers.dropContents(level, pos, paymentBox);
+        }
+        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
     }
 
     @Override
@@ -154,7 +150,8 @@ public class CustomerPaymentBoxBlock extends BaseEntityBlock {
     protected int getAnalogOutputSignal(
             BlockState state,
             Level level,
-            BlockPos pos
+            BlockPos pos,
+            Direction direction
     ) {
         return AbstractContainerMenu.getRedstoneSignalFromBlockEntity(
                 level.getBlockEntity(pos)

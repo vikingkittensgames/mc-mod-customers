@@ -16,7 +16,7 @@ class InteractionCUtilsTest {
     @Test
     void returnsServerSuccess() {
         assertSame(
-                InteractionResult.CONSUME,
+                InteractionResult.SUCCESS_SERVER,
                 InteractionCUtils.sidedSuccess(false)
         );
     }

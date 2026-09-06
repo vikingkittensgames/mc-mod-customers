@@ -10,9 +10,11 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 
+import com.vikingkittens.mc.customers.compatability.BlockCUtils;
 import com.vikingkittens.mc.customers.compatability.CustomersRegistryEntry;
 import com.vikingkittens.mc.customers.compatability.CustomersServices;
 import com.vikingkittens.mc.customers.compatability.IRegistrationHelper;
+import com.vikingkittens.mc.customers.compatability.ItemCUtils;
 
 public final class CustomerLeaderboard {
     private static final IRegistrationHelper REGISTRATIONS = CustomersServices.registration();
@@ -21,13 +23,16 @@ public final class CustomerLeaderboard {
             Registries.BLOCK,
             CustomerLeaderboardBlock.NAME,
             () -> new CustomerLeaderboardBlock(
-                    BlockBehaviour.Properties.ofFullCopy(Blocks.OAK_PLANKS).noOcclusion()
+                    BlockCUtils.setId(
+                            BlockBehaviour.Properties.ofFullCopy(Blocks.OAK_PLANKS).noOcclusion(),
+                            CustomerLeaderboardBlock.NAME
+                    )
             )
     );
     public static final CustomersRegistryEntry<Item, BlockItem> ITEM = REGISTRATIONS.register(
             Registries.ITEM,
             CustomerLeaderboardBlock.NAME,
-            () -> new BlockItem(BLOCK.get(), new Item.Properties())
+            () -> new BlockItem(BLOCK.get(), ItemCUtils.setId(new Item.Properties(), CustomerLeaderboardBlock.NAME))
     );
     public static final CustomersRegistryEntry<
             BlockEntityType<?>,

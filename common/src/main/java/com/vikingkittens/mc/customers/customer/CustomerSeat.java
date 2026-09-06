@@ -1,6 +1,8 @@
 package com.vikingkittens.mc.customers.customer;
 
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 
@@ -17,7 +19,10 @@ public final class CustomerSeat {
                             .noSave()
                             .clientTrackingRange(10)
                             .updateInterval(20)
-                            .build(CustomerSeatEntity.NAME));
+                            .build(ResourceKey.create(
+                                    Registries.ENTITY_TYPE,
+                                    Identifier.fromNamespaceAndPath("customers", CustomerSeatEntity.NAME)
+                            )));
 
     private CustomerSeat() {}
 

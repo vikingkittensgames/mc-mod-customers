@@ -689,16 +689,16 @@ code-defined appearance.
 
 ### Minecraft Comes Alive Appearance
 
-The **Minecraft Comes Alive** appearance is supported for Minecraft 1.21.1 and
-newer only, with MCA Reborn version 7.7.9 or newer for Minecraft 1.21.1. When
-Minecraft Comes Alive Reborn is installed on a supported version, the appearance
+The **Minecraft Comes Alive** appearance is available only in the Minecraft
+1.21.1 build. When Minecraft Comes Alive Reborn is installed, the appearance
 becomes available in Customer and Supplier Spawners. It uses
 MCA's human villager models, genetics, skin layers, clothing, hairstyles, and
 configured villager voices, including its yes and no trade responses, while
 preserving normal Customer and Supplier behavior, including sitting while
 waiting. The saved appearance variation keeps each villager's MCA appearance
 consistent. Customers and Suppliers using this appearance are always rendered
-as adults. The Minecraft 1.20.1 Forge build does not include this appearance.
+as adults. The Minecraft 1.20.1 Forge and Minecraft 1.21.11 NeoForge builds do
+not include this appearance.
 
 ![apperance-mca.png](screenshots/apperance-mca.png)
 

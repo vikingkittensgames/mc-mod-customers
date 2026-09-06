@@ -3,9 +3,12 @@ package com.vikingkittens.mc.customers.supplier;
 import com.google.common.collect.ImmutableSet;
 
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.entity.npc.VillagerProfession;
+import net.minecraft.world.entity.npc.villager.VillagerProfession;
 
 import com.vikingkittens.mc.customers.compatability.CustomersRegistryEntry;
 import com.vikingkittens.mc.customers.compatability.CustomersServices;
@@ -24,7 +27,10 @@ public class Supplier {
                     SupplierVillagerEntity.NAME,
             () -> EntityType.Builder.of(SupplierVillagerEntity::new, MobCategory.CREATURE)
                     .sized(0.6F, 1.95F)
-                    .build(SupplierVillagerEntity.NAME)
+                    .build(ResourceKey.create(
+                            Registries.ENTITY_TYPE,
+                            Identifier.fromNamespaceAndPath("customers", SupplierVillagerEntity.NAME)
+                    ))
     );
 
     // -------------------- Professions --------------------
@@ -33,7 +39,7 @@ public class Supplier {
                     Registries.VILLAGER_PROFESSION,
                     "supplier",
             () -> new VillagerProfession(
-                    "supplier",
+                    Component.literal("supplier"),
                     holder -> false,
                     holder -> false,
                     ImmutableSet.of(),

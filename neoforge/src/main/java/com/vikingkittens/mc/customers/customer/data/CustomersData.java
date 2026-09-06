@@ -9,37 +9,14 @@ public final class CustomersData {
     private CustomersData() {
     }
 
-    public static void gatherData(GatherDataEvent event) {
+    public static void gatherClientData(GatherDataEvent.Client event) {
+        event.addProvider(new CustomerOverlayBlockModelProvider(event.getGenerator().getPackOutput()));
+    }
+
+    public static void gatherData(GatherDataEvent.Server event) {
         DataGenerator generator = event.getGenerator();
         PackOutput output = generator.getPackOutput();
-        generator.addProvider(
-                event.includeClient(),
-                new CustomerPickupCounterBlockStateProvider(
-                        output,
-                        event.getExistingFileHelper()
-                )
-        );
-        generator.addProvider(
-                event.includeClient(),
-                new CustomerPaymentBoxBlockStateProvider(
-                        output,
-                        event.getExistingFileHelper()
-                )
-        );
-        generator.addProvider(
-                event.includeClient(),
-                new CustomerLeaderboardBlockStateProvider(
-                        output,
-                        event.getExistingFileHelper()
-                )
-        );
-        generator.addProvider(
-                event.includeServer(),
-                new CustomerRecipeProvider(output, event.getLookupProvider())
-        );
-        generator.addProvider(
-                event.includeServer(),
-                new CustomerLootTableProvider(output, event.getLookupProvider())
-        );
+        event.addProvider(new CustomerRecipeProvider(output, event.getLookupProvider()));
+        event.addProvider(new CustomerLootTableProvider(output, event.getLookupProvider()));
     }
 }

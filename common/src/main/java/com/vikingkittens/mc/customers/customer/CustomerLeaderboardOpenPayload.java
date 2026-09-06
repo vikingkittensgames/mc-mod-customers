@@ -7,7 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.vikingkittens.mc.customers.Customers;
 
@@ -18,7 +18,7 @@ public record CustomerLeaderboardOpenPayload(
     public record Score(float value, boolean levelPassed) {}
 
     public static final Type<CustomerLeaderboardOpenPayload> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(Customers.MODID, "customer_leaderboard_open")
+            Identifier.fromNamespaceAndPath(Customers.MODID, "customer_leaderboard_open")
     );
     public static final StreamCodec<FriendlyByteBuf, CustomerLeaderboardOpenPayload> STREAM_CODEC =
             StreamCodec.of(CustomerLeaderboardOpenPayload::write, CustomerLeaderboardOpenPayload::read);

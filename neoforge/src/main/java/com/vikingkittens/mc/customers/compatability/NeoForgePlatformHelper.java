@@ -6,7 +6,7 @@ import java.util.function.Predicate;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.entity.npc.VillagerType;
+import net.minecraft.world.entity.npc.villager.VillagerType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.biome.Biome;
 
@@ -56,7 +56,8 @@ public final class NeoForgePlatformHelper implements IPlatformHelper {
 
     private static ResourceKey<VillagerType> findVillagerType(Holder<Biome> biome) {
         BiomeVillagerType mapData = biome.getData(NeoForgeDataMaps.VILLAGER_TYPES);
-        VillagerType villagerType = mapData == null ? VillagerType.PLAINS : mapData.type();
-        return BuiltInRegistries.VILLAGER_TYPE.getResourceKey(villagerType).orElseThrow();
+        return mapData == null
+                ? VillagerType.PLAINS
+                : mapData.type();
     }
 }

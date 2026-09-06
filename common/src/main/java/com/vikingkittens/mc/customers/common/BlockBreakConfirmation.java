@@ -4,10 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Util;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import com.vikingkittens.mc.customers.compatability.CustomersServices;
@@ -42,7 +42,7 @@ public final class BlockBreakConfirmation {
         PendingBreak pendingBreak = PENDING_BREAKS.get(token);
         if (pendingBreak == null || !player.getUUID().equals(playerId)
                 || !ConfirmationToken.isKnownFor(playerId, token, Util.getMillis())
-                || player.serverLevel().getBlockEntity(pendingBreak.pos) != pendingBreak.blockEntity) {
+                || player.level().getBlockEntity(pendingBreak.pos) != pendingBreak.blockEntity) {
             player.sendSystemMessage(Component.translatable("messages.customers.break_confirmation.expired"));
             PENDING_BREAKS.remove(token);
             ConfirmationToken.remove(token);

@@ -9,8 +9,6 @@ import java.util.UUID;
 
 import org.jetbrains.annotations.Nullable;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -18,9 +16,10 @@ import net.minecraft.client.gui.components.PlayerFaceRenderer;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
+import net.minecraft.util.Util;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
@@ -47,13 +46,13 @@ public class CustomerShiftFinishedScreen extends Screen {
     private static final int TEST_DUPLICATE_PLAYERS = 1;
 
     private static final SoundEvent BLING_SOUND = SoundEvent.createVariableRangeEvent(
-            ResourceLocation.fromNamespaceAndPath(Customers.MODID, "bling")
+            Identifier.fromNamespaceAndPath(Customers.MODID, "bling")
     );
     private static final SoundEvent BONK_SOUND = SoundEvent.createVariableRangeEvent(
-            ResourceLocation.fromNamespaceAndPath(Customers.MODID, "bonk")
+            Identifier.fromNamespaceAndPath(Customers.MODID, "bonk")
     );
     private static final SoundEvent TADA_SOUND = SoundEvent.createVariableRangeEvent(
-            ResourceLocation.fromNamespaceAndPath(Customers.MODID, "tada")
+            Identifier.fromNamespaceAndPath(Customers.MODID, "tada")
     );
 
     private static final TextureC RECEIPT_TEXTURE = texture("reciept.png");
@@ -105,10 +104,6 @@ public class CustomerShiftFinishedScreen extends Screen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-
         GuiGraphicsCUtils.blit(
                 graphics,
                 RECEIPT_TEXTURE,
@@ -126,9 +121,6 @@ public class CustomerShiftFinishedScreen extends Screen {
         renderCheckmark(graphics);
         renderCustomerTotals(graphics);
         renderPlayerScores(graphics);
-        graphics.flush();
-        RenderSystem.disableBlend();
-
         super.render(graphics, mouseX, mouseY, partialTick);
     }
 
@@ -362,7 +354,10 @@ public class CustomerShiftFinishedScreen extends Screen {
                     PlayerProfileUtils.getPicture(scoreEntry.playerId()),
                     x,
                     y,
-                    PLAYER_HEAD_SIZE
+                    PLAYER_HEAD_SIZE,
+                    false,
+                    false,
+                    -1
             );
         }
         graphics.drawString(

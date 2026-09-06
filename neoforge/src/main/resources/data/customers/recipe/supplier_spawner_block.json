@@ -13,12 +13,8 @@
     "EEE"
   ],
   "key": {
-    "E": {
-      "item": "minecraft:emerald"
-    },
-    "B": {
-      "item": "minecraft:barrel"
-    }
+    "E": "minecraft:emerald",
+    "B": "minecraft:barrel"
   },
   "result": {
     "id": "customers:supplier_spawner_block",

@@ -5,8 +5,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,8 +16,8 @@ import static org.mockito.Mockito.mock;
 class CustomersRegistryEntryTest {
     @Test
     void exposesIdentityAndResolvesItsValueLazily() {
-        ResourceLocation id =
-                ResourceLocation.fromNamespaceAndPath("customers", "test");
+        Identifier id =
+                Identifier.fromNamespaceAndPath("customers", "test");
         ResourceKey<Item> key = ResourceKey.create(Registries.ITEM, id);
         Item item = mock(Item.class);
         AtomicInteger resolutions = new AtomicInteger();

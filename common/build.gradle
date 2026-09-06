@@ -44,9 +44,7 @@ tasks.named('check') {
 }
 
 dependencies {
-    compileOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
-    testRuntimeOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
-
+    compileOnly "net.neoforged:neoforge:${neo_version}"
     testImplementation project(':testsupport')
     testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
     testImplementation "org.mockito:mockito-core:5.12.0"

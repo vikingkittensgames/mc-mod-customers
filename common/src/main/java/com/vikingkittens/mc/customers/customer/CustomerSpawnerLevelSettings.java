@@ -7,7 +7,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.function.Predicate;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
@@ -171,11 +171,11 @@ public final class CustomerSpawnerLevelSettings {
         changeListener.run();
     }
 
-    public List<ResourceLocation> getEnabledAppearanceIds() {
+    public List<Identifier> getEnabledAppearanceIds() {
         return appearanceSettings.getEnabledAppearances();
     }
 
-    public void setEnabledAppearanceIds(Collection<ResourceLocation> appearanceIds) {
+    public void setEnabledAppearanceIds(Collection<Identifier> appearanceIds) {
         appearanceSettings.setEnabledAppearances(appearanceIds);
         changeListener.run();
     }

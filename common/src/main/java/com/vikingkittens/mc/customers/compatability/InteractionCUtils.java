@@ -9,6 +9,8 @@ public final class InteractionCUtils {
     private InteractionCUtils() {
     }
     public static InteractionResult sidedSuccess(boolean clientSide) {
-        return InteractionResult.sidedSuccess(clientSide);
+        return clientSide
+                ? InteractionResult.SUCCESS
+                : InteractionResult.SUCCESS_SERVER;
     }
 }

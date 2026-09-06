@@ -3,7 +3,7 @@ package com.vikingkittens.mc.customers.customer;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 import com.vikingkittens.mc.customers.compatability.CustomersRegistryEntry;
@@ -32,15 +32,15 @@ class CustomerRegistrationTest {
                 Customer.CUSTOMER_PROFESSION
         );
         assertEquals(
-                ResourceLocation.parse("customers:customer"),
+                Identifier.parse("customers:customer"),
                 Customer.CUSTOMER_PROFESSION.getId()
         );
         assertEquals(
-                ResourceLocation.parse("customers:customer_impatient"),
+                Identifier.parse("customers:customer_impatient"),
                 Customer.CUSTOMER_IMPATIENT_PROFESSION.getId()
         );
         assertEquals(
-                ResourceLocation.parse("customers:customer_casual"),
+                Identifier.parse("customers:customer_casual"),
                 Customer.CUSTOMER_CASUAL_PROFESSION.getId()
         );
     }

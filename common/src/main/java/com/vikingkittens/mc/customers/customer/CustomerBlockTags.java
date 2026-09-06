@@ -1,7 +1,7 @@
 package com.vikingkittens.mc.customers.customer;
 
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 
@@ -16,7 +16,7 @@ public final class CustomerBlockTags {
     private static TagKey<Block> create(String name) {
         return TagKey.create(
                 Registries.BLOCK,
-                ResourceLocation.fromNamespaceAndPath(Customers.MODID, name)
+                Identifier.fromNamespaceAndPath(Customers.MODID, name)
         );
     }
 }

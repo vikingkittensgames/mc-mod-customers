@@ -19,8 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class CustomerPaymentBoxGeneratedServerDataTest {
     private static final List<Path> GENERATED = List.of(
-            Path.of("../forge/src/generated/resources/data/customers"),
-            Path.of("../neoforge/src/generated/resources/data/customers")
+            Path.of("../neoforge/src/generated/serverResources/data/customers")
     );
 
     @BeforeAll
@@ -53,25 +52,19 @@ final class CustomerPaymentBoxGeneratedServerDataTest {
             JsonObject keys = recipe.getAsJsonObject("key");
             assertEquals(
                     "minecraft:gold_ingot",
-                    keys.getAsJsonObject("G")
-                            .get("item")
-                            .getAsString()
+                    keys.get("G").getAsString()
             );
             assertEquals(
                     "minecraft:emerald",
-                    keys.getAsJsonObject("E")
-                            .get("item")
-                            .getAsString()
+                    keys.get("E").getAsString()
             );
             assertEquals(
                     variant.ingredient().get().asItem()
                             .builtInRegistryHolder()
                             .key()
-                            .location()
+                            .identifier()
                             .toString(),
-                    keys.getAsJsonObject("V")
-                            .get("item")
-                            .getAsString()
+                    keys.get("V").getAsString()
             );
             assertEquals(
                     "customers:" + name,

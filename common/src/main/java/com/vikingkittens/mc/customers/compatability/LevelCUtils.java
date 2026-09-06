@@ -10,18 +10,18 @@ public final class LevelCUtils {
     private LevelCUtils() {
     }
     public static boolean isClientSide(Level level) {
-        return level.isClientSide;
+        return level.isClientSide();
     }
     public static boolean isDaytime(Level level) {
-        return level.isDay();
+        return level.isBrightOutside();
     }
     public static boolean isNighttime(Level level) {
-        return level.isNight();
+        return level.isDarkOutside();
     }
     public static int getMinBuildHeight(LevelHeightAccessor level) {
-        return level.getMinBuildHeight();
+        return level.getMinY();
     }
     public static int getMaxBuildHeight(LevelHeightAccessor level) {
-        return level.getMaxBuildHeight();
+        return level.getMaxY();
     }
 }

@@ -5,7 +5,7 @@ import java.util.List;
 
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -24,7 +24,7 @@ public class SupplierSpawnerBlockMenu extends AbstractContainerMenu {
     private final Container container;
     private final ContainerData data;
     private final SupplierSpawnerBlockEntity blockEntity;
-    private final List<ResourceLocation> appearanceIds;
+    private final List<Identifier> appearanceIds;
     private final RegistryAccess registryAccess;
 
     public SupplierSpawnerBlockMenu(int id, Inventory inventory) {
@@ -88,7 +88,7 @@ public class SupplierSpawnerBlockMenu extends AbstractContainerMenu {
         return row * 9 + column;
     }
 
-    public List<ResourceLocation> getAppearanceIds() {
+    public List<Identifier> getAppearanceIds() {
         return appearanceIds;
     }
 
@@ -117,9 +117,9 @@ public class SupplierSpawnerBlockMenu extends AbstractContainerMenu {
             return false;
         }
 
-        List<ResourceLocation> enabled =
+        List<Identifier> enabled =
                 new ArrayList<>(blockEntity.getEnabledAppearanceIds());
-        ResourceLocation appearance = appearanceIds.get(index);
+        Identifier appearance = appearanceIds.get(index);
         if (!enabled.remove(appearance)) {
             enabled.add(appearance);
         }

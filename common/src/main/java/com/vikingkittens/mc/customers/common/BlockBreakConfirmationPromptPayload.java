@@ -5,14 +5,14 @@ import java.util.UUID;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.vikingkittens.mc.customers.Customers;
 
 public record BlockBreakConfirmationPromptPayload(UUID playerId, UUID token, String titleKey, String messageKey)
         implements CustomPacketPayload {
     public static final Type<BlockBreakConfirmationPromptPayload> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(Customers.MODID, "block_break_confirmation_prompt"));
+            Identifier.fromNamespaceAndPath(Customers.MODID, "block_break_confirmation_prompt"));
     public static final StreamCodec<FriendlyByteBuf, BlockBreakConfirmationPromptPayload> STREAM_CODEC =
             StreamCodec.of(BlockBreakConfirmationPromptPayload::write, BlockBreakConfirmationPromptPayload::read);
 

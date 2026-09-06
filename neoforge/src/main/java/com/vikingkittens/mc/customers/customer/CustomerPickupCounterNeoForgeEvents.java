@@ -25,7 +25,7 @@ public final class CustomerPickupCounterNeoForgeEvents {
 
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(
-                Capabilities.ItemHandler.BLOCK,
+                Capabilities.Item.BLOCK,
                 CustomerPickupCounter.BLOCK_ENTITY.get(),
                 (counter, direction) -> new NeoForgeItemInsertionTarget(counter.getItemInsertionTarget())
         );

@@ -1,6 +1,6 @@
 plugins {
     id 'base'
-    id 'net.neoforged.moddev' version '2.0.141' apply false
+    id 'net.neoforged.moddev' version '2.0.142' apply false
     id 'com.diffplug.spotless' version '8.9.0' apply false
 }
 
@@ -19,25 +19,7 @@ tasks.register('runServerNeoForge') {
 tasks.register('runDataNeoForge') {
     group = 'customers runs'
     description = 'Runs Customers data generation for NeoForge.'
-    dependsOn(':neoforge:runData')
-}
-
-tasks.register('runClientForge') {
-    group = 'customers runs'
-    description = 'Runs the Customers Forge client.'
-    dependsOn(':forge:runClient')
-}
-
-tasks.register('runServerForge') {
-    group = 'customers runs'
-    description = 'Runs the Customers Forge server.'
-    dependsOn(':forge:runServer')
-}
-
-tasks.register('runDataForge') {
-    group = 'customers runs'
-    description = 'Runs Customers data generation for Forge.'
-    dependsOn(':forge:runData')
+    dependsOn(':neoforge:runClientData', ':neoforge:runData')
 }
 
 tasks.register('buildNeoForge') {
@@ -46,20 +28,14 @@ tasks.register('buildNeoForge') {
     dependsOn(':neoforge:build')
 }
 
-tasks.register('buildForge') {
-    group = 'build'
-    description = 'Builds the Customers Forge JAR.'
-    dependsOn(':forge:build')
-}
-
 tasks.register('buildAllLoaders') {
     group = 'build'
-    description = 'Builds the Customers NeoForge and Forge JARs.'
-    dependsOn('buildNeoForge', 'buildForge')
+    description = 'Builds the Customers NeoForge JAR.'
+    dependsOn('buildNeoForge')
 }
 
 tasks.register('testAllLoaders') {
     group = 'verification'
-    description = 'Runs common and loader-specific tests.'
-    dependsOn(':common:test', ':forge:test', ':neoforge:test')
+    description = 'Runs common and NeoForge tests.'
+    dependsOn(':common:test', ':neoforge:test')
 }

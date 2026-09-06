@@ -7,7 +7,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -30,6 +31,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class CustomerVillagerEntityTest {
+    @Test
+    void overridesVanillaVillagerBrainTick() throws NoSuchMethodException {
+        assertEquals(
+                CustomerVillagerEntity.class,
+                CustomerVillagerEntity.class
+                        .getDeclaredMethod("customServerAiStep", ServerLevel.class)
+                        .getDeclaringClass()
+        );
+    }
+
     @Test
     void sortsPaymentBoxesNearestToTheCustomer() {
         CustomerPaymentBoxBlockEntity far =
@@ -159,8 +170,8 @@ class CustomerVillagerEntityTest {
                 CALLS_REAL_METHODS
         );
         DataReader input = mock(DataReader.class);
-        ResourceLocation appearance =
-                ResourceLocation.parse("customers:monsters");
+        Identifier appearance =
+                Identifier.parse("customers:monsters");
         doNothing().when(customer).setAppearanceId(appearance);
         doNothing().when(customer).setVariationSeed(0.75F);
         doNothing().when(customer).setSpawnerMode(CustomerSpawnerMode.NIGHT);

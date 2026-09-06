@@ -8,9 +8,11 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 
+import com.vikingkittens.mc.customers.compatability.BlockCUtils;
 import com.vikingkittens.mc.customers.compatability.CustomersRegistryEntry;
 import com.vikingkittens.mc.customers.compatability.CustomersServices;
 import com.vikingkittens.mc.customers.compatability.IRegistrationHelper;
+import com.vikingkittens.mc.customers.compatability.ItemCUtils;
 
 /***
  * Customer Spawner main feature class that covers registering the pieces
@@ -33,7 +35,7 @@ public class CustomerSpawner {
                     Registries.BLOCK,
                     CustomerSpawnerBlock.NAME,
                     () -> new CustomerSpawnerBlock(
-                            BlockBehaviour.Properties.of()
+                            BlockCUtils.setId(BlockBehaviour.Properties.of(), CustomerSpawnerBlock.NAME)
                     )
             );
 
@@ -54,7 +56,7 @@ public class CustomerSpawner {
                     CustomerSpawnerBlock.NAME,
                     () -> new BlockItem(
                             CUSTOMER_SPAWNER_BLOCK.get(),
-                            new Item.Properties()
+                            ItemCUtils.setId(new Item.Properties(), CustomerSpawnerBlock.NAME)
                     )
             );
     public static final CustomersRegistryEntry<

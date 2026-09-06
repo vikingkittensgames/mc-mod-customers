@@ -3,7 +3,7 @@ package com.vikingkittens.mc.customers.appearance.monsters;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 
@@ -14,8 +14,8 @@ import com.vikingkittens.mc.customers.appearance.CustomersVillagerType;
 
 public final class MonsterCustomersVillagerAppearance
         implements CustomersVillagerAppearance {
-    public static final ResourceLocation ID =
-            ResourceLocation.fromNamespaceAndPath(
+    public static final Identifier ID =
+            Identifier.fromNamespaceAndPath(
                     Customers.MODID,
                     "monsters"
             );

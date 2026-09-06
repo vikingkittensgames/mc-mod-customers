@@ -6,10 +6,11 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearance;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearanceProvider;
+import com.vikingkittens.mc.customers.compatability.RegistryCUtils;
 
 public final class SkinPackCustomersVillagerAppearanceProvider
         implements CustomersVillagerAppearanceProvider {
@@ -21,19 +22,21 @@ public final class SkinPackCustomersVillagerAppearanceProvider
 
     @Override
     public @Nullable CustomersVillagerAppearance get(
-            ResourceLocation appearanceId,
+            Identifier appearanceId,
             RegistryAccess registryAccess
     ) {
         Registry<SkinPackCustomersVillagerDefinition> skinPacks =
-                registryAccess.registry(
+                RegistryCUtils.lookup(
+                        registryAccess,
                         SkinCustomersVillagerRegistries.SKIN_PACKS
                 ).orElse(null);
         if (skinPacks == null) {
             return null;
         }
         SkinPackCustomersVillagerDefinition skinPack =
-                skinPacks.get(appearanceId);
-        if (skinPack == null || registryAccess.registry(
+                RegistryCUtils.getValue(skinPacks, appearanceId);
+        if (skinPack == null || RegistryCUtils.lookup(
+                registryAccess,
                 SkinCustomersVillagerRegistries.SKINS
         ).isEmpty()) {
             return null;
@@ -45,10 +48,11 @@ public final class SkinPackCustomersVillagerAppearanceProvider
     }
 
     @Override
-    public Stream<ResourceLocation> getAvailableIds(
+    public Stream<Identifier> getAvailableIds(
             RegistryAccess registryAccess
     ) {
-        return registryAccess.registry(
+        return RegistryCUtils.lookup(
+                        registryAccess,
                         SkinCustomersVillagerRegistries.SKIN_PACKS
                 )
                 .stream()

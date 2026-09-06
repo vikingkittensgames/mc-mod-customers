@@ -1,6 +1,6 @@
 package com.vikingkittens.mc.customers.compatability;
 
-import net.minecraft.core.component.DataComponentPredicate;
+import net.minecraft.core.component.DataComponentExactPredicate;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.trading.ItemCost;
@@ -16,7 +16,7 @@ public final class ItemStackCUtils {
             Player player,
             int count
     ) {
-        stack.onCraftedBy(player.level(), player, count);
+        stack.onCraftedBy(player, count);
     }
     public static ItemStack getCraftingRemainder(ItemStack stack) {
         return CustomersServices.itemStacks().getCraftingRemainder(stack);
@@ -40,7 +40,7 @@ public final class ItemStackCUtils {
         return new ItemCost(
                 stack.getItem().builtInRegistryHolder(),
                 count,
-                DataComponentPredicate.allOf(stack.getComponents())
+                DataComponentExactPredicate.allOf(stack.getComponents())
         );
     }
 }

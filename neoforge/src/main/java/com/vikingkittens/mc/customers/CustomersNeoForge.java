@@ -26,6 +26,7 @@ public final class CustomersNeoForge {
         RecipeConditions.register(modEventBus);
         ((NeoForgeRegistrationHelper) CustomersServices.registration())
                 .bind(modEventBus);
+        modEventBus.addListener(CustomersData::gatherClientData);
         modEventBus.addListener(CustomersData::gatherData);
 
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);

@@ -1,9 +1,7 @@
 package com.vikingkittens.mc.customers.customer;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.entity.player.Inventory;
@@ -13,6 +11,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import com.vikingkittens.mc.customers.common.ContainerUtils;
 public class CustomerPaymentBoxBlockEntity extends BaseContainerBlockEntity {
@@ -45,6 +45,10 @@ public class CustomerPaymentBoxBlockEntity extends BaseContainerBlockEntity {
         this.items = items;
     }
 
+    public NonNullList<ItemStack> getItemsForTransfer() {
+        return items;
+    }
+
     @Override
     protected Component getDefaultName() {
         return Component.translatable("block.customers.customer_payment_box");
@@ -70,24 +74,18 @@ public class CustomerPaymentBoxBlockEntity extends BaseContainerBlockEntity {
     }
 
     @Override
-    protected void loadAdditional(
-            CompoundTag tag,
-            HolderLookup.Provider registries
-    ) {
-        super.loadAdditional(tag, registries);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
         items = NonNullList.withSize(
                 getContainerSize(),
                 ItemStack.EMPTY
         );
-        ContainerHelper.loadAllItems(tag, items, registries);
+        ContainerHelper.loadAllItems(input, items);
     }
 
     @Override
-    protected void saveAdditional(
-            CompoundTag tag,
-            HolderLookup.Provider registries
-    ) {
-        super.saveAdditional(tag, registries);
-        ContainerHelper.saveAllItems(tag, items, registries);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        ContainerHelper.saveAllItems(output, items);
     }
 }

@@ -3,7 +3,7 @@ package com.vikingkittens.mc.customers.customer;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 import com.vikingkittens.mc.customers.compatability.CustomersRegistryEntry;
@@ -23,7 +23,7 @@ class CustomerPickupCounterRegistrationTest {
     void exposesLoaderNeutralPickupCounterRegistryHandles() {
         for (CustomerOverlayBlockVariant variant : CustomerOverlayBlockVariants.ALL) {
             String name = CustomerPickupCounter.getBlockName(variant);
-            ResourceLocation id = ResourceLocation.fromNamespaceAndPath("customers", name);
+            Identifier id = Identifier.fromNamespaceAndPath("customers", name);
 
             assertInstanceOf(CustomersRegistryEntry.class, CustomerPickupCounter.BLOCKS.get(variant));
             assertEquals(id, CustomerPickupCounter.BLOCKS.get(variant).getId());
@@ -33,7 +33,7 @@ class CustomerPickupCounterRegistrationTest {
 
         assertInstanceOf(CustomersRegistryEntry.class, CustomerPickupCounter.BLOCK_ENTITY);
         assertEquals(
-                ResourceLocation.parse("customers:customer_pickup_counter"),
+                Identifier.parse("customers:customer_pickup_counter"),
                 CustomerPickupCounter.BLOCK_ENTITY.getId()
         );
     }

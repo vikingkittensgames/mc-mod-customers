@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.Container;
+import net.minecraft.world.entity.EntityEquipment;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -102,7 +103,7 @@ class CustomerPaymentBoxBlockEntityTest {
     @Test
     void createsTheStandardThreeRowChestMenu() {
         CustomerPaymentBoxBlockEntity paymentBox = createPaymentBox();
-        Inventory inventory = new Inventory(mock(Player.class));
+        Inventory inventory = new Inventory(mock(Player.class), new EntityEquipment());
 
         AbstractContainerMenu menu =
                 paymentBox.createContainerMenu(7, inventory);

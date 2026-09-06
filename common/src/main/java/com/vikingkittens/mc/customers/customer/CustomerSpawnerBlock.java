@@ -8,9 +8,9 @@ import com.mojang.logging.LogUtils;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -26,6 +26,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.BlockHitResult;
 
 import com.vikingkittens.mc.customers.compatability.LevelCUtils;
@@ -99,15 +100,13 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!LevelCUtils.isClientSide(level) && !state.is(newState.getBlock())) {
-            BlockEntity blockEntity = level.getBlockEntity(pos);
-            if (blockEntity instanceof CustomerSpawnerBlockEntity entity) {
-                entity.beforeRemove();
-                level.updateNeighbourForOutputSignal(pos, this);
-            }
+    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity instanceof CustomerSpawnerBlockEntity entity) {
+            entity.beforeRemove();
+            level.updateNeighbourForOutputSignal(pos, this);
         }
-        super.onRemove(state, level, pos, newState, movedByPiston);
+        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
     }
 
     @Override
@@ -125,7 +124,7 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
 
     @Override
     @NotNull
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (stack.is(Items.CLOCK)) {
             if (!LevelCUtils.isClientSide(level)) {
                 BlockEntity blockEntity = level.getBlockEntity(pos);
@@ -133,7 +132,7 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
                     entity.cycleSpawnMode();
                 }
             }
-            return ItemInteractionResult.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
 
         if (stack.is(Items.VILLAGER_SPAWN_EGG)) {
@@ -141,14 +140,21 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
             if (blockEntity instanceof CustomerSpawnerBlockEntity entity) {
                 entity.spawnCustomer();
             }
-            return ItemInteractionResult.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
 
         return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
+    protected void neighborChanged(
+            BlockState state,
+            Level level,
+            BlockPos pos,
+            Block neighborBlock,
+            Orientation orientation,
+            boolean movedByPiston
+    ) {
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof CustomerSpawnerBlockEntity entity) {
             entity.updateState();

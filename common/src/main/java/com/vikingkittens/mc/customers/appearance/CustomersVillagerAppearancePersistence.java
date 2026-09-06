@@ -1,6 +1,6 @@
 package com.vikingkittens.mc.customers.appearance;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
 import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
@@ -16,7 +16,7 @@ public final class CustomersVillagerAppearancePersistence {
             CustomersVillager villager
     ) {
         input.getString(TAG_APPEARANCE)
-                .map(ResourceLocation::tryParse)
+                .map(Identifier::tryParse)
                 .ifPresent(villager::setAppearanceId);
         input.getFloat(TAG_VARIATION_SEED)
                 .ifPresent(villager::setVariationSeed);

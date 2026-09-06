@@ -3,8 +3,8 @@ package com.vikingkittens.mc.customers.compatability;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.core.Registry;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 
 import net.neoforged.neoforge.registries.NewRegistryEvent;
 
@@ -16,7 +16,7 @@ class NeoForgeCustomRegistryTest {
     @Test
     void createsCustomRegistryForItsRequestedKey() {
         ResourceKey<Registry<Object>> key = ResourceKey.createRegistryKey(
-                ResourceLocation.parse("customers:neoforge_test_registry")
+                Identifier.parse("customers:neoforge_test_registry")
         );
 
         CustomersRegistry<Object> registry = new NeoForgeRegistrationHelper().createRegistry(key);
@@ -27,7 +27,7 @@ class NeoForgeCustomRegistryTest {
     @Test
     void registersCustomRegistryDuringNeoForgeRegistryEvent() {
         ResourceKey<Registry<Object>> key = ResourceKey.createRegistryKey(
-                ResourceLocation.parse("customers:neoforge_event_test_registry")
+                Identifier.parse("customers:neoforge_event_test_registry")
         );
         NeoForgeRegistrationHelper helper = new NeoForgeRegistrationHelper();
         CustomersRegistry<Object> registry = helper.createRegistry(key);

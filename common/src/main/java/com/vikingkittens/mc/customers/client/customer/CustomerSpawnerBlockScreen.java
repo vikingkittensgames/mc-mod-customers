@@ -9,28 +9,32 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.MultiLineLabel;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.InputWithModifiers;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.client.common.IconsScaleControl;
+import com.vikingkittens.mc.customers.client.compatability.GuiGraphicsCUtils;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlockEntity;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlockMenu;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerLevelSettings;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
 public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<CustomerSpawnerBlockMenu> {
-    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(
+    private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(
             Customers.MODID,
             "textures/gui/customer_spawner_ui.png"
     );
     private static final int TEXTURE_WIDTH = 288;
     private static final int TEXTURE_HEIGHT = 256;
     private static final int APPEARANCE_WIDGET_WIDTH = 99;
-    private static final int APPEARANCE_TEXT_COLOR = 0x000000;
+    private static final int APPEARANCE_TEXT_COLOR = 0xFF000000;
     private static final int MAX_CUSTOMERS_X = 177;
     private static final int PET_PERCENTAGE_X = 200;
     private static final int PET_PERCENT_SIGN_X = 229;
@@ -52,17 +56,17 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
     private static final int AVOID_LABEL_X = 241;
     private static final int AVOID_ICON_X = 252;
     private static final int AVOID_ICON_Y = 65;
-    private static final ResourceLocation ARROW_LEFT = texture("arrow_left");
-    private static final ResourceLocation ARROW_LEFT_PRESSED = texture("arrow_left_pressed");
-    private static final ResourceLocation ARROW_RIGHT = texture("arrow_right");
-    private static final ResourceLocation ARROW_RIGHT_PRESSED = texture("arrow_right_pressed");
-    private static final ResourceLocation HALFSTAR_SMALL = texture("halfstar_small");
-    private static final ResourceLocation NOSTAR_SMALL = texture("nostar_small");
-    private static final ResourceLocation STAR_SMALL = texture("star_small");
-    private static final ResourceLocation PET_PANEL = texture("pet-panel");
+    private static final Identifier ARROW_LEFT = texture("arrow_left");
+    private static final Identifier ARROW_LEFT_PRESSED = texture("arrow_left_pressed");
+    private static final Identifier ARROW_RIGHT = texture("arrow_right");
+    private static final Identifier ARROW_RIGHT_PRESSED = texture("arrow_right_pressed");
+    private static final Identifier HALFSTAR_SMALL = texture("halfstar_small");
+    private static final Identifier NOSTAR_SMALL = texture("nostar_small");
+    private static final Identifier STAR_SMALL = texture("star_small");
+    private static final Identifier PET_PANEL = texture("pet-panel");
     private final List<AppearanceCheckbox> appearanceCheckboxes =
             new ArrayList<>();
-    private final List<MultiLineLabel> appearanceLabels =
+    private final List<Component> appearanceLabels =
             new ArrayList<>();
     private ModeButton modeButton;
     private TextureButton decrementLevelButton;
@@ -70,6 +74,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
     private IconsScaleControl requiredStars;
     private EditBox maxCustomers;
     private EditBox petPercentage;
+    private PetsButton petsButton;
     private boolean petPanelOpen;
     private int petScrollOffset;
     private int lastSelectedLevel;
@@ -88,9 +93,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
     @Override
     protected void init() {
         super.init();
-        if (petPanelOpen) {
-            leftPos -= PET_PANEL_SHIFT;
-        }
+        leftPos = (width - imageWidth) / 2 - (petPanelOpen ? PET_PANEL_SHIFT : 0);
         menu.setPetFoodCostSlotVisible(petPanelOpen);
         lastSelectedLevel = menu.getSelectedLevel();
         appearanceCheckboxes.clear();
@@ -170,6 +173,10 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
             }
         });
         addRenderableWidget(petPercentage);
+        petsButton = addRenderableWidget(new PetsButton(
+                leftPos + PET_PERCENTAGE_X,
+                topPos + 52
+        ));
 
         int y = 101;
         int appearanceTextWidth = APPEARANCE_WIDGET_WIDTH
@@ -185,11 +192,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                     )
             );
             appearanceCheckboxes.add(checkbox);
-            appearanceLabels.add(MultiLineLabel.create(
-                    font,
-                    appearanceName,
-                    appearanceTextWidth
-            ));
+            appearanceLabels.add(appearanceName);
             y += 20;
         }
     }
@@ -233,7 +236,8 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
             int mouseX,
             int mouseY
     ) {
-        graphics.blit(
+        GuiGraphicsCUtils.blit(
+                graphics,
                 TEXTURE,
                 leftPos,
                 topPos,
@@ -245,7 +249,8 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                 TEXTURE_HEIGHT
         );
         if (petPanelOpen) {
-            graphics.blit(
+            GuiGraphicsCUtils.blit(
+                    graphics,
                     PET_PANEL,
                     getPetPanelX(),
                     topPos,
@@ -274,7 +279,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                 ),
                 24,
                 6,
-                0x404040,
+                0xFF404040,
                 false
         );
         if (menu.hasAvoidBlock()) {
@@ -283,7 +288,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                     Component.translatable("screen.customers.customer_spawner.avoid"),
                     AVOID_LABEL_X,
                     53,
-                    0x404040,
+                    0xFF404040,
                     false
             );
             graphics.renderItem(menu.getAvoidBlockItem(), AVOID_ICON_X, AVOID_ICON_Y);
@@ -293,7 +298,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                 Component.translatable("container.inventory"),
                 8,
                 inventoryLabelY,
-                0x404040,
+                0xFF404040,
                 false
         );
         graphics.drawString(
@@ -303,7 +308,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                 ),
                 177,
                 17,
-                0x404040,
+                0xFF404040,
                 false
         );
         graphics.drawString(
@@ -313,33 +318,15 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                 ),
                 MAX_CUSTOMERS_X,
                 53,
-                0x404040,
+                0xFF404040,
                 false
-        );
-        Component petsLabel = Component.translatable(
-                "screen.customers.customer_spawner.pets"
-        );
-        graphics.drawString(
-                font,
-                petsLabel,
-                PET_PERCENTAGE_X,
-                53,
-                0x404040,
-                false
-        );
-        graphics.fill(
-                PET_PERCENTAGE_X,
-                62,
-                PET_PERCENTAGE_X + font.width(petsLabel),
-                63,
-                0xFF404040
         );
         graphics.drawString(
                 font,
                 "%",
                 PET_PERCENT_SIGN_X,
                 70,
-                0x404040,
+                0xFF404040,
                 false
         );
         graphics.drawString(
@@ -349,7 +336,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                 ),
                 177,
                 89,
-                0x404040,
+                0xFF404040,
                 false
         );
     }
@@ -371,28 +358,24 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (keyCode == 256 && petPanelOpen) {
+    public boolean keyPressed(KeyEvent event) {
+        if (event.isEscape() && petPanelOpen) {
             petPanelOpen = false;
             petScrollOffset = 0;
             rebuildWidgets();
             return true;
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(event);
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button == 0 && isHoveringPetsLabel(mouseX, mouseY)) {
-            petPanelOpen = !petPanelOpen;
-            petScrollOffset = 0;
-            rebuildWidgets();
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        if (event.button() == 0 && petPanelOpen && clickPetPanel(mouseX, mouseY)) {
             return true;
         }
-        if (button == 0 && petPanelOpen && clickPetPanel(mouseX, mouseY)) {
-            return true;
-        }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     @Override
@@ -417,7 +400,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
             return;
         }
         ItemStack avoidBlockItem = menu.getAvoidBlockItem();
-        graphics.renderTooltip(font, avoidBlockItem, mouseX, mouseY);
+        graphics.setTooltipForNextFrame(font, avoidBlockItem, mouseX, mouseY);
     }
 
     private void renderPetFoodTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
@@ -431,25 +414,32 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         int foodIconX = getPetPanelX() + PET_PANEL_LIST_X + PET_PANEL_CHECKBOX_SIZE + 4;
         int foodIconY = topPos + PET_PANEL_LIST_Y + row * PET_PANEL_ROW_HEIGHT - petScrollOffset + 1;
         if (mouseX >= foodIconX && mouseX < foodIconX + 16 && mouseY >= foodIconY && mouseY < foodIconY + 16) {
-            graphics.renderTooltip(font, menu.getPetTypeFood(row), mouseX, mouseY);
+            graphics.setTooltipForNextFrame(font, menu.getPetTypeFood(row), mouseX, mouseY);
         }
     }
 
     private void renderAppearanceLabels(GuiGraphics graphics) {
         for (int index = 0; index < appearanceCheckboxes.size(); index++) {
             AppearanceCheckbox checkbox = appearanceCheckboxes.get(index);
-            MultiLineLabel label = appearanceLabels.get(index);
-            int labelHeight = label.getLineCount() * font.lineHeight;
+            Component label = appearanceLabels.get(index);
+            List<net.minecraft.util.FormattedCharSequence> lines = font.split(
+                    label,
+                    APPEARANCE_WIDGET_WIDTH - PET_PANEL_CHECKBOX_SIZE - 4
+            );
+            int labelHeight = lines.size() * font.lineHeight;
             int labelY = checkbox.getY()
                     + PET_PANEL_CHECKBOX_SIZE / 2
                     - labelHeight / 2;
-            label.renderLeftAlignedNoShadow(
-                    graphics,
-                    checkbox.getX() + PET_PANEL_CHECKBOX_SIZE + 4,
-                    labelY,
-                    font.lineHeight,
-                    APPEARANCE_TEXT_COLOR
-            );
+            for (int line = 0; line < lines.size(); line++) {
+                graphics.drawString(
+                        font,
+                        lines.get(line),
+                        checkbox.getX() + PET_PANEL_CHECKBOX_SIZE + 4,
+                        labelY + line * font.lineHeight,
+                        APPEARANCE_TEXT_COLOR,
+                        false
+                );
+            }
         }
     }
 
@@ -463,7 +453,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                 Component.translatable("screen.customers.customer_spawner.pets"),
                 panelX + PET_PANEL_TITLE_X,
                 topPos + PET_PANEL_TITLE_Y,
-                0x404040,
+                0xFF404040,
                 false
         );
         renderPetCheckbox(
@@ -477,7 +467,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                 Component.translatable("screen.customers.customer_spawner.all"),
                 panelX + PET_PANEL_LIST_X + PET_PANEL_CHECKBOX_SIZE + 4,
                 topPos + PET_PANEL_ALL_Y + (PET_PANEL_CHECKBOX_SIZE - font.lineHeight) / 2,
-                0x000000,
+                0xFF000000,
                 false
         );
         int listX = panelX + PET_PANEL_LIST_X;
@@ -505,7 +495,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                 menu.getPetTypeName(index),
                 x + PET_PANEL_CHECKBOX_SIZE + 24,
                 y + (PET_PANEL_ROW_HEIGHT - font.lineHeight) / 2,
-                0x000000,
+                0xFF000000,
                 false
         );
     }
@@ -562,14 +552,6 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         return false;
     }
 
-    private boolean isHoveringPetsLabel(double mouseX, double mouseY) {
-        Component petsLabel = Component.translatable("screen.customers.customer_spawner.pets");
-        return mouseX >= leftPos + PET_PERCENTAGE_X &&
-                mouseX < leftPos + PET_PERCENTAGE_X + font.width(petsLabel) &&
-                mouseY >= topPos + 53 &&
-                mouseY < topPos + 64;
-    }
-
     private boolean isInPetPanelList(double mouseX, double mouseY) {
         int panelX = getPetPanelX();
         return mouseX >= panelX + PET_PANEL_LIST_X &&
@@ -602,14 +584,14 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         minecraft.gameMode.handleInventoryButtonClick(menu.containerId, id);
     }
 
-    private static ResourceLocation texture(String name) {
-        return ResourceLocation.fromNamespaceAndPath(
+    private static Identifier texture(String name) {
+        return Identifier.fromNamespaceAndPath(
                 Customers.MODID,
                 "textures/gui/" + name + ".png"
         );
     }
 
-    private static ResourceLocation modeTexture(CustomerSpawnerMode mode) {
+    private static Identifier modeTexture(CustomerSpawnerMode mode) {
         return texture("mode_" + mode.getSerializedName());
     }
 
@@ -626,20 +608,21 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         }
 
         @Override
-        public void onPress() {
+        public void onPress(InputWithModifiers input) {
             CustomerSpawnerMode[] modes = CustomerSpawnerMode.values();
             setMode(modes[(mode.ordinal() + 1) % modes.length]);
             send(menu.modeButtonId(mode));
         }
 
         @Override
-        protected void renderWidget(
+        protected void renderContents(
                 GuiGraphics graphics,
                 int mouseX,
                 int mouseY,
                 float partialTick
         ) {
-            graphics.blit(
+            GuiGraphicsCUtils.blit(
+                    graphics,
                     modeTexture(mode),
                     getX(),
                     getY(),
@@ -665,12 +648,12 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         }
 
         @Override
-        public void onPress() {
+        public void onPress(InputWithModifiers input) {
             send(menu.appearanceButtonId(appearanceIndex));
         }
 
         @Override
-        protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        protected void renderContents(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
             renderPetCheckbox(graphics, menu.isAppearanceEnabled(appearanceIndex), getX(), getY());
         }
 
@@ -679,15 +662,15 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
     }
 
     private class TextureButton extends AbstractButton {
-        private final ResourceLocation texture;
-        private final ResourceLocation pressedTexture;
+        private final Identifier texture;
+        private final Identifier pressedTexture;
         private final int buttonId;
 
         private TextureButton(
                 int x,
                 int y,
-                ResourceLocation texture,
-                ResourceLocation pressedTexture,
+                Identifier texture,
+                Identifier pressedTexture,
                 int buttonId
         ) {
             super(x, y, 12, 12, Component.empty());
@@ -697,21 +680,22 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         }
 
         @Override
-        public void onPress() {
+        public void onPress(InputWithModifiers input) {
             send(buttonId);
         }
 
         @Override
-        protected void renderWidget(
+        protected void renderContents(
                 GuiGraphics graphics,
                 int mouseX,
                 int mouseY,
                 float partialTick
         ) {
-            ResourceLocation buttonTexture = isHoveredOrFocused()
+            Identifier buttonTexture = isHoveredOrFocused()
                     ? pressedTexture
                     : texture;
-            graphics.blit(
+            GuiGraphicsCUtils.blit(
+                    graphics,
                     buttonTexture,
                     getX(),
                     getY(),
@@ -726,5 +710,35 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
 
         @Override
         protected void updateWidgetNarration(NarrationElementOutput narration) {}
+    }
+
+    private class PetsButton extends AbstractButton {
+        private PetsButton(int x, int y) {
+            super(
+                    x,
+                    y,
+                    font.width(Component.translatable("screen.customers.customer_spawner.pets")),
+                    font.lineHeight + 2,
+                    Component.translatable("screen.customers.customer_spawner.pets")
+            );
+        }
+
+        @Override
+        public void onPress(InputWithModifiers input) {
+            petPanelOpen = !petPanelOpen;
+            petScrollOffset = 0;
+            rebuildWidgets();
+        }
+
+        @Override
+        protected void renderContents(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+            graphics.drawString(font, getMessage(), getX(), getY() + 1, 0xFF404040, false);
+            graphics.fill(getX(), getY() + font.lineHeight + 1, getX() + getWidth(), getY() + font.lineHeight + 2, 0xFF404040);
+        }
+
+        @Override
+        protected void updateWidgetNarration(NarrationElementOutput output) {
+            defaultButtonNarrationText(output);
+        }
     }
 }

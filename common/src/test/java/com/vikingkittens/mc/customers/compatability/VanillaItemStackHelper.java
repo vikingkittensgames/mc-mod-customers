@@ -6,7 +6,7 @@ import net.minecraft.world.item.ItemStack;
 public final class VanillaItemStackHelper implements IItemStackHelper {
     @Override
     public ItemStack getCraftingRemainder(ItemStack stack) {
-        Item remainder = stack.getItem().getCraftingRemainingItem();
-        return remainder == null ? ItemStack.EMPTY : new ItemStack(remainder);
+        ItemStack remainder = stack.getItem().getCraftingRemainder();
+        return remainder == null ? ItemStack.EMPTY : remainder.copy();
     }
 }

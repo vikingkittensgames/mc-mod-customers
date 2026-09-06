@@ -3,7 +3,7 @@ package com.vikingkittens.mc.customers.supplier;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 import com.vikingkittens.mc.customers.compatability.CustomersRegistryEntry;
@@ -36,19 +36,19 @@ class SupplierSpawnerRegistrationTest {
                 SupplierSpawner.SUPPLIER_SPAWNER_MENU
         );
         assertEquals(
-                ResourceLocation.parse("customers:supplier_spawner_block"),
+                Identifier.parse("customers:supplier_spawner_block"),
                 SupplierSpawner.SUPPLIER_SPAWNER_BLOCK.getId()
         );
         assertEquals(
-                ResourceLocation.parse("customers:supplier_spawner_block_entity"),
+                Identifier.parse("customers:supplier_spawner_block_entity"),
                 SupplierSpawner.SUPPLIER_SPAWNER_ENTITY.getId()
         );
         assertEquals(
-                ResourceLocation.parse("customers:supplier_spawner_block"),
+                Identifier.parse("customers:supplier_spawner_block"),
                 SupplierSpawner.SUPPLIER_SPAWNER_ITEM.getId()
         );
         assertEquals(
-                ResourceLocation.parse("customers:supplier_spawner"),
+                Identifier.parse("customers:supplier_spawner"),
                 SupplierSpawner.SUPPLIER_SPAWNER_MENU.getId()
         );
     }

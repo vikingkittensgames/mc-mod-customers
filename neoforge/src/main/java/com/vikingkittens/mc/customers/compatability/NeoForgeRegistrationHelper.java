@@ -3,6 +3,7 @@ package com.vikingkittens.mc.customers.compatability;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -11,8 +12,8 @@ import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -64,7 +65,7 @@ public final class NeoForgeRegistrationHelper implements IRegistrationHelper {
         }
         ResourceKey<T> key = ResourceKey.create(
                 registryKey,
-                ResourceLocation.fromNamespaceAndPath(Customers.MODID, name)
+                Identifier.fromNamespaceAndPath(Customers.MODID, name)
         );
         return new CustomersRegistryEntry<>(key, holder);
     }
@@ -78,7 +79,7 @@ public final class NeoForgeRegistrationHelper implements IRegistrationHelper {
         return register(
                 Registries.BLOCK_ENTITY_TYPE,
                 name,
-                () -> BlockEntityType.Builder.of(factory::apply, validBlocks.get()).build(null)
+                () -> new BlockEntityType<>(factory::apply, Set.of(validBlocks.get()))
         );
     }
 

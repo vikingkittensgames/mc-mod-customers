@@ -8,14 +8,14 @@ import java.util.Set;
 import java.util.UUID;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import com.vikingkittens.mc.customers.client.common.PlayerProfileUtils;
 import com.vikingkittens.mc.customers.common.SearchUtils;
@@ -113,15 +113,15 @@ public class CustomerLeaderboardBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        scores.write(PersistenceCUtils.writer(tag, registries));
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        scores.write(PersistenceCUtils.writer(output));
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        scores.read(PersistenceCUtils.reader(tag, registries));
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        scores.read(PersistenceCUtils.reader(input));
     }
 
     private void addFakeScores() {

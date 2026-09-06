@@ -3,7 +3,7 @@ package com.vikingkittens.mc.customers.customer;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 import com.vikingkittens.mc.customers.compatability.CustomersRegistryEntry;
@@ -23,7 +23,7 @@ class CustomerPaymentBoxRegistrationTest {
     void exposesLoaderNeutralPaymentBoxRegistryHandles() {
         for (CustomerOverlayBlockVariant variant : CustomerOverlayBlockVariants.ALL) {
             String name = CustomerPaymentBox.getBlockName(variant);
-            ResourceLocation id = ResourceLocation.fromNamespaceAndPath("customers", name);
+            Identifier id = Identifier.fromNamespaceAndPath("customers", name);
 
             assertInstanceOf(
                     CustomersRegistryEntry.class,
@@ -36,7 +36,7 @@ class CustomerPaymentBoxRegistrationTest {
 
         assertInstanceOf(CustomersRegistryEntry.class, CustomerPaymentBox.BLOCK_ENTITY);
         assertEquals(
-                ResourceLocation.parse("customers:customer_payment_box_block_entity"),
+                Identifier.parse("customers:customer_payment_box_block_entity"),
                 CustomerPaymentBox.BLOCK_ENTITY.getId()
         );
     }

@@ -1,7 +1,13 @@
 package com.vikingkittens.mc.customers.client.customer;
 
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.Map;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.NoopRenderer;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.util.TriState;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -24,6 +30,9 @@ import com.vikingkittens.mc.customers.supplier.SupplierSpawner;
 
 @EventBusSubscriber(modid = Customers.MODID, value = Dist.CLIENT)
 public class CustomerClientEvents {
+    private static final Map<EntityRenderState, CustomerVillagerEntity> RENDERED_CUSTOMERS =
+            Collections.synchronizedMap(new IdentityHashMap<>());
+
     @SubscribeEvent
     public static void registerScreens(RegisterMenuScreensEvent event) {
         event.register(
@@ -76,6 +85,7 @@ public class CustomerClientEvents {
     @SubscribeEvent
     public static void onClientLogout(ClientPlayerNetworkEvent.LoggingOut event) {
         CustomerSpawnerSnapshotManager.clear();
+        RENDERED_CUSTOMERS.clear();
     }
 
     @SubscribeEvent
@@ -106,31 +116,42 @@ public class CustomerClientEvents {
     }
 
     @SubscribeEvent
-    public static void onRenderNameTag(RenderNameTagEvent event) {
+    public static void onRenderNameTag(RenderNameTagEvent.CanRender event) {
         CustomerVillagerEntity customer = CustomerWantedItemsRenderer.getRenderedCustomer(event.getEntity());
+        if (customer == null) {
+            return;
+        }
+        RENDERED_CUSTOMERS.put(event.getEntityRenderState(), customer);
+        event.setCanRender(isNameTagRendered(event, customer, Minecraft.getInstance())
+                ? TriState.TRUE
+                : TriState.FALSE);
+    }
+
+    @SubscribeEvent
+    public static void onRenderNameTag(RenderNameTagEvent.DoRender event) {
+        CustomerVillagerEntity customer = RENDERED_CUSTOMERS.get(event.getEntityRenderState());
+        if (customer == null) {
+            return;
+        }
         CustomerWantedItemsRenderer.render(
-                event.getEntity(),
-                customer != null && isNameTagRendered(event, customer, Minecraft.getInstance()),
+                customer,
+                true,
                 event.getPoseStack(),
-                event.getMultiBufferSource(),
-                event.getPackedLight()
+                event.getSubmitNodeCollector(),
+                event.getEntityRenderState().lightCoords
         );
     }
 
-    private static boolean isNameTagRendered(RenderNameTagEvent event, CustomerVillagerEntity customer, Minecraft minecraft) {
+    private static boolean isNameTagRendered(
+            RenderNameTagEvent.CanRender event,
+            CustomerVillagerEntity customer,
+            Minecraft minecraft
+    ) {
         if (event.getContent() == null || event.getContent().getString().isBlank()) {
             return false;
         }
 
         if (!ClientHooks.isNameplateInRenderDistance(customer, minecraft.getEntityRenderDispatcher().distanceToSqr(customer))) {
-            return false;
-        }
-
-        if (event.canRender().isTrue()) {
-            return true;
-        }
-
-        if (!event.canRender().isDefault()) {
             return false;
         }
 
@@ -140,7 +161,7 @@ public class CustomerClientEvents {
                                 == minecraft.getEntityRenderDispatcher()
                                         .crosshairPickEntity;
         return CustomerWantedItemsRenderer.getDefaultNameTagVisibility(
-                event.getEntity(),
+                customer,
                 sourceVisibility
         );
     }

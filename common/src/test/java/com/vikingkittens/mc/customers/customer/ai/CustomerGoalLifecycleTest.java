@@ -478,7 +478,7 @@ class CustomerGoalLifecycleTest {
         private final BlockState groundState = mock(BlockState.class);
 
         private final GoalSelector goalSelector =
-                new GoalSelector(() -> InactiveProfiler.INSTANCE);
+                new GoalSelector();
 
         private GoalFixture(CustomerState initialState) {
             state = new AtomicReference<>(initialState);
@@ -520,8 +520,8 @@ class CustomerGoalLifecycleTest {
             when(counterState.isAir()).thenReturn(false);
             when(airState.isAir()).thenReturn(true);
             when(groundState.isAir()).thenReturn(false);
-            when(level.getMinBuildHeight()).thenReturn(0);
-            when(level.getMaxBuildHeight()).thenReturn(256);
+            when(level.getMinY()).thenReturn(0);
+            when(level.getMaxY()).thenReturn(256);
             when(level.getBlockState(any(BlockPos.class))).thenAnswer(invocation -> {
                 BlockPos position = invocation.getArgument(0);
                 return position.equals(blockedPosition.get())

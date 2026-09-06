@@ -3,7 +3,7 @@ package com.vikingkittens.mc.customers.appearance;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 import com.vikingkittens.mc.customers.compatability.CustomersRegistry;
@@ -22,8 +22,8 @@ class CustomersVillagerAppearanceRegistryTest {
     void exposesLoaderNeutralAppearanceRegistryHandle() {
         assertInstanceOf(CustomersRegistry.class, CustomersVillagerAppearance.APPEARANCE_REGISTRY);
         assertEquals(
-                ResourceLocation.parse("customers:villager_appearance"),
-                CustomersVillagerAppearance.APPEARANCE_REGISTRY.getKey().location()
+                Identifier.parse("customers:villager_appearance"),
+                CustomersVillagerAppearance.APPEARANCE_REGISTRY.getKey().identifier()
         );
     }
 
@@ -31,7 +31,7 @@ class CustomersVillagerAppearanceRegistryTest {
     void exposesLoaderNeutralDefaultAppearanceHandle() {
         assertInstanceOf(CustomersRegistryEntry.class, CustomersVillagerAppearances.DEFAULT_APPEARANCE);
         assertEquals(
-                ResourceLocation.parse("customers:default"),
+                Identifier.parse("customers:default"),
                 CustomersVillagerAppearances.DEFAULT_APPEARANCE.getId()
         );
     }

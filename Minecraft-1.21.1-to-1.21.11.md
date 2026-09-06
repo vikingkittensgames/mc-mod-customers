@@ -12,6 +12,16 @@ See `Compatability.md` for the compatibility classes and methods used to keep fu
 | Parchment Minecraft version | `1.21.1` | `1.21.11` |
 | Parchment mappings version | `2024.11.17` | `2025.12.20` |
 | ModDevGradle | `2.0.141` | `2.0.142` |
+| MCA Appearance | Supported | Not included; MCA does not provide a supported 1.21.11 integration |
+
+The Minecraft 1.21.11 branch includes only the shared `common`, `neoforge`, and
+`testsupport` Gradle modules. Forge remains maintained by the Minecraft 1.21.1
+and 1.20.1 branches and is intentionally excluded so its unavailable 1.21.11
+userdev artifact cannot affect NeoForge configuration, builds, or tests.
+
+MCA is removed from the common and NeoForge modules on this branch, together
+with its optional dependency metadata. The retained Forge source is excluded
+from the 1.21.11 Gradle project graph and is not built or tested.
 
 ## API Changes
 
@@ -20,6 +30,8 @@ See `Compatability.md` for the compatibility classes and methods used to keep fu
 | `DataComponentPredicate` | `DataComponentExactPredicate` | Use `ItemStackCUtils.createItemCost` when creating component-aware trade costs. |
 | `net.minecraft.Util` | `net.minecraft.util.Util` | The utility class moved into the `util` package. |
 | `net.minecraft.resources.ResourceLocation` | `net.minecraft.resources.Identifier` | Resource identifiers were renamed. Factory methods such as `fromNamespaceAndPath` and `withDefaultNamespace` remain available. |
+| `ResourceKey.location()` | `ResourceKey.identifier()` | `RegistryCUtils` keeps registry-key identifiers out of feature code. |
+| `RegistryAccess.registry(...)` and `registryOrThrow(...)` | `RegistryAccess.lookup(...)` and `lookupOrThrow(...)` | Use `RegistryCUtils` and `Registry.getValue(identifier)` to keep feature code independent of the registry API change. |
 | `net.minecraft.world.entity.MobSpawnType` | `net.minecraft.world.entity.EntitySpawnReason` | Entity spawn reasons were renamed. Constants such as `COMMAND` remain available. |
 | `net.minecraft.world.entity.npc.Villager` | `net.minecraft.world.entity.npc.villager.Villager` | Villager classes moved into the `npc.villager` package. |
 | `net.minecraft.world.entity.npc.VillagerData` | `net.minecraft.world.entity.npc.villager.VillagerData` | Villager classes moved into the `npc.villager` package. |
@@ -51,10 +63,15 @@ See `Compatability.md` for the compatibility classes and methods used to keep fu
 | `GuiGraphics.blit(Identifier, ...)` | `GuiGraphics.blit(RenderPipeline, Identifier, ...)` | GUI texture draws require an explicit pipeline such as `RenderPipelines.GUI_TEXTURED`. |
 | GUI transforms use the 3D pose-stack methods `pushPose`, `popPose`, `translate(x, y, z)`, and `scale(x, y, z)` | GUI transforms use the 2D matrix-stack methods `pushMatrix`, `popMatrix`, `translate(x, y)`, and `scale(x, y)` | `GuiGraphics.pose()` now returns a `Matrix3x2fStack`. |
 | GUI rendering can directly call global `RenderSystem` blend/color methods and `GuiGraphics.flush()` | GUI rendering is submitted through the selected render pipeline | Remove obsolete global blend/color setup and explicit GUI flushing. |
+| GUI text accepted six-digit RGB colors | GUI text colors require an explicit alpha byte | Use opaque ARGB values such as `0xFF404040`. |
+| GUI texture and transform calls | `RenderPipelines.GUI_TEXTURED` plus 2D matrix transforms | Use `GuiGraphicsCUtils` for textured blits and GUI transforms. |
 | `RenderLevelStageEvent` exposes a `Stage` enum and `getStage()` | Render stages are represented by event subclasses such as `RenderLevelStageEvent.AfterEntities` | Subscribe directly to the required stage subtype. |
 | `RenderLevelStageEvent.getCamera()` | `RenderLevelStageEvent.getLevelRenderState().cameraRenderState` | Camera position and orientation are stored in the extracted level render state. |
+| Debug box buffer rendering | `DrawableGizmoPrimitives` | Use `RenderingCUtils`; NeoForge event extraction remains in the loader module. |
 | `RenderType.debugFilledBox()` and `LevelRenderer.addChainedFilledBoxVertices(...)` | `DrawableGizmoPrimitives` with `addQuad(...)` | Debug-style filled geometry is submitted through the gizmo renderer. |
 | Entity renderers and models receive entities directly | Entity renderers extract entity data into `EntityRenderState` subclasses consumed by models and render layers | Custom renderer state must explicitly carry any entity data needed during rendering. |
+| Mouse callbacks receive numeric button arguments | Mouse callbacks receive `MouseButtonEvent` | Test `event.button() == 0` for the primary mouse button; `event.isLeft()` identifies the left-arrow key. |
+| Skin renderers return their texture from the entity | Skin renderers return their texture from extracted render state | Store the resolved packaged texture identifier directly in the custom render state. |
 | `MobRenderer<T, M>` | `MobRenderer<T, S, M>` | The additional generic parameter is the renderer's `LivingEntityRenderState` type. |
 | Villager render layers accept item renderers directly | `CustomHeadLayer` uses `PlayerSkinRenderCache`, `VillagerProfessionLayer` takes explicit adult/baby models, and `CrossedArmsItemLayer` uses its parent renderer | Layer constructors now consume render-state-oriented dependencies. |
 | `LevelHeightAccessor.getMinBuildHeight()` and `getMaxBuildHeight()` | `LevelHeightAccessor.getMinY()` and `getMaxY()` | World build-height accessors were shortened. |
@@ -83,6 +100,15 @@ See `Compatability.md` for the compatibility classes and methods used to keep fu
 | `neoforge:composite` model children retain their individual render types | A composite model JSON applies the composite root's single render type to all child geometry | Put a shared `render_type` on the composite root, or use a `type: "neoforge:composite"` blockstate model when children require different render types. |
 | Custom data added during `RenderNameTagEvent.CanRender` remains available while rendering | NeoForge resets render-state extension data after extraction completes | Register a post-extraction modifier with `RegisterRenderStateModifiersEvent` before consuming the data during deferred rendering. |
 | Entity-driven models read riding state directly from the entity | Render-state models require sitting or passenger state to be extracted explicitly | Store sitting state for villager-style models and populate `HumanoidRenderState.isPassenger` for humanoid customer models. |
+| Item models are discovered from `models/item` | Items require an `assets/<namespace>/items/<id>.json` definition that points to the render model | Keep the existing render model and add an item definition using `type: "minecraft:model"`. |
+
+## Data-generation output separation
+
+Minecraft 1.21.11 uses separate `clientData` and `serverData` run types. A server-only generation pass removes client assets from its output directory as stale files. Keep committed/generated client assets in `src/generated/resources` and write recipes, loot tables, and other server data to `src/generated/serverResources`; include both directories in the NeoForge resource source set.
+
+Register data providers against the concrete `GatherDataEvent.Client` or `GatherDataEvent.Server` subclasses. The abstract `GatherDataEvent` type cannot be registered as an event listener in NeoForge 21.11.
+
+Recipe ingredients use resource-location strings in Minecraft 1.21.11 instead of objects containing `item` or `tag` properties. Prefix a tag resource location with `#`, such as `"#minecraft:beds"`. Ingredient alternatives remain JSON arrays, but their entries are resource-location strings.
 
 ## Item-stack list persistence
 

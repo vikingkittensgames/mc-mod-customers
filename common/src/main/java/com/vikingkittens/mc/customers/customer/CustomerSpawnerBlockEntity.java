@@ -12,10 +12,8 @@ import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -38,6 +36,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 import com.vikingkittens.mc.customers.common.ContainerUtils;
@@ -491,10 +491,10 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
 
-        writeSpawnerData(PersistenceCUtils.writer(tag, registries));
+        writeSpawnerData(PersistenceCUtils.writer(output));
     }
     void writeSpawnerData(DataWriter output) {
         output.putInt(TAG_DATA_VERSION, CURRENT_DATA_VERSION);
@@ -517,20 +517,20 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        DataReader input = PersistenceCUtils.reader(tag, registries);
-        boolean hasLegacyInventory = tag.contains("inventory");
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        DataReader dataInput = PersistenceCUtils.reader(input);
+        boolean hasLegacyInventory = input.child("inventory").isPresent();
         boolean usesLegacyLevelData =
-                input.getInt(TAG_DATA_VERSION).orElse(0) < CURRENT_DATA_VERSION || hasLegacyInventory;
+                dataInput.getInt(TAG_DATA_VERSION).orElse(0) < CURRENT_DATA_VERSION || hasLegacyInventory;
         if (hasLegacyInventory) {
             try {
-                getLevelSettings(0).getPersistedInventory().deserializeNBT(registries, tag.getCompound("inventory"));
+                getLevelSettings(0).getPersistedInventory().read(input.childOrEmpty("inventory"));
             } catch (Throwable t) {
                 LOGGER.error("Failed to load inventory because of error", t);
             }
         }
-        readSpawnerData(input, usesLegacyLevelData);
+        readSpawnerData(dataInput, usesLegacyLevelData);
     }
 
     void readSpawnerData(DataReader input) {
@@ -919,12 +919,12 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         setChanged();
     }
 
-    public List<ResourceLocation> getEnabledAppearanceIds() {
+    public List<Identifier> getEnabledAppearanceIds() {
         return getActiveLevelSettings().getEnabledAppearanceIds();
     }
 
     public void setEnabledAppearanceIds(
-            Collection<ResourceLocation> appearanceIds
+            Collection<Identifier> appearanceIds
     ) {
         getActiveLevelSettings().setEnabledAppearanceIds(appearanceIds);
     }
@@ -1548,6 +1548,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                             entity.progressBar.setPlayBossMusic(false);
                             entity.progressBar.setCreateWorldFog(false);
                             entity.progressBar.setDarkenScreen(false);
+                            entity.progressBar.setVisible(true);
                             entity.updatePlayers();
                         }
                         entity.progressBar.setProgress(1.0F - progress);

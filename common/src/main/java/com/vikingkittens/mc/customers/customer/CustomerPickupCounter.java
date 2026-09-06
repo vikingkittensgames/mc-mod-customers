@@ -14,9 +14,11 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 
+import com.vikingkittens.mc.customers.compatability.BlockCUtils;
 import com.vikingkittens.mc.customers.compatability.CustomersRegistryEntry;
 import com.vikingkittens.mc.customers.compatability.CustomersServices;
 import com.vikingkittens.mc.customers.compatability.IRegistrationHelper;
+import com.vikingkittens.mc.customers.compatability.ItemCUtils;
 import com.vikingkittens.mc.customers.customer.data.CustomerOverlayBlockVariant;
 import com.vikingkittens.mc.customers.customer.data.CustomerOverlayBlockVariants;
 
@@ -67,8 +69,10 @@ public final class CustomerPickupCounter {
         if (source instanceof RotatedPillarBlock) {
             source = Blocks.OAK_PLANKS;
         }
-        return BlockBehaviour.Properties.ofFullCopy(source)
-                .noOcclusion();
+        return BlockCUtils.setId(
+                BlockBehaviour.Properties.ofFullCopy(source).noOcclusion(),
+                getBlockName(variant)
+        );
     }
 
     private static Map<CustomerOverlayBlockVariant, CustomersRegistryEntry<Item, BlockItem>> registerItems() {
@@ -80,7 +84,10 @@ public final class CustomerPickupCounter {
                     REGISTRATIONS.register(
                             Registries.ITEM,
                             getBlockName(entry.getKey()),
-                            () -> new BlockItem(entry.getValue().get(), new Item.Properties())
+                            () -> new BlockItem(
+                                    entry.getValue().get(),
+                                    ItemCUtils.setId(new Item.Properties(), getBlockName(entry.getKey()))
+                            )
                     )
             );
         }
