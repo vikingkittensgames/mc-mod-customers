@@ -21,6 +21,7 @@ import net.minecraft.world.level.block.Block;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 import com.vikingkittens.mc.customers.customer.pets.CustomerPet;
+import com.vikingkittens.mc.customers.economy.Economy;
 
 public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
     public static final int CONTAINER_SIZE = CustomerSpawnerLevelSettings.INVENTORY_SIZE;
@@ -29,12 +30,16 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
     private static final int REQUIRED_STARS_DATA_INDEX = 3;
     private static final int PET_PERCENTAGE_DATA_INDEX = 4;
     private static final int AVOID_BLOCK_DATA_INDEX = 5;
-    private static final int APPEARANCE_DATA_START = 6;
+    private static final int ECONOMY_ENABLED_DATA_INDEX = 6;
+    private static final int FORCE_AUTO_COST_DATA_INDEX = 7;
+    private static final int AUTO_COST_DATA_INDEX = 8;
+    private static final int APPEARANCE_DATA_START = 9;
     private static final int PET_TYPES_ALL_BUTTON_ID = 1999;
     private static final int PET_TYPE_BUTTON_ID_START = 2000;
     private static final int PET_TYPE_FOOD_BUTTON_ID_START = 3000;
     private static final int DECREMENT_LEVEL_BUTTON_ID = 100;
     private static final int INCREMENT_LEVEL_BUTTON_ID = 101;
+    private static final int AUTO_COST_BUTTON_ID = 102;
     private static final int MAX_CUSTOMERS_BUTTON_ID_START = 200;
     private static final int PET_PERCENTAGE_BUTTON_ID_START = 300;
     private static final int REQUIRED_STARS_BUTTON_ID_START = 400;
@@ -71,7 +76,18 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
         this.container.startOpen(playerInventory.player);
         for (int row = 0; row < 6; row++) {
             for (int column = 0; column < 9; column++) {
-                addSlot(new Slot(this.container, column + row * 9, getContainerSlotX(column), 18 + row * 18));
+                int slotColumn = column;
+                addSlot(new Slot(this.container, column + row * 9, getContainerSlotX(column), 18 + row * 18) {
+                    @Override
+                    public boolean mayPlace(ItemStack stack) {
+                        return slotColumn != 8 || !usesAutomaticCost();
+                    }
+
+                    @Override
+                    public boolean mayPickup(Player player) {
+                        return slotColumn != 8 || !usesAutomaticCost();
+                    }
+                });
             }
         }
         petFoodCostSlot = addSlot(new Slot(
@@ -93,7 +109,7 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
         for (int column = 0; column < 9; column++) addSlot(new Slot(playerInventory, column, 8 + column * 18, 198));
     }
 
-    static int getContainerSlotX(int column) {
+    public static int getContainerSlotX(int column) {
         return 8 + column * 18 + (column == 8 ? 4 : 0);
     }
 
@@ -127,6 +143,32 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
 
     public int getSelectedLevel() {
         return Mth.clamp(data.get(SELECTED_LEVEL_DATA_INDEX), 0, CustomerSpawnerBlockEntity.MAX_LEVELS - 1);
+    }
+
+    public boolean isEconomyEnabled() {
+        return data.get(ECONOMY_ENABLED_DATA_INDEX) != 0;
+    }
+
+    public boolean isForceAutoCost() {
+        return data.get(FORCE_AUTO_COST_DATA_INDEX) != 0;
+    }
+
+    public boolean isAutoCost() {
+        return data.get(AUTO_COST_DATA_INDEX) != 0;
+    }
+
+    public boolean usesAutomaticCost() {
+        return isEconomyEnabled() && (isForceAutoCost() || isAutoCost());
+    }
+
+    public ItemStack getAutomaticCost(int row) {
+        if (!usesAutomaticCost() || row < 0 || row >= 6) {
+            return ItemStack.EMPTY;
+        }
+        int dataStart = getGeneratedCostDataStart() + row * 2;
+        ItemStack cost = BuiltInRegistries.ITEM.byId(data.get(dataStart)).getDefaultInstance();
+        cost.setCount(data.get(dataStart + 1));
+        return cost;
     }
 
     public int getMaxCustomers() { return data.get(MAX_CUSTOMERS_DATA_INDEX); }
@@ -176,6 +218,7 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
     public int modeButtonId(CustomerSpawnerMode mode) { return mode.ordinal(); }
     public int decrementLevelButtonId() { return DECREMENT_LEVEL_BUTTON_ID; }
     public int incrementLevelButtonId() { return INCREMENT_LEVEL_BUTTON_ID; }
+    public int autoCostButtonId() { return AUTO_COST_BUTTON_ID; }
     public int maxCustomersButtonId(int value) { return MAX_CUSTOMERS_BUTTON_ID_START + value; }
     public int petPercentageButtonId(int value) {
         return PET_PERCENTAGE_BUTTON_ID_START + Mth.clamp(value, 0, 100);
@@ -191,12 +234,20 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
         if (blockEntity == null) return false;
         if (id == DECREMENT_LEVEL_BUTTON_ID && selectedLevel > 0) {
             selectedLevel--;
+            blockEntity.enforceAutomaticCostInventory(selectedLevel);
             broadcastChanges();
             return true;
         }
         if (id == INCREMENT_LEVEL_BUTTON_ID && selectedLevel < CustomerSpawnerBlockEntity.MAX_LEVELS - 1) {
             selectedLevel++;
             blockEntity.getLevelSettings(selectedLevel).initializePetFoods(petTypes);
+            blockEntity.enforceAutomaticCostInventory(selectedLevel);
+            broadcastChanges();
+            return true;
+        }
+        if (id == AUTO_COST_BUTTON_ID && Economy.isEnabled() && !Economy.forceAutoCost()) {
+            CustomerSpawnerLevelSettings settings = blockEntity.getLevelSettings(selectedLevel);
+            blockEntity.setAutoCost(selectedLevel, !settings.isAutoCost());
             broadcastChanges();
             return true;
         }
@@ -288,6 +339,15 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
                             entity.getLevel().getBlockState(entity.getBlockPos().below()).getBlock()
                     );
                 }
+                if (index == ECONOMY_ENABLED_DATA_INDEX) return Economy.isEnabled() ? 1 : 0;
+                if (index == FORCE_AUTO_COST_DATA_INDEX) return Economy.forceAutoCost() ? 1 : 0;
+                if (index == AUTO_COST_DATA_INDEX) return settings.isAutoCost() ? 1 : 0;
+                if (index >= getGeneratedCostDataStart()) {
+                    ItemStack cost = getGeneratedCost(settings, (index - getGeneratedCostDataStart()) / 2);
+                    return (index - getGeneratedCostDataStart()) % 2 == 0
+                            ? BuiltInRegistries.ITEM.getId(cost.getItem())
+                            : cost.getCount();
+                }
                 if (index >= getPetTypeFoodDataStart() && index < getDataSlotCount()) {
                     return BuiltInRegistries.ITEM.getId(
                             settings.getPetFood(petTypes.get(index - getPetTypeFoodDataStart())).getItem()
@@ -312,7 +372,27 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
     }
 
     private int getDataSlotCount() {
+        return getGeneratedCostDataStart() + 12;
+    }
+
+    private int getGeneratedCostDataStart() {
         return getPetTypeFoodDataStart() + petTypes.size();
+    }
+
+    private ItemStack getGeneratedCost(CustomerSpawnerLevelSettings settings, int row) {
+        if (!blockEntity.usesAutomaticCost(settings)) {
+            return ItemStack.EMPTY;
+        }
+        Container inventory = settings.getInventory();
+        int rowStart = row * 9;
+        for (int column = 0; column < 8; column++) {
+            ItemStack item = inventory.getItem(rowStart + column);
+            if (!item.isEmpty()) {
+                ItemStack cost = Economy.calculateItemStackCost(item);
+                return cost == null ? ItemStack.EMPTY : cost;
+            }
+        }
+        return ItemStack.EMPTY;
     }
 
     private class LevelContainer implements Container {

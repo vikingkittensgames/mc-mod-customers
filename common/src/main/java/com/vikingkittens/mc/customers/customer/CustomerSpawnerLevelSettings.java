@@ -37,6 +37,7 @@ public final class CustomerSpawnerLevelSettings {
     private static final String TAG_PET_FOODS = "petFoods";
     private static final String TAG_PET_PERCENTAGE = "petPercentage";
     private static final String TAG_REQUIRED_STARS = "requiredStars";
+    private static final String TAG_AUTO_COST = "autoCost";
 
     private final Runnable changeListener;
     private final PersistedContainer inventory;
@@ -48,6 +49,7 @@ public final class CustomerSpawnerLevelSettings {
     private final LinkedHashSet<String> enabledPetTypes = new LinkedHashSet<>();
     private final LinkedHashMap<String, ItemStack> petFoods = new LinkedHashMap<>();
     private int maxCustomers;
+    private boolean autoCost;
 
     public CustomerSpawnerLevelSettings(
             int defaultMaxCustomers,
@@ -82,6 +84,15 @@ public final class CustomerSpawnerLevelSettings {
 
     public int getMaxCustomers() {
         return maxCustomers;
+    }
+
+    public boolean isAutoCost() {
+        return autoCost;
+    }
+
+    public void setAutoCost(boolean autoCost) {
+        this.autoCost = autoCost;
+        changeListener.run();
     }
 
     public void setMaxCustomers(int maxCustomers) {
@@ -207,6 +218,7 @@ public final class CustomerSpawnerLevelSettings {
             });
         }
         appearanceSettings.read(input.childOrEmpty(TAG_APPEARANCE_SETTINGS));
+        autoCost = input.getBoolean(TAG_AUTO_COST);
 
         List<ItemStack> itemStacks = input.getItemStacks(TAG_INVENTORY);
         for (int slot = 0; slot < Math.min(inventory.getContainerSize(), itemStacks.size()); slot++) {
@@ -219,6 +231,7 @@ public final class CustomerSpawnerLevelSettings {
         output.putInt(TAG_MAX_CUSTOMERS, maxCustomers);
         output.putFloat(TAG_PET_PERCENTAGE, petPercentage);
         output.putBoolean(TAG_PET_TYPES_CUSTOMIZED, petTypesCustomized);
+        output.putBoolean(TAG_AUTO_COST, autoCost);
         output.putStrings(TAG_ENABLED_PET_TYPES, enabledPetTypes);
         petFoods.forEach((petTypeId, food) -> {
             DataWriter petFoodOutput = output.addChild(TAG_PET_FOODS);

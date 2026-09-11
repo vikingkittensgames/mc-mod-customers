@@ -37,6 +37,7 @@ import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
 import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
 import com.vikingkittens.mc.customers.compatability.persistence.PersistedContainer;
 import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
+import com.vikingkittens.mc.customers.economy.Economy;
 
 public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvider {
     static final int CURRENT_DATA_VERSION = 1;
@@ -49,7 +50,8 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     static MerchantOffers getOffersFromInventory(
             RandomSource random,
-            Container inventory
+            Container inventory,
+            boolean automaticCost
     ) {
         MerchantOffers offers = new MerchantOffers();
         int rowCount = inventory.getContainerSize() / INVENTORY_ROW_SIZE;
@@ -59,10 +61,13 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 ItemStack result = inventory.getItem(
                         rowStart + column
                 );
-                ItemStack cost = inventory.getItem(
-                        rowStart + column + 1
-                );
-                if (result.isEmpty() || cost.isEmpty()) {
+                if (result.isEmpty()) {
+                    continue;
+                }
+                ItemStack cost = automaticCost
+                        ? Economy.calculateItemStackCost(result)
+                        : inventory.getItem(rowStart + column + 1);
+                if (cost == null || cost.isEmpty()) {
                     continue;
                 }
                 offers.add(new MerchantOffer(
@@ -81,6 +86,10 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
         return offers;
     }
 
+    static MerchantOffers getOffersFromInventory(RandomSource random, Container inventory) {
+        return getOffersFromInventory(random, inventory, false);
+    }
+
     public static final String NAME = "supplier_spawner_block_entity";
 
     private boolean ticksDisabled = false;
@@ -94,6 +103,7 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     private boolean daytimeStateInitialized = false;
     private boolean lastTickWasDaytime = false;
+    private boolean autoCost;
 
     public SupplierSpawnerBlockEntity(BlockPos pos, BlockState blockState) {
         super(SupplierSpawner.SUPPLIER_SPAWNER_ENTITY.get(), pos, blockState);
@@ -120,6 +130,7 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
         appearanceSettings.write(output);
         output.putBoolean("daytimeStateInitialized", daytimeStateInitialized);
         output.putBoolean("lastTickWasDaytime", lastTickWasDaytime);
+        output.putBoolean("autoCost", autoCost);
     }
 
     @Override
@@ -143,6 +154,7 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
         appearanceSettings.read(input);
         daytimeStateInitialized = input.getBoolean("daytimeStateInitialized");
         lastTickWasDaytime = input.getBoolean("lastTickWasDaytime");
+        autoCost = input.getBoolean("autoCost");
     }
 
     @Override
@@ -157,6 +169,7 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
     @Nullable
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
+        enforceAutomaticCostInventory();
         return new SupplierSpawnerBlockMenu(
                 containerId,
                 playerInventory,
@@ -263,9 +276,14 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     public void spawnSupplier() {
+        boolean automaticCost = usesAutomaticCost();
+        if (automaticCost) {
+            dropCostItems();
+        }
         MerchantOffers offers = getOffersFromInventory(
                 level.getRandom(),
-                inventory
+                inventory,
+                automaticCost
         );
         if (!offers.isEmpty()) {
             SupplierVillagerEntity supplier = SupplierVillagerEntity.spawn(
@@ -293,6 +311,7 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     public static void tick(Level level, BlockPos pos, BlockState state, SupplierSpawnerBlockEntity entity) {
         if (!LevelCUtils.isClientSide(level)) {
+            entity.enforceAutomaticCostInventory();
             if (entity.ticksSinceTicksDisabledCheck == 0 || entity.ticksSinceTicksDisabledCheck > 20) {
                 try {
                     entity.ticksDisabled = SearchUtils.findEntitiesInSphere(level, Player.class, pos, 64, (p, e) -> true).isEmpty();
@@ -338,5 +357,50 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
             boolean currentDaytime
     ) {
         return initialized && !previousDaytime && currentDaytime;
+    }
+
+    boolean isAutoCost() {
+        return autoCost;
+    }
+
+    boolean usesAutomaticCost() {
+        return Economy.isEnabled() && (Economy.forceAutoCost() || autoCost);
+    }
+
+    void setAutoCost(boolean autoCost) {
+        this.autoCost = autoCost;
+        setChanged();
+        enforceAutomaticCostInventory();
+    }
+
+    private void enforceAutomaticCostInventory() {
+        if (usesAutomaticCost()) {
+            dropCostItems();
+        }
+    }
+
+    private void dropCostItems() {
+        if (level == null || LevelCUtils.isClientSide(level)) {
+            return;
+        }
+        boolean changed = false;
+        for (int row = 0; row < 6; row++) {
+            for (int column = 1; column < 8; column += 2) {
+                ItemStack cost = inventory.removeItemNoUpdate(row * INVENTORY_ROW_SIZE + column);
+                if (!cost.isEmpty()) {
+                    changed = true;
+                    Containers.dropItemStack(
+                            level,
+                            worldPosition.getX() + 0.5D,
+                            worldPosition.getY() + 1.0D,
+                            worldPosition.getZ() + 0.5D,
+                            cost
+                    );
+                }
+            }
+        }
+        if (changed) {
+            inventory.setChanged();
+        }
     }
 }

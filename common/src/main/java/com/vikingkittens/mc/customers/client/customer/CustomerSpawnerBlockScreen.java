@@ -27,6 +27,10 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
             Customers.MODID,
             "textures/gui/customer_spawner_ui.png"
     );
+    private static final ResourceLocation AUTO_COST_TEXTURE = ResourceLocation.fromNamespaceAndPath(
+            Customers.MODID,
+            "textures/gui/customer_spawner_ui_auto.png"
+    );
     private static final int TEXTURE_WIDTH = 288;
     private static final int TEXTURE_HEIGHT = 256;
     private static final int APPEARANCE_WIDGET_WIDTH = 99;
@@ -52,6 +56,9 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
     private static final int AVOID_LABEL_X = 241;
     private static final int AVOID_ICON_X = 252;
     private static final int AVOID_ICON_Y = 65;
+    private static final int MANUAL_COST_TOGGLE_X = 156;
+    private static final int MANUAL_COST_Y = 126;
+    private static final int MANUAL_COST_TOGGLE_SIZE = 12;
     private static final ResourceLocation ARROW_LEFT = texture("arrow_left");
     private static final ResourceLocation ARROW_LEFT_PRESSED = texture("arrow_left_pressed");
     private static final ResourceLocation ARROW_RIGHT = texture("arrow_right");
@@ -60,6 +67,8 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
     private static final ResourceLocation NOSTAR_SMALL = texture("nostar_small");
     private static final ResourceLocation STAR_SMALL = texture("star_small");
     private static final ResourceLocation PET_PANEL = texture("pet-panel");
+    private static final ResourceLocation MANUAL_COST = texture("cost");
+    private static final ResourceLocation AUTOMATIC_COST = texture("costauto");
     private final List<AppearanceCheckbox> appearanceCheckboxes =
             new ArrayList<>();
     private final List<MultiLineLabel> appearanceLabels =
@@ -73,6 +82,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
     private boolean petPanelOpen;
     private int petScrollOffset;
     private int lastSelectedLevel;
+    private ManualCostButton manualCostButton;
 
     public CustomerSpawnerBlockScreen(
             CustomerSpawnerBlockMenu menu,
@@ -95,6 +105,10 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         lastSelectedLevel = menu.getSelectedLevel();
         appearanceCheckboxes.clear();
         appearanceLabels.clear();
+        manualCostButton = addRenderableWidget(new ManualCostButton(
+                leftPos + MANUAL_COST_TOGGLE_X,
+                topPos + MANUAL_COST_Y
+        ));
         modeButton = addRenderableWidget(new ModeButton(
                 leftPos + imageWidth - 22,
                 topPos + 6
@@ -196,6 +210,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
 
     @Override
     protected void containerTick() {
+        manualCostButton.visible = menu.isEconomyEnabled() && !menu.isForceAutoCost();
         modeButton.setMode(menu.getSpawnerMode());
         decrementLevelButton.visible = menu.getSelectedLevel() > 0;
         incrementLevelButton.visible =
@@ -234,7 +249,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
             int mouseY
     ) {
         graphics.blit(
-                TEXTURE,
+                menu.usesAutomaticCost() ? AUTO_COST_TEXTURE : TEXTURE,
                 leftPos,
                 topPos,
                 0.0F,
@@ -363,9 +378,11 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
     ) {
         renderBackground(graphics, mouseX, mouseY, partialTick);
         super.render(graphics, mouseX, mouseY, partialTick);
+        renderAutomaticCosts(graphics);
         renderAppearanceLabels(graphics);
         renderPetPanel(graphics);
         renderTooltip(graphics, mouseX, mouseY);
+        renderAutomaticCostTooltip(graphics, mouseX, mouseY);
         renderAvoidBlockTooltip(graphics, mouseX, mouseY);
         renderPetFoodTooltip(graphics, mouseX, mouseY);
     }
@@ -450,6 +467,36 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                     font.lineHeight,
                     APPEARANCE_TEXT_COLOR
             );
+        }
+    }
+
+    private void renderAutomaticCosts(GuiGraphics graphics) {
+        if (!menu.usesAutomaticCost()) {
+            return;
+        }
+        for (int row = 0; row < 6; row++) {
+            ItemStack cost = menu.getAutomaticCost(row);
+            if (!cost.isEmpty()) {
+                int x = leftPos + CustomerSpawnerBlockMenu.getContainerSlotX(8);
+                int y = topPos + 18 + row * 18;
+                graphics.renderItem(cost, x, y);
+                graphics.renderItemDecorations(font, cost, x, y);
+            }
+        }
+    }
+
+    private void renderAutomaticCostTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
+        if (!menu.usesAutomaticCost()) {
+            return;
+        }
+        int x = leftPos + CustomerSpawnerBlockMenu.getContainerSlotX(8);
+        for (int row = 0; row < 6; row++) {
+            int y = topPos + 18 + row * 18;
+            ItemStack cost = menu.getAutomaticCost(row);
+            if (!cost.isEmpty() && mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16) {
+                graphics.renderTooltip(font, cost, mouseX, mouseY);
+                return;
+            }
         }
     }
 
@@ -672,6 +719,35 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         @Override
         protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
             renderPetCheckbox(graphics, menu.isAppearanceEnabled(appearanceIndex), getX(), getY());
+        }
+
+        @Override
+        protected void updateWidgetNarration(NarrationElementOutput narration) {}
+    }
+
+    private class ManualCostButton extends AbstractButton {
+        private ManualCostButton(int x, int y) {
+            super(x, y, MANUAL_COST_TOGGLE_SIZE, MANUAL_COST_TOGGLE_SIZE, Component.literal("$"));
+        }
+
+        @Override
+        public void onPress() {
+            send(menu.autoCostButtonId());
+        }
+
+        @Override
+        protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+            graphics.blit(
+                    menu.isAutoCost() ? AUTOMATIC_COST : MANUAL_COST,
+                    getX(),
+                    getY(),
+                    0,
+                    0,
+                    MANUAL_COST_TOGGLE_SIZE,
+                    MANUAL_COST_TOGGLE_SIZE,
+                    MANUAL_COST_TOGGLE_SIZE,
+                    MANUAL_COST_TOGGLE_SIZE
+            );
         }
 
         @Override

@@ -318,7 +318,7 @@ class CustomerSpawnerBlockEntityTest {
     }
 
     @Test
-    void appliesRowPaymentToEveryRequestedItem() {
+    void scalesTheFullStackPriceDownForTheRequestedItemCount() {
         Item paymentItem = createItem();
         Item maximumItem = createItem();
         Item wantedItem = createItem();
@@ -336,7 +336,7 @@ class CustomerSpawnerBlockEntityTest {
         ).get(0);
 
         assertEquals(3, offer.getItemCostA().count());
-        assertEquals(6, offer.getResult().getCount());
+        assertEquals(1, offer.getResult().getCount());
     }
 
     @Test
@@ -364,7 +364,7 @@ class CustomerSpawnerBlockEntityTest {
                 configuredPaymentItem,
                 offer.getResult().getItem()
         );
-        assertEquals(6, offer.getResult().getCount());
+        assertEquals(1, offer.getResult().getCount());
     }
 
     @Test

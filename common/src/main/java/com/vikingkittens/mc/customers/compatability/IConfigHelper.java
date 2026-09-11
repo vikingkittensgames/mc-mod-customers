@@ -18,4 +18,12 @@ public interface IConfigHelper {
     boolean buildCommandsEnabled();
 
     boolean quickSellEnabled();
+
+    boolean economyEnabled();
+
+    boolean economyUseVillagerShopSystem();
+
+    boolean economyUseProjectE();
+
+    boolean forceAutoCost();
 }

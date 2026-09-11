@@ -34,4 +34,16 @@ class ConfigTest {
     void quickSellIsDisabledByDefault() {
         assertEquals(false, Config.ENABLE_QUICK_SELL.getDefault());
     }
+
+    @Test
+    void economyAndOptionalProvidersAreEnabledByDefault() {
+        assertEquals(true, Config.ENABLE_ECONOMY.getDefault());
+        assertEquals(true, Config.ECONOMY_USE_VILLAGER_SHOP_SYSTEM.getDefault());
+        assertEquals(true, Config.ECONOMY_USE_PROJECT_E.getDefault());
+    }
+
+    @Test
+    void automaticCostsAreNotForcedByDefault() {
+        assertEquals(false, Config.FORCE_AUTO_COST.getDefault());
+    }
 }

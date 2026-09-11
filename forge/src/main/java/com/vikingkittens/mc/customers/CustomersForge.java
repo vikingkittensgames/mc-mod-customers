@@ -13,6 +13,7 @@ import com.vikingkittens.mc.customers.config.RecipeConditions;
 import com.vikingkittens.mc.customers.customer.CustomerForgeEvents;
 import com.vikingkittens.mc.customers.customer.CustomerPaymentBoxForgeEvents;
 import com.vikingkittens.mc.customers.customer.CustomerPickupCounterForgeEvents;
+import com.vikingkittens.mc.customers.economy.EconomyForgeEvents;
 import com.vikingkittens.mc.customers.supplier.SupplierForgeEvents;
 
 @Mod(Customers.MODID)
@@ -27,6 +28,7 @@ public final class CustomersForge {
         CustomerPaymentBoxForgeEvents.register(modEventBus);
         CustomerForgeEvents.register(modEventBus);
         CustomerPickupCounterForgeEvents.register();
+        EconomyForgeEvents.register();
         SupplierForgeEvents.register(modEventBus);
         context.registerConfig(ModConfig.Type.COMMON, ForgeConfigHelper.SPEC);
     }

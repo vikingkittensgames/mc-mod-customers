@@ -21,6 +21,18 @@ public final class ForgeConfigHelper implements IConfigHelper {
             BUILDER.defineInRange("customerGiveUpSeconds", 120, 1, Integer.MAX_VALUE);
     private static final ForgeConfigSpec.BooleanValue BUILD_COMMANDS = BUILDER.define("enableBuildCommands", false);
     private static final ForgeConfigSpec.BooleanValue QUICK_SELL = BUILDER.define("enableQuickSell", false);
+    private static final ForgeConfigSpec.BooleanValue ENABLE_ECONOMY = BUILDER
+            .comment("Enable Economy / Cost Suggestions")
+            .define("enableEconomy", true);
+    private static final ForgeConfigSpec.BooleanValue ECONOMY_USE_VILLAGER_SHOP_SYSTEM = BUILDER
+            .comment("Use Villager Shop System Costs")
+            .define("economyUseVillagerShopSystem", true);
+    private static final ForgeConfigSpec.BooleanValue ECONOMY_USE_PROJECT_E = BUILDER
+            .comment("Use ProjectE Costs")
+            .define("economyUseProjectE", true);
+    private static final ForgeConfigSpec.BooleanValue FORCE_AUTO_COST = BUILDER
+            .comment("Force Automatic Item Costs")
+            .define("forceAutoCost", false);
 
     public static final ForgeConfigSpec SPEC = BUILDER.build();
 
@@ -67,5 +79,25 @@ public final class ForgeConfigHelper implements IConfigHelper {
     @Override
     public boolean quickSellEnabled() {
         return QUICK_SELL.get();
+    }
+
+    @Override
+    public boolean economyEnabled() {
+        return ENABLE_ECONOMY.get();
+    }
+
+    @Override
+    public boolean economyUseVillagerShopSystem() {
+        return ECONOMY_USE_VILLAGER_SHOP_SYSTEM.get();
+    }
+
+    @Override
+    public boolean economyUseProjectE() {
+        return ECONOMY_USE_PROJECT_E.get();
+    }
+
+    @Override
+    public boolean forceAutoCost() {
+        return FORCE_AUTO_COST.get();
     }
 }

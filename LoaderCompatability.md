@@ -165,6 +165,14 @@ between loaders.
 | Recipe conditions | Loader-owned condition adapter | NeoForge condition | Forge condition |
 | Data generation | Shared algorithms and loader entrypoint | NeoForge providers | Forge providers |
 | Rendering and HUD | `IClientPlatformHelper` | NeoForge render events | Forge render events |
+| Economy lifecycle | Common `Economy.serverStarted` and `serverTick` methods | NeoForge server event adapters | Forge server event adapters |
+
+Optional economy integrations use `IPlatformHelper.isModLoaded` before reflective access to the
+other mod's public pricing API. This keeps Village Shop System and ProjectE optional and prevents
+their loader-specific artifacts from becoming common compile or runtime dependencies. Forge and
+NeoForge server-start and post-tick events call the same common economy lifecycle methods. Each
+loader also registers the common economy data reload listener through its server-resource reload
+event so datapack and administrator configuration definitions have equivalent merging behavior.
 
 ## Important Loader Differences
 
