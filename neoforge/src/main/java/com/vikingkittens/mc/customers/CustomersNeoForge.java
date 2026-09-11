@@ -13,6 +13,7 @@ import com.vikingkittens.mc.customers.customer.CustomerPaymentBoxNeoForgeEvents;
 import com.vikingkittens.mc.customers.customer.CustomerPickupCounterNeoForgeEvents;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerNeoForgeEvents;
 import com.vikingkittens.mc.customers.customer.data.CustomersData;
+import com.vikingkittens.mc.customers.economy.EconomyNeoForgeEvents;
 import com.vikingkittens.mc.customers.supplier.SupplierSpawnerNeoForgeEvents;
 
 @Mod(Customers.MODID)
@@ -23,6 +24,7 @@ public final class CustomersNeoForge {
         CustomerPaymentBoxNeoForgeEvents.register(modEventBus);
         CustomerPickupCounterNeoForgeEvents.register(modEventBus);
         SupplierSpawnerNeoForgeEvents.register(modEventBus);
+        EconomyNeoForgeEvents.register();
         RecipeConditions.register(modEventBus);
         ((NeoForgeRegistrationHelper) CustomersServices.registration())
                 .bind(modEventBus);

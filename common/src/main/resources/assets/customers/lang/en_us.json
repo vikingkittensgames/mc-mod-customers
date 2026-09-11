@@ -126,8 +126,13 @@
   "customers.configuration.enableSupplierSpawnerBlockRecipe": "Supplier Spawner Recipe",
   "customers.configuration.enableCustomerLeaderboardBlockRecipe": "Enable Customer Leaderboard Recipie",
   "customers.configuration.maxCounterDistance": "Maximum Counter Distance",
+  "customers.configuration.maxLeaderboardDistance": "Maximum Leaderboard Distance",
   "customers.configuration.maxCustomers": "Maximum Customers",
   "customers.configuration.customerGiveUpSeconds": "Customer Give Up Seconds",
   "customers.configuration.enableBuildCommands": "Enable Build Commands",
-  "customers.configuration.enableQuickSell": "Enable Quick Sell"
+  "customers.configuration.enableQuickSell": "Enable Quick Sell",
+  "customers.configuration.enableEconomy": "Enable Economy / Cost Suggestions",
+  "customers.configuration.economyUseVillagerShopSystem": "Use Villager Shop System Costs",
+  "customers.configuration.economyUseProjectE": "Use ProjectE Costs",
+  "customers.configuration.forceAutoCost": "Force Automatic Item Costs"
 }

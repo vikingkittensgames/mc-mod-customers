@@ -112,10 +112,11 @@ define the items a customer can ask to buy from that row. A customer will only
 ask for one item per slot, and it will randomly decide how many slots to buy from from 1 to
 the number of rows you have items in.
 
-The 9th column is the **Cost** column for its row. By default, each requested item costs
-one emerald. Placing any item stack in a row's Cost slot overrides that default with the
-item and count in the slot. The cost is per requested item, so if a customer asks for
-more than one item, the cost is multiplied by the number requested.
+The 9th column is the **Cost** column for its row. The item and count in that slot are the
+price for the full stack configured in the selected sell slot. If a customer randomly asks
+for fewer items, the payment is reduced by the same sell-item-to-cost ratio and rounded down,
+with a minimum payment of one cost item. For example, if 5 apples cost 2 emeralds, a customer
+asking for 3 apples pays 1 emerald.
 
 The maximum number of customers is not controlled by an inventory item. Use the **Max**
 setting in the Customer Spawner interface to set a value from 1 through 99 for that
@@ -124,17 +125,17 @@ spawner.
 Examples:
 * Row 1 contains just a single apple - Customer will always ask for a single apple and
   pay a single emerald
-* Row 1 contains a stack of 5 apples - Customer will always ask for from 1 to 5 apples and
-  pay one emerald for each
-* Row 1 contains a stack of 5 applies and a stack of 5 carrots - Customer will always
-  decide to buy either apples or carrots and buy from 1 to 5 of them paying one emerald
-  for each.
+* Row 1 contains a stack of 5 apples with a single emerald in its Cost slot - Customer will
+  ask for 1 to 5 apples and pay one emerald.
+* Row 1 contains a stack of 5 apples and a stack of 5 carrots - Customer will always
+  decide to buy either apples or carrots and buy from 1 to 5 of them. The Cost slot sets
+  the full-stack price for whichever item is chosen.
 * Row 1 contains a stack of 3 chocolate chip cookies and a single pumpkin pie in its first
   8 columns, with a stack of 2 emeralds in its 9th-column Cost slot - Customer will always
   decide to buy chocolate chip cookies or a pumpkin pie.
-  If it decides to buy chocolate chip cookies it will buy from 1 to 3 and pay 2 emeralds
-  for each cookie.  If it decides to buy a pumpkin pie it will only buy 1 and pay 2 emeralds 
-  for it.
+  If it decides to buy all 3 chocolate chip cookies it pays 2 emeralds; smaller cookie offers
+  are scaled down to a minimum of 1 emerald. If it decides to buy the pumpkin pie it pays
+  2 emeralds.
 * Row 1 contains a single apple. Row 2 contains a single pumpkin pie in its first 8 columns
   and a stack of 2 emeralds in its Cost slot - Customer will decide to buy from 1 to 2
   items. If it decides to only buy 1,
@@ -689,7 +690,8 @@ code-defined appearance.
 
 ### Minecraft Comes Alive Appearance
 
-The **Minecraft Comes Alive** appearance is supported for Minecraft 1.21.1 and
+![mod-logo-mca-reborn.png](screenshots/mod-logo-mca-reborn.png)
+The [Minecraft Comes Alive](https://www.curseforge.com/minecraft/mc-mods/minecraft-comes-alive-reborn) appearance is supported for Minecraft 1.21.1 and
 newer only, with MCA Reborn version 7.7.9 or newer for Minecraft 1.21.1. When
 Minecraft Comes Alive Reborn is installed on a supported version, the appearance
 becomes available in Customer and Supplier Spawners. It uses
@@ -829,6 +831,229 @@ blocks, slabs, carpet, or stairs.
 
 Once it is dark the Supplier will walk away and despawn.
 
+## Economy and Item Cost Suggestions
+
+Customers can suggest costs for Customer and Supplier Spawner offers. Automatic costs are
+enabled globally by default, but each spawner starts in manual-cost mode. The small cost toggle
+at the right edge of the player inventory switches the selected Customer Spawner level or the
+Supplier Spawner between manual and automatic costs. The green dollar icon means the configured
+Cost slots are used; the crossed-out icon means costs are generated automatically.
+
+When automatic costs are active, the interface uses the automatic-cost background and displays
+generated cost items where the Cost slots normally appear. These displayed items are previews,
+not stored inventory. Editing a sell stack updates its preview through the server. Any items
+already stored in disabled Cost slots are dropped on top of the spawner.
+
+The server `forceAutoCost` config makes every Customer and Supplier Spawner use automatic costs and hides the
+per-spawner cost toggle.
+
+Turning off `enableEconomy` disables all cost suggestions, including
+forced and per-spawner automatic costs, without changing the saved per-spawner choices.
+
+Automatic providers are tried in this order:
+
+1. Manual item-cost definitions from datapacks and server configuration
+2. Village Shop System, when installed and enabled
+3. ProjectE, when installed and enabled
+4. Vanilla villager trades, wandering-trader trades, and crafting recipes
+5. One emerald per item is the final fallback
+
+### Manual Item Costs
+
+Economy definitions can come from both datapacks and the server configuration directory. Datapacks
+let modpack authors and server owners distribute an economy with a world or pack. Configuration
+files provide a separate administrator-controlled layer, allowing an individual server to add or
+override definitions without editing its installed datapacks. Both sources use the same JSON
+format and are refreshed by `/reload`.
+
+Datapack item-cost files belong at:
+
+`data/<namespace>/customers/economy/items/<file>.json`
+
+Server administrator files belong in:
+
+`config/customers/economy/items/`
+
+Splitting definitions into files such as `foods.json`,
+`building_blocks.json`, and `modded_items.json` makes large economies easier to maintain without
+changing their behavior.
+
+Customers loads datapacks from lowest to highest pack priority, sorting files by resource ID
+within each pack. It then loads configuration files alphabetically. Values normally merge, and a
+later matching definition overrides an earlier definition. This lets a server configuration entry
+override a distributed datapack value.
+
+The optional root `replace` property defaults to `false`. When `replace` is `true`, Customers
+discards every value accumulated from earlier files before adding that file's `values`. A
+higher-priority datapack can therefore replace an economy supplied by a lower-priority pack, and a
+server administrator can ignore all distributed definitions and maintain a strict local list.
+Files processed after the replacing file can still add or override values normally. This explicit
+reset is useful because otherwise an administrator would have to override every unwanted inherited
+entry individually.
+
+Each entry has exactly one vanilla-style `item` or `tag` matcher. `itemCount` describes the
+priced batch and `costCount` describes its price; both default to 1. Calculated partial batches
+round up. Cost items are ordinary item IDs and may be any item.
+
+```json
+{
+  "replace": false,
+  "values": [
+    {
+      "item": "minecraft:apple",
+      "itemCount": 5,
+      "costItem": "minecraft:emerald",
+      "costCount": 2
+    },
+    {
+      "tag": "minecraft:logs",
+      "itemCount": 4,
+      "costItem": "minecraft:gold_nugget",
+      "costCount": 3
+    }
+  ]
+}
+```
+
+Items that do not match continue to the next provider.
+
+### Village Shop System and ProjectE
+
+If you are already managing a server with other mods that manage an economy, we want to reduce
+the duplicate work for you and try to base costs on what you already have.  Right now we support
+integrating with the
+[Villager Shop System](https://www.curseforge.com/minecraft/mc-mods/village-shop-system) mod and the
+[ProjectE](https://www.curseforge.com/minecraft/mc-mods/projecte) mod.
+
+![mod-logo-villager-shop-system.png](screenshots/mod-logo-villager-shop-system.png)
+When [Villager Shop System](https://www.curseforge.com/minecraft/mc-mods/village-shop-system) is installed and enabled,
+we want to try and keep costs in sync with villager shops.
+Customers uses its sell-price calculator and the
+server's Village Shop System custom prices. Bulk villager ratios are rounded up to at least one
+emerald when an individual stack would otherwise truncate to zero.
+
+![mod-logo-projecte.png](screenshots/mod-logo-projecte.png)
+When [ProjectE](https://www.curseforge.com/minecraft/mc-mods/projecte) is installed and enabled,
+We want to be in sync with the ProjectE item equivelancy system that you may
+have made adjustments to.
+Customers compares the stack's EMC value with ordinary wheat. The
+standard Farmer trade of 20 wheat for one emerald converts that wheat-equivalent value into an
+emerald cost. Items with no EMC value continue to the next provider.
+
+Neither integration is a required dependency, and each can be disabled independently.
+
+### Villager Trades and Recipe-Derived Costs
+
+Customers scans all standard villager professions and wandering-trader offer tables when the
+server starts. An emerald-to-item offer establishes what that item costs; an item-to-emerald
+offer establishes what the item is worth. When several direct rates exist, the least expensive
+emerald-per-item rate is used.
+
+Crafting recipes extend those direct values in both directions. If every ingredient has a known
+value, their values are added and divided across the recipe output. If an output is known but an
+ingredient is not, the output value is distributed across the ingredient units. Direct trade
+prices remain anchors and are not replaced by recipe-derived prices.
+
+For example, a Farmer buying 20 wheat for one emerald directly values a 20-wheat stack at one
+emerald. A Fletcher buying 32 sticks supplies another direct anchor. The plank-to-stick and
+log-to-plank recipes carry that value backward, producing a derived cost for logs even though no
+villager trades logs directly. Final fractional emerald values round up when an offer is built.
+
+### Currency Conversion
+
+If you don't want your server to use emeralds for currency,
+that's where currency conversions come in.  Automatic
+item costs will first be calculated in emeralds, and then you
+can provide a conversion from emeralds to your currency(s) of
+choice.
+
+Currency conversions use the same merging, override, and `replace` behavior as manual item costs.
+Datapack files belong at:
+
+`data/<namespace>/customers/economy/conversions/<file>.json`
+
+Administrators can use:
+
+`config/customers/economy/conversions.json`
+
+or place multiple files in:
+
+`config/customers/economy/conversions/`
+
+The standalone file loads before files in the directory.
+A later definition overrides an earlier definition with the same source item or tag and
+`itemCount`.
+
+```json
+{
+  "replace": false,
+  "values": [
+    {
+      "item": "minecraft:emerald",
+      "itemCount": 5,
+      "costItem": "minecraft:gold_ingot",
+      "costCount": 1
+    },
+    {
+      "item": "minecraft:emerald",
+      "costItem": "minecraft:gold_nugget",
+      "costCount": 3
+    }
+  ]
+}
+```
+
+Customers considers every conversion whose source item or tag matches the calculated cost. It
+first prefers a conversion that produces a whole number of the target currency. When multiple
+conversions produce whole numbers, the conversion with the largest `itemCount` wins. This greedy
+choice favors larger currency denominations.
+
+When no conversion produces a whole number, Customers chooses the result closest to a whole
+number. If multiple results are equally close, the conversion with the largest `itemCount` wins.
+The selected amount is then rounded to the nearest whole item: fractional amounts below `.5`
+round down and amounts of `.5` or greater round up. A converted nonempty cost always contains at
+least one item.
+
+For the following examples, `5 emeralds -> 1 gold ingot` and
+`1 emerald -> 3 gold nuggets` are available unless the row specifies otherwise.
+
+| Calculated cost | Available conversions | Selected result | Reason |
+| --- | --- | --- | --- |
+| 10 emeralds | 5 -> 1 ingot; 1 -> 3 nuggets | 2 gold ingots | Both results are whole, so the larger source batch wins. |
+| 6 emeralds | 5 -> 1 ingot; 1 -> 3 nuggets | 18 gold nuggets | 1.2 ingots is fractional while 18 nuggets is whole. |
+| 4 emeralds | 5 -> 2 ingots; 3 -> 1 diamond | 1 diamond | 1.333 diamonds is closer to a whole item than 1.6 ingots. |
+| 7 emeralds | 5 -> 1 ingot only | 1 gold ingot | 1.4 rounds down to 1. |
+| 8 emeralds | 5 -> 1 ingot only | 2 gold ingots | 1.6 rounds up to 2. |
+
+A conversion source can be any item or item tag, not only emeralds, so if there is a
+datapack that is specifying automatic costs with a currency other than emeralds,
+you can also define a conversion from that item to your currency(s) of choice.
+
+### Diagnosing Default Costs
+
+The final provider returns one emerald for each item in the sell stack. Because this fallback is
+intended as a last resort, Customers remembers up to 20 unique item types that reach it. Once per
+server day, or one hour after a restart if a day has not elapsed, it writes a warning such as:
+
+```text
+Customers auto cost default used (limit 20): [minecraft:apple, example:cheese]
+```
+
+Server administrators can use this list to identify items that need manual cost entries.
+
+### Customer Cost Behavior Change
+
+Customer Cost slots now specify the price of the full configured sell stack. If random offer
+generation asks for fewer items, the cost is reduced by the same ratio, rounded down, and kept at
+a minimum of one cost item. Supplier item/cost pairs continue to describe complete stacks.
+
+Release-notes paragraph:
+
+> Customer Spawner costs now apply to the full configured item stack instead of each individual
+> item. A row containing 5 apples with a cost of 2 emeralds is a 5-for-2 offer. If a customer
+> randomly requests only 3 apples, the payment scales down to 1 emerald, with every nonempty offer
+> retaining a minimum cost of one. Existing Customer Spawner cost rows may need adjustment.
+
 ## Build Commands
 
 Build commands provide information about customer and supplier spawners near the player. They are
@@ -856,3 +1081,7 @@ disabled by default and can be enabled with the `enableBuildCommands` configurat
 | Customer Give Up Seconds | `customerGiveUpSeconds` | Sets how many seconds a customer waits without completing a trade before giving up and leaving. | `120`   |
 | Enable Build Commands | `enableBuildCommands` | Enables the customer and supplier build inspection commands. | `false` |
 | Enable Quick Sell | `enableQuickSell` | Enables selling directly to a customer by right-clicking while holding enough of a wanted item in the main hand. | `false` |
+| Enable Economy / Cost Suggestions | `enableEconomy` | Enables economy-backed cost suggestions and automatic costs. | `true` |
+| Use Village Shop System Costs | `economyUseVillagerShopSystem` | Uses Village Shop System costs when that mod is installed. | `true` |
+| Use ProjectE Costs | `economyUseProjectE` | Uses ProjectE EMC costs when that mod is installed. | `true` |
+| Force Automatic Item Costs | `forceAutoCost` | Forces automatic costs for every spawner and hides the cost toggle. | `false` |

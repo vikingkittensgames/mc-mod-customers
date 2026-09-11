@@ -4,12 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.Checkbox;
 import net.minecraft.client.gui.components.MultiLineLabel;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
 
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.supplier.SupplierSpawnerBlockMenu;
@@ -21,15 +24,28 @@ public class SupplierSpawnerBlockScreen
                     Customers.MODID,
                     "textures/gui/supplier_spawner_ui.png"
             );
+    private static final ResourceLocation AUTO_COST_TEXTURE =
+            ResourceLocation.fromNamespaceAndPath(
+                    Customers.MODID,
+                    "textures/gui/supplier_spawner_ui_auto.png"
+            );
     private static final int TEXTURE_WIDTH = 288;
     private static final int TEXTURE_HEIGHT = 256;
     private static final int APPEARANCE_WIDGET_WIDTH = 99;
     private static final int APPEARANCE_TEXT_COLOR = 0x000000;
+    private static final int MANUAL_COST_TOGGLE_X = 156;
+    private static final int MANUAL_COST_Y = 126;
+    private static final int MANUAL_COST_TOGGLE_SIZE = 12;
+    private static final ResourceLocation MANUAL_COST =
+            ResourceLocation.fromNamespaceAndPath(Customers.MODID, "textures/gui/cost.png");
+    private static final ResourceLocation AUTOMATIC_COST =
+            ResourceLocation.fromNamespaceAndPath(Customers.MODID, "textures/gui/costauto.png");
     private final List<Checkbox> appearanceCheckboxes =
             new ArrayList<>();
     private final List<MultiLineLabel> appearanceLabels =
             new ArrayList<>();
     private boolean synchronizingAppearanceCheckboxes;
+    private ManualCostButton manualCostButton;
 
     public SupplierSpawnerBlockScreen(
             SupplierSpawnerBlockMenu menu,
@@ -47,6 +63,10 @@ public class SupplierSpawnerBlockScreen
         super.init();
         appearanceCheckboxes.clear();
         appearanceLabels.clear();
+        manualCostButton = addRenderableWidget(new ManualCostButton(
+                leftPos + MANUAL_COST_TOGGLE_X,
+                topPos + MANUAL_COST_Y
+        ));
 
         int y = 29;
         int appearanceTextWidth = APPEARANCE_WIDGET_WIDTH
@@ -90,6 +110,7 @@ public class SupplierSpawnerBlockScreen
 
     @Override
     protected void containerTick() {
+        manualCostButton.visible = menu.isEconomyEnabled() && !menu.isForceAutoCost();
         synchronizingAppearanceCheckboxes = true;
         for (int index = 0;
                 index < appearanceCheckboxes.size();
@@ -111,7 +132,7 @@ public class SupplierSpawnerBlockScreen
             int mouseY
     ) {
         graphics.blit(
-                TEXTURE,
+                menu.usesAutomaticCost() ? AUTO_COST_TEXTURE : TEXTURE,
                 leftPos,
                 topPos,
                 0.0F,
@@ -151,8 +172,10 @@ public class SupplierSpawnerBlockScreen
     ) {
         renderBackground(graphics, mouseX, mouseY, partialTick);
         super.render(graphics, mouseX, mouseY, partialTick);
+        renderAutomaticCosts(graphics);
         renderAppearanceLabels(graphics);
         renderTooltip(graphics, mouseX, mouseY);
+        renderAutomaticCostTooltip(graphics, mouseX, mouseY);
     }
 
     private void renderAppearanceLabels(
@@ -180,10 +203,73 @@ public class SupplierSpawnerBlockScreen
         }
     }
 
+    private void renderAutomaticCosts(GuiGraphics graphics) {
+        if (!menu.usesAutomaticCost()) {
+            return;
+        }
+        for (int row = 0; row < 6; row++) {
+            for (int pair = 0; pair < 4; pair++) {
+                ItemStack cost = menu.getAutomaticCost(row, pair);
+                if (!cost.isEmpty()) {
+                    int x = leftPos + SupplierSpawnerBlockMenu.getContainerSlotX(pair * 2 + 1);
+                    int y = topPos + 18 + row * 18;
+                    graphics.renderItem(cost, x, y);
+                    graphics.renderItemDecorations(font, cost, x, y);
+                }
+            }
+        }
+    }
+
+    private void renderAutomaticCostTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
+        if (!menu.usesAutomaticCost()) {
+            return;
+        }
+        for (int row = 0; row < 6; row++) {
+            for (int pair = 0; pair < 4; pair++) {
+                int x = leftPos + SupplierSpawnerBlockMenu.getContainerSlotX(pair * 2 + 1);
+                int y = topPos + 18 + row * 18;
+                ItemStack cost = menu.getAutomaticCost(row, pair);
+                if (!cost.isEmpty() && mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16) {
+                    graphics.renderTooltip(font, cost, mouseX, mouseY);
+                    return;
+                }
+            }
+        }
+    }
+
     private void send(int id) {
         minecraft.gameMode.handleInventoryButtonClick(
                 menu.containerId,
                 id
         );
+    }
+
+    private class ManualCostButton extends AbstractButton {
+        private ManualCostButton(int x, int y) {
+            super(x, y, MANUAL_COST_TOGGLE_SIZE, MANUAL_COST_TOGGLE_SIZE, Component.literal("$"));
+        }
+
+        @Override
+        public void onPress() {
+            send(menu.autoCostButtonId());
+        }
+
+        @Override
+        protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+            graphics.blit(
+                    menu.isAutoCost() ? AUTOMATIC_COST : MANUAL_COST,
+                    getX(),
+                    getY(),
+                    0,
+                    0,
+                    MANUAL_COST_TOGGLE_SIZE,
+                    MANUAL_COST_TOGGLE_SIZE,
+                    MANUAL_COST_TOGGLE_SIZE,
+                    MANUAL_COST_TOGGLE_SIZE
+            );
+        }
+
+        @Override
+        protected void updateWidgetNarration(NarrationElementOutput narration) {}
     }
 }

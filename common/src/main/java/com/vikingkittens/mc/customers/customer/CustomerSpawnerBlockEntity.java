@@ -51,6 +51,8 @@ import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
 import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
 import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
 import com.vikingkittens.mc.customers.customer.pets.CustomerPet;
+import com.vikingkittens.mc.customers.economy.Economy;
+import com.vikingkittens.mc.customers.economy.EconomyCost;
 
 public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvider {
     static final int CURRENT_DATA_VERSION = 3;
@@ -80,7 +82,8 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     static MerchantOffers getOffersFromInventory(
             RandomSource random,
             Container inventory,
-            Supplier<Item> defaultPaymentItem
+            Supplier<Item> defaultPaymentItem,
+            boolean automaticCost
     ) {
         MerchantOffers offers = new MerchantOffers();
         int offerInventorySize = Math.min(
@@ -122,8 +125,15 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             int itemNum = rowItems.get(row).size() > 1 ? random.nextInt(rowItems.get(row).size()) : 0;
             ItemStack itemStack = rowItems.get(row).get(itemNum);
             int count = itemStack.getCount() > 1 ? random.nextIntBetweenInclusive(1, itemStack.getCount()) : 1;
-            ItemStack paymentStack = rowCosts.get(row).copy();
-            paymentStack.setCount(paymentStack.getCount() * count);
+            ItemStack fullCost = automaticCost
+                    ? Economy.calculateItemStackCost(itemStack)
+                    : rowCosts.get(row);
+            ItemStack paymentStack = EconomyCost.scale(itemStack, count, fullCost);
+            if (paymentStack.isEmpty()) {
+                rowsWithItems.remove(rowNum);
+                numItemsToBuy--;
+                continue;
+            }
             offers.add(new MerchantOffer(
                     ItemStackCUtils.createItemCost(itemStack, count),
                     Optional.empty(),
@@ -142,12 +152,21 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     static MerchantOffers getOffersFromInventory(
             RandomSource random,
+            Container inventory,
+            Supplier<Item> defaultPaymentItem
+    ) {
+        return getOffersFromInventory(random, inventory, defaultPaymentItem, false);
+    }
+
+    static MerchantOffers getOffersFromInventory(
+            RandomSource random,
             Container inventory
     ) {
         return getOffersFromInventory(
                 random,
                 inventory,
-                CustomerSpawnerBlockEntity::getPaymentItem
+                CustomerSpawnerBlockEntity::getPaymentItem,
+                false
         );
     }
 
@@ -824,6 +843,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     @Nullable
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
+        enforceAutomaticCostInventory(0);
         return new CustomerSpawnerBlockMenu(
                 containerId,
                 playerInventory,
@@ -929,9 +949,61 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         getActiveLevelSettings().setEnabledAppearanceIds(appearanceIds);
     }
 
+    boolean usesAutomaticCost(CustomerSpawnerLevelSettings settings) {
+        return Economy.isEnabled() && (Economy.forceAutoCost() || settings.isAutoCost());
+    }
+
+    void setAutoCost(int levelIndex, boolean autoCost) {
+        CustomerSpawnerLevelSettings settings = getLevelSettings(levelIndex);
+        settings.setAutoCost(autoCost);
+        enforceAutomaticCostInventory(levelIndex);
+    }
+
+    void enforceAutomaticCostInventory(int levelIndex) {
+        CustomerSpawnerLevelSettings settings = getLevelSettings(levelIndex);
+        if (usesAutomaticCost(settings)) {
+            dropCostItems(settings);
+        }
+    }
+
+    private void dropCostItems(CustomerSpawnerLevelSettings settings) {
+        if (level == null || LevelCUtils.isClientSide(level)) {
+            return;
+        }
+        Container inventory = settings.getInventory();
+        boolean changed = false;
+        for (int slot = INVENTORY_ROW_SIZE - 1;
+                slot < CustomerSpawnerLevelSettings.OFFER_INVENTORY_SIZE;
+                slot += INVENTORY_ROW_SIZE) {
+            ItemStack cost = inventory.removeItemNoUpdate(slot);
+            if (!cost.isEmpty()) {
+                changed = true;
+                Containers.dropItemStack(
+                        level,
+                        worldPosition.getX() + 0.5D,
+                        worldPosition.getY() + 1.0D,
+                        worldPosition.getZ() + 0.5D,
+                        cost
+                );
+            }
+        }
+        if (changed) {
+            inventory.setChanged();
+        }
+    }
+
     public void spawnCustomer() {
         CustomerSpawnerLevelSettings settings = getActiveLevelSettings();
-        MerchantOffers offers = getOffersFromInventory(level.getRandom(), settings.getInventory());
+        boolean automaticCost = usesAutomaticCost(settings);
+        if (automaticCost) {
+            dropCostItems(settings);
+        }
+        MerchantOffers offers = getOffersFromInventory(
+                level.getRandom(),
+                settings.getInventory(),
+                CustomerSpawnerBlockEntity::getPaymentItem,
+                automaticCost
+        );
         if (!offers.isEmpty()) {
             BlockState counterBlockState = level.getBlockState(getBlockPos().above());
             BlockState avoidBlockState = level.getBlockState(getBlockPos().below());

@@ -47,4 +47,24 @@ public final class NeoForgeConfigHelper implements IConfigHelper {
     public boolean quickSellEnabled() {
         return Config.ENABLE_QUICK_SELL.get();
     }
+
+    @Override
+    public boolean economyEnabled() {
+        return Config.ENABLE_ECONOMY.get();
+    }
+
+    @Override
+    public boolean economyUseVillagerShopSystem() {
+        return Config.ECONOMY_USE_VILLAGER_SHOP_SYSTEM.get();
+    }
+
+    @Override
+    public boolean economyUseProjectE() {
+        return Config.ECONOMY_USE_PROJECT_E.get();
+    }
+
+    @Override
+    public boolean forceAutoCost() {
+        return Config.FORCE_AUTO_COST.get();
+    }
 }

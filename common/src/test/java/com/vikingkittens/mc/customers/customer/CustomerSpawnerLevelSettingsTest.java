@@ -19,6 +19,7 @@ import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtil
 import com.vikingkittens.mc.customers.customer.pets.CustomerPet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CustomerSpawnerLevelSettingsTest {
@@ -61,6 +62,7 @@ class CustomerSpawnerLevelSettingsTest {
         );
         assertEquals(4, settings.getMaxCustomers());
         assertEquals(0.0F, settings.getPetPercentage());
+        assertEquals(false, settings.isAutoCost());
         assertEquals(
                 List.of("minecraft:cat", "minecraft:wolf"),
                 settings.getEnabledPetTypes(List.of("minecraft:cat", "minecraft:wolf"))
@@ -100,6 +102,7 @@ class CustomerSpawnerLevelSettingsTest {
         saved.setRequiredStars(2.5F);
         saved.setMaxCustomers(7);
         saved.setPetPercentage(0.35F);
+        saved.setAutoCost(true);
         saved.setPetTypeEnabled("minecraft:cat", false, List.of("minecraft:cat", "minecraft:wolf"));
         saved.getInventory().setItem(0, new ItemStack(Items.BREAD, 2));
         saved.getInventory().setItem(52, new ItemStack(Items.CARROT, 3));
@@ -113,6 +116,7 @@ class CustomerSpawnerLevelSettingsTest {
         assertEquals(2.5F, loaded.getRequiredStars());
         assertEquals(7, loaded.getMaxCustomers());
         assertEquals(0.35F, loaded.getPetPercentage());
+        assertTrue(loaded.isAutoCost());
         assertEquals(List.of("minecraft:wolf"), loaded.getEnabledPetTypes(List.of("minecraft:cat", "minecraft:wolf")));
         assertEquals(Items.BREAD, loaded.getInventory().getItem(0).getItem());
         assertEquals(2, loaded.getInventory().getItem(0).getCount());
@@ -186,5 +190,23 @@ class CustomerSpawnerLevelSettingsTest {
 
         assertEquals(Items.BREAD, settings.getInventory().getItem(0).getItem());
         assertTrue(settings.getPetFoodCost().isEmpty());
+    }
+
+    @Test
+    void preservesManualCostItemsFromPreEconomyData() {
+        List<ItemStack> inventory = new ArrayList<>(
+                Collections.nCopies(CustomerSpawnerLevelSettings.OFFER_INVENTORY_SIZE, ItemStack.EMPTY)
+        );
+        inventory.set(0, new ItemStack(Items.APPLE, 5));
+        inventory.set(8, new ItemStack(Items.EMERALD, 2));
+        CompoundTag tag = new CompoundTag();
+        PersistenceCUtils.writer(tag, RegistryAccess.EMPTY).putItemStacks("inventory", inventory);
+
+        CustomerSpawnerLevelSettings settings = new CustomerSpawnerLevelSettings(4, () -> {}, player -> true);
+        settings.read(PersistenceCUtils.reader(tag, RegistryAccess.EMPTY));
+
+        assertFalse(settings.isAutoCost());
+        assertEquals(Items.EMERALD, settings.getInventory().getItem(8).getItem());
+        assertEquals(2, settings.getInventory().getItem(8).getCount());
     }
 }

@@ -38,6 +38,22 @@ public class Config {
     public static final ModConfigSpec.BooleanValue ENABLE_QUICK_SELL = BUILDER
             .define("enableQuickSell", false);
 
+    public static final ModConfigSpec.BooleanValue ENABLE_ECONOMY = BUILDER
+            .comment("Enable Economy / Cost Suggestions")
+            .define("enableEconomy", true);
+
+    public static final ModConfigSpec.BooleanValue ECONOMY_USE_VILLAGER_SHOP_SYSTEM = BUILDER
+            .comment("Use Villager Shop System Costs")
+            .define("economyUseVillagerShopSystem", true);
+
+    public static final ModConfigSpec.BooleanValue ECONOMY_USE_PROJECT_E = BUILDER
+            .comment("Use ProjectE Costs")
+            .define("economyUseProjectE", true);
+
+    public static final ModConfigSpec.BooleanValue FORCE_AUTO_COST = BUILDER
+            .comment("Force Automatic Item Costs")
+            .define("forceAutoCost", false);
+
     public static final ModConfigSpec SPEC = BUILDER.build();
 
     private static boolean validateItemName(final Object obj) {

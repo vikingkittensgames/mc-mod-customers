@@ -45,4 +45,24 @@ public final class VanillaConfigHelper implements IConfigHelper {
     public boolean quickSellEnabled() {
         return false;
     }
+
+    @Override
+    public boolean economyEnabled() {
+        return true;
+    }
+
+    @Override
+    public boolean economyUseVillagerShopSystem() {
+        return true;
+    }
+
+    @Override
+    public boolean economyUseProjectE() {
+        return true;
+    }
+
+    @Override
+    public boolean forceAutoCost() {
+        return false;
+    }
 }
