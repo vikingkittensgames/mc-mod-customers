@@ -1,0 +1,28 @@
+{
+  "parent": "customers:builder/root",
+  "criteria": {
+    "crafted_supplier_spawner": {
+      "conditions": {
+        "recipe_id": "customers:supplier_spawner_block"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.customers.builder.supplier.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "customers:supplier_spawner_block"
+    },
+    "title": {
+      "translate": "advancements.customers.builder.supplier.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_supplier_spawner"
+    ]
+  ]
+}

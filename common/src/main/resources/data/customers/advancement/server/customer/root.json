@@ -1,0 +1,27 @@
+{
+  "parent": "customers:server/root",
+  "criteria": {
+    "joined_world": {
+      "trigger": "minecraft:tick"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancements.customers.server.customer.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "minecraft:emerald"
+    },
+    "show_toast": false,
+    "title": {
+      "translate": "advancements.customers.server.customer.title"
+    }
+  },
+  "requirements": [
+    [
+      "joined_world"
+    ]
+  ]
+}
