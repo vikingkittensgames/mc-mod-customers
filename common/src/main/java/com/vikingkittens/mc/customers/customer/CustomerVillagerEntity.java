@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -59,6 +60,7 @@ import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerType;
 import com.vikingkittens.mc.customers.common.MobUtils;
 import com.vikingkittens.mc.customers.common.SearchUtils;
+import com.vikingkittens.mc.customers.common.events.InternalEvents;
 import com.vikingkittens.mc.customers.compatability.CustomersServices;
 import com.vikingkittens.mc.customers.compatability.EntityCUtils;
 import com.vikingkittens.mc.customers.compatability.InteractionCUtils;
@@ -394,6 +396,7 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
                     }
                 }
             }
+            emitCustomerServed(serverLevel, paymentOwner, offer, payment);
         }
         if (spawnerPos != null
                 && level().getBlockEntity(spawnerPos)
@@ -1095,8 +1098,31 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
                             offer.getCostA().getCount()
                     );
                 }
+                if (level() instanceof ServerLevel serverLevel) {
+                    emitCustomerServed(serverLevel, tradingPlayer.getUUID(), offer, offer.assemble());
+                }
             }
         }
+    }
+
+    private void emitCustomerServed(
+            ServerLevel serverLevel,
+            @Nullable UUID playerId,
+            MerchantOffer offer,
+            ItemStack payment
+    ) {
+        InternalEvents.emit(new CustomerInternalEvents.CustomerServed(
+                serverLevel,
+                spawnerPos,
+                getSpawnerMode().orElse(null),
+                playerId,
+                getUUID(),
+                serverLevel.registryAccess()
+                        .registryOrThrow(Registries.VILLAGER_PROFESSION)
+                        .getKey(getVillagerData().getProfession()),
+                offer.getCostA(),
+                payment
+        ));
     }
 
     private static void giveTradeRemainderItems(Player player, ItemStack soldStack) {

@@ -134,5 +134,23 @@
   "customers.configuration.enableEconomy": "Enable Economy / Cost Suggestions",
   "customers.configuration.economyUseVillagerShopSystem": "Use Villager Shop System Costs",
   "customers.configuration.economyUseProjectE": "Use ProjectE Costs",
-  "customers.configuration.forceAutoCost": "Force Automatic Item Costs"
+  "customers.configuration.forceAutoCost": "Force Automatic Item Costs",
+
+  "advancements.customers.root.title": "Customers",
+  "advancements.customers.root.description": "Build and operate customer-serving businesses",
+  "advancements.customers.builder.title": "Builder",
+  "advancements.customers.builder.description": "Build the blocks that make a business work",
+  "advancements.customers.builder.customer.title": "Customer",
+  "advancements.customers.builder.customer.description": "Craft a Customer Spawner",
+  "advancements.customers.builder.supplier.title": "Supplier",
+  "advancements.customers.builder.supplier.description": "Craft a Supplier Spawner",
+  "advancements.customers.server.title": "Server",
+  "advancements.customers.server.description": "Serve customers and stock the business",
+  "advancements.customers.server.customer.title": "Customer",
+  "advancements.customers.server.customer.description": "Serve items requested by customers",
+  "advancements.customers.server.supplier.title": "Supplier",
+  "advancements.customers.server.supplier.description": "Supply items requested by the business",
+  "advancements.customers.server.customer.customer_served.title": "First Customer Served",
+  "advancements.customers.server.customer.customer_served.description": "Complete one requested-item transaction for a customer",
+  "stat.custom.customers.customer_served": "Customer Items Served"
 }

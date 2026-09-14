@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 
 import net.minecraft.resources.ResourceLocation;
 
+import com.vikingkittens.mc.customers.advancements.CustomersStatistics;
+import com.vikingkittens.mc.customers.advancements.CustomersTriggers;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 import com.vikingkittens.mc.customers.appearance.monsters.MonsterCustomersVillagerAppearanceEvents;
 import com.vikingkittens.mc.customers.customer.Customer;
@@ -26,6 +28,9 @@ class CustomersInitializationTest {
     @Test
     void initializesLoaderNeutralRegistrations() {
         Customers.initialize();
+
+        assertEquals(ResourceLocation.parse("customers:customer_served"), CustomersTriggers.CUSTOMER_SERVED.getId());
+        assertEquals(ResourceLocation.parse("customers:customer_served"), CustomersStatistics.CUSTOMER_SERVED.getId());
 
         assertEquals(
                 ResourceLocation.parse("customers:default"),
