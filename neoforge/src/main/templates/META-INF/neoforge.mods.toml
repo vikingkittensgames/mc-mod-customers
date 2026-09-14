@@ -98,6 +98,22 @@ This mod is also open-source and open to contributions is they fit the general d
     ordering="AFTER"
     side="BOTH"
 
+[[dependencies.${mod_id}]]
+    modId="architectury"
+    type="optional"
+    reason="Enables publishing Customers events through Architectury."
+    versionRange="${architectury_version_range}"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="ftbquests"
+    type="optional"
+    reason="Enables advanced FTB Quests integration."
+    versionRange="${ftb_quests_version_range}"
+    ordering="AFTER"
+    side="BOTH"
+
 # Features are specific properties of the game environment, that you may want to declare you require. This example declares
 # that your mod requires GL version 3.2 or higher. Other features will be added. They are side aware so declaring this won't
 # stop your mod loading on the server for example.

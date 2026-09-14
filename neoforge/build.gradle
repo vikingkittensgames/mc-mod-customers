@@ -122,6 +122,8 @@ configurations {
 }
 
 dependencies {
+    compileOnly "dev.architectury:architectury-neoforge:${architectury_version}"
+    compileOnly "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
     compileOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
     testRuntimeOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
 
@@ -160,6 +162,8 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
             minecraft_version      : minecraft_version,
             minecraft_version_range: minecraft_version_range,
             neo_version            : neo_version,
+            architectury_version_range: architectury_version_range,
+            ftb_quests_version_range  : ftb_quests_version_range,
             mca_version_range      : mca_version_range,
             loader_version_range   : loader_version_range,
             mod_id                 : mod_id,

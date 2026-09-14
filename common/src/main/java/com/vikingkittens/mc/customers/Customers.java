@@ -1,8 +1,10 @@
 package com.vikingkittens.mc.customers;
 
 import com.vikingkittens.mc.customers.advancements.CustomersAdvancementEvents;
+import com.vikingkittens.mc.customers.advancements.CustomersFTB;
 import com.vikingkittens.mc.customers.advancements.CustomersStatistics;
 import com.vikingkittens.mc.customers.advancements.CustomersTriggers;
+import com.vikingkittens.mc.customers.api.events.CustomersArchitecturyEvents;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 import com.vikingkittens.mc.customers.appearance.mca.McaCustomersVillagerAppearanceEvents;
 import com.vikingkittens.mc.customers.appearance.monsters.MonsterCustomersVillagerAppearanceEvents;
@@ -22,6 +24,8 @@ public final class Customers {
     private Customers() {}
 
     public static void initialize() {
+        CustomersFTB.initialize();
+        CustomersArchitecturyEvents.initialize();
         CustomersTriggers.initialize();
         CustomersStatistics.initialize();
         CustomersAdvancementEvents.initialize();
