@@ -44,6 +44,8 @@ tasks.named('check') {
 }
 
 dependencies {
+    compileOnly "dev.architectury:architectury:${architectury_version}"
+    compileOnly "dev.ftb.mods:ftb-quests:${ftb_quests_version}"
     compileOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
     testRuntimeOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
 

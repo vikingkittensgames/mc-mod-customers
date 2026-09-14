@@ -131,4 +131,16 @@ Keep future internal events, Customers advancement triggers, and statistic behav
 
 ## Optional Integrations
 
+### FTB Quests
+
+The build exposes the FTB Quests 1.21.1 API as an optional compile-time dependency. FTB Quests 1.21.1 is available for NeoForge but not Forge, so its optional loader metadata and platform artifact are only included by the NeoForge module. `CustomersFTB` is the common availability guard and planning location. It does not register a custom FTB task yet.
+
+Prefer FTB's existing Advancement Task for requirements represented by Customers advancements. Add a custom FTB task only for behavior that advancements cannot model cleanly, such as repeatable transaction totals, accumulated event values, or team-specific progress.
+
+### Architectury Events
+
+The build exposes Architectury API as an optional dependency on NeoForge. Architectury API does not publish a Forge artifact for Minecraft 1.21.1, so the Forge build retains the loader-neutral availability stub but cannot publish the planned Architectury events. `CustomersArchitecturyEvents` currently provides only the guarded integration entry point; it does not publish any events yet.
+
+Future public events should listen to Customers internal events and republish immutable event details through non-cancellable Architectury loop events. Other mods will depend on Customers and Architectury and register listeners with the public event object.
+
 An optional integration such as FTB Quests should register its own internal-event handler rather than modifying customer or supplier transaction code. Vanilla advancements can already be selected as FTB Quest tasks, so `customers:customer_served` advancements provide a data-driven integration route without a direct dependency. A future direct task integration can consume the same internal event when it needs details that are not represented by a configured advancement.

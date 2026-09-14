@@ -58,6 +58,20 @@ repositories {
             includeGroup('maven.modrinth')
         }
     }
+    maven {
+        name = 'Architectury'
+        url = 'https://maven.architectury.dev/'
+        content {
+            includeGroup('dev.architectury')
+        }
+    }
+    maven {
+        name = 'FTB'
+        url = 'https://maven.ftb.dev/releases'
+        content {
+            includeGroup('dev.ftb.mods')
+        }
+    }
 }
 
 ['apiElements', 'runtimeElements', 'sourcesElements'].each { variant ->
