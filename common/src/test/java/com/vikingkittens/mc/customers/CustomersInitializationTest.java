@@ -29,8 +29,8 @@ class CustomersInitializationTest {
     void initializesLoaderNeutralRegistrations() {
         Customers.initialize();
 
-        assertEquals(ResourceLocation.parse("customers:customer_served"), CustomersTriggers.CUSTOMER_SERVED.getId());
-        assertEquals(ResourceLocation.parse("customers:customer_served"), CustomersStatistics.CUSTOMER_SERVED.getId());
+        assertEquals(ResourceLocation.parse("customers:item_served"), CustomersTriggers.ITEM_SERVED.getId());
+        assertEquals(ResourceLocation.parse("customers:item_served"), CustomersStatistics.ITEM_SERVED.getId());
 
         assertEquals(
                 ResourceLocation.parse("customers:default"),

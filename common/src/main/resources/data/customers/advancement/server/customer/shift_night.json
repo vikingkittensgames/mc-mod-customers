@@ -1,0 +1,25 @@
+{
+  "parent": "customers:server/customer/root",
+  "criteria": {
+    "shift_night": {
+      "trigger": "customers:item_served",
+      "conditions": {
+        "spawner_mode": "night"
+      }
+    }
+  },
+  "display": {
+    "description": { "translate": "advancements.customers.server.customer.shift_night.description" },
+    "icon": {
+      "count": 1,
+      "id": "customers:advancement_icon",
+      "components": { "minecraft:custom_model_data": 11 }
+    },
+    "title": { "translate": "advancements.customers.server.customer.shift_night.title" }
+  },
+  "requirements": [
+    [
+      "shift_night"
+    ]
+  ]
+}

@@ -25,7 +25,7 @@ class CustomerInternalEventsTest {
     void protectsEventItemStacksFromMutation() {
         ItemStack servedItem = new ItemStack(Items.APPLE, 3);
         ItemStack costItem = new ItemStack(Items.EMERALD, 2);
-        CustomerInternalEvents.CustomerServed event = new CustomerInternalEvents.CustomerServed(
+        CustomerInternalEvents.ItemServed event = new CustomerInternalEvents.ItemServed(
                 mock(ServerLevel.class),
                 null,
                 CustomerSpawnerMode.LUNCH,

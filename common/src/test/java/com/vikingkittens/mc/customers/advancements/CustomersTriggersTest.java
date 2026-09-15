@@ -33,7 +33,8 @@ class CustomersTriggersTest {
 
     @Test
     void matchesAnEventWhenAllOptionalConditionsAreAbsent() {
-        CustomersTriggers.CustomerServed.Instance instance = new CustomersTriggers.CustomerServed.Instance(
+        CustomersTriggers.ItemServed.Instance instance = new CustomersTriggers.ItemServed.Instance(
+                Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
@@ -43,29 +44,31 @@ class CustomersTriggersTest {
                 Optional.empty()
         );
 
-        assertTrue(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2)));
+        assertTrue(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2), 1));
     }
 
     @Test
     void matchesModeProfessionAndStackCountsTogether() {
-        CustomersTriggers.CustomerServed.Instance instance = new CustomersTriggers.CustomerServed.Instance(
+        CustomersTriggers.ItemServed.Instance instance = new CustomersTriggers.ItemServed.Instance(
                 Optional.empty(),
                 Optional.of(CustomerSpawnerMode.LUNCH),
                 Optional.of(ResourceLocation.parse("customers:customer_impatient")),
                 Optional.empty(),
                 Optional.of(MinMaxBounds.Ints.atLeast(3)),
                 Optional.empty(),
-                Optional.of(MinMaxBounds.Ints.exactly(2))
+                Optional.of(MinMaxBounds.Ints.exactly(2)),
+                Optional.of(MinMaxBounds.Ints.atLeast(100))
         );
 
-        assertTrue(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2)));
-        assertFalse(instance.matches(event(CustomerSpawnerMode.DINNER, 3, 2)));
-        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 2, 2)));
-        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 1)));
+        assertTrue(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2), 100));
+        assertFalse(instance.matches(event(CustomerSpawnerMode.DINNER, 3, 2), 100));
+        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 2, 2), 100));
+        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 1), 100));
+        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2), 99));
     }
 
     @Test
-    void decodesDataDrivenCustomerServedConditions() {
+    void decodesDataDrivenItemServedConditions() {
         String json = """
                 {
                   "spawner_mode": "lunch",
@@ -73,11 +76,12 @@ class CustomersTriggersTest {
                   "served_item": { "items": ["minecraft:apple"] },
                   "served_count": { "min": 3 },
                   "cost_item": { "items": ["minecraft:emerald"] },
-                  "cost_count": 2
+                  "cost_count": 2,
+                  "total_items_served": { "min": 100 }
                 }
                 """;
 
-        CustomersTriggers.CustomerServed.Instance instance = CustomersTriggers.CustomerServed.Instance.CODEC
+        CustomersTriggers.ItemServed.Instance instance = CustomersTriggers.ItemServed.Instance.CODEC
                 .parse(
                         RegistryOps.create(
                                 JsonOps.INSTANCE,
@@ -87,16 +91,17 @@ class CustomersTriggersTest {
                 )
                 .getOrThrow();
 
-        assertTrue(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2)));
-        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 3)));
+        assertTrue(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2), 100));
+        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 3), 100));
+        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2), 99));
     }
 
-    private static CustomerInternalEvents.CustomerServed event(
+    private static CustomerInternalEvents.ItemServed event(
             CustomerSpawnerMode mode,
             int servedCount,
             int costCount
     ) {
-        return new CustomerInternalEvents.CustomerServed(
+        return new CustomerInternalEvents.ItemServed(
                 mock(ServerLevel.class),
                 null,
                 mode,

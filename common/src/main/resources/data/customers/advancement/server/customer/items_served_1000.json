@@ -1,0 +1,26 @@
+{
+  "parent": "customers:server/customer/items_served_500",
+  "criteria": {
+    "items_served_1000": {
+      "trigger": "customers:item_served",
+      "conditions": {
+        "total_items_served": { "min": 1000 }
+      }
+    }
+  },
+  "display": {
+    "description": { "translate": "advancements.customers.server.customer.items_served_1000.description" },
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "customers:advancement_icon",
+      "components": { "minecraft:custom_model_data": 7 }
+    },
+    "title": { "translate": "advancements.customers.server.customer.items_served_1000.title" }
+  },
+  "requirements": [
+    [
+      "items_served_1000"
+    ]
+  ]
+}

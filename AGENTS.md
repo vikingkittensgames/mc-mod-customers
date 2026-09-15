@@ -43,6 +43,7 @@ This project is a Minecraft mod built with the NeoForge mod loader.
 - Keep as much logic as possible testable in regular JUnit tests.
 - Prefer small, focused classes and methods that can be tested without bootstrapping Minecraft, NeoForge, registries, or a full game environment.
 - Isolate game integration code from pure logic so behavior can be verified independently.
+- Do not add tests that merely validate the existence, dimensions, structure, or exact contents of static resource files under `src/main/resources`. Resource files such as advancements, recipes, models, textures, language files, and metadata must remain independently editable. Test production code that reads or generates resources, and rely on the Minecraft loader, data generation, and build validation for static resource syntax.
 
 ## Java Organization
 

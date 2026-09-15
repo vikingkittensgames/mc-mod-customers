@@ -1,0 +1,20 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "customers:gui/advancements/backgrounds/emerald"
+  },
+  "overrides": [
+    { "predicate": { "custom_model_data": 2 }, "model": "customers:item/advancement_icon_served" },
+    { "predicate": { "custom_model_data": 3 }, "model": "customers:item/advancement_icon_chicken_leg" },
+    { "predicate": { "custom_model_data": 4 }, "model": "customers:item/advancement_icon_chicken_legs" },
+    { "predicate": { "custom_model_data": 5 }, "model": "customers:item/advancement_icon_chicken" },
+    { "predicate": { "custom_model_data": 6 }, "model": "customers:item/advancement_icon_small_dinner" },
+    { "predicate": { "custom_model_data": 7 }, "model": "customers:item/advancement_icon_large_dinner" },
+
+    { "predicate": { "custom_model_data": 10 }, "model": "customers:item/advancement_icon_day" },
+    { "predicate": { "custom_model_data": 11 }, "model": "customers:item/advancement_icon_night" },
+    { "predicate": { "custom_model_data": 12 }, "model": "customers:item/advancement_icon_breakfast" },
+    { "predicate": { "custom_model_data": 13 }, "model": "customers:item/advancement_icon_lunch" },
+    { "predicate": { "custom_model_data": 14 }, "model": "customers:item/advancement_icon_dinner" }
+  ]
+}

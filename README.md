@@ -1014,9 +1014,9 @@ ink sac.
 
 ## Advancements and Statistics
 
-Customers adds its own advancement tab with separate Builder and Server branches. The Builder branch recognizes crafting Customer and Supplier Spawners. The Server branch begins tracking customer and supplier activity, including the **First Customer Served** advancement for completing one requested-item transaction for a customer.
+Customers adds its own advancement tab with separate Builder and Server branches. The Builder branch recognizes crafting Customer and Supplier Spawners. The Server branch begins tracking customer and supplier activity, including **First Item Served** for completing one requested-item transaction and **100 Items Served** for completing 100 attributed transactions.
 
-Customer-serving advancements can distinguish the spawner mode, customer profession, requested item and amount, and payment item and amount. Modpack authors can use these conditions to add goals such as serving an impatient lunch customer or selling a particular quantity of an item. The **Customer Items Served** statistic increases once per completed requested-item transaction; it does not count every individual item in the stack.
+Item-serving advancements can distinguish the spawner mode, customer profession, requested item and amount, payment item and amount, and the player's total completed item transactions. Modpack authors can use these conditions to add goals such as serving an impatient lunch customer, selling a particular quantity of an item, or completing a configured number of transactions. The **Items Served to Customers** statistic increases once per completed requested-item transaction; it does not count every individual item in the stack or distinct customer NPCs.
 
 See [events-and-advancements.md](events-and-advancements.md) for the data format and instructions for adding events, triggers, advancements, statistics, and optional quest integrations.
 

@@ -7,22 +7,22 @@ import com.vikingkittens.mc.customers.compatability.CustomersRegistryEntry;
 import com.vikingkittens.mc.customers.compatability.CustomersServices;
 
 public final class CustomersStatistics {
-    public static final CustomersRegistryEntry<ResourceLocation, ResourceLocation> CUSTOMER_SERVED =
+    public static final CustomersRegistryEntry<ResourceLocation, ResourceLocation> ITEM_SERVED =
             CustomersServices.registration().register(
                     Registries.CUSTOM_STAT,
-                    "customer_served",
-                    () -> ResourceLocation.fromNamespaceAndPath("customers", "customer_served")
+                    "item_served",
+                    () -> ResourceLocation.fromNamespaceAndPath("customers", "item_served")
             );
 
     private CustomersStatistics() {}
 
     public static void initialize() {}
 
-    public static final class CustomerServed {
-        private CustomerServed() {}
+    public static final class ItemServed {
+        private ItemServed() {}
 
         public static ResourceLocation id() {
-            return CUSTOMER_SERVED.getId();
+            return ITEM_SERVED.getId();
         }
     }
 }

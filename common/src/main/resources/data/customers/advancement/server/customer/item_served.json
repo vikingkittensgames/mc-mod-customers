@@ -1,0 +1,22 @@
+{
+  "parent": "customers:server/customer/root",
+  "criteria": {
+    "item_served": {
+      "trigger": "customers:item_served"
+    }
+  },
+  "display": {
+    "description": { "translate": "advancements.customers.server.customer.item_served.description" },
+    "icon": {
+      "id": "customers:advancement_icon",
+      "count": 1,
+      "components": { "minecraft:custom_model_data": 3 }
+    },
+    "title": { "translate": "advancements.customers.server.customer.item_served.title" }
+  },
+  "requirements": [
+    [
+      "item_served"
+    ]
+  ]
+}

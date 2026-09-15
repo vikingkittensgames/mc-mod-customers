@@ -1,0 +1,25 @@
+{
+  "parent": "customers:server/customer/root",
+  "criteria": {
+    "shift_breakfast": {
+      "trigger": "customers:item_served",
+      "conditions": {
+        "spawner_mode": "breakfast"
+      }
+    }
+  },
+  "display": {
+    "description": { "translate": "advancements.customers.server.customer.shift_breakfast.description" },
+    "icon": {
+      "count": 1,
+      "id": "customers:advancement_icon",
+      "components": { "minecraft:custom_model_data": 12 }
+    },
+    "title": { "translate": "advancements.customers.server.customer.shift_breakfast.title" }
+  },
+  "requirements": [
+    [
+      "shift_breakfast"
+    ]
+  ]
+}

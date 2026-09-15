@@ -81,11 +81,13 @@
   "messages.customers.give_up13": "I've run out of time and patience.",
   "messages.customers.give_up14": "Someone else will sell me %s.",
   "messages.customers.give_up15": "I came for %s, not an endurance test.",
+
   "messages.customers.scoreboard.summary": "%s finished with a score of %s",
   "messages.customers.scoreboard.detail.total_customers": "%s total customers",
   "messages.customers.scoreboard.detail.customers_served": "%s customers served",
   "messages.customers.scoreboard.detail.customers_gave_up": "%s customers gave up",
   "messages.customers.scoreboard.detail.player_served_items": "%s served %s out of %s items",
+
   "screen.customers.shift_finished": "Shift Results",
   "screen.customers.shift_finished.items_served": "%s items",
   "screen.customers.shift_finished.total_items_served": "%s items served",
@@ -124,7 +126,7 @@
   "customers.configuration.section.customers.common.toml.title": "Customers Configs",
   "customers.configuration.enableCustomerSpawnerBlockRecipe": "Customer Spawner Recipe",
   "customers.configuration.enableSupplierSpawnerBlockRecipe": "Supplier Spawner Recipe",
-  "customers.configuration.enableCustomerLeaderboardBlockRecipe": "Enable Customer Leaderboard Recipie",
+  "customers.configuration.enableCustomerLeaderboardBlockRecipe": "Enable Customer Leaderboard Recipe",
   "customers.configuration.maxCounterDistance": "Maximum Counter Distance",
   "customers.configuration.maxLeaderboardDistance": "Maximum Leaderboard Distance",
   "customers.configuration.maxCustomers": "Maximum Customers",
@@ -136,21 +138,45 @@
   "customers.configuration.economyUseProjectE": "Use ProjectE Costs",
   "customers.configuration.forceAutoCost": "Force Automatic Item Costs",
 
+
   "advancements.customers.root.title": "Customers",
-  "advancements.customers.root.description": "Build and operate customer-serving businesses",
+  "advancements.customers.root.description": "Build and operate Customers shop",
+
   "advancements.customers.builder.title": "Builder",
-  "advancements.customers.builder.description": "Build the blocks that make a business work",
-  "advancements.customers.builder.customer.title": "Customer",
+  "advancements.customers.builder.description": "Build a Customers shop",
+  "advancements.customers.builder.customer.title": "Customer Spawner Crafted",
   "advancements.customers.builder.customer.description": "Craft a Customer Spawner",
-  "advancements.customers.builder.supplier.title": "Supplier",
+  "advancements.customers.builder.supplier.title": "Supplier Spawner Crafted",
   "advancements.customers.builder.supplier.description": "Craft a Supplier Spawner",
+
   "advancements.customers.server.title": "Server",
-  "advancements.customers.server.description": "Serve customers and stock the business",
+  "advancements.customers.server.description": "Serve customers and stock the shop",
   "advancements.customers.server.customer.title": "Customer",
   "advancements.customers.server.customer.description": "Serve items requested by customers",
   "advancements.customers.server.supplier.title": "Supplier",
   "advancements.customers.server.supplier.description": "Supply items requested by the business",
-  "advancements.customers.server.customer.customer_served.title": "First Customer Served",
-  "advancements.customers.server.customer.customer_served.description": "Complete one requested-item transaction for a customer",
-  "stat.custom.customers.customer_served": "Customer Items Served"
+
+  "advancements.customers.server.customer.item_served.title": "First Item Served",
+  "advancements.customers.server.customer.item_served.description": "Serve one requested-item to a customer",
+  "advancements.customers.server.customer.items_served_50.title": "50 Items Served",
+  "advancements.customers.server.customer.items_served_50.description": "Serve 50 requested-items to customers",
+  "advancements.customers.server.customer.items_served_100.title": "100 Items Served",
+  "advancements.customers.server.customer.items_served_100.description": "Serve 100 requested-item to customers",
+  "advancements.customers.server.customer.items_served_500.title": "500 Items Served",
+  "advancements.customers.server.customer.items_served_500.description": "Serve 500 requested-item to customers",
+  "advancements.customers.server.customer.items_served_1000.title": "1000 Items Served",
+  "advancements.customers.server.customer.items_served_1000.description": "Serve 1000 requested-item to customers",
+
+  "advancements.customers.server.customer.shift_day.title": "Day Shift",
+  "advancements.customers.server.customer.shift_day.description": "Serve a customer during the day shift",
+  "advancements.customers.server.customer.shift_night.title": "Night Shift",
+  "advancements.customers.server.customer.shift_night.description": "Serve a customer during the night shift",
+  "advancements.customers.server.customer.shift_breakfast.title": "Breakfast Shift",
+  "advancements.customers.server.customer.shift_breakfast.description": "Serve a customer during the breakfast shift",
+  "advancements.customers.server.customer.shift_lunch.title": "Lunch Shift",
+  "advancements.customers.server.customer.shift_lunch.description": "Serve a customer during the lunch shift",
+  "advancements.customers.server.customer.shift_dinner.title": "Dinner Shift",
+  "advancements.customers.server.customer.shift_dinner.description": "Serve a customer during the dinner shift",
+
+  "stat.customers.item_served": "Customers: Items Served"
 }
