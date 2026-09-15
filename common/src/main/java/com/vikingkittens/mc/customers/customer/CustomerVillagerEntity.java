@@ -396,7 +396,7 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
                     }
                 }
             }
-            emitCustomerServed(serverLevel, paymentOwner, offer, payment);
+            emitItemServed(serverLevel, paymentOwner, offer, payment);
         }
         if (spawnerPos != null
                 && level().getBlockEntity(spawnerPos)
@@ -1099,19 +1099,19 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
                     );
                 }
                 if (level() instanceof ServerLevel serverLevel) {
-                    emitCustomerServed(serverLevel, tradingPlayer.getUUID(), offer, offer.assemble());
+                    emitItemServed(serverLevel, tradingPlayer.getUUID(), offer, offer.assemble());
                 }
             }
         }
     }
 
-    private void emitCustomerServed(
+    private void emitItemServed(
             ServerLevel serverLevel,
             @Nullable UUID playerId,
             MerchantOffer offer,
             ItemStack payment
     ) {
-        InternalEvents.emit(new CustomerInternalEvents.CustomerServed(
+        InternalEvents.emit(new CustomerInternalEvents.ItemServed(
                 serverLevel,
                 spawnerPos,
                 getSpawnerMode().orElse(null),

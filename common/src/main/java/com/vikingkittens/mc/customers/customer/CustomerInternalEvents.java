@@ -14,7 +14,7 @@ import com.vikingkittens.mc.customers.common.events.InternalEvent;
 public final class CustomerInternalEvents {
     private CustomerInternalEvents() {}
 
-    public static final class CustomerServed extends InternalEvent {
+    public static final class ItemServed extends InternalEvent {
         private final ServerLevel level;
         private final BlockPos spawnerPosition;
         private final CustomerSpawnerMode spawnerMode;
@@ -24,7 +24,7 @@ public final class CustomerInternalEvents {
         private final ItemStack servedItem;
         private final ItemStack costItem;
 
-        public CustomerServed(
+        public ItemServed(
                 ServerLevel level,
                 @Nullable BlockPos spawnerPosition,
                 @Nullable CustomerSpawnerMode spawnerMode,

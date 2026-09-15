@@ -1,0 +1,25 @@
+{
+  "parent": "customers:server/customer/root",
+  "criteria": {
+    "shift_lunch": {
+      "trigger": "customers:item_served",
+      "conditions": {
+        "spawner_mode": "lunch"
+      }
+    }
+  },
+  "display": {
+    "description": { "translate": "advancements.customers.server.customer.shift_lunch.description" },
+    "icon": {
+      "count": 1,
+      "id": "customers:advancement_icon",
+      "components": { "minecraft:custom_model_data": 13 }
+    },
+    "title": { "translate": "advancements.customers.server.customer.shift_lunch.title" }
+  },
+  "requirements": [
+    [
+      "shift_lunch"
+    ]
+  ]
+}

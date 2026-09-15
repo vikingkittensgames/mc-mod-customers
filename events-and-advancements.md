@@ -8,7 +8,7 @@ All internal events extend `InternalEvent`. A listener is a static method annota
 
 ```java
 @InternalEventHandler
-public static void onCustomerServed(CustomerInternalEvents.CustomerServed event) {
+public static void onItemServed(CustomerInternalEvents.ItemServed event) {
     // Respond to the completed transaction.
 }
 ```
@@ -25,13 +25,13 @@ Publish an event only after the gameplay operation succeeds:
 InternalEvents.emit(event);
 ```
 
-`InternalEvents` calls handlers whose parameter type accepts the emitted event. A handler for `InternalEvent` therefore sees every event, while a handler for `CustomerServed` sees only that event. Registration is explicit so startup behavior does not depend on classpath scanning, and registering the same class more than once has no effect.
+`InternalEvents` calls handlers whose parameter type accepts the emitted event. A handler for `InternalEvent` therefore sees every event, while a handler for `ItemServed` sees only that event. Registration is explicit so startup behavior does not depend on classpath scanning, and registering the same class more than once has no effect.
 
 Add customer events as public static classes in `CustomerInternalEvents` and supplier events in `SupplierInternalEvents`. Event values should describe the completed operation and defensively copy mutable values such as `ItemStack`.
 
-### CustomerServed
+### ItemServed
 
-`CustomerServed` represents one successfully completed requested-item transaction. It is emitted after the customer offer is committed. It contains the server level, spawner position and mode, serving player ID, customer ID and profession, served item stack, and cost/payment item stack.
+`ItemServed` represents one successfully completed requested-item transaction. It is emitted after the customer offer is committed. It contains the server level, spawner position and mode, serving player ID, customer ID and profession, served item stack, and cost/payment item stack.
 
 The serving player is the first player associated with the item stacks consumed from the pickup counter. Automated or unattributed transactions still emit the internal event, but do not grant a player advancement or statistic.
 
@@ -39,7 +39,7 @@ Use a separate event such as `CustomerCompleted` if a future feature needs to re
 
 ## Custom Advancement Triggers
 
-Register trigger types in `CustomersTriggers`. Each trigger is a public static nested class so its codec, matching rules, and dispatch entry point stay together. The `customers:customer_served` trigger is dispatched by `CustomersAdvancementEvents`, which is registered with the internal event system during common initialization. Minecraft's advancement system handles client synchronization, so this trigger does not require a custom network payload.
+Register trigger types in `CustomersTriggers`. Each trigger is a public static nested class so its codec, matching rules, and dispatch entry point stay together. The `customers:item_served` trigger is dispatched by `CustomersAdvancementEvents`, which is registered with the internal event system during common initialization. Minecraft's advancement system handles client synchronization, so this trigger does not require a custom network payload.
 
 The trigger accepts these optional conditions:
 
@@ -52,12 +52,13 @@ The trigger accepts these optional conditions:
 | `served_count` | Exact count or vanilla integer range for the supplied stack |
 | `cost_item` | Vanilla item predicate for the payment stack |
 | `cost_count` | Exact count or vanilla integer range for the payment stack |
+| `total_items_served` | Exact value or vanilla integer range for the player's persistent item-transaction total |
 
 Conditions are combined with AND semantics. Leaving every condition out matches any attributed customer transaction:
 
 ```json
 {
-  "trigger": "customers:customer_served"
+  "trigger": "customers:item_served"
 }
 ```
 
@@ -65,7 +66,7 @@ For example, this criterion requires an impatient lunch customer who wanted at l
 
 ```json
 {
-  "trigger": "customers:customer_served",
+  "trigger": "customers:item_served",
   "conditions": {
     "spawner_mode": "lunch",
     "customer_profession": "customers:customer_impatient",
@@ -83,6 +84,19 @@ For example, this criterion requires an impatient lunch customer who wanted at l
       ]
     },
     "cost_count": 2
+  }
+}
+```
+
+For example, this criterion matches when the player's persistent total reaches 100 completed item transactions:
+
+```json
+{
+  "trigger": "customers:item_served",
+  "conditions": {
+    "total_items_served": {
+      "min": 100
+    }
   }
 }
 ```
@@ -107,17 +121,18 @@ Customers
 │   └── Supplier
 └── Server
     ├── Customer
-    │   └── First Customer Served
+    │   └── First Item Served
+    │       └── 100 Items Served
     └── Supplier
 ```
 
-The Builder advancements use Minecraft's `recipe_crafted` trigger for the Customer and Supplier Spawner recipes. The organizational root, Builder, Server, Customer, and Supplier nodes suppress chat announcements and toast notifications. `First Customer Served` uses `customers:customer_served`.
+The Builder advancements use Minecraft's `recipe_crafted` trigger for the Customer and Supplier Spawner recipes. The organizational root, Builder, Server, Customer, and Supplier nodes suppress chat announcements and toast notifications. `First Item Served` and `100 Items Served` use `customers:item_served`.
 
-When adding an advancement, create its JSON below the appropriate branch, point `parent` at the preceding node, add its English title and description to `assets/customers/lang/en_us.json`, and test both the resource path and parent/trigger values.
+When adding an advancement, create its JSON below the appropriate branch, point `parent` at the preceding node, add its English title and description to `assets/customers/lang/en_us.json`, and validate it in the game advancement screen.
 
 ## Statistics
 
-Register custom statistic IDs in `CustomersStatistics`, using one public static nested class per statistic. `CustomersAdvancementEvents` increments `customers:customer_served` once for each attributed `CustomerServed` event. The statistic counts completed requested-item transactions, not the number of individual items in the served stack.
+Register custom statistic IDs in `CustomersStatistics`, using one public static nested class per statistic. `CustomersAdvancementEvents` increments `customers:item_served` once for each attributed `ItemServed` event before dispatching the trigger. The trigger can therefore compare `total_items_served` with the updated persistent statistic on the same transaction. The statistic counts completed requested-item transactions, not the number of individual items in the served stack.
 
 New statistics should be incremented by the same internal-event handler that dispatches their related trigger. This keeps gameplay code responsible only for reporting facts and keeps achievement bookkeeping in the advancements package.
 
@@ -128,6 +143,10 @@ This initial implementation has no Forge- or NeoForge-specific event classes. Ev
 The internal event system deliberately does not use either loader's public event bus. Its annotation, handler discovery, dispatch, and gameplay events therefore behave identically on Forge and NeoForge. Nothing was added under `forge/src` or `neoforge/src` for this work.
 
 Keep future internal events, Customers advancement triggers, and statistic behavior in common whenever they use Minecraft APIs shared by both supported loaders. A class belongs in the Forge or NeoForge module only when it must subscribe to that loader's lifecycle or gameplay event bus, register through an API not covered by `IRegistrationHelper`, or integrate with a loader-specific API from another mod. In that case, put only the small adapter in the loader module and have it publish or consume a common internal event so the core behavior and tests remain shared.
+
+## Advancement Icons
+
+`CustomerAdvancements` owns the hidden `customers:advancement_icon` item used for custom advancement artwork. It has no recipe and is not added to a creative tab. Custom Model Data value `1` uses the emerald icon, while value `2` uses the served icon. Additional icons should add another model override and a matching model-number constant to `CustomerAdvancements`.
 
 ## Optional Integrations
 
@@ -143,4 +162,4 @@ The build exposes Architectury API as an optional dependency on NeoForge. Archit
 
 Future public events should listen to Customers internal events and republish immutable event details through non-cancellable Architectury loop events. Other mods will depend on Customers and Architectury and register listeners with the public event object.
 
-An optional integration such as FTB Quests should register its own internal-event handler rather than modifying customer or supplier transaction code. Vanilla advancements can already be selected as FTB Quest tasks, so `customers:customer_served` advancements provide a data-driven integration route without a direct dependency. A future direct task integration can consume the same internal event when it needs details that are not represented by a configured advancement.
+An optional integration such as FTB Quests should register its own internal-event handler rather than modifying customer or supplier transaction code. Vanilla advancements can already be selected as FTB Quest tasks, so `customers:item_served` advancements provide a data-driven integration route without a direct dependency. A future direct task integration can consume the same internal event when it needs details that are not represented by a configured advancement.

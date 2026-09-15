@@ -16,7 +16,7 @@ public final class CustomersAdvancementEvents {
     }
 
     @InternalEventHandler
-    public static void onCustomerServed(CustomerInternalEvents.CustomerServed event) {
+    public static void onItemServed(CustomerInternalEvents.ItemServed event) {
         if (event.playerId() == null) {
             return;
         }
@@ -24,7 +24,10 @@ public final class CustomersAdvancementEvents {
         if (player == null) {
             return;
         }
-        CustomersTriggers.CUSTOMER_SERVED.get().trigger(player, event);
-        player.awardStat(Stats.CUSTOM.get(CustomersStatistics.CustomerServed.id(), StatFormatter.DEFAULT), 1);
+        var itemServedStat =
+                Stats.CUSTOM.get(CustomersStatistics.ITEM_SERVED.get(), StatFormatter.DEFAULT);
+        player.awardStat(itemServedStat, 1);
+        int totalItemsServed = player.getStats().getValue(itemServedStat);
+        CustomersTriggers.ITEM_SERVED.get().trigger(player, event, totalItemsServed);
     }
 }
