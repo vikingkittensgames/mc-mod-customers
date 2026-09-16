@@ -1,9 +1,9 @@
 package com.vikingkittens.mc.customers.advancements.triggers;
 
+import java.util.List;
 import java.util.Optional;
 
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.advancements.critereon.ContextAwarePredicate;
 import net.minecraft.advancements.critereon.MinMaxBounds;
 import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
@@ -15,6 +15,8 @@ import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
 public final class CustomersTriggerShiftFinished
         extends SimpleCriterionTrigger<CustomersTriggerShiftFinished.Instance> {
+    public static final CustomersTriggerSchema<Instance> SCHEMA = Instance.SCHEMA;
+
     @Override
     public Codec<Instance> codec() {
         return Instance.CODEC;
@@ -30,6 +32,7 @@ public final class CustomersTriggerShiftFinished
 
     public record Instance(
             Optional<ContextAwarePredicate> player,
+            Optional<CustomersLocationPredicate> spawnerLocation,
             Optional<CustomerSpawnerMode> spawnerMode,
             Optional<MinMaxBounds.Ints> activeLevel,
             Optional<MinMaxBounds.Doubles> percentage,
@@ -42,34 +45,161 @@ public final class CustomersTriggerShiftFinished
             Optional<MinMaxBounds.Ints> numServers,
             Optional<MinMaxBounds.Ints> totalShiftsFinished
     ) implements SimpleInstance {
-        public static final Codec<Instance> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                ContextAwarePredicate.CODEC.optionalFieldOf("player").forGetter(Instance::player),
-                StringRepresentable.fromEnum(CustomerSpawnerMode::values)
-                        .optionalFieldOf("spawner_mode")
-                        .forGetter(Instance::spawnerMode),
-                MinMaxBounds.Ints.CODEC.optionalFieldOf("level").forGetter(Instance::activeLevel),
-                MinMaxBounds.Doubles.CODEC.optionalFieldOf("percentage").forGetter(Instance::percentage),
-                MinMaxBounds.Ints.CODEC.optionalFieldOf("total_customers").forGetter(Instance::totalCustomers),
-                MinMaxBounds.Ints.CODEC
-                        .optionalFieldOf("num_customers_served")
-                        .forGetter(Instance::numCustomersServed),
-                MinMaxBounds.Ints.CODEC
-                        .optionalFieldOf("num_customers_gave_up")
-                        .forGetter(Instance::numCustomersGaveUp),
-                MinMaxBounds.Ints.CODEC.optionalFieldOf("total_items_wanted").forGetter(Instance::totalItemsWanted),
-                MinMaxBounds.Ints.CODEC.optionalFieldOf("num_players").forGetter(Instance::numPlayers),
-                MinMaxBounds.Ints.CODEC.optionalFieldOf("num_crafters").forGetter(Instance::numCrafters),
-                MinMaxBounds.Ints.CODEC.optionalFieldOf("num_servers").forGetter(Instance::numServers),
-                MinMaxBounds.Ints.CODEC
-                        .optionalFieldOf("total_shifts_finished")
-                        .forGetter(Instance::totalShiftsFinished)
-        ).apply(instance, Instance::new));
+        public Instance(
+                Optional<ContextAwarePredicate> player,
+                Optional<CustomerSpawnerMode> spawnerMode,
+                Optional<MinMaxBounds.Ints> activeLevel,
+                Optional<MinMaxBounds.Doubles> percentage,
+                Optional<MinMaxBounds.Ints> totalCustomers,
+                Optional<MinMaxBounds.Ints> numCustomersServed,
+                Optional<MinMaxBounds.Ints> numCustomersGaveUp,
+                Optional<MinMaxBounds.Ints> totalItemsWanted,
+                Optional<MinMaxBounds.Ints> numPlayers,
+                Optional<MinMaxBounds.Ints> numCrafters,
+                Optional<MinMaxBounds.Ints> numServers,
+                Optional<MinMaxBounds.Ints> totalShiftsFinished
+        ) {
+            this(
+                    player,
+                    Optional.empty(),
+                    spawnerMode,
+                    activeLevel,
+                    percentage,
+                    totalCustomers,
+                    numCustomersServed,
+                    numCustomersGaveUp,
+                    totalItemsWanted,
+                    numPlayers,
+                    numCrafters,
+                    numServers,
+                    totalShiftsFinished
+            );
+        }
+
+        public static final Instance ANY = new Instance(
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty()
+        );
+
+        public static final CustomersTriggerSchema<Instance> SCHEMA =
+                CustomersTriggerSchema.builder(Instance.class)
+                        .property(
+                                "player",
+                                "player",
+                                ContextAwarePredicate.CODEC,
+                                CustomersTriggerSchema.Editor.HIDDEN,
+                                false
+                        )
+                        .property(
+                                "spawnerLocation",
+                                "spawner_location",
+                                CustomersLocationPredicate.CODEC,
+                                CustomersTriggerSchema.Editor.OPTIONAL_LOCATION,
+                                true
+                        )
+                        .property(
+                                "spawnerMode",
+                                "spawner_mode",
+                                StringRepresentable.fromEnum(CustomerSpawnerMode::values),
+                                CustomersTriggerSchema.Editor.OPTIONAL_ENUM,
+                                List.of(CustomerSpawnerMode.values()),
+                                true
+                        )
+                        .property(
+                                "activeLevel",
+                                "level",
+                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
+                                true
+                        )
+                        .property(
+                                "percentage",
+                                "percentage",
+                                MinMaxBounds.Doubles.CODEC,
+                                CustomersTriggerSchema.Editor.OPTIONAL_DOUBLE_RANGE,
+                                true
+                        )
+                        .property(
+                                "totalCustomers",
+                                "total_customers",
+                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
+                                true
+                        )
+                        .property(
+                                "numCustomersServed",
+                                "num_customers_served",
+                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
+                                true
+                        )
+                        .property(
+                                "numCustomersGaveUp",
+                                "num_customers_gave_up",
+                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
+                                true
+                        )
+                        .property(
+                                "totalItemsWanted",
+                                "total_items_wanted",
+                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
+                                true
+                        )
+                        .property(
+                                "numPlayers",
+                                "num_players",
+                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
+                                true
+                        )
+                        .property(
+                                "numCrafters",
+                                "num_crafters",
+                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
+                                true
+                        )
+                        .property(
+                                "numServers",
+                                "num_servers",
+                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
+                                true
+                        )
+                        .property(
+                                "totalShiftsFinished",
+                                "total_shifts_finished",
+                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
+                                false
+                        )
+                        .build();
+
+        public static final Codec<Instance> CODEC = SCHEMA.codec();
 
         public boolean matches(
                 CustomerInternalEvents.ShiftFinished event,
                 int currentTotalShiftsFinished
         ) {
-            return spawnerMode.map(value -> value == event.spawnerMode()).orElse(true)
+            return matchesEvent(event)
+                    && totalShiftsFinished.map(value -> value.matches(currentTotalShiftsFinished)).orElse(true);
+        }
+
+        public boolean matchesEvent(CustomerInternalEvents.ShiftFinished event) {
+            return spawnerLocation.map(value -> value.matches(event)).orElse(true)
+                    && spawnerMode.map(value -> value == event.spawnerMode()).orElse(true)
                     && activeLevel.map(value -> value.matches(event.activeLevel())).orElse(true)
                     && percentage.map(value -> value.matches(event.percentage())).orElse(true)
                     && totalCustomers.map(value -> value.matches(event.totalCustomers())).orElse(true)
@@ -82,8 +212,7 @@ public final class CustomersTriggerShiftFinished
                             ))
                             .orElse(true)
                     && numCrafters.map(value -> value.matches(event.playerItemsCrafted().size())).orElse(true)
-                    && numServers.map(value -> value.matches(event.playerItemsServed().size())).orElse(true)
-                    && totalShiftsFinished.map(value -> value.matches(currentTotalShiftsFinished)).orElse(true);
+                    && numServers.map(value -> value.matches(event.playerItemsServed().size())).orElse(true);
         }
     }
 }

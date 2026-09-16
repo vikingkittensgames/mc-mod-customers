@@ -123,8 +123,9 @@ configurations {
 
 dependencies {
     compileOnly "dev.architectury:architectury-neoforge:${architectury_version}"
+    localRuntime "dev.architectury:architectury-neoforge:${architectury_version}"
     compileOnly "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
-    testRuntimeOnly "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
+    localRuntime "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
     compileOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
     testRuntimeOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
 
@@ -204,4 +205,3 @@ idea {
         downloadJavadoc = true
     }
 }
-
