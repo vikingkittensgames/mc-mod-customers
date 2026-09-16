@@ -1,9 +1,9 @@
 package com.vikingkittens.mc.customers.advancements.triggers;
 
+import java.util.List;
 import java.util.Optional;
 
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.advancements.critereon.ContextAwarePredicate;
 import net.minecraft.advancements.critereon.ItemPredicate;
 import net.minecraft.advancements.critereon.MinMaxBounds;
@@ -17,6 +17,8 @@ import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
 public final class CustomersTriggerItemServed
         extends SimpleCriterionTrigger<CustomersTriggerItemServed.Instance> {
+    public static final CustomersTriggerSchema<Instance> SCHEMA = Instance.SCHEMA;
+
     @Override
     public Codec<Instance> codec() {
         return Instance.CODEC;
@@ -41,34 +43,104 @@ public final class CustomersTriggerItemServed
             Optional<Boolean> isPetItem,
             Optional<MinMaxBounds.Ints> totalItemsServed
     ) implements SimpleInstance {
-        public static final Codec<Instance> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                ContextAwarePredicate.CODEC.optionalFieldOf("player").forGetter(Instance::player),
-                StringRepresentable.fromEnum(CustomerSpawnerMode::values)
-                        .optionalFieldOf("spawner_mode")
-                        .forGetter(Instance::spawnerMode),
-                ResourceLocation.CODEC.optionalFieldOf("customer_profession").forGetter(Instance::customerProfession),
-                ItemPredicate.CODEC.optionalFieldOf("served_item").forGetter(Instance::servedItem),
-                MinMaxBounds.Ints.CODEC.optionalFieldOf("served_count").forGetter(Instance::servedCount),
-                ItemPredicate.CODEC.optionalFieldOf("cost_item").forGetter(Instance::costItem),
-                MinMaxBounds.Ints.CODEC.optionalFieldOf("cost_count").forGetter(Instance::costCount),
-                Codec.BOOL.optionalFieldOf("is_pet_item").forGetter(Instance::isPetItem),
-                MinMaxBounds.Ints.CODEC
-                        .optionalFieldOf("total_items_served")
-                        .forGetter(Instance::totalItemsServed)
-        ).apply(instance, Instance::new));
+        public static final Instance ANY = new Instance(
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty()
+        );
+
+        public static final CustomersTriggerSchema<Instance> SCHEMA =
+                CustomersTriggerSchema.builder(Instance.class)
+                        .property(
+                                "player",
+                                "player",
+                                ContextAwarePredicate.CODEC,
+                                CustomersTriggerSchema.Editor.HIDDEN,
+                                false
+                        )
+                        .property(
+                                "spawnerMode",
+                                "spawner_mode",
+                                StringRepresentable.fromEnum(CustomerSpawnerMode::values),
+                                CustomersTriggerSchema.Editor.OPTIONAL_ENUM,
+                                List.of(CustomerSpawnerMode.values()),
+                                true
+                        )
+                        .property(
+                                "customerProfession",
+                                "customer_profession",
+                                ResourceLocation.CODEC,
+                                CustomersTriggerSchema.Editor.OPTIONAL_RESOURCE_LOCATION,
+                                true
+                        )
+                        .property(
+                                "servedItem",
+                                "served_item",
+                                ItemPredicate.CODEC,
+                                CustomersTriggerSchema.Editor.OPTIONAL_ITEM_PREDICATE,
+                                true
+                        )
+                        .property(
+                                "servedCount",
+                                "served_count",
+                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
+                                true
+                        )
+                        .property(
+                                "costItem",
+                                "cost_item",
+                                ItemPredicate.CODEC,
+                                CustomersTriggerSchema.Editor.OPTIONAL_ITEM_PREDICATE,
+                                true
+                        )
+                        .property(
+                                "costCount",
+                                "cost_count",
+                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
+                                true
+                        )
+                        .property(
+                                "isPetItem",
+                                "is_pet_item",
+                                Codec.BOOL,
+                                CustomersTriggerSchema.Editor.OPTIONAL_BOOLEAN,
+                                true
+                        )
+                        .property(
+                                "totalItemsServed",
+                                "total_items_served",
+                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
+                                false
+                        )
+                        .build();
+
+        public static final Codec<Instance> CODEC = SCHEMA.codec();
 
         public boolean matches(
                 CustomerInternalEvents.ItemServed event,
                 int currentTotalItemsServed
         ) {
+            return matchesEvent(event)
+                    && totalItemsServed.map(value -> value.matches(currentTotalItemsServed)).orElse(true);
+        }
+
+        public boolean matchesEvent(CustomerInternalEvents.ItemServed event) {
             return spawnerMode.map(value -> value == event.spawnerMode()).orElse(true)
                     && customerProfession.map(value -> value.equals(event.customerProfession())).orElse(true)
                     && servedItem.map(value -> value.test(event.servedItem())).orElse(true)
                     && servedCount.map(value -> value.matches(event.servedItem().getCount())).orElse(true)
                     && costItem.map(value -> value.test(event.costItem())).orElse(true)
                     && costCount.map(value -> value.matches(event.costItem().getCount())).orElse(true)
-                    && isPetItem.map(value -> value == event.isPetItem()).orElse(true)
-                    && totalItemsServed.map(value -> value.matches(currentTotalItemsServed)).orElse(true);
+                    && isPetItem.map(value -> value == event.isPetItem()).orElse(true);
         }
     }
 }

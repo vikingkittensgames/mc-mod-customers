@@ -21,6 +21,7 @@ import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -85,6 +86,48 @@ class CustomersTriggerItemServedTest {
 
         assertTrue(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, true), 1));
         assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, false), 1));
+    }
+
+    @Test
+    void eventMatchingDoesNotDependOnThePlayerLifetimeTotal() {
+        CustomersTriggerItemServed.Instance instance = new CustomersTriggerItemServed.Instance(
+                Optional.empty(),
+                Optional.of(CustomerSpawnerMode.LUNCH),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.of(MinMaxBounds.Ints.atLeast(100))
+        );
+
+        assertTrue(instance.matchesEvent(event(CustomerSpawnerMode.LUNCH, 3, 2, false)));
+        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, false), 99));
+    }
+
+    @Test
+    void schemaDescribesAndUpdatesTriggerProperties() {
+        CustomersTriggerSchema.Property<CustomersTriggerItemServed.Instance> spawnerMode =
+                CustomersTriggerItemServed.SCHEMA.property("spawner_mode").orElseThrow();
+
+        assertEquals("advancements.triggers.property.spawner_mode", spawnerMode.name().getString());
+        assertEquals(CustomersTriggerSchema.Editor.OPTIONAL_ENUM, spawnerMode.editor());
+        assertTrue(spawnerMode.taskEditable());
+
+        CustomersTriggerItemServed.Instance updated = CustomersTriggerItemServed.SCHEMA.with(
+                CustomersTriggerItemServed.Instance.ANY,
+                spawnerMode,
+                Optional.of(CustomerSpawnerMode.LUNCH)
+        );
+
+        assertEquals(Optional.of(CustomerSpawnerMode.LUNCH), updated.spawnerMode());
+    }
+
+    @Test
+    void schemaKeepsAdvancementOnlyPropertiesOutOfTaskEditors() {
+        assertFalse(CustomersTriggerItemServed.SCHEMA.property("player").orElseThrow().taskEditable());
+        assertFalse(CustomersTriggerItemServed.SCHEMA.property("total_items_served").orElseThrow().taskEditable());
     }
 
     @Test

@@ -162,10 +162,30 @@ the independent `CustomersFTBEvents` internal-event consumer.
 
 Prefer FTB's Advancement Task for existing Customers advancements and its Stat
 Task for arbitrary per-player `customers:item_served` or
-`customers:shift_finished` totals. The `customers:pet_items_served` custom task
-handles a requirement those built-in tasks cannot express: accumulating pet
-items served by every member of an FTB team. Its configurable `count` value is
-incremented by qualifying `ItemServed` events.
+`customers:shift_finished` totals. The single `customers:customers_task` entry
+in FTB's task menu opens a Customers submenu. `Pet Items Served` counts pet-item
+service events, while `Item Served` can filter events by spawner mode, customer
+profession, served item or tag, served stack count, cost item or tag, cost stack
+count, and pet-item status.
+
+Custom Customers tasks listen directly to Customers internal events and add one
+to the serving player's FTB team progress for each matching event. They do not
+read the player's lifetime statistics, so their configured count belongs to
+that task and team. They also do not award historical progress: an event counts
+only while the quest is eligible to progress. Item Served task filters delegate
+their event matching to `CustomersTriggerItemServed.Instance`; the trigger's
+player-total condition remains specific to advancements and is not exposed in
+the FTB task editor.
+
+Trigger records intended for task reuse define a `CustomersTriggerSchema` next
+to the record. Each schema property supplies its serialized name, codec,
+translated component, editor type, optional editor choices, and whether it is
+available to tasks. The schema generates the advancement codec and is also used
+by `CustomersFTBTriggerSchema` for task persistence, network synchronization,
+and FTB editor fields. Add a condition to the trigger schema rather than
+copying the property through each FTB task method. Property translations use
+the `advancements.triggers.property.` prefix; range editors append `.min` and
+`.max` to the property key.
 
 Quest organization remains under modpack-author control. A `Customers` chapter
 group can contain `Builder`, `Customer Service`, and `Supplier Service`

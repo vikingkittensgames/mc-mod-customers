@@ -28,7 +28,8 @@ public final class CustomersFTB {
      * Prefer a Stat Task when only a per-player numeric total matters and a
      * dedicated advancement would add no value. Examples include reaching an
      * arbitrary customers:item_served or customers:shift_finished total chosen
-     * by a modpack author.
+     * by a modpack author. Statistics remain player lifetime totals and must
+     * not be used as the progress counter for event-driven team tasks.
      *
      * FTB's ObjectStarted, ObjectProgress, and ObjectCompleted events report
      * quest lifecycle changes. They do not replace Customers InternalEvents as
@@ -38,9 +39,11 @@ public final class CustomersFTB {
      *
      * Use a custom task when the requirement needs event values or shared team
      * accumulation that a player advancement or statistic cannot express. The
-     * initial customers:pet_items_served task supports a quest such as "Feed
-     * 25 Customer Pets Together." Every qualifying ItemServed event increments
-     * the task once for the serving player's FTB team.
+     * customers:customers_task entry opens a submenu of event-driven Customers
+     * tasks. Pet Items Served supports a quest such as "Feed 25 Customer Pets
+     * Together," and Item Served applies configurable event properties through
+     * CustomersTriggerItemServed matching. Every qualifying event increments
+     * the selected task once for the serving player's FTB team.
      *
      * Possible future custom tasks include accumulating items crafted or served
      * during completed shifts, reaching a combined team shift score, completing

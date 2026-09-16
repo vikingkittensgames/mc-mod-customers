@@ -15,6 +15,7 @@ import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.client.advancements.ftb.CustomersFTBClient;
 
 // This class will not load on dedicated servers. Accessing client side code from here is safe.
 @Mod(value = Customers.MODID, dist = Dist.CLIENT)
@@ -24,6 +25,7 @@ public class CustomersClient {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public CustomersClient(ModContainer container) {
+        CustomersFTBClient.initialize();
         // Allows NeoForge to create a config screen for this mod's configs.
         // The config screen is accessed by going to the Mods screen > clicking on your mod > clicking on config.
         // Do not forget to add translations for your config options to the en_us.json file.

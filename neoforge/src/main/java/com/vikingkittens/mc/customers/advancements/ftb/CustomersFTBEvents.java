@@ -17,7 +17,7 @@ public final class CustomersFTBEvents {
 
     @InternalEventHandler
     public static void onItemServed(CustomerInternalEvents.ItemServed event) {
-        if (!event.isPetItem() || event.playerId() == null) {
+        if (event.playerId() == null) {
             return;
         }
         ServerPlayer player = event.level().getServer().getPlayerList().getPlayer(event.playerId());
@@ -27,9 +27,9 @@ public final class CustomersFTBEvents {
         ServerQuestFile.getInstance().ifPresent(file ->
                 file.getTeamData(player).ifPresent(teamData ->
                         file.getAllTasks().stream()
-                                .filter(CustomersFTBTasks.PetItemsServedTask.class::isInstance)
-                                .map(CustomersFTBTasks.PetItemsServedTask.class::cast)
-                                .forEach(task -> task.recordProgress(teamData))
+                                .filter(CustomersFTBTasks.CustomersTask.class::isInstance)
+                                .map(CustomersFTBTasks.CustomersTask.class::cast)
+                                .forEach(task -> task.recordProgress(teamData, event))
                 )
         );
     }
