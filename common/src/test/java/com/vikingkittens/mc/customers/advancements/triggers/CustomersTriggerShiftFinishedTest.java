@@ -73,6 +73,32 @@ class CustomersTriggerShiftFinishedTest {
     }
 
     @Test
+    void matchesOneStarPercentageCriterion() {
+        String json = """
+                {
+                  "percentage": { "min": 0.15 }
+                }
+                """;
+        CustomersTriggerShiftFinished.Instance instance =
+                CustomersTriggerShiftFinished.Instance.CODEC
+                        .parse(registryOps(), JsonParser.parseString(json))
+                        .getOrThrow();
+
+        assertTrue(instance.matches(
+                event(CustomerSpawnerMode.LUNCH, 1, 0.15F),
+                1
+        ));
+        assertTrue(instance.matches(
+                event(CustomerSpawnerMode.LUNCH, 1, 1.0F),
+                1
+        ));
+        assertFalse(instance.matches(
+                event(CustomerSpawnerMode.LUNCH, 1, 0.14F),
+                1
+        ));
+    }
+
+    @Test
     void decodesDataDrivenShiftFinishedConditions() {
         String json = """
                 {
@@ -153,12 +179,20 @@ class CustomersTriggerShiftFinishedTest {
     }
 
     private static CustomerInternalEvents.ShiftFinished event(CustomerSpawnerMode mode, int activeLevel) {
+        return event(mode, activeLevel, 0.75F);
+    }
+
+    private static CustomerInternalEvents.ShiftFinished event(
+            CustomerSpawnerMode mode,
+            int activeLevel,
+            float percentage
+    ) {
         return new CustomerInternalEvents.ShiftFinished(
                 mock(ServerLevel.class),
                 null,
                 mode,
                 activeLevel,
-                0.75F,
+                percentage,
                 10,
                 8,
                 2,

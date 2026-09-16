@@ -1,0 +1,25 @@
+{
+  "parent": "customers:server/customer/root",
+  "criteria": {
+    "customer_impatient_served_100": {
+      "trigger": "customers:customer_served",
+      "conditions": {
+        "total_impatient_customers_served": { "min": 100 }
+      }
+    }
+  },
+  "display": {
+    "description": { "translate": "advancements.customers.server.customer.customer_impatient_served_100.description" },
+    "icon": {
+      "count": 1,
+      "id": "customers:advancement_icon",
+      "components": { "minecraft:custom_model_data": 26 }
+    },
+    "title": { "translate": "advancements.customers.server.customer.customer_impatient_served_100.title" }
+  },
+  "requirements": [
+    [
+      "customer_impatient_served_100"
+    ]
+  ]
+}

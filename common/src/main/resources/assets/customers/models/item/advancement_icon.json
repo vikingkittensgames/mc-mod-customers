@@ -15,6 +15,21 @@
     { "predicate": { "custom_model_data": 11 }, "model": "customers:item/advancement_icon_night" },
     { "predicate": { "custom_model_data": 12 }, "model": "customers:item/advancement_icon_breakfast" },
     { "predicate": { "custom_model_data": 13 }, "model": "customers:item/advancement_icon_lunch" },
-    { "predicate": { "custom_model_data": 14 }, "model": "customers:item/advancement_icon_dinner" }
+    { "predicate": { "custom_model_data": 14 }, "model": "customers:item/advancement_icon_dinner" },
+
+    { "predicate": { "custom_model_data": 20 }, "model": "customers:item/advancement_icon_customer" },
+    { "predicate": { "custom_model_data": 21 }, "model": "customers:item/advancement_icon_customer_casual" },
+    { "predicate": { "custom_model_data": 22 }, "model": "customers:item/advancement_icon_customer_normal" },
+    { "predicate": { "custom_model_data": 23 }, "model": "customers:item/advancement_icon_customer_impatient" },
+    { "predicate": { "custom_model_data": 24 }, "model": "customers:item/advancement_icon_customer_casual_100" },
+    { "predicate": { "custom_model_data": 25 }, "model": "customers:item/advancement_icon_customer_normal_100" },
+    { "predicate": { "custom_model_data": 26 }, "model": "customers:item/advancement_icon_customer_impatient_100" },
+
+    { "predicate": { "custom_model_data": 30 }, "model": "customers:item/advancement_icon_star" },
+    { "predicate": { "custom_model_data": 31 }, "model": "customers:item/advancement_icon_star1" },
+    { "predicate": { "custom_model_data": 32 }, "model": "customers:item/advancement_icon_star2" },
+    { "predicate": { "custom_model_data": 33 }, "model": "customers:item/advancement_icon_star3" },
+    { "predicate": { "custom_model_data": 34 }, "model": "customers:item/advancement_icon_star4" },
+    { "predicate": { "custom_model_data": 35 }, "model": "customers:item/advancement_icon_star5" }
   ]
 }

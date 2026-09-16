@@ -37,7 +37,7 @@ public final class CustomerInternalEvents {
         public @Nullable CustomerSpawnerMode spawnerMode() { return spawnerMode; }
     }
 
-    public static final class ItemServed extends CustomerEvent {
+    public abstract static class ServedEvent extends CustomerEvent {
         private final UUID playerId;
         private final UUID customerId;
         private final ResourceLocation customerProfession;
@@ -45,7 +45,7 @@ public final class CustomerInternalEvents {
         private final ItemStack costItem;
         private final boolean isPetItem;
 
-        public ItemServed(
+        protected ServedEvent(
                 ServerLevel level,
                 @Nullable BlockPos spawnerPosition,
                 @Nullable CustomerSpawnerMode spawnerMode,
@@ -76,6 +76,58 @@ public final class CustomerInternalEvents {
         public ItemStack costItem() { return costItem.copy(); }
 
         public boolean isPetItem() { return isPetItem; }
+    }
+
+    public static final class ItemServed extends ServedEvent {
+        public ItemServed(
+                ServerLevel level,
+                @Nullable BlockPos spawnerPosition,
+                @Nullable CustomerSpawnerMode spawnerMode,
+                @Nullable UUID playerId,
+                UUID customerId,
+                ResourceLocation customerProfession,
+                ItemStack servedItem,
+                ItemStack costItem,
+                boolean isPetItem
+        ) {
+            super(
+                    level,
+                    spawnerPosition,
+                    spawnerMode,
+                    playerId,
+                    customerId,
+                    customerProfession,
+                    servedItem,
+                    costItem,
+                    isPetItem
+            );
+        }
+    }
+
+    public static final class CustomerServed extends ServedEvent {
+        public CustomerServed(
+                ServerLevel level,
+                @Nullable BlockPos spawnerPosition,
+                @Nullable CustomerSpawnerMode spawnerMode,
+                @Nullable UUID playerId,
+                UUID customerId,
+                ResourceLocation customerProfession,
+                ItemStack servedItem,
+                ItemStack costItem,
+                boolean isPetItem
+        ) {
+            super(
+                    level,
+                    spawnerPosition,
+                    spawnerMode,
+                    playerId,
+                    customerId,
+                    customerProfession,
+                    servedItem,
+                    costItem,
+                    isPetItem
+            );
+        }
     }
 
     public static final class ShiftFinished extends CustomerEvent {

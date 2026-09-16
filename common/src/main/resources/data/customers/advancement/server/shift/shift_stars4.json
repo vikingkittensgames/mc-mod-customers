@@ -1,0 +1,25 @@
+{
+  "parent": "customers:server/shift/shift_stars3",
+  "criteria": {
+    "shift_stars4": {
+      "trigger": "customers:shift_finished",
+      "conditions": {
+        "percentage": { "min": 0.75 }
+      }
+    }
+  },
+  "display": {
+    "description": { "translate": "advancements.customers.server.shift.shift_stars4.description" },
+    "icon": {
+      "id": "customers:advancement_icon",
+      "count": 1,
+      "components": { "minecraft:custom_model_data": 34 }
+    },
+    "title": { "translate": "advancements.customers.server.shift.shift_stars4.title" }
+  },
+  "requirements": [
+    [
+      "shift_stars4"
+    ]
+  ]
+}

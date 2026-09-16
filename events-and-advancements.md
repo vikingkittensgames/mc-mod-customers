@@ -25,17 +25,19 @@ Publish an event only after the gameplay operation succeeds:
 InternalEvents.emit(event);
 ```
 
-`InternalEvents` calls handlers whose parameter type accepts the emitted event. A handler for `InternalEvent` therefore sees every event, while a handler for `ItemServed` sees only that event. Registration is explicit so startup behavior does not depend on classpath scanning, and registering the same class more than once has no effect.
+`InternalEvents` calls handlers whose parameter type accepts the emitted event. A handler for `InternalEvent` therefore sees every event, a handler for `ServedEvent` sees both item- and customer-served events, and a handler for `ItemServed` sees only that event. Registration is explicit so startup behavior does not depend on classpath scanning, and registering the same class more than once has no effect.
 
 Add customer events as public static classes in `CustomerInternalEvents` and supplier events in `SupplierInternalEvents`. Event values should describe the completed operation and defensively copy mutable values such as `ItemStack`.
 
-### ItemServed
+### Served events
 
-`ItemServed` represents one successfully completed requested-item transaction. It is emitted after the customer offer is committed. It contains the server level, spawner position and mode, serving player ID, customer ID and profession, served item stack, cost/payment item stack, and whether the served item fed that customer's active pet.
+`ServedEvent` contains the values shared by its two concrete event types: the server level, spawner position and mode, serving player ID, customer ID and profession, served item stack, cost/payment item stack, and whether the served item fed that customer's active pet.
 
-The serving player is the first player associated with the item stacks consumed from the pickup counter. Automated or unattributed transactions still emit the internal event, but do not grant a player advancement or statistic.
+`ItemServed` represents one successfully completed requested-item transaction. It is emitted after every committed customer offer. The serving player is the first player associated with the item stacks consumed from the pickup counter. Automated or unattributed transactions still emit `ItemServed`, but do not grant a player advancement or statistic.
 
-Use a separate event such as `CustomerCompleted` if a future feature needs to represent satisfying every request belonging to one customer.
+`CustomerServed` is emitted only the first time a particular player serves a particular customer. The customer's persisted `tradedWithPlayers` data provides this check across save and reload. When one pickup-counter transaction consumes stacks contributed by multiple players, every contributor serving that customer for the first time receives a separate `CustomerServed` event. Automated or unattributed transactions do not emit `CustomerServed` because no player/customer association can be recorded.
+
+`CustomerServed` means that the player supplied an item to the customer; it does not mean that every request belonging to that customer has been completed. Use a separate completion event if a future feature needs that meaning.
 
 ## Custom Advancement Triggers
 

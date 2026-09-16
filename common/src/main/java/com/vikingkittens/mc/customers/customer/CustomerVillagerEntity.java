@@ -320,17 +320,18 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
             BlockPos counterPosition
     ) {
         offer.increaseUses();
-        consumedStacks.stream()
+        List<UUID> servingPlayerIds = consumedStacks.stream()
                 .map(CustomerPickupCounterBlockEntity.StoredStack
                         ::crafterId)
-                .filter(Objects::nonNull)
-                .forEach(tradedWithPlayers::add);
+                .toList();
+        List<UUID> newServingPlayerIds = addNewTradedPlayers(
+                tradedWithPlayers,
+                servingPlayerIds
+        );
         ticksSinceTrade = 0;
         playHappy();
 
-        UUID paymentOwner = consumedStacks.stream()
-                .map(CustomerPickupCounterBlockEntity.StoredStack
-                        ::crafterId)
+        UUID paymentOwner = servingPlayerIds.stream()
                 .filter(Objects::nonNull)
                 .findFirst()
                 .orElse(null);
@@ -410,8 +411,28 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
                     );
                 }
             }
-            emitItemServed(serverLevel, paymentOwner, offer, payment, isPetItem);
+            emitServedEvents(
+                    serverLevel,
+                    paymentOwner,
+                    offer,
+                    payment,
+                    isPetItem,
+                    newServingPlayerIds
+            );
         }
+    }
+
+    static List<UUID> addNewTradedPlayers(
+            Set<UUID> tradedWithPlayers,
+            Iterable<UUID> playerIds
+    ) {
+        List<UUID> addedPlayers = new ArrayList<>();
+        for (UUID playerId : playerIds) {
+            if (playerId != null && tradedWithPlayers.add(playerId)) {
+                addedPlayers.add(playerId);
+            }
+        }
+        return List.copyOf(addedPlayers);
     }
 
     /**
@@ -1091,7 +1112,10 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
             Player tradingPlayer = getTradingPlayer();
             if (tradingPlayer != null) {
                 giveTradeRemainderItems(tradingPlayer, offer.getCostA());
-                tradedWithPlayers.add(tradingPlayer.getUUID());
+                List<UUID> newServingPlayerIds = addNewTradedPlayers(
+                        tradedWithPlayers,
+                        List.of(tradingPlayer.getUUID())
+                );
                 playHappy();
                 boolean isPetItem = false;
                 if (level().getBlockEntity(spawnerPos) instanceof CustomerSpawnerBlockEntity spawner) {
@@ -1103,32 +1127,54 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
                     );
                 }
                 if (level() instanceof ServerLevel serverLevel) {
-                    emitItemServed(serverLevel, tradingPlayer.getUUID(), offer, offer.assemble(), isPetItem);
+                    emitServedEvents(
+                            serverLevel,
+                            tradingPlayer.getUUID(),
+                            offer,
+                            offer.assemble(),
+                            isPetItem,
+                            newServingPlayerIds
+                    );
                 }
             }
         }
     }
 
-    private void emitItemServed(
+    private void emitServedEvents(
             ServerLevel serverLevel,
             @Nullable UUID playerId,
             MerchantOffer offer,
             ItemStack payment,
-            boolean isPetItem
+            boolean isPetItem,
+            List<UUID> newServingPlayerIds
     ) {
+        ResourceLocation customerProfession = serverLevel.registryAccess()
+                .registryOrThrow(Registries.VILLAGER_PROFESSION)
+                .getKey(getVillagerData().getProfession());
         InternalEvents.emit(new CustomerInternalEvents.ItemServed(
                 serverLevel,
                 spawnerPos,
                 getSpawnerMode().orElse(null),
                 playerId,
                 getUUID(),
-                serverLevel.registryAccess()
-                        .registryOrThrow(Registries.VILLAGER_PROFESSION)
-                        .getKey(getVillagerData().getProfession()),
+                customerProfession,
                 offer.getCostA(),
                 payment,
                 isPetItem
         ));
+        for (UUID newServingPlayerId : newServingPlayerIds) {
+            InternalEvents.emit(new CustomerInternalEvents.CustomerServed(
+                    serverLevel,
+                    spawnerPos,
+                    getSpawnerMode().orElse(null),
+                    newServingPlayerId,
+                    getUUID(),
+                    customerProfession,
+                    offer.getCostA(),
+                    payment,
+                    isPetItem
+            ));
+        }
     }
 
     private static void giveTradeRemainderItems(Player player, ItemStack soldStack) {
