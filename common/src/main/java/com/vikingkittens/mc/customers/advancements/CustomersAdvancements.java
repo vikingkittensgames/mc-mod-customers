@@ -23,7 +23,6 @@ public final class CustomersAdvancements {
     private CustomersAdvancements() {}
 
     public static void initialize() {
-        CustomersFTB.initialize();
         CustomersTriggers.initialize();
         CustomersStatistics.initialize();
         CustomersAdvancementEvents.initialize();

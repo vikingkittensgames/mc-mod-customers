@@ -42,6 +42,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 import com.vikingkittens.mc.customers.common.ContainerUtils;
 import com.vikingkittens.mc.customers.common.SearchUtils;
+import com.vikingkittens.mc.customers.common.events.InternalEvents;
 import com.vikingkittens.mc.customers.compatability.ComponentCUtils;
 import com.vikingkittens.mc.customers.compatability.CustomersServices;
 import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
@@ -1131,23 +1132,28 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 unresolved && reservationCleanupLoadTicks < RESERVATION_CLEANUP_LOAD_GRACE_TICKS;
     }
 
-    void playPetLoveIfFed(UUID customerId, ItemStack tradedItem) {
+    boolean isPetItem(UUID customerId, ItemStack item) {
         UUID petId = customerPets.get(customerId);
         if (petId == null) {
-            return;
+            return false;
         }
         String petTypeId = CustomerPet.getPetTypeId(level, petId);
         if (petTypeId == null) {
-            return;
+            return false;
         }
         CustomerPet.PetType petType = CustomerPet.getAvailablePetTypes(level).stream()
                 .filter(type -> type.entityId().equals(petTypeId))
                 .findFirst()
                 .orElseThrow();
         ItemStack petFood = getActiveLevelSettings().getPetFood(petType);
-        if (!petFood.isEmpty() && ItemStackCUtils.isSameItemAndTags(petFood, tradedItem)) {
-            CustomerPet.playLove(level, petId);
+        return !petFood.isEmpty() && ItemStackCUtils.isSameItemAndTags(petFood, item);
+    }
+
+    void playPetLove(UUID customerId, ItemStack tradedItem) {
+        if (!isPetItem(customerId, tradedItem)) {
+            return;
         }
+        CustomerPet.playLove(level, customerPets.get(customerId));
     }
 
     private long countActiveCustomers() {
@@ -1409,6 +1415,27 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             }
         }
     }
+
+    private void emitShiftFinished(CustomerSpawnerMode spawnerMode, int activeLevel) {
+        InternalEvents.emit(new CustomerInternalEvents.ShiftFinished(
+                (ServerLevel)(getLevel()),
+                getBlockPos(),
+                spawnerMode,
+                activeLevel,
+                scoreboardGetPercentage(),
+                totalCustomers,
+                numCustomersServed,
+                numCustomersGaveUp,
+                totalItemsWanted,
+                itemsCrafted.playerScores(),
+                itemsServed.playerScores(),
+                itemsCrafted.automatedScore(),
+                itemsServed.automatedScore()
+
+        ));
+    }
+
+
 
     private void scoreboardShow() {
     }
