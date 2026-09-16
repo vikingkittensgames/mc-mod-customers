@@ -1,4 +1,4 @@
-package com.vikingkittens.mc.customers.advancements;
+package com.vikingkittens.mc.customers.advancements.ftb;
 
 import org.junit.jupiter.api.Test;
 

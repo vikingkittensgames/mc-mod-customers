@@ -552,7 +552,12 @@ Renderer inheritance, renderer generics, model setup signatures, and event regis
 
 Architectury API 13.0.8 provides a NeoForge artifact, but no Forge artifact, for Minecraft 1.21.1. Shared availability checks may live in common, but direct Architectury event creation and publishing must be isolated from the Forge runtime. Do not advertise the Architectury bridge as available in the Forge build unless Architectury adds a compatible artifact.
 
-FTB Quests 2101.1.x for Minecraft 1.21.1 is NeoForge-only. Do not add direct FTB API references to shared code that Forge must load. Keep direct FTB task registration in the NeoForge module or use a reflection-safe common boundary. The common `CustomersFTB` class may perform loader-neutral availability checks.
+FTB Quests 2101.1.x for Minecraft 1.21.1 is NeoForge-only. Every class in
+`com.vikingkittens.mc.customers.advancements.ftb` therefore belongs in the
+NeoForge module. `CustomersFTB` checks availability without importing FTB
+types, then conditionally loads `CustomersFTBTasks` and `CustomersFTBEvents`.
+Do not add FTB dependencies, imports, or integration classes to common or
+Forge source sets.
 
 The following changes should not be hidden behind static compatibility methods because Java requires version-specific override signatures, superclass types, generics, or event subscriptions:
 

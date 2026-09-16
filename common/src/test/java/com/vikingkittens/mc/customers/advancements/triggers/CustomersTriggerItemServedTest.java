@@ -1,4 +1,4 @@
-package com.vikingkittens.mc.customers.advancements;
+package com.vikingkittens.mc.customers.advancements.triggers;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
-class CustomersTriggersTest {
+class CustomersTriggerItemServedTest {
     @BeforeAll
     static void bootstrapMinecraft() {
         MinecraftTestBootstrap.bootstrap();
@@ -33,7 +33,8 @@ class CustomersTriggersTest {
 
     @Test
     void matchesAnEventWhenAllOptionalConditionsAreAbsent() {
-        CustomersTriggers.ItemServed.Instance instance = new CustomersTriggers.ItemServed.Instance(
+        CustomersTriggerItemServed.Instance instance = new CustomersTriggerItemServed.Instance(
+                Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
@@ -44,12 +45,12 @@ class CustomersTriggersTest {
                 Optional.empty()
         );
 
-        assertTrue(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2), 1));
+        assertTrue(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, false), 1));
     }
 
     @Test
     void matchesModeProfessionAndStackCountsTogether() {
-        CustomersTriggers.ItemServed.Instance instance = new CustomersTriggers.ItemServed.Instance(
+        CustomersTriggerItemServed.Instance instance = new CustomersTriggerItemServed.Instance(
                 Optional.empty(),
                 Optional.of(CustomerSpawnerMode.LUNCH),
                 Optional.of(ResourceLocation.parse("customers:customer_impatient")),
@@ -57,14 +58,33 @@ class CustomersTriggersTest {
                 Optional.of(MinMaxBounds.Ints.atLeast(3)),
                 Optional.empty(),
                 Optional.of(MinMaxBounds.Ints.exactly(2)),
+                Optional.empty(),
                 Optional.of(MinMaxBounds.Ints.atLeast(100))
         );
 
-        assertTrue(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2), 100));
-        assertFalse(instance.matches(event(CustomerSpawnerMode.DINNER, 3, 2), 100));
-        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 2, 2), 100));
-        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 1), 100));
-        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2), 99));
+        assertTrue(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, false), 100));
+        assertFalse(instance.matches(event(CustomerSpawnerMode.DINNER, 3, 2, false), 100));
+        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 2, 2, false), 100));
+        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 1, false), 100));
+        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, false), 99));
+    }
+
+    @Test
+    void matchesPetItemCondition() {
+        CustomersTriggerItemServed.Instance instance = new CustomersTriggerItemServed.Instance(
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.of(true),
+                Optional.empty()
+        );
+
+        assertTrue(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, true), 1));
+        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, false), 1));
     }
 
     @Test
@@ -77,11 +97,12 @@ class CustomersTriggersTest {
                   "served_count": { "min": 3 },
                   "cost_item": { "items": ["minecraft:emerald"] },
                   "cost_count": 2,
+                  "is_pet_item": true,
                   "total_items_served": { "min": 100 }
                 }
                 """;
 
-        CustomersTriggers.ItemServed.Instance instance = CustomersTriggers.ItemServed.Instance.CODEC
+        CustomersTriggerItemServed.Instance instance = CustomersTriggerItemServed.Instance.CODEC
                 .parse(
                         RegistryOps.create(
                                 JsonOps.INSTANCE,
@@ -91,15 +112,17 @@ class CustomersTriggersTest {
                 )
                 .getOrThrow();
 
-        assertTrue(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2), 100));
-        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 3), 100));
-        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2), 99));
+        assertTrue(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, true), 100));
+        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, false), 100));
+        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 3, true), 100));
+        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, true), 99));
     }
 
     private static CustomerInternalEvents.ItemServed event(
             CustomerSpawnerMode mode,
             int servedCount,
-            int costCount
+            int costCount,
+            boolean isPetItem
     ) {
         return new CustomerInternalEvents.ItemServed(
                 mock(ServerLevel.class),
@@ -109,7 +132,8 @@ class CustomersTriggersTest {
                 UUID.randomUUID(),
                 ResourceLocation.parse("customers:customer_impatient"),
                 new ItemStack(Items.APPLE, servedCount),
-                new ItemStack(Items.EMERALD, costCount)
+                new ItemStack(Items.EMERALD, costCount),
+                isPetItem
         );
     }
 }

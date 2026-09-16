@@ -396,19 +396,21 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
                     }
                 }
             }
-            emitItemServed(serverLevel, paymentOwner, offer, payment);
-        }
-        if (spawnerPos != null
-                && level().getBlockEntity(spawnerPos)
-                        instanceof CustomerSpawnerBlockEntity spawner) {
-            spawner.playPetLoveIfFed(getUUID(), offer.getCostA());
-            for (CustomerPickupCounterBlockEntity.StoredStack consumed
-                    : consumedStacks) {
-                spawner.scoreboardAddItemsServed(
-                        consumed.crafterId(),
-                        consumed.stack().getCount()
-                );
+            boolean isPetItem = false;
+            if (spawnerPos != null
+                    && level().getBlockEntity(spawnerPos)
+                            instanceof CustomerSpawnerBlockEntity spawner) {
+                isPetItem = spawner.isPetItem(getUUID(), offer.getCostA());
+                spawner.playPetLove(getUUID(), offer.getCostA());
+                for (CustomerPickupCounterBlockEntity.StoredStack consumed
+                        : consumedStacks) {
+                    spawner.scoreboardAddItemsServed(
+                            consumed.crafterId(),
+                            consumed.stack().getCount()
+                    );
+                }
             }
+            emitItemServed(serverLevel, paymentOwner, offer, payment, isPetItem);
         }
     }
 
@@ -1091,15 +1093,17 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
                 giveTradeRemainderItems(tradingPlayer, offer.getCostA());
                 tradedWithPlayers.add(tradingPlayer.getUUID());
                 playHappy();
+                boolean isPetItem = false;
                 if (level().getBlockEntity(spawnerPos) instanceof CustomerSpawnerBlockEntity spawner) {
-                    spawner.playPetLoveIfFed(getUUID(), offer.getCostA());
+                    isPetItem = spawner.isPetItem(getUUID(), offer.getCostA());
+                    spawner.playPetLove(getUUID(), offer.getCostA());
                     spawner.scoreboardAddItemsServed(
                             tradingPlayer.getUUID(),
                             offer.getCostA().getCount()
                     );
                 }
                 if (level() instanceof ServerLevel serverLevel) {
-                    emitItemServed(serverLevel, tradingPlayer.getUUID(), offer, offer.assemble());
+                    emitItemServed(serverLevel, tradingPlayer.getUUID(), offer, offer.assemble(), isPetItem);
                 }
             }
         }
@@ -1109,7 +1113,8 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
             ServerLevel serverLevel,
             @Nullable UUID playerId,
             MerchantOffer offer,
-            ItemStack payment
+            ItemStack payment,
+            boolean isPetItem
     ) {
         InternalEvents.emit(new CustomerInternalEvents.ItemServed(
                 serverLevel,
@@ -1121,7 +1126,8 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
                         .registryOrThrow(Registries.VILLAGER_PROFESSION)
                         .getKey(getVillagerData().getProfession()),
                 offer.getCostA(),
-                payment
+                payment,
+                isPetItem
         ));
     }
 

@@ -5,6 +5,7 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 
+import com.vikingkittens.mc.customers.advancements.ftb.CustomersFTB;
 import com.vikingkittens.mc.customers.compatability.CustomersServices;
 import com.vikingkittens.mc.customers.compatability.NeoForgeRegistrationHelper;
 import com.vikingkittens.mc.customers.config.Config;
@@ -21,6 +22,7 @@ public final class CustomersNeoForge {
     public CustomersNeoForge(IEventBus modEventBus, ModContainer modContainer) {
         CustomerSpawnerNeoForgeEvents.register(modEventBus);
         Customers.initialize();
+        CustomersFTB.initialize();
         CustomerPaymentBoxNeoForgeEvents.register(modEventBus);
         CustomerPickupCounterNeoForgeEvents.register(modEventBus);
         SupplierSpawnerNeoForgeEvents.register(modEventBus);

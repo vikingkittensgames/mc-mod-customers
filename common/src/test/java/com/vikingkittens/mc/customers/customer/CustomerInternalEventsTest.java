@@ -1,5 +1,6 @@
 package com.vikingkittens.mc.customers.customer;
 
+import java.util.Map;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -13,6 +14,7 @@ import net.minecraft.world.item.Items;
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.mock;
 
 class CustomerInternalEventsTest {
@@ -22,7 +24,7 @@ class CustomerInternalEventsTest {
     }
 
     @Test
-    void protectsEventItemStacksFromMutation() {
+    void testItemServedCreation() {
         ItemStack servedItem = new ItemStack(Items.APPLE, 3);
         ItemStack costItem = new ItemStack(Items.EMERALD, 2);
         CustomerInternalEvents.ItemServed event = new CustomerInternalEvents.ItemServed(
@@ -33,7 +35,8 @@ class CustomerInternalEventsTest {
                 UUID.randomUUID(),
                 ResourceLocation.parse("customers:customer"),
                 servedItem,
-                costItem
+                costItem,
+                false
         );
 
         servedItem.setCount(1);
@@ -43,5 +46,31 @@ class CustomerInternalEventsTest {
 
         assertEquals(3, event.servedItem().getCount());
         assertEquals(2, event.costItem().getCount());
+        assertFalse(event.isPetItem());
+    }
+
+    @Test
+    void testShiftFinishedCreation() {
+        CustomerInternalEvents.ShiftFinished event = new CustomerInternalEvents.ShiftFinished(
+                mock(ServerLevel.class),
+                null,
+                CustomerSpawnerMode.LUNCH,
+                1,
+                0.75F,
+                3,
+                2,
+                1,
+                10,
+                Map.of(
+                        UUID.randomUUID(), 3,
+                        UUID.randomUUID(), 2
+                ),
+                Map.of(
+                        UUID.randomUUID(), 5,
+                        UUID.randomUUID(), 3
+                ),
+                0,
+                0
+        );
     }
 }

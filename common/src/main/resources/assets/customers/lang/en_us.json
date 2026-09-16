@@ -178,5 +178,8 @@
   "advancements.customers.server.customer.shift_dinner.title": "Dinner Shift",
   "advancements.customers.server.customer.shift_dinner.description": "Serve a customer during the dinner shift",
 
-  "stat.customers.item_served": "Customers: Items Served"
+  "stat.customers.item_served": "Customers: Items Served",
+
+  "ftbquests.task.customers.pet_items_served": "Pet Items Served",
+  "ftbquests.task.customers.pet_items_served.count": "Required Pet Items"
 }

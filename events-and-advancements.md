@@ -31,7 +31,7 @@ Add customer events as public static classes in `CustomerInternalEvents` and sup
 
 ### ItemServed
 
-`ItemServed` represents one successfully completed requested-item transaction. It is emitted after the customer offer is committed. It contains the server level, spawner position and mode, serving player ID, customer ID and profession, served item stack, and cost/payment item stack.
+`ItemServed` represents one successfully completed requested-item transaction. It is emitted after the customer offer is committed. It contains the server level, spawner position and mode, serving player ID, customer ID and profession, served item stack, cost/payment item stack, and whether the served item fed that customer's active pet.
 
 The serving player is the first player associated with the item stacks consumed from the pickup counter. Automated or unattributed transactions still emit the internal event, but do not grant a player advancement or statistic.
 
@@ -39,7 +39,7 @@ Use a separate event such as `CustomerCompleted` if a future feature needs to re
 
 ## Custom Advancement Triggers
 
-Register trigger types in `CustomersTriggers`. Each trigger is a public static nested class so its codec, matching rules, and dispatch entry point stay together. The `customers:item_served` trigger is dispatched by `CustomersAdvancementEvents`, which is registered with the internal event system during common initialization. Minecraft's advancement system handles client synchronization, so this trigger does not require a custom network payload.
+Register trigger types in `CustomersTriggers`. Each implementation is a top-level `CustomersTriggerX` class in the `advancements.triggers` package so its codec, matching rules, and dispatch entry point stay together. The `customers:item_served` trigger is dispatched by `CustomersAdvancementEvents`, which is registered with the internal event system during common initialization. Minecraft's advancement system handles client synchronization, so this trigger does not require a custom network payload.
 
 The trigger accepts these optional conditions:
 
@@ -52,6 +52,7 @@ The trigger accepts these optional conditions:
 | `served_count` | Exact count or vanilla integer range for the supplied stack |
 | `cost_item` | Vanilla item predicate for the payment stack |
 | `cost_count` | Exact count or vanilla integer range for the payment stack |
+| `is_pet_item` | Whether the served item fed the customer's active pet |
 | `total_items_served` | Exact value or vanilla integer range for the player's persistent item-transaction total |
 
 Conditions are combined with AND semantics. Leaving every condition out matches any attributed customer transaction:
@@ -104,7 +105,7 @@ For example, this criterion matches when the player's persistent total reaches 1
 To add another trigger:
 
 1. Add the underlying internal event and emit it after the operation succeeds.
-2. Add and register a nested trigger class in `CustomersTriggers`.
+2. Add a `CustomersTriggerX` class in `advancements.triggers` and register it in `CustomersTriggers`.
 3. Put all optional criterion fields in the trigger instance codec.
 4. Add a matching method that treats omitted fields as unrestricted.
 5. Add a static handler in `CustomersAdvancementEvents` that resolves the affected server player and dispatches the trigger.
@@ -152,9 +153,22 @@ Keep future internal events, Customers advancement triggers, and statistic behav
 
 ### FTB Quests
 
-The build exposes the FTB Quests 1.21.1 API as an optional compile-time dependency. FTB Quests 1.21.1 is available for NeoForge but not Forge, so its optional loader metadata and platform artifact are only included by the NeoForge module. `CustomersFTB` is the common availability guard and planning location. It does not register a custom FTB task yet.
+FTB Quests 1.21.1 is available for NeoForge but not Forge, so the complete
+`advancements.ftb` package and its optional dependency live in the NeoForge
+module. `CustomersFTB` checks availability before registering task types and
+the independent `CustomersFTBEvents` internal-event consumer.
 
-Prefer FTB's existing Advancement Task for requirements represented by Customers advancements. Add a custom FTB task only for behavior that advancements cannot model cleanly, such as repeatable transaction totals, accumulated event values, or team-specific progress.
+Prefer FTB's Advancement Task for existing Customers advancements and its Stat
+Task for arbitrary per-player `customers:item_served` or
+`customers:shift_finished` totals. The `customers:pet_items_served` custom task
+handles a requirement those built-in tasks cannot express: accumulating pet
+items served by every member of an FTB team. Its configurable `count` value is
+incremented by qualifying `ItemServed` events.
+
+Quest organization remains under modpack-author control. A `Customers` chapter
+group can contain `Builder`, `Customer Service`, and `Supplier Service`
+chapters. Quest dependencies can mirror advancement parent relationships, and
+quests may combine multiple tasks or require their tasks sequentially.
 
 ### Architectury Events
 
@@ -162,4 +176,8 @@ The build exposes Architectury API as an optional dependency on NeoForge. Archit
 
 Future public events should listen to Customers internal events and republish immutable event details through non-cancellable Architectury loop events. Other mods will depend on Customers and Architectury and register listeners with the public event object.
 
-An optional integration such as FTB Quests should register its own internal-event handler rather than modifying customer or supplier transaction code. Vanilla advancements can already be selected as FTB Quest tasks, so `customers:item_served` advancements provide a data-driven integration route without a direct dependency. A future direct task integration can consume the same internal event when it needs details that are not represented by a configured advancement.
+Optional integrations register their own internal-event handlers rather than
+modifying customer or supplier transaction code. Vanilla advancements remain
+the preferred FTB integration route when they fully represent a requirement;
+custom tasks consume the same internal events only for event values or shared
+team progress that advancements and statistics cannot represent.
