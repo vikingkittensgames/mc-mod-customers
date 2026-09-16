@@ -1014,6 +1014,13 @@ ink sac.
 
 ## Advancements and Statistics
 
+When FTB Quests is installed on NeoForge, quest builders can add a **Customers
+Task** and choose either **Pet Items Served** or **Item Served**. These tasks
+count matching service events independently for each FTB team instead of using
+a player's lifetime statistics. Item Served tasks can be limited by shift mode,
+customer profession, served item or tag and count, cost item or tag and count,
+and whether the served item belongs to a customer pet.
+
 Customers adds its own advancement tab with separate Builder and Server branches. The Builder branch recognizes crafting Customer and Supplier Spawners. The Server branch begins tracking customer and supplier activity, including **First Item Served** for completing one requested-item transaction and **100 Items Served** for completing 100 attributed transactions.
 
 Item-serving advancements can distinguish the spawner mode, customer profession, requested item and amount, payment item and amount, and the player's total completed item transactions. Modpack authors can use these conditions to add goals such as serving an impatient lunch customer, selling a particular quantity of an item, or completing a configured number of transactions. The **Items Served to Customers** statistic increases once per completed requested-item transaction; it does not count every individual item in the stack or distinct customer NPCs.
