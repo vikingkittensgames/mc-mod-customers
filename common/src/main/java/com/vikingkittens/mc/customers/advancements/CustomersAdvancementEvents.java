@@ -25,13 +25,51 @@ public final class CustomersAdvancementEvents {
             return;
         }
         ServerPlayer player = event.level().getServer().getPlayerList().getPlayer(event.playerId());
-        if (player == null) {
+        if (player != null) {
+            var itemServedStat = Stats.CUSTOM.get(CustomersStatistics.ITEM_SERVED.get(), StatFormatter.DEFAULT);
+            player.awardStat(itemServedStat, 1);
+            int totalItemsServed = player.getStats().getValue(itemServedStat);
+
+            CustomersTriggers.ITEM_SERVED.get().trigger(player, event, totalItemsServed);
+        }
+    }
+
+    @InternalEventHandler
+    public static void onCustomerServed(CustomerInternalEvents.CustomerServed event) {
+        if (event.playerId() == null) {
             return;
         }
-        var itemServedStat = Stats.CUSTOM.get(CustomersStatistics.ITEM_SERVED.get(), StatFormatter.DEFAULT);
-        player.awardStat(itemServedStat, 1);
-        int totalItemsServed = player.getStats().getValue(itemServedStat);
-        CustomersTriggers.ITEM_SERVED.get().trigger(player, event, totalItemsServed);
+        ServerPlayer player = event.level().getServer().getPlayerList().getPlayer(event.playerId());
+        if (player != null) {
+            var customerServedStat = Stats.CUSTOM.get(CustomersStatistics.CUSTOMER_SERVED.get(), StatFormatter.DEFAULT);
+            var customerCasualServedStat = Stats.CUSTOM.get(CustomersStatistics.CUSTOMER_CASUAL_SERVED.get(), StatFormatter.DEFAULT);
+            var customerNormalServedStat = Stats.CUSTOM.get(CustomersStatistics.CUSTOMER_NORMAL_SERVED.get(), StatFormatter.DEFAULT);
+            var customerImpatientServedStat = Stats.CUSTOM.get(CustomersStatistics.CUSTOMER_IMPATIENT_SERVED.get(), StatFormatter.DEFAULT);
+            player.awardStat(customerServedStat, 1);
+            switch (event.customerProfession().toString()) {
+                case "customers:customer_casual":
+                    player.awardStat(customerCasualServedStat, 1);
+                    break;
+                case "customers:customer":
+                    player.awardStat(customerNormalServedStat, 1);
+                    break;
+                case "customers:customer_impatient":
+                    player.awardStat(customerImpatientServedStat, 1);
+                    break;
+            }
+            int totalCustomersServed = player.getStats().getValue(customerServedStat);
+            int totalCustomersCasualServed = player.getStats().getValue(customerCasualServedStat);
+            int totalCustomersNormalServed = player.getStats().getValue(customerNormalServedStat);
+            int totalCustomersImpatientServed = player.getStats().getValue(customerImpatientServedStat);
+            CustomersTriggers.CUSTOMER_SERVED.get().trigger(
+                    player,
+                    event,
+                    totalCustomersServed,
+                    totalCustomersCasualServed,
+                    totalCustomersNormalServed,
+                    totalCustomersImpatientServed
+            );
+        }
     }
 
     @InternalEventHandler
@@ -42,12 +80,12 @@ public final class CustomersAdvancementEvents {
         playerIds.addAll(event.playerItemsServed().keySet());
         for (UUID playerId : playerIds) {
             ServerPlayer player = event.level().getServer().getPlayerList().getPlayer(playerId);
-            if (player == null) {
-                return;
+            if (player != null) {
+                player.awardStat(shiftFinishedStat, 1);
+                int totalShiftsFinished = player.getStats().getValue(shiftFinishedStat);
+
+                CustomersTriggers.SHIFT_FINISHED.get().trigger(player, event, totalShiftsFinished);
             }
-            player.awardStat(shiftFinishedStat, 1);
-            int totalShiftsFinished = player.getStats().getValue(shiftFinishedStat);
-            CustomersTriggers.SHIFT_FINISHED.get().trigger(player, event, totalShiftsFinished);
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.vikingkittens.mc.customers.customer;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntToDoubleFunction;
 import java.util.function.Predicate;
@@ -1416,8 +1417,19 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         }
     }
 
-    private void emitShiftFinished(CustomerSpawnerMode spawnerMode, int activeLevel) {
-        InternalEvents.emit(new CustomerInternalEvents.ShiftFinished(
+    private void emitShiftFinished(
+            CustomerSpawnerMode spawnerMode,
+            int activeLevel
+    ) {
+        emitShiftFinished(spawnerMode, activeLevel, InternalEvents::emit);
+    }
+
+    void emitShiftFinished(
+            CustomerSpawnerMode spawnerMode,
+            int activeLevel,
+            Consumer<CustomerInternalEvents.ShiftFinished> eventEmitter
+    ) {
+        eventEmitter.accept(new CustomerInternalEvents.ShiftFinished(
                 (ServerLevel)(getLevel()),
                 getBlockPos(),
                 spawnerMode,
@@ -1463,6 +1475,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
         int activeLevel = getActiveLevel();
         sendShiftFinishedPayload(spawnerMode, activeLevel);
+        emitShiftFinished(spawnerMode, activeLevel);
         sendScoresToLeaderboard(spawnerMode, activeLevel);
 
         Component summary = ComponentCUtils.withColor(Component.translatable(

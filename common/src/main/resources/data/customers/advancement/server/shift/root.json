@@ -8,16 +8,16 @@
   "display": {
     "announce_to_chat": false,
     "description": {
-      "translate": "advancements.customers.server.customer.description"
+      "translate": "advancements.customers.server.shift.description"
     },
     "icon": {
       "count": 1,
       "id": "customers:advancement_icon",
-      "components": { "minecraft:custom_model_data": 20 }
+      "components": { "minecraft:custom_model_data": 30 }
     },
     "show_toast": false,
     "title": {
-      "translate": "advancements.customers.server.customer.title"
+      "translate": "advancements.customers.server.shift.title"
     }
   },
   "requirements": [

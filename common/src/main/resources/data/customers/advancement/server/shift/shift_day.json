@@ -1,5 +1,5 @@
 {
-  "parent": "customers:server/customer/root",
+  "parent": "customers:server/shift/root",
   "criteria": {
     "shift_day": {
       "trigger": "customers:item_served",
@@ -9,13 +9,13 @@
     }
   },
   "display": {
-    "description": { "translate": "advancements.customers.server.customer.shift_day.description" },
+    "description": { "translate": "advancements.customers.server.shift.shift_day.description" },
     "icon": {
       "count": 1,
       "id": "customers:advancement_icon",
       "components": { "minecraft:custom_model_data": 10 }
     },
-    "title": { "translate": "advancements.customers.server.customer.shift_day.title" }
+    "title": { "translate": "advancements.customers.server.shift.shift_day.title" }
   },
   "requirements": [
     [

@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,7 @@ import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtil
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -47,6 +49,47 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class CustomerSpawnerBlockEntityTest {
+    @Test
+    void emitsShiftFinishedEventFromScoreboardData() {
+        BlockEntityType<?> type = mock(BlockEntityType.class);
+        BlockState state = mock(BlockState.class);
+        when(type.isValid(state)).thenReturn(true);
+        CustomerSpawnerBlockEntity entity = new CustomerSpawnerBlockEntity(
+                type,
+                BlockPos.ZERO,
+                state
+        );
+        ServerLevel level = mock(ServerLevel.class);
+        entity.setLevel(level);
+        UUID playerId = UUID.randomUUID();
+        entity.scoreboardAddCustomer();
+        entity.scoreboardAddCustomerServed();
+        entity.scoreboardAddItemsWanted(5);
+        entity.scoreboardAddItemsServed(playerId, 1);
+        AtomicReference<CustomerInternalEvents.ShiftFinished> emitted =
+                new AtomicReference<>();
+
+        entity.emitShiftFinished(
+                CustomerSpawnerMode.LUNCH,
+                1,
+                emitted::set
+        );
+
+        CustomerInternalEvents.ShiftFinished event = emitted.get();
+        assertNotNull(event);
+        assertSame(level, event.level());
+        assertEquals(BlockPos.ZERO, event.spawnerPosition());
+        assertEquals(CustomerSpawnerMode.LUNCH, event.spawnerMode());
+        assertEquals(1, event.activeLevel());
+        assertEquals(0.20F, event.percentage());
+        assertEquals(1, event.totalCustomers());
+        assertEquals(1, event.numCustomersServed());
+        assertEquals(0, event.numCustomersGaveUp());
+        assertEquals(5, event.totalItemsWanted());
+        assertEquals(Map.of(playerId, 1), event.playerItemsServed());
+        assertEquals(Map.of(), event.playerItemsCrafted());
+    }
+
     @Test
     void findsTheFirstLevelThePlayerHasNotPassed() {
         assertEquals(1, CustomerSpawnerBlockEntity.getFirstUnfinishedLevel(

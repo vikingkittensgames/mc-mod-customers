@@ -1,7 +1,11 @@
 package com.vikingkittens.mc.customers.customer;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -30,6 +34,32 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class CustomerVillagerEntityTest {
+    @Test
+    void recordsOnlyNewServingPlayers() {
+        UUID existingPlayer = UUID.randomUUID();
+        UUID firstNewPlayer = UUID.randomUUID();
+        UUID secondNewPlayer = UUID.randomUUID();
+        Set<UUID> tradedWithPlayers = new HashSet<>(Set.of(existingPlayer));
+        List<UUID> candidates = new ArrayList<>();
+        candidates.add(existingPlayer);
+        candidates.add(firstNewPlayer);
+        candidates.add(firstNewPlayer);
+        candidates.add(null);
+        candidates.add(secondNewPlayer);
+
+        List<UUID> addedPlayers =
+                CustomerVillagerEntity.addNewTradedPlayers(
+                        tradedWithPlayers,
+                        candidates
+                );
+
+        assertEquals(List.of(firstNewPlayer, secondNewPlayer), addedPlayers);
+        assertEquals(
+                Set.of(existingPlayer, firstNewPlayer, secondNewPlayer),
+                tradedWithPlayers
+        );
+    }
+
     @Test
     void sortsPaymentBoxesNearestToTheCustomer() {
         CustomerPaymentBoxBlockEntity far =

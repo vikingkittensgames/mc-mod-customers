@@ -72,6 +72,22 @@ class CustomerShiftFinishedScreenTest {
     }
 
     @Test
+    void fullStarsStartAtRoundedHalfStarThresholds() {
+        float[] thresholds = {0.15F, 0.35F, 0.55F, 0.75F, 0.95F};
+
+        for (int starIndex = 0; starIndex < thresholds.length; starIndex++) {
+            assertEquals(
+                    CustomerShiftFinishedScreen.StarState.FULL,
+                    CustomerShiftFinishedScreen.getStarState(thresholds[starIndex], starIndex)
+            );
+            assertEquals(
+                    CustomerShiftFinishedScreen.StarState.HALF,
+                    CustomerShiftFinishedScreen.getStarState(thresholds[starIndex] - 0.01F, starIndex)
+            );
+        }
+    }
+
+    @Test
     void animatesStarsOneAtATimeFromLeftToRight() {
         assertEquals(0.0F, CustomerShiftFinishedScreen.getStarScale(0L, 0));
         assertTrue(CustomerShiftFinishedScreen.getStarScale(250L, 0) > 1.0F);

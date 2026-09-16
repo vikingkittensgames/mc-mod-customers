@@ -3,6 +3,7 @@ package com.vikingkittens.mc.customers.advancements;
 import net.minecraft.advancements.CriterionTrigger;
 import net.minecraft.core.registries.Registries;
 
+import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerCustomerServed;
 import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerItemServed;
 import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerShiftFinished;
 import com.vikingkittens.mc.customers.compatability.CustomersRegistryEntry;
@@ -14,6 +15,12 @@ public final class CustomersTriggers {
                     Registries.TRIGGER_TYPE,
                     "item_served",
                     CustomersTriggerItemServed::new
+            );
+    public static final CustomersRegistryEntry<CriterionTrigger<?>, CustomersTriggerCustomerServed> CUSTOMER_SERVED =
+            CustomersServices.registration().register(
+                    Registries.TRIGGER_TYPE,
+                    "customer_served",
+                    CustomersTriggerCustomerServed::new
             );
     public static final CustomersRegistryEntry<CriterionTrigger<?>, CustomersTriggerShiftFinished> SHIFT_FINISHED =
             CustomersServices.registration().register(

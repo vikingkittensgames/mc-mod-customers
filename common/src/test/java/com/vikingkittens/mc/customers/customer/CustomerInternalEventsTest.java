@@ -15,6 +15,8 @@ import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 class CustomerInternalEventsTest {
@@ -46,6 +48,39 @@ class CustomerInternalEventsTest {
 
         assertEquals(3, event.servedItem().getCount());
         assertEquals(2, event.costItem().getCount());
+        assertFalse(event.isPetItem());
+    }
+
+    @Test
+    void testCustomerServedCreation() {
+        ServerLevel level = mock(ServerLevel.class);
+        UUID playerId = UUID.randomUUID();
+        UUID customerId = UUID.randomUUID();
+        ResourceLocation profession = ResourceLocation.parse("customers:customer");
+        ItemStack servedItem = new ItemStack(Items.APPLE, 3);
+        ItemStack costItem = new ItemStack(Items.EMERALD, 2);
+        CustomerInternalEvents.CustomerServed event = new CustomerInternalEvents.CustomerServed(
+                level,
+                null,
+                CustomerSpawnerMode.LUNCH,
+                playerId,
+                customerId,
+                profession,
+                servedItem,
+                costItem,
+                false
+        );
+
+        assertInstanceOf(CustomerInternalEvents.ServedEvent.class, event);
+        assertEquals(level, event.level());
+        assertEquals(CustomerSpawnerMode.LUNCH, event.spawnerMode());
+        assertEquals(playerId, event.playerId());
+        assertEquals(customerId, event.customerId());
+        assertEquals(profession, event.customerProfession());
+        assertTrue(ItemStack.isSameItemSameComponents(servedItem, event.servedItem()));
+        assertEquals(servedItem.getCount(), event.servedItem().getCount());
+        assertTrue(ItemStack.isSameItemSameComponents(costItem, event.costItem()));
+        assertEquals(costItem.getCount(), event.costItem().getCount());
         assertFalse(event.isPetItem());
     }
 
