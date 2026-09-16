@@ -99,6 +99,55 @@ class CustomersTriggerShiftFinishedTest {
     }
 
     @Test
+    void eventMatchingDoesNotDependOnThePlayerLifetimeTotal() {
+        CustomersTriggerShiftFinished.Instance instance = instance(
+                Optional.of(CustomerSpawnerMode.LUNCH),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.of(MinMaxBounds.Ints.atLeast(100))
+        );
+
+        assertTrue(instance.matchesEvent(event(CustomerSpawnerMode.LUNCH, 3)));
+        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3), 99));
+    }
+
+    @Test
+    void schemaDescribesAndUpdatesTriggerProperties() {
+        assertEquals("spawner_location", CustomersTriggerShiftFinished.SCHEMA.properties().get(1).serializedName());
+        assertEquals("spawner_mode", CustomersTriggerShiftFinished.SCHEMA.properties().get(2).serializedName());
+        assertEquals(
+                CustomersTriggerSchema.Editor.OPTIONAL_LOCATION,
+                CustomersTriggerShiftFinished.SCHEMA.properties().get(1).editor()
+        );
+        CustomersTriggerSchema.Property<CustomersTriggerShiftFinished.Instance> percentage =
+                CustomersTriggerShiftFinished.SCHEMA.property("percentage").orElseThrow();
+        CustomersTriggerSchema.Property<CustomersTriggerShiftFinished.Instance> spawnerMode =
+                CustomersTriggerShiftFinished.SCHEMA.property("spawner_mode").orElseThrow();
+
+        assertEquals(CustomersTriggerSchema.Editor.OPTIONAL_DOUBLE_RANGE, percentage.editor());
+        assertTrue(percentage.taskEditable());
+        assertFalse(CustomersTriggerShiftFinished.SCHEMA
+                .property("total_shifts_finished")
+                .orElseThrow()
+                .taskEditable());
+
+        CustomersTriggerShiftFinished.Instance updated = CustomersTriggerShiftFinished.SCHEMA.with(
+                CustomersTriggerShiftFinished.Instance.ANY,
+                spawnerMode,
+                Optional.of(CustomerSpawnerMode.LUNCH)
+        );
+
+        assertEquals(Optional.of(CustomerSpawnerMode.LUNCH), updated.spawnerMode());
+    }
+
+    @Test
     void decodesDataDrivenShiftFinishedConditions() {
         String json = """
                 {

@@ -1,7 +1,5 @@
 package com.vikingkittens.mc.customers.advancements.ftb;
 
-import java.util.Optional;
-
 import dev.ftb.mods.ftblibrary.config.ConfigGroup;
 import dev.ftb.mods.ftblibrary.config.NameMap;
 import dev.ftb.mods.ftblibrary.icon.Icon;
@@ -18,11 +16,14 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerCustomerServed;
 import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerItemServed;
+import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerShiftFinished;
 import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
 
 public final class CustomersFTBTasks {
     public static final String CUSTOMERS_TASK_NAME = "customers_task";
+    private static final int REQUIRED_EVENTS_CONFIG_ORDER = 100;
 
     public static final TaskType CUSTOMERS_TASK = TaskTypes.register(
             ResourceLocation.fromNamespaceAndPath(Customers.MODID, CUSTOMERS_TASK_NAME),
@@ -39,20 +40,39 @@ public final class CustomersFTBTasks {
     }
 
     public enum CustomersTaskKind {
-        PET_ITEMS_SERVED("pet_items_served", "minecraft:item/bone"),
-        ITEM_SERVED("item_served", "minecraft:item/cooked_chicken");
+        ITEM_SERVED(
+                "item_served",
+                "minecraft:item/cooked_chicken",
+                CustomerInternalEvents.ItemServed.class
+        ),
+        CUSTOMER_SERVED(
+                "customer_served",
+                "customers:textures/item/advancement_icon_customer.png",
+                CustomerInternalEvents.CustomerServed.class
+        ),
+        SHIFT_FINISHED(
+                "shift_finished",
+                "customers:textures/item/advancement_icon_star.png",
+                CustomerInternalEvents.ShiftFinished.class
+        );
 
-        private static final NameMap<CustomersTaskKind> NAME_MAP = NameMap.of(PET_ITEMS_SERVED, values())
+        private static final NameMap<CustomersTaskKind> NAME_MAP = NameMap.of(ITEM_SERVED, values())
                 .id(CustomersTaskKind::serializedName)
                 .baseNameKey("ftbquests.task.customers.customers_task")
                 .create();
 
         private final String serializedName;
         private final String icon;
+        private final Class<? extends CustomerInternalEvents.CustomerEvent> eventType;
 
-        CustomersTaskKind(String serializedName, String icon) {
+        CustomersTaskKind(
+                String serializedName,
+                String icon,
+                Class<? extends CustomerInternalEvents.CustomerEvent> eventType
+        ) {
             this.serializedName = serializedName;
             this.icon = icon;
+            this.eventType = eventType;
         }
 
         public String serializedName() { return serializedName; }
@@ -60,12 +80,19 @@ public final class CustomersFTBTasks {
         public Component displayName() { return NAME_MAP.getDisplayName(this); }
 
         public Icon icon() { return Icon.getIcon(icon); }
+
+        String iconResource() { return icon; }
+
+        boolean handles(CustomerInternalEvents.CustomerEvent event) { return eventType.isInstance(event); }
     }
 
     public static final class CustomersTask extends Task {
-        private CustomersTaskKind taskKind = CustomersTaskKind.PET_ITEMS_SERVED;
+        private CustomersTaskKind taskKind = CustomersTaskKind.ITEM_SERVED;
         private int requiredEvents = 1;
-        private CustomersTriggerItemServed.Instance trigger = CustomersTriggerItemServed.Instance.ANY;
+        private CustomersTriggerItemServed.Instance itemServedTrigger = CustomersTriggerItemServed.Instance.ANY;
+        private CustomersTriggerCustomerServed.Instance customerServedTrigger =
+                CustomersTriggerCustomerServed.Instance.ANY;
+        private CustomersTriggerShiftFinished.Instance shiftFinishedTrigger = CustomersTriggerShiftFinished.Instance.ANY;
 
         public CustomersTask(long id, Quest quest) {
             super(id, quest);
@@ -87,24 +114,42 @@ public final class CustomersFTBTasks {
         }
 
         void recordProgress(TeamData teamData, CustomerInternalEvents.ItemServed event) {
+            if (matches(event)) {
+                recordProgress(teamData);
+            }
+        }
+
+        void recordProgress(TeamData teamData, CustomerInternalEvents.CustomerServed event) {
+            if (matches(event)) {
+                recordProgress(teamData);
+            }
+        }
+
+        void recordProgress(TeamData teamData, CustomerInternalEvents.ShiftFinished event) {
+            if (matches(event)) {
+                recordProgress(teamData);
+            }
+        }
+
+        private void recordProgress(TeamData teamData) {
             if (teamData.isCompleted(this)
                     || !teamData.canStartTasks(getQuest())
-                    || !checkTaskSequence(teamData)
-                    || !matches(event)) {
+                    || !checkTaskSequence(teamData)) {
                 return;
             }
             teamData.addProgress(this, 1L);
         }
 
-        private boolean matches(CustomerInternalEvents.ItemServed event) {
-            CustomersTriggerItemServed.Instance matchingTrigger = taskKind == CustomersTaskKind.PET_ITEMS_SERVED
-                    ? CustomersTriggerItemServed.SCHEMA.with(
-                            trigger,
-                            CustomersTriggerItemServed.SCHEMA.property("is_pet_item").orElseThrow(),
-                            Optional.of(true)
-                    )
-                    : trigger;
-            return matchingTrigger.matchesEvent(event);
+        boolean matches(CustomerInternalEvents.ItemServed event) {
+            return taskKind.handles(event) && itemServedTrigger.matchesEvent(event);
+        }
+
+        boolean matches(CustomerInternalEvents.CustomerServed event) {
+            return taskKind.handles(event) && customerServedTrigger.matchesEvent(event);
+        }
+
+        boolean matches(CustomerInternalEvents.ShiftFinished event) {
+            return taskKind.handles(event) && shiftFinishedTrigger.matchesEvent(event);
         }
 
         @Override
@@ -112,7 +157,26 @@ public final class CustomersFTBTasks {
             super.writeData(tag, provider);
             tag.putString("customers_task", taskKind.serializedName());
             tag.putInt("count", requiredEvents);
-            CustomersFTBTriggerSchema.writeData(tag, provider, CustomersTriggerItemServed.SCHEMA, trigger);
+            switch (taskKind) {
+                case ITEM_SERVED -> CustomersFTBTriggerSchema.writeData(
+                        tag,
+                        provider,
+                        CustomersTriggerItemServed.SCHEMA,
+                        itemServedTrigger
+                );
+                case CUSTOMER_SERVED -> CustomersFTBTriggerSchema.writeData(
+                        tag,
+                        provider,
+                        CustomersTriggerCustomerServed.SCHEMA,
+                        customerServedTrigger
+                );
+                case SHIFT_FINISHED -> CustomersFTBTriggerSchema.writeData(
+                        tag,
+                        provider,
+                        CustomersTriggerShiftFinished.SCHEMA,
+                        shiftFinishedTrigger
+                );
+            }
         }
 
         @Override
@@ -120,12 +184,26 @@ public final class CustomersFTBTasks {
             super.readData(tag, provider);
             taskKind = CustomersTaskKind.NAME_MAP.get(tag.getString("customers_task"));
             requiredEvents = Math.max(1, tag.getInt("count"));
-            trigger = CustomersFTBTriggerSchema.readData(
-                    tag,
-                    provider,
-                    CustomersTriggerItemServed.SCHEMA,
-                    CustomersTriggerItemServed.Instance.ANY
-            );
+            switch (taskKind) {
+                case ITEM_SERVED -> itemServedTrigger = CustomersFTBTriggerSchema.readData(
+                        tag,
+                        provider,
+                        CustomersTriggerItemServed.SCHEMA,
+                        CustomersTriggerItemServed.Instance.ANY
+                );
+                case CUSTOMER_SERVED -> customerServedTrigger = CustomersFTBTriggerSchema.readData(
+                        tag,
+                        provider,
+                        CustomersTriggerCustomerServed.SCHEMA,
+                        CustomersTriggerCustomerServed.Instance.ANY
+                );
+                case SHIFT_FINISHED -> shiftFinishedTrigger = CustomersFTBTriggerSchema.readData(
+                        tag,
+                        provider,
+                        CustomersTriggerShiftFinished.SCHEMA,
+                        CustomersTriggerShiftFinished.Instance.ANY
+                );
+            }
         }
 
         @Override
@@ -133,7 +211,23 @@ public final class CustomersFTBTasks {
             super.writeNetData(buffer);
             CustomersTaskKind.NAME_MAP.write(buffer, taskKind);
             buffer.writeVarInt(requiredEvents);
-            CustomersFTBTriggerSchema.writeNetData(buffer, CustomersTriggerItemServed.SCHEMA, trigger);
+            switch (taskKind) {
+                case ITEM_SERVED -> CustomersFTBTriggerSchema.writeNetData(
+                        buffer,
+                        CustomersTriggerItemServed.SCHEMA,
+                        itemServedTrigger
+                );
+                case CUSTOMER_SERVED -> CustomersFTBTriggerSchema.writeNetData(
+                        buffer,
+                        CustomersTriggerCustomerServed.SCHEMA,
+                        customerServedTrigger
+                );
+                case SHIFT_FINISHED -> CustomersFTBTriggerSchema.writeNetData(
+                        buffer,
+                        CustomersTriggerShiftFinished.SCHEMA,
+                        shiftFinishedTrigger
+                );
+            }
         }
 
         @Override
@@ -141,23 +235,42 @@ public final class CustomersFTBTasks {
             super.readNetData(buffer);
             taskKind = CustomersTaskKind.NAME_MAP.read(buffer);
             requiredEvents = Math.max(1, buffer.readVarInt());
-            trigger = CustomersFTBTriggerSchema.readNetData(buffer, CustomersTriggerItemServed.SCHEMA);
+            switch (taskKind) {
+                case ITEM_SERVED -> itemServedTrigger =
+                        CustomersFTBTriggerSchema.readNetData(buffer, CustomersTriggerItemServed.SCHEMA);
+                case CUSTOMER_SERVED -> customerServedTrigger =
+                        CustomersFTBTriggerSchema.readNetData(buffer, CustomersTriggerCustomerServed.SCHEMA);
+                case SHIFT_FINISHED -> shiftFinishedTrigger =
+                        CustomersFTBTriggerSchema.readNetData(buffer, CustomersTriggerShiftFinished.SCHEMA);
+            }
         }
 
         @Override
         public void fillConfigGroup(ConfigGroup config) {
             super.fillConfigGroup(config);
             config.addInt("count", requiredEvents, value -> requiredEvents = value, 1, 1, Integer.MAX_VALUE)
-                    .setNameKey("ftbquests.task.customers.customers_task.count");
-            if (taskKind != CustomersTaskKind.ITEM_SERVED) {
-                return;
+                    .setNameKey("ftbquests.task.customers.customers_task.count")
+                    .setOrder(REQUIRED_EVENTS_CONFIG_ORDER);
+            switch (taskKind) {
+                case ITEM_SERVED -> CustomersFTBTriggerSchema.fillConfigGroup(
+                        config,
+                        CustomersTriggerItemServed.SCHEMA,
+                        () -> itemServedTrigger,
+                        value -> itemServedTrigger = value
+                );
+                case CUSTOMER_SERVED -> CustomersFTBTriggerSchema.fillConfigGroup(
+                        config,
+                        CustomersTriggerCustomerServed.SCHEMA,
+                        () -> customerServedTrigger,
+                        value -> customerServedTrigger = value
+                );
+                case SHIFT_FINISHED -> CustomersFTBTriggerSchema.fillConfigGroup(
+                        config,
+                        CustomersTriggerShiftFinished.SCHEMA,
+                        () -> shiftFinishedTrigger,
+                        value -> shiftFinishedTrigger = value
+                );
             }
-            CustomersFTBTriggerSchema.fillConfigGroup(
-                    config,
-                    CustomersTriggerItemServed.SCHEMA,
-                    () -> trigger,
-                    value -> trigger = value
-            );
         }
     }
 }

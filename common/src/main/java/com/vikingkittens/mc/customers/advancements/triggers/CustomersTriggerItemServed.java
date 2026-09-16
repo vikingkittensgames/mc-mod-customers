@@ -34,6 +34,7 @@ public final class CustomersTriggerItemServed
 
     public record Instance(
             Optional<ContextAwarePredicate> player,
+            Optional<CustomersLocationPredicate> spawnerLocation,
             Optional<CustomerSpawnerMode> spawnerMode,
             Optional<ResourceLocation> customerProfession,
             Optional<ItemPredicate> servedItem,
@@ -43,6 +44,31 @@ public final class CustomersTriggerItemServed
             Optional<Boolean> isPetItem,
             Optional<MinMaxBounds.Ints> totalItemsServed
     ) implements SimpleInstance {
+        public Instance(
+                Optional<ContextAwarePredicate> player,
+                Optional<CustomerSpawnerMode> spawnerMode,
+                Optional<ResourceLocation> customerProfession,
+                Optional<ItemPredicate> servedItem,
+                Optional<MinMaxBounds.Ints> servedCount,
+                Optional<ItemPredicate> costItem,
+                Optional<MinMaxBounds.Ints> costCount,
+                Optional<Boolean> isPetItem,
+                Optional<MinMaxBounds.Ints> totalItemsServed
+        ) {
+            this(
+                    player,
+                    Optional.empty(),
+                    spawnerMode,
+                    customerProfession,
+                    servedItem,
+                    servedCount,
+                    costItem,
+                    costCount,
+                    isPetItem,
+                    totalItemsServed
+            );
+        }
+
         public static final Instance ANY = new Instance(
                 Optional.empty(),
                 Optional.empty(),
@@ -63,6 +89,13 @@ public final class CustomersTriggerItemServed
                                 ContextAwarePredicate.CODEC,
                                 CustomersTriggerSchema.Editor.HIDDEN,
                                 false
+                        )
+                        .property(
+                                "spawnerLocation",
+                                "spawner_location",
+                                CustomersLocationPredicate.CODEC,
+                                CustomersTriggerSchema.Editor.OPTIONAL_LOCATION,
+                                true
                         )
                         .property(
                                 "spawnerMode",
@@ -134,7 +167,8 @@ public final class CustomersTriggerItemServed
         }
 
         public boolean matchesEvent(CustomerInternalEvents.ItemServed event) {
-            return spawnerMode.map(value -> value == event.spawnerMode()).orElse(true)
+            return spawnerLocation.map(value -> value.matches(event)).orElse(true)
+                    && spawnerMode.map(value -> value == event.spawnerMode()).orElse(true)
                     && customerProfession.map(value -> value.equals(event.customerProfession())).orElse(true)
                     && servedItem.map(value -> value.test(event.servedItem())).orElse(true)
                     && servedCount.map(value -> value.matches(event.servedItem().getCount())).orElse(true)

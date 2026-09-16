@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import com.mojang.serialization.JsonOps;
 import net.minecraft.advancements.critereon.MinMaxBounds;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
@@ -16,6 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
@@ -25,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class CustomersTriggerItemServedTest {
     @BeforeAll
@@ -89,6 +92,24 @@ class CustomersTriggerItemServedTest {
     }
 
     @Test
+    void matchesSpawnerLocationCondition() {
+        BlockPos position = new BlockPos(-120, 64, 350);
+        ServerLevel level = mock(ServerLevel.class);
+        when(level.dimension()).thenReturn(Level.OVERWORLD);
+        CustomersTriggerSchema.Property<CustomersTriggerItemServed.Instance> property =
+                CustomersTriggerItemServed.SCHEMA.property("spawner_location").orElseThrow();
+        CustomersTriggerItemServed.Instance instance = CustomersTriggerItemServed.SCHEMA.with(
+                CustomersTriggerItemServed.Instance.ANY,
+                property,
+                Optional.of(new CustomersLocationPredicate(Level.OVERWORLD, position))
+        );
+
+        assertTrue(instance.matchesEvent(event(level, position, CustomerSpawnerMode.LUNCH, 3, 2, false)));
+        assertFalse(instance.matchesEvent(event(level, position.above(), CustomerSpawnerMode.LUNCH, 3, 2, false)));
+        assertFalse(instance.matchesEvent(event(level, null, CustomerSpawnerMode.LUNCH, 3, 2, false)));
+    }
+
+    @Test
     void eventMatchingDoesNotDependOnThePlayerLifetimeTotal() {
         CustomersTriggerItemServed.Instance instance = new CustomersTriggerItemServed.Instance(
                 Optional.empty(),
@@ -108,6 +129,12 @@ class CustomersTriggerItemServedTest {
 
     @Test
     void schemaDescribesAndUpdatesTriggerProperties() {
+        assertEquals("spawner_location", CustomersTriggerItemServed.SCHEMA.properties().get(1).serializedName());
+        assertEquals("spawner_mode", CustomersTriggerItemServed.SCHEMA.properties().get(2).serializedName());
+        assertEquals(
+                CustomersTriggerSchema.Editor.OPTIONAL_LOCATION,
+                CustomersTriggerItemServed.SCHEMA.properties().get(1).editor()
+        );
         CustomersTriggerSchema.Property<CustomersTriggerItemServed.Instance> spawnerMode =
                 CustomersTriggerItemServed.SCHEMA.property("spawner_mode").orElseThrow();
 
@@ -167,9 +194,27 @@ class CustomersTriggerItemServedTest {
             int costCount,
             boolean isPetItem
     ) {
-        return new CustomerInternalEvents.ItemServed(
+        return event(
                 mock(ServerLevel.class),
                 null,
+                mode,
+                servedCount,
+                costCount,
+                isPetItem
+        );
+    }
+
+    private static CustomerInternalEvents.ItemServed event(
+            ServerLevel level,
+            BlockPos spawnerPosition,
+            CustomerSpawnerMode mode,
+            int servedCount,
+            int costCount,
+            boolean isPetItem
+    ) {
+        return new CustomerInternalEvents.ItemServed(
+                level,
+                spawnerPosition,
                 mode,
                 UUID.randomUUID(),
                 UUID.randomUUID(),

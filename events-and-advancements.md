@@ -48,6 +48,7 @@ The trigger accepts these optional conditions:
 | Condition | Meaning |
 | --- | --- |
 | `player` | Vanilla player-context predicate |
+| `spawner_location` | Exact Customer Spawner dimension and block position |
 | `spawner_mode` | Customer spawner mode, such as `lunch` or `continuous` |
 | `customer_profession` | Customer profession ID, such as `customers:customer_impatient` |
 | `served_item` | Vanilla item predicate for the requested item that was supplied |
@@ -87,6 +88,20 @@ For example, this criterion requires an impatient lunch customer who wanted at l
       ]
     },
     "cost_count": 2
+  }
+}
+```
+
+For example, this criterion only counts transactions from one Customer Spawner:
+
+```json
+{
+  "trigger": "customers:item_served",
+  "conditions": {
+    "spawner_location": {
+      "dimension": "minecraft:overworld",
+      "position": [120, 64, -350]
+    }
   }
 }
 ```
@@ -163,19 +178,27 @@ the independent `CustomersFTBEvents` internal-event consumer.
 Prefer FTB's Advancement Task for existing Customers advancements and its Stat
 Task for arbitrary per-player `customers:item_served` or
 `customers:shift_finished` totals. The single `customers:customers_task` entry
-in FTB's task menu opens a Customers submenu. `Pet Items Served` counts pet-item
-service events, while `Item Served` can filter events by spawner mode, customer
-profession, served item or tag, served stack count, cost item or tag, cost stack
-count, and pet-item status.
+in FTB's task menu opens a Customers submenu containing `Item Served`,
+`Customer Served`, and `Shift Finished`. Pet-item quests use an Item Served task
+with `Is Pet Item` set to true. Item and Customer Served tasks can filter by
+spawner location and mode, customer profession, served item or tag, served stack
+count, cost item or tag, cost stack count, and pet-item status. Shift Finished
+tasks can filter by spawner location and mode, active level, score percentage,
+customer and item totals, and participating player counts.
 
 Custom Customers tasks listen directly to Customers internal events and add one
-to the serving player's FTB team progress for each matching event. They do not
-read the player's lifetime statistics, so their configured count belongs to
-that task and team. They also do not award historical progress: an event counts
-only while the quest is eligible to progress. Item Served task filters delegate
-their event matching to `CustomersTriggerItemServed.Instance`; the trigger's
-player-total condition remains specific to advancements and is not exposed in
+to the serving player's FTB team progress for each matching item or customer
+event. A matching shift adds progress once to every participating FTB team,
+even when multiple members of that team participated. These tasks do not read
+player lifetime statistics, so their configured count belongs to that task and
+team. They also do not award historical progress: an event counts only while
+the quest is eligible to progress. Each task delegates event matching to its
+corresponding Customers advancement trigger instance. Conditions based on a
+player's lifetime totals remain advancement-specific and are not exposed in
 the FTB task editor.
+
+Item predicate filters use FTB Library's native item selector plus an optional
+tag text field. A non-empty tag takes precedence over the selected item.
 
 Trigger records intended for task reuse define a `CustomersTriggerSchema` next
 to the record. Each schema property supplies its serialized name, codec,

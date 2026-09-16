@@ -1015,15 +1015,18 @@ ink sac.
 ## Advancements and Statistics
 
 When FTB Quests is installed on NeoForge, quest builders can add a **Customers
-Task** and choose either **Pet Items Served** or **Item Served**. These tasks
-count matching service events independently for each FTB team instead of using
-a player's lifetime statistics. Item Served tasks can be limited by shift mode,
-customer profession, served item or tag and count, cost item or tag and count,
-and whether the served item belongs to a customer pet.
+Task** and choose **Item Served**, **Customer Served**, or **Shift Finished**.
+These tasks count matching events independently for each FTB team instead of
+using a player's lifetime statistics. All three tasks can be limited to one
+Customer Spawner by its dimension and block position. Item and Customer Served
+tasks can also filter by shift mode, customer profession, served item or tag
+and count, cost item or tag and count, and whether the served item belongs to a
+customer pet. Shift Finished tasks can also filter the shift mode, level,
+score, customer totals, item totals, and participating player counts.
 
 Customers adds its own advancement tab with separate Builder and Server branches. The Builder branch recognizes crafting Customer and Supplier Spawners. The Server branch begins tracking customer and supplier activity, including **First Item Served** for completing one requested-item transaction and **100 Items Served** for completing 100 attributed transactions.
 
-Item-serving advancements can distinguish the spawner mode, customer profession, requested item and amount, payment item and amount, and the player's total completed item transactions. Modpack authors can use these conditions to add goals such as serving an impatient lunch customer, selling a particular quantity of an item, or completing a configured number of transactions. The **Items Served to Customers** statistic increases once per completed requested-item transaction; it does not count every individual item in the stack or distinct customer NPCs.
+Item-serving advancements can distinguish the spawner location and mode, customer profession, requested item and amount, payment item and amount, and the player's total completed item transactions. Modpack authors can use these conditions to add goals such as serving customers at a particular shop, serving an impatient lunch customer, selling a particular quantity of an item, or completing a configured number of transactions. The **Items Served to Customers** statistic increases once per completed requested-item transaction; it does not count every individual item in the stack or distinct customer NPCs.
 
 See [events-and-advancements.md](events-and-advancements.md) for the data format and instructions for adding events, triggers, advancements, statistics, and optional quest integrations.
 

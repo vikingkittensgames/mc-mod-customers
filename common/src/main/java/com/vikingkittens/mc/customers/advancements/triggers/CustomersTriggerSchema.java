@@ -138,9 +138,11 @@ public final class CustomersTriggerSchema<T> {
     public enum Editor {
         HIDDEN,
         OPTIONAL_BOOLEAN,
+        OPTIONAL_DOUBLE_RANGE,
         OPTIONAL_ENUM,
         OPTIONAL_INT_RANGE,
         OPTIONAL_ITEM_PREDICATE,
+        OPTIONAL_LOCATION,
         OPTIONAL_RESOURCE_LOCATION
     }
 
