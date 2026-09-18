@@ -27,9 +27,10 @@ public final class CustomersTriggerItemServed
     public void trigger(
             ServerPlayer player,
             CustomerInternalEvents.ItemServed event,
-            int totalItemsServed
+            int totalItemsServed,
+            int totalPetItemsServed
     ) {
-        trigger(player, instance -> instance.matches(event, totalItemsServed));
+        trigger(player, instance -> instance.matches(event, totalItemsServed, totalPetItemsServed));
     }
 
     public record Instance(
@@ -42,7 +43,8 @@ public final class CustomersTriggerItemServed
             Optional<ItemPredicate> costItem,
             Optional<MinMaxBounds.Ints> costCount,
             Optional<Boolean> isPetItem,
-            Optional<MinMaxBounds.Ints> totalItemsServed
+            Optional<MinMaxBounds.Ints> totalItemsServed,
+            Optional<MinMaxBounds.Ints> totalPetItemsServed
     ) implements SimpleInstance {
         public Instance(
                 Optional<ContextAwarePredicate> player,
@@ -53,7 +55,8 @@ public final class CustomersTriggerItemServed
                 Optional<ItemPredicate> costItem,
                 Optional<MinMaxBounds.Ints> costCount,
                 Optional<Boolean> isPetItem,
-                Optional<MinMaxBounds.Ints> totalItemsServed
+                Optional<MinMaxBounds.Ints> totalItemsServed,
+                Optional<MinMaxBounds.Ints> totalPetItemsServed
         ) {
             this(
                     player,
@@ -65,11 +68,13 @@ public final class CustomersTriggerItemServed
                     costItem,
                     costCount,
                     isPetItem,
-                    totalItemsServed
+                    totalItemsServed,
+                    totalPetItemsServed
             );
         }
 
         public static final Instance ANY = new Instance(
+                Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
@@ -154,16 +159,27 @@ public final class CustomersTriggerItemServed
                                 CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
                                 false
                         )
+                        .property(
+                                "totalPetItemsServed",
+                                "total_pet_items_served",
+                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
+                                false
+                        )
                         .build();
 
         public static final Codec<Instance> CODEC = SCHEMA.codec();
 
         public boolean matches(
                 CustomerInternalEvents.ItemServed event,
-                int currentTotalItemsServed
+                int currentTotalItemsServed,
+                int currentTotalPetItemsServed
         ) {
             return matchesEvent(event)
-                    && totalItemsServed.map(value -> value.matches(currentTotalItemsServed)).orElse(true);
+                    && totalItemsServed.map(value -> value.matches(currentTotalItemsServed)).orElse(true)
+                    && totalPetItemsServed
+                            .map(value -> value.matches(currentTotalPetItemsServed))
+                            .orElse(true);
         }
 
         public boolean matchesEvent(CustomerInternalEvents.ItemServed event) {

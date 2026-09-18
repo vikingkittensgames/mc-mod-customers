@@ -1,0 +1,26 @@
+{
+  "parent": "customers:builder/customer_spawner_changed",
+  "criteria": {
+    "customer_spawner_changed_pets": {
+      "trigger": "customers:customer_spawner_changed",
+      "conditions": {
+        "num_sell_items": { "min": 1 },
+        "pet_percentage": { "min": 0.01 }
+      }
+    }
+  },
+  "display": {
+    "description": { "translate": "advancements.customers.builder.customer.customer_spawner_changed_pets.description" },
+    "icon": {
+      "id": "customers:advancement_icon",
+      "count": 1,
+      "components": { "minecraft:custom_model_data": 28 }
+    },
+    "title": { "translate": "advancements.customers.builder.customer.customer_spawner_changed_pets.title" }
+  },
+  "requirements": [
+    [
+      "customer_spawner_changed_pets"
+    ]
+  ]
+}

@@ -122,6 +122,10 @@ public final class CustomerSpawnerLevelSettings {
         return !petTypesCustomized || enabledPetTypes.contains(petTypeId);
     }
 
+    public boolean isPetTypesCustomized() {
+        return petTypesCustomized;
+    }
+
     public void setPetTypeEnabled(
             String petTypeId,
             boolean enabled,

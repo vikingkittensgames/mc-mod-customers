@@ -1,0 +1,22 @@
+{
+  "parent": "customers:builder/customer_spawner_changed",
+  "criteria": {
+    "customer_counter_placed": {
+      "trigger": "customers:counter_placed"
+    }
+  },
+  "display": {
+    "description": { "translate": "advancements.customers.builder.customer.counter_placed.description" },
+    "icon": {
+      "id": "customers:advancement_icon",
+      "count": 1,
+      "components": { "minecraft:custom_model_data": 52 }
+    },
+    "title": { "translate": "advancements.customers.builder.customer.counter_placed.title" }
+  },
+  "requirements": [
+    [
+      "customer_counter_placed"
+    ]
+  ]
+}

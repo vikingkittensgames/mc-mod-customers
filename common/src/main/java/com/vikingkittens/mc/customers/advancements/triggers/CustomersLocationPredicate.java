@@ -15,6 +15,10 @@ public record CustomersLocationPredicate(ResourceKey<Level> dimension, BlockPos 
     ).apply(instance, CustomersLocationPredicate::new));
 
     public boolean matches(CustomerInternalEvents.CustomerEvent event) {
-        return dimension.equals(event.level().dimension()) && position.equals(event.spawnerPosition());
+        return matches(event.level(), event.spawnerPosition());
+    }
+
+    public boolean matches(Level level, BlockPos position) {
+        return dimension.equals(level.dimension()) && this.position.equals(position);
     }
 }

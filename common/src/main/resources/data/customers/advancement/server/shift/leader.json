@@ -1,0 +1,28 @@
+{
+  "parent": "customers:server/shift/root",
+  "criteria": {
+    "leader": {
+      "trigger": "customers:leaderboard_changed",
+      "conditions": {
+        "is_leader": true
+      }
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.customers.server.shift.leader.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "customers:customer_leaderboard"
+    },
+    "title": {
+      "translate": "advancements.customers.server.shift.leader.title"
+    }
+  },
+  "requirements": [
+    [
+      "leader"
+    ]
+  ]
+}

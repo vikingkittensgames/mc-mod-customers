@@ -46,10 +46,11 @@ class CustomersTriggerItemServedTest {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
+                Optional.empty(),
                 Optional.empty()
         );
 
-        assertTrue(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, false), 1));
+        assertTrue(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, false), 1, 0));
     }
 
     @Test
@@ -63,14 +64,15 @@ class CustomersTriggerItemServedTest {
                 Optional.empty(),
                 Optional.of(MinMaxBounds.Ints.exactly(2)),
                 Optional.empty(),
-                Optional.of(MinMaxBounds.Ints.atLeast(100))
+                Optional.of(MinMaxBounds.Ints.atLeast(100)),
+                Optional.empty()
         );
 
-        assertTrue(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, false), 100));
-        assertFalse(instance.matches(event(CustomerSpawnerMode.DINNER, 3, 2, false), 100));
-        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 2, 2, false), 100));
-        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 1, false), 100));
-        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, false), 99));
+        assertTrue(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, false), 100, 0));
+        assertFalse(instance.matches(event(CustomerSpawnerMode.DINNER, 3, 2, false), 100, 0));
+        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 2, 2, false), 100, 0));
+        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 1, false), 100, 0));
+        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, false), 99, 0));
     }
 
     @Test
@@ -84,11 +86,12 @@ class CustomersTriggerItemServedTest {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.of(true),
+                Optional.empty(),
                 Optional.empty()
         );
 
-        assertTrue(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, true), 1));
-        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, false), 1));
+        assertTrue(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, true), 1, 1));
+        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, false), 1, 1));
     }
 
     @Test
@@ -120,11 +123,12 @@ class CustomersTriggerItemServedTest {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
-                Optional.of(MinMaxBounds.Ints.atLeast(100))
+                Optional.of(MinMaxBounds.Ints.atLeast(100)),
+                Optional.empty()
         );
 
         assertTrue(instance.matchesEvent(event(CustomerSpawnerMode.LUNCH, 3, 2, false)));
-        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, false), 99));
+        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, false), 99, 0));
     }
 
     @Test
@@ -155,6 +159,9 @@ class CustomersTriggerItemServedTest {
     void schemaKeepsAdvancementOnlyPropertiesOutOfTaskEditors() {
         assertFalse(CustomersTriggerItemServed.SCHEMA.property("player").orElseThrow().taskEditable());
         assertFalse(CustomersTriggerItemServed.SCHEMA.property("total_items_served").orElseThrow().taskEditable());
+        assertFalse(
+                CustomersTriggerItemServed.SCHEMA.property("total_pet_items_served").orElseThrow().taskEditable()
+        );
     }
 
     @Test
@@ -168,7 +175,8 @@ class CustomersTriggerItemServedTest {
                   "cost_item": { "items": ["minecraft:emerald"] },
                   "cost_count": 2,
                   "is_pet_item": true,
-                  "total_items_served": { "min": 100 }
+                  "total_items_served": { "min": 100 },
+                  "total_pet_items_served": { "min": 25 }
                 }
                 """;
 
@@ -182,10 +190,11 @@ class CustomersTriggerItemServedTest {
                 )
                 .getOrThrow();
 
-        assertTrue(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, true), 100));
-        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, false), 100));
-        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 3, true), 100));
-        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, true), 99));
+        assertTrue(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, true), 100, 25));
+        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, false), 100, 25));
+        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 3, true), 100, 25));
+        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, true), 99, 25));
+        assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, true), 100, 24));
     }
 
     private static CustomerInternalEvents.ItemServed event(

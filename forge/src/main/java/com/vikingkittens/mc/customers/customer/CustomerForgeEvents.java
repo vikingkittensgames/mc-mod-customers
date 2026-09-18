@@ -1,9 +1,12 @@
 package com.vikingkittens.mc.customers.customer;
 
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.level.block.state.BlockState;
 
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
@@ -29,6 +32,8 @@ public final class CustomerForgeEvents {
         MinecraftForge.EVENT_BUS.addListener(CustomerForgeEvents::onCustomerInteract);
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, CustomerForgeEvents::onCustomerSpawnerBreak);
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, CustomerForgeEvents::onCustomerLeaderboardBreak);
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, CustomerForgeEvents::onBlockPlace);
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, CustomerForgeEvents::onBlockBroken);
     }
 
     static void registerAttributes(EntityAttributeCreationEvent event) {
@@ -84,6 +89,27 @@ public final class CustomerForgeEvents {
                     "screen.customers.break_confirmation.customer_leaderboard_title",
                     "screen.customers.break_confirmation.customer_leaderboard_message"
             ));
+        }
+    }
+
+    public static void onBlockPlace(BlockEvent.EntityPlaceEvent event) {
+        if (event.getLevel() instanceof ServerLevel level) {
+            Player player = event.getEntity() instanceof Player placingPlayer ? placingPlayer : null;
+            CustomerSpawnerCache.onBlockPlaced(
+                    level,
+                    event.getPos(),
+                    event.getPlacedBlock(),
+                    player
+            );
+        }
+    }
+    public static void onBlockBroken(BlockEvent.BreakEvent event) {
+        if (event.getLevel() instanceof ServerLevel level) {
+            CustomerSpawnerCache.onBlockBroken(
+                    level,
+                    event.getPos(),
+                    event.getState()
+            );
         }
     }
 

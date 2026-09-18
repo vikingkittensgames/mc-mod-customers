@@ -91,6 +91,58 @@ class CustomerSpawnerBlockEntityTest {
     }
 
     @Test
+    void emitsLeaderboardChangedWithPreviousAndNewScores() {
+        BlockEntityType<?> type = mock(BlockEntityType.class);
+        BlockState state = mock(BlockState.class);
+        when(type.isValid(state)).thenReturn(true);
+        CustomerSpawnerBlockEntity spawner = new CustomerSpawnerBlockEntity(type, BlockPos.ZERO, state);
+        ServerLevel level = mock(ServerLevel.class);
+        spawner.setLevel(level);
+        BlockPos leaderboardPosition = new BlockPos(8, 64, 8);
+        CustomerLeaderboardBlockEntity leaderboard =
+                new CustomerLeaderboardBlockEntity(type, leaderboardPosition, state);
+        UUID previousPlayer = UUID.randomUUID();
+        UUID changedPlayer = UUID.randomUUID();
+        leaderboard.addScore(BlockPos.ZERO, CustomerSpawnerMode.LUNCH, 2, previousPlayer, 0.5F);
+        spawner.scoreboardAddItemsWanted(4);
+        spawner.scoreboardAddItemsServed(changedPlayer, 3);
+        AtomicReference<CustomerInternalEvents.LeaderboardChanged> emitted = new AtomicReference<>();
+
+        spawner.sendScoresToLeaderboard(CustomerSpawnerMode.LUNCH, 1, leaderboard, emitted::set);
+
+        CustomerInternalEvents.LeaderboardChanged event = emitted.get();
+        assertNotNull(event);
+        assertSame(level, event.level());
+        assertEquals(BlockPos.ZERO, event.spawnerPosition());
+        assertEquals(CustomerSpawnerMode.LUNCH, event.spawnerMode());
+        assertEquals(1, event.activeLevel());
+        assertEquals(leaderboardPosition, event.leaderboardPosition());
+        assertEquals(Map.of(previousPlayer, 0.5F), event.previousScores());
+        assertEquals(Map.of(previousPlayer, 0.5F, changedPlayer, 0.75F), event.scores());
+        assertEquals(Set.of(changedPlayer), event.changedPlayerIds());
+    }
+
+    @Test
+    void doesNotEmitLeaderboardChangedWhenNoScoreImproves() {
+        BlockEntityType<?> type = mock(BlockEntityType.class);
+        BlockState state = mock(BlockState.class);
+        when(type.isValid(state)).thenReturn(true);
+        CustomerSpawnerBlockEntity spawner = new CustomerSpawnerBlockEntity(type, BlockPos.ZERO, state);
+        spawner.setLevel(mock(ServerLevel.class));
+        CustomerLeaderboardBlockEntity leaderboard =
+                new CustomerLeaderboardBlockEntity(type, BlockPos.ZERO, state);
+        UUID playerId = UUID.randomUUID();
+        leaderboard.addScore(BlockPos.ZERO, CustomerSpawnerMode.LUNCH, 1, playerId, 1.0F);
+        spawner.scoreboardAddItemsWanted(4);
+        spawner.scoreboardAddItemsServed(playerId, 3);
+        AtomicReference<CustomerInternalEvents.LeaderboardChanged> emitted = new AtomicReference<>();
+
+        spawner.sendScoresToLeaderboard(CustomerSpawnerMode.LUNCH, 0, leaderboard, emitted::set);
+
+        assertNull(emitted.get());
+    }
+
+    @Test
     void findsTheFirstLevelThePlayerHasNotPassed() {
         assertEquals(1, CustomerSpawnerBlockEntity.getFirstUnfinishedLevel(
                 List.of(0, 1),

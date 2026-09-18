@@ -14,6 +14,12 @@ public final class CustomersStatistics {
                     "item_served",
                     () -> ResourceLocation.fromNamespaceAndPath(Customers.MODID, "item_served")
             );
+    public static final CustomersRegistryEntry<ResourceLocation, ResourceLocation> PET_ITEM_SERVED =
+            CustomersServices.registration().register(
+                    Registries.CUSTOM_STAT,
+                    "pet_item_served",
+                    () -> ResourceLocation.fromNamespaceAndPath(Customers.MODID, "pet_item_served")
+            );
     public static final CustomersRegistryEntry<ResourceLocation, ResourceLocation> SHIFT_FINISHED =
             CustomersServices.registration().register(
                     Registries.CUSTOM_STAT,

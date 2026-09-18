@@ -30,7 +30,27 @@ class CustomersInitializationTest {
         Customers.initialize();
 
         assertEquals(ResourceLocation.parse("customers:item_served"), CustomersTriggers.ITEM_SERVED.getId());
+        assertEquals(
+                ResourceLocation.parse("customers:leaderboard_changed"),
+                CustomersTriggers.LEADERBOARD_CHANGED.getId()
+        );
+        assertEquals(
+                ResourceLocation.parse("customers:customer_spawner_changed"),
+                CustomersTriggers.CUSTOMER_SPAWNER_CHANGED.getId()
+        );
+        assertEquals(
+                ResourceLocation.parse("customers:supplier_spawner_changed"),
+                CustomersTriggers.SUPPLIER_SPAWNER_CHANGED.getId()
+        );
+        assertEquals(
+                ResourceLocation.parse("customers:counter_placed"),
+                CustomersTriggers.COUNTER_PLACED.getId()
+        );
         assertEquals(ResourceLocation.parse("customers:item_served"), CustomersStatistics.ITEM_SERVED.getId());
+        assertEquals(
+                ResourceLocation.parse("customers:pet_item_served"),
+                CustomersStatistics.PET_ITEM_SERVED.getId()
+        );
 
         assertEquals(
                 ResourceLocation.parse("customers:default"),

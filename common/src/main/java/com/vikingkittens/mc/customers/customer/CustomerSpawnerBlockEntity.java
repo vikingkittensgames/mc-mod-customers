@@ -408,6 +408,14 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         levelSettings.add(createLevelSettings());
     }
 
+    @Override
+    public void setLevel(Level level) {
+        super.setLevel(level);
+        if (level instanceof ServerLevel) {
+            CustomerSpawnerCache.update(level, worldPosition, level.getBlockState(worldPosition.above()));
+        }
+    }
+
     private CustomerSpawnerLevelSettings createLevelSettings() {
         return new CustomerSpawnerLevelSettings(
                 CustomersServices.config().defaultMaxCustomers(),
@@ -1333,6 +1341,9 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     @Override
     public void setRemoved() {
+        if (level instanceof ServerLevel) {
+            CustomerSpawnerCache.remove(level, worldPosition);
+        }
         if (level instanceof ServerLevel serverLevel) {
             for (UUID playerId : playerIds) {
                 ServerPlayer player = serverLevel.getServer()
@@ -1523,10 +1534,38 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             return;
         }
 
+        sendScoresToLeaderboard(spawnerMode, activeLevel, leaderboard, InternalEvents::emit);
+    }
+
+    void sendScoresToLeaderboard(
+            CustomerSpawnerMode spawnerMode,
+            int activeLevel,
+            CustomerLeaderboardBlockEntity leaderboard,
+            Consumer<CustomerInternalEvents.LeaderboardChanged> eventConsumer
+    ) {
+        int leaderboardLevel = activeLevel + 1;
+        Map<UUID, Float> previousScores = leaderboard.getScores(
+                worldPosition,
+                spawnerMode,
+                leaderboardLevel
+        );
+
         Set<UUID> playerIds = new HashSet<>(itemsServed.playerScores().keySet());
         playerIds.addAll(itemsCrafted.playerScores().keySet());
         for (UUID playerId : playerIds) {
-            leaderboard.addScore(worldPosition, spawnerMode, activeLevel + 1, playerId, scoreboardGetPercentage());
+            leaderboard.addScore(worldPosition, spawnerMode, leaderboardLevel, playerId, scoreboardGetPercentage());
+        }
+        Map<UUID, Float> scores = leaderboard.getScores(worldPosition, spawnerMode, leaderboardLevel);
+        if (!scores.equals(previousScores)) {
+            eventConsumer.accept(new CustomerInternalEvents.LeaderboardChanged(
+                    (ServerLevel) level,
+                    worldPosition,
+                    spawnerMode,
+                    leaderboard.getBlockPos(),
+                    activeLevel,
+                    scores,
+                    previousScores
+            ));
         }
     }
 

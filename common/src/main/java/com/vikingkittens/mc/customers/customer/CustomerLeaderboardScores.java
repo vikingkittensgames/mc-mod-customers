@@ -42,6 +42,22 @@ public final class CustomerLeaderboardScores {
         return Map.copyOf(scores);
     }
 
+    public Map<UUID, Float> getScores(
+            BlockPos spawnerPosition,
+            CustomerSpawnerMode spawnerMode,
+            int level
+    ) {
+        Map<UUID, Float> matchingScores = new HashMap<>();
+        scores.forEach((key, score) -> {
+            if (key.spawnerPosition().equals(spawnerPosition)
+                    && key.spawnerMode() == spawnerMode
+                    && key.level() == level) {
+                matchingScores.put(key.playerId(), score);
+            }
+        });
+        return Map.copyOf(matchingScores);
+    }
+
     public void write(DataWriter output) {
         scores.forEach((key, score) -> {
             DataWriter scoreOutput = output.addChild(TAG_SCORES);

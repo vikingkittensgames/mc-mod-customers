@@ -1,5 +1,8 @@
 package com.vikingkittens.mc.customers.advancements.ftb;
 
+import java.util.Set;
+import java.util.UUID;
+
 import dev.ftb.mods.ftblibrary.config.ConfigGroup;
 import dev.ftb.mods.ftblibrary.config.NameMap;
 import dev.ftb.mods.ftblibrary.icon.Icon;
@@ -16,20 +19,27 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerCounterPlaced;
 import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerCustomerServed;
+import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerCustomerSpawnerChanged;
 import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerItemServed;
+import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerLeaderboardChanged;
 import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerShiftFinished;
+import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerSupplierSpawnerChanged;
+import com.vikingkittens.mc.customers.common.events.InternalEvent;
 import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
+import com.vikingkittens.mc.customers.supplier.SupplierInternalEvents;
 
 public final class CustomersFTBTasks {
     public static final String CUSTOMERS_TASK_NAME = "customers_task";
+    private static final String CUSTOMERS_TASK_NAME_KEY = "ftbquests.task.customers.customers_task";
     private static final int REQUIRED_EVENTS_CONFIG_ORDER = 100;
 
     public static final TaskType CUSTOMERS_TASK = TaskTypes.register(
             ResourceLocation.fromNamespaceAndPath(Customers.MODID, CUSTOMERS_TASK_NAME),
             CustomersTask::new,
             () -> Icon.getIcon("minecraft:item/emerald")
-    ).setDisplayName(Component.translatable("ftbquests.task.customers.customers_task"));
+    ).setDisplayName(Component.translatable(CUSTOMERS_TASK_NAME_KEY));
 
     private CustomersFTBTasks() {}
 
@@ -54,21 +64,41 @@ public final class CustomersFTBTasks {
                 "shift_finished",
                 "customers:textures/item/advancement_icon_star.png",
                 CustomerInternalEvents.ShiftFinished.class
+        ),
+        LEADERBOARD_CHANGED(
+                "leaderboard_changed",
+                "customers:textures/gui/leaderboard_icon.png",
+                CustomerInternalEvents.LeaderboardChanged.class
+        ),
+        CUSTOMER_SPAWNER_CHANGED(
+                "customer_spawner_changed",
+                "customers:textures/block/customer_spawner_block_top.png",
+                CustomerInternalEvents.CustomerSpawnerConfigChanged.class
+        ),
+        SUPPLIER_SPAWNER_CHANGED(
+                "supplier_spawner_changed",
+                "customers:textures/block/supplier_spawner_block_top.png",
+                SupplierInternalEvents.SupplierSpawnerConfigChanged.class
+        ),
+        COUNTER_PLACED(
+                "counter_placed",
+                "customers:textures/item/advancement_icon_table.png",
+                CustomerInternalEvents.CounterBlockPlaced.class
         );
 
         private static final NameMap<CustomersTaskKind> NAME_MAP = NameMap.of(ITEM_SERVED, values())
                 .id(CustomersTaskKind::serializedName)
-                .baseNameKey("ftbquests.task.customers.customers_task")
+                .baseNameKey(CUSTOMERS_TASK_NAME_KEY)
                 .create();
 
         private final String serializedName;
         private final String icon;
-        private final Class<? extends CustomerInternalEvents.CustomerEvent> eventType;
+        private final Class<? extends InternalEvent> eventType;
 
         CustomersTaskKind(
                 String serializedName,
                 String icon,
-                Class<? extends CustomerInternalEvents.CustomerEvent> eventType
+                Class<? extends InternalEvent> eventType
         ) {
             this.serializedName = serializedName;
             this.icon = icon;
@@ -79,11 +109,13 @@ public final class CustomersFTBTasks {
 
         public Component displayName() { return NAME_MAP.getDisplayName(this); }
 
+        public String displayNameKey() { return CUSTOMERS_TASK_NAME_KEY + "." + serializedName; }
+
         public Icon icon() { return Icon.getIcon(icon); }
 
         String iconResource() { return icon; }
 
-        boolean handles(CustomerInternalEvents.CustomerEvent event) { return eventType.isInstance(event); }
+        boolean handles(InternalEvent event) { return eventType.isInstance(event); }
     }
 
     public static final class CustomersTask extends Task {
@@ -93,6 +125,14 @@ public final class CustomersFTBTasks {
         private CustomersTriggerCustomerServed.Instance customerServedTrigger =
                 CustomersTriggerCustomerServed.Instance.ANY;
         private CustomersTriggerShiftFinished.Instance shiftFinishedTrigger = CustomersTriggerShiftFinished.Instance.ANY;
+        private CustomersTriggerLeaderboardChanged.Instance leaderboardChangedTrigger =
+                CustomersTriggerLeaderboardChanged.Instance.ANY;
+        private CustomersTriggerCustomerSpawnerChanged.Instance customerSpawnerChangedTrigger =
+                CustomersTriggerCustomerSpawnerChanged.Instance.ANY;
+        private CustomersTriggerSupplierSpawnerChanged.Instance supplierSpawnerChangedTrigger =
+                CustomersTriggerSupplierSpawnerChanged.Instance.ANY;
+        private CustomersTriggerCounterPlaced.Instance counterPlacedTrigger =
+                CustomersTriggerCounterPlaced.Instance.ANY;
 
         public CustomersTask(long id, Quest quest) {
             super(id, quest);
@@ -106,6 +146,16 @@ public final class CustomersFTBTasks {
         @Override
         public TaskType getType() {
             return CUSTOMERS_TASK;
+        }
+
+        @Override
+        public Component getAltTitle() {
+            return taskKind.displayName();
+        }
+
+        @Override
+        public Icon getAltIcon() {
+            return taskKind.icon();
         }
 
         @Override
@@ -126,6 +176,34 @@ public final class CustomersFTBTasks {
         }
 
         void recordProgress(TeamData teamData, CustomerInternalEvents.ShiftFinished event) {
+            if (matches(event)) {
+                recordProgress(teamData);
+            }
+        }
+
+        void recordProgress(
+                TeamData teamData,
+                CustomerInternalEvents.LeaderboardChanged event,
+                Set<UUID> changedPlayerIds
+        ) {
+            if (changedPlayerIds.stream().anyMatch(playerId -> matches(event, playerId))) {
+                recordProgress(teamData);
+            }
+        }
+
+        void recordProgress(TeamData teamData, CustomerInternalEvents.CustomerSpawnerConfigChanged event) {
+            if (matches(event)) {
+                recordProgress(teamData);
+            }
+        }
+
+        void recordProgress(TeamData teamData, SupplierInternalEvents.SupplierSpawnerConfigChanged event) {
+            if (matches(event)) {
+                recordProgress(teamData);
+            }
+        }
+
+        void recordProgress(TeamData teamData, CustomerInternalEvents.CounterBlockPlaced event) {
             if (matches(event)) {
                 recordProgress(teamData);
             }
@@ -152,6 +230,22 @@ public final class CustomersFTBTasks {
             return taskKind.handles(event) && shiftFinishedTrigger.matchesEvent(event);
         }
 
+        boolean matches(CustomerInternalEvents.LeaderboardChanged event, UUID playerId) {
+            return taskKind.handles(event) && leaderboardChangedTrigger.matchesEvent(event, playerId);
+        }
+
+        boolean matches(CustomerInternalEvents.CustomerSpawnerConfigChanged event) {
+            return taskKind.handles(event) && customerSpawnerChangedTrigger.matchesEvent(event);
+        }
+
+        boolean matches(SupplierInternalEvents.SupplierSpawnerConfigChanged event) {
+            return taskKind.handles(event) && supplierSpawnerChangedTrigger.matchesEvent(event);
+        }
+
+        boolean matches(CustomerInternalEvents.CounterBlockPlaced event) {
+            return taskKind.handles(event) && counterPlacedTrigger.matchesEvent(event);
+        }
+
         @Override
         public void writeData(CompoundTag tag, HolderLookup.Provider provider) {
             super.writeData(tag, provider);
@@ -175,6 +269,30 @@ public final class CustomersFTBTasks {
                         provider,
                         CustomersTriggerShiftFinished.SCHEMA,
                         shiftFinishedTrigger
+                );
+                case LEADERBOARD_CHANGED -> CustomersFTBTriggerSchema.writeData(
+                        tag,
+                        provider,
+                        CustomersTriggerLeaderboardChanged.SCHEMA,
+                        leaderboardChangedTrigger
+                );
+                case CUSTOMER_SPAWNER_CHANGED -> CustomersFTBTriggerSchema.writeData(
+                        tag,
+                        provider,
+                        CustomersTriggerCustomerSpawnerChanged.SCHEMA,
+                        customerSpawnerChangedTrigger
+                );
+                case SUPPLIER_SPAWNER_CHANGED -> CustomersFTBTriggerSchema.writeData(
+                        tag,
+                        provider,
+                        CustomersTriggerSupplierSpawnerChanged.SCHEMA,
+                        supplierSpawnerChangedTrigger
+                );
+                case COUNTER_PLACED -> CustomersFTBTriggerSchema.writeData(
+                        tag,
+                        provider,
+                        CustomersTriggerCounterPlaced.SCHEMA,
+                        counterPlacedTrigger
                 );
             }
         }
@@ -203,6 +321,30 @@ public final class CustomersFTBTasks {
                         CustomersTriggerShiftFinished.SCHEMA,
                         CustomersTriggerShiftFinished.Instance.ANY
                 );
+                case LEADERBOARD_CHANGED -> leaderboardChangedTrigger = CustomersFTBTriggerSchema.readData(
+                        tag,
+                        provider,
+                        CustomersTriggerLeaderboardChanged.SCHEMA,
+                        CustomersTriggerLeaderboardChanged.Instance.ANY
+                );
+                case CUSTOMER_SPAWNER_CHANGED -> customerSpawnerChangedTrigger = CustomersFTBTriggerSchema.readData(
+                        tag,
+                        provider,
+                        CustomersTriggerCustomerSpawnerChanged.SCHEMA,
+                        CustomersTriggerCustomerSpawnerChanged.Instance.ANY
+                );
+                case SUPPLIER_SPAWNER_CHANGED -> supplierSpawnerChangedTrigger = CustomersFTBTriggerSchema.readData(
+                        tag,
+                        provider,
+                        CustomersTriggerSupplierSpawnerChanged.SCHEMA,
+                        CustomersTriggerSupplierSpawnerChanged.Instance.ANY
+                );
+                case COUNTER_PLACED -> counterPlacedTrigger = CustomersFTBTriggerSchema.readData(
+                        tag,
+                        provider,
+                        CustomersTriggerCounterPlaced.SCHEMA,
+                        CustomersTriggerCounterPlaced.Instance.ANY
+                );
             }
         }
 
@@ -227,6 +369,26 @@ public final class CustomersFTBTasks {
                         CustomersTriggerShiftFinished.SCHEMA,
                         shiftFinishedTrigger
                 );
+                case LEADERBOARD_CHANGED -> CustomersFTBTriggerSchema.writeNetData(
+                        buffer,
+                        CustomersTriggerLeaderboardChanged.SCHEMA,
+                        leaderboardChangedTrigger
+                );
+                case CUSTOMER_SPAWNER_CHANGED -> CustomersFTBTriggerSchema.writeNetData(
+                        buffer,
+                        CustomersTriggerCustomerSpawnerChanged.SCHEMA,
+                        customerSpawnerChangedTrigger
+                );
+                case SUPPLIER_SPAWNER_CHANGED -> CustomersFTBTriggerSchema.writeNetData(
+                        buffer,
+                        CustomersTriggerSupplierSpawnerChanged.SCHEMA,
+                        supplierSpawnerChangedTrigger
+                );
+                case COUNTER_PLACED -> CustomersFTBTriggerSchema.writeNetData(
+                        buffer,
+                        CustomersTriggerCounterPlaced.SCHEMA,
+                        counterPlacedTrigger
+                );
             }
         }
 
@@ -242,6 +404,14 @@ public final class CustomersFTBTasks {
                         CustomersFTBTriggerSchema.readNetData(buffer, CustomersTriggerCustomerServed.SCHEMA);
                 case SHIFT_FINISHED -> shiftFinishedTrigger =
                         CustomersFTBTriggerSchema.readNetData(buffer, CustomersTriggerShiftFinished.SCHEMA);
+                case LEADERBOARD_CHANGED -> leaderboardChangedTrigger =
+                        CustomersFTBTriggerSchema.readNetData(buffer, CustomersTriggerLeaderboardChanged.SCHEMA);
+                case CUSTOMER_SPAWNER_CHANGED -> customerSpawnerChangedTrigger =
+                        CustomersFTBTriggerSchema.readNetData(buffer, CustomersTriggerCustomerSpawnerChanged.SCHEMA);
+                case SUPPLIER_SPAWNER_CHANGED -> supplierSpawnerChangedTrigger =
+                        CustomersFTBTriggerSchema.readNetData(buffer, CustomersTriggerSupplierSpawnerChanged.SCHEMA);
+                case COUNTER_PLACED -> counterPlacedTrigger =
+                        CustomersFTBTriggerSchema.readNetData(buffer, CustomersTriggerCounterPlaced.SCHEMA);
             }
         }
 
@@ -269,6 +439,30 @@ public final class CustomersFTBTasks {
                         CustomersTriggerShiftFinished.SCHEMA,
                         () -> shiftFinishedTrigger,
                         value -> shiftFinishedTrigger = value
+                );
+                case LEADERBOARD_CHANGED -> CustomersFTBTriggerSchema.fillConfigGroup(
+                        config,
+                        CustomersTriggerLeaderboardChanged.SCHEMA,
+                        () -> leaderboardChangedTrigger,
+                        value -> leaderboardChangedTrigger = value
+                );
+                case CUSTOMER_SPAWNER_CHANGED -> CustomersFTBTriggerSchema.fillConfigGroup(
+                        config,
+                        CustomersTriggerCustomerSpawnerChanged.SCHEMA,
+                        () -> customerSpawnerChangedTrigger,
+                        value -> customerSpawnerChangedTrigger = value
+                );
+                case SUPPLIER_SPAWNER_CHANGED -> CustomersFTBTriggerSchema.fillConfigGroup(
+                        config,
+                        CustomersTriggerSupplierSpawnerChanged.SCHEMA,
+                        () -> supplierSpawnerChangedTrigger,
+                        value -> supplierSpawnerChangedTrigger = value
+                );
+                case COUNTER_PLACED -> CustomersFTBTriggerSchema.fillConfigGroup(
+                        config,
+                        CustomersTriggerCounterPlaced.SCHEMA,
+                        () -> counterPlacedTrigger,
+                        value -> counterPlacedTrigger = value
                 );
             }
         }
