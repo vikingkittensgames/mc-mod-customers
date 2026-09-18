@@ -1,9 +1,12 @@
 package com.vikingkittens.mc.customers.customer;
 
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.state.BlockState;
 
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -132,6 +135,30 @@ public class CustomerEvents {
                     "screen.customers.break_confirmation.customer_leaderboard_title",
                     "screen.customers.break_confirmation.customer_leaderboard_message"
             ));
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void onBlockPlace(BlockEvent.EntityPlaceEvent event) {
+        if (event.getLevel() instanceof ServerLevel level) {
+            Player player = event.getEntity() instanceof Player placingPlayer ? placingPlayer : null;
+            CustomerSpawnerCache.onBlockPlaced(
+                    level,
+                    event.getPos(),
+                    event.getPlacedBlock(),
+                    player
+            );
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void onBlockBroken(BlockEvent.BreakEvent event) {
+        if (event.getLevel() instanceof ServerLevel level) {
+            CustomerSpawnerCache.onBlockBroken(
+                    level,
+                    event.getPos(),
+                    event.getState()
+            );
         }
     }
 }

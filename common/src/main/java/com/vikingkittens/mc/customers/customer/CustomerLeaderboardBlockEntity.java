@@ -72,6 +72,14 @@ public class CustomerLeaderboardBlockEntity extends BlockEntity {
         ));
     }
 
+    public Map<UUID, Float> getScores(
+            BlockPos spawnerPosition,
+            CustomerSpawnerMode spawnerMode,
+            int level
+    ) {
+        return scores.getScores(spawnerPosition, spawnerMode, level);
+    }
+
     public static CustomerLeaderboardBlockEntity findClosest(
             Level level,
             BlockPos position,

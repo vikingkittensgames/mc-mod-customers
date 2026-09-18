@@ -43,7 +43,7 @@ public final class CustomersFTBTaskGuiProvider {
                 callback.accept(task);
             }
             panel.run();
-        }).setNameKey("ftbquests.task.customers.customers_task");
+        }).setNameKey(taskKind.displayNameKey());
         task.fillConfigGroup(task.createSubGroup(config));
         new EditConfigScreen(config).openGui();
     }

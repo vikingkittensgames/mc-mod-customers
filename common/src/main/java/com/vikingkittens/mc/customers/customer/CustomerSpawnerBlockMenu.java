@@ -1,18 +1,22 @@
 package com.vikingkittens.mc.customers.customer;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
@@ -20,6 +24,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
+import com.vikingkittens.mc.customers.common.events.InternalEvents;
 import com.vikingkittens.mc.customers.customer.pets.CustomerPet;
 import com.vikingkittens.mc.customers.economy.Economy;
 
@@ -246,29 +251,33 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
             return true;
         }
         if (id == AUTO_COST_BUTTON_ID && Economy.isEnabled() && !Economy.forceAutoCost()) {
-            CustomerSpawnerLevelSettings settings = blockEntity.getLevelSettings(selectedLevel);
-            blockEntity.setAutoCost(selectedLevel, !settings.isAutoCost());
-            broadcastChanges();
+            changeConfiguration(player, () -> {
+                CustomerSpawnerLevelSettings settings = blockEntity.getLevelSettings(selectedLevel);
+                blockEntity.setAutoCost(selectedLevel, !settings.isAutoCost());
+                broadcastChanges();
+            });
             return true;
         }
         if (id >= 0 && id < CustomerSpawnerMode.values().length) {
-            blockEntity.setSpawnerMode(CustomerSpawnerMode.values()[id]);
+            changeConfiguration(player, () -> blockEntity.setSpawnerMode(CustomerSpawnerMode.values()[id]));
             return true;
         }
         if (id > MAX_CUSTOMERS_BUTTON_ID_START && id <= MAX_CUSTOMERS_BUTTON_ID_START + 99) {
-            blockEntity.getLevelSettings(selectedLevel).setMaxCustomers(id - MAX_CUSTOMERS_BUTTON_ID_START);
+            changeConfiguration(player, () -> blockEntity
+                    .getLevelSettings(selectedLevel)
+                    .setMaxCustomers(id - MAX_CUSTOMERS_BUTTON_ID_START));
             return true;
         }
         if (id >= PET_PERCENTAGE_BUTTON_ID_START && id <= PET_PERCENTAGE_BUTTON_ID_START + 100) {
-            blockEntity.getLevelSettings(selectedLevel).setPetPercentage(
-                    CustomerSpawnerLevelSettings.percentToPetPercentage(id - PET_PERCENTAGE_BUTTON_ID_START)
-            );
+            changeConfiguration(player, () -> blockEntity.getLevelSettings(selectedLevel).setPetPercentage(
+                        CustomerSpawnerLevelSettings.percentToPetPercentage(id - PET_PERCENTAGE_BUTTON_ID_START)
+            ));
             return true;
         }
         if (id > REQUIRED_STARS_BUTTON_ID_START && id <= REQUIRED_STARS_BUTTON_ID_START + 10) {
-            blockEntity.getLevelSettings(selectedLevel).setRequiredStars(
-                    (id - REQUIRED_STARS_BUTTON_ID_START) / 2.0F
-            );
+            changeConfiguration(player, () -> blockEntity.getLevelSettings(selectedLevel).setRequiredStars(
+                        (id - REQUIRED_STARS_BUTTON_ID_START) / 2.0F
+            ));
             return true;
         }
         int index = id - 1000;
@@ -277,35 +286,52 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
                     blockEntity.getLevelSettings(selectedLevel).getEnabledAppearanceIds()
             );
             ResourceLocation appearance = appearanceIds.get(index);
-            if (!enabled.remove(appearance)) enabled.add(appearance);
-            blockEntity.getLevelSettings(selectedLevel).setEnabledAppearanceIds(enabled);
+            changeConfiguration(player, () -> {
+                if (!enabled.remove(appearance)) enabled.add(appearance);
+                blockEntity.getLevelSettings(selectedLevel).setEnabledAppearanceIds(enabled);
+            });
             return true;
         }
         if (id == PET_TYPES_ALL_BUTTON_ID) {
-            CustomerSpawnerLevelSettings settings = blockEntity.getLevelSettings(selectedLevel);
-            settings.setPetTypesEnabled(
-                    petTypes.stream().map(CustomerPet.PetType::entityId).toList(),
-                    !areAllPetTypesEnabled()
-            );
+            changeConfiguration(player, () -> {
+                CustomerSpawnerLevelSettings settings = blockEntity.getLevelSettings(selectedLevel);
+                settings.setPetTypesEnabled(
+                        petTypes.stream().map(CustomerPet.PetType::entityId).toList(),
+                        !areAllPetTypesEnabled()
+                );
+            });
             return true;
         }
         index = id - PET_TYPE_FOOD_BUTTON_ID_START;
         if (index >= 0 && index < petTypes.size()) {
-            blockEntity.getLevelSettings(selectedLevel).cyclePetFood(petTypes.get(index));
+            int petTypeIndex = index;
+            changeConfiguration(player, () ->
+                    blockEntity.getLevelSettings(selectedLevel).cyclePetFood(petTypes.get(petTypeIndex))
+            );
             return true;
         }
         index = id - PET_TYPE_BUTTON_ID_START;
         if (index >= 0 && index < petTypes.size()) {
-            CustomerSpawnerLevelSettings settings = blockEntity.getLevelSettings(selectedLevel);
-            String petTypeId = petTypes.get(index).entityId();
-            settings.setPetTypeEnabled(
-                    petTypeId,
-                    !settings.isPetTypeEnabled(petTypeId),
-                    petTypes.stream().map(CustomerPet.PetType::entityId).toList()
-            );
+            int petTypeIndex = index;
+            changeConfiguration(player, () -> {
+                CustomerSpawnerLevelSettings settings = blockEntity.getLevelSettings(selectedLevel);
+                String petTypeId = petTypes.get(petTypeIndex).entityId();
+                settings.setPetTypeEnabled(
+                        petTypeId,
+                        !settings.isPetTypeEnabled(petTypeId),
+                        petTypes.stream().map(CustomerPet.PetType::entityId).toList()
+                );
+            });
             return true;
         }
         return false;
+    }
+
+    @Override
+    public void clicked(int slotId, int button, ClickType clickType, Player player) {
+        CustomerInternalEvents.CustomerSpawnerConfigChanged before = configurationSnapshot(player);
+        super.clicked(slotId, button, clickType, player);
+        emitConfigurationChange(player, before);
     }
 
     @Override public boolean stillValid(Player player) { return container.stillValid(player); }
@@ -393,6 +419,62 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
             }
         }
         return ItemStack.EMPTY;
+    }
+
+    private void changeConfiguration(Player player, Runnable change) {
+        CustomerInternalEvents.CustomerSpawnerConfigChanged before = configurationSnapshot(player);
+        change.run();
+        emitConfigurationChange(player, before);
+    }
+
+    private void emitConfigurationChange(
+            Player player,
+            CustomerInternalEvents.CustomerSpawnerConfigChanged before
+    ) {
+        CustomerInternalEvents.CustomerSpawnerConfigChanged after = configurationSnapshot(player);
+        if (after != null && !after.hasSameConfiguration(before)) {
+            InternalEvents.emit(after);
+        }
+    }
+
+    private CustomerInternalEvents.CustomerSpawnerConfigChanged configurationSnapshot(Player player) {
+        if (blockEntity == null || !(blockEntity.getLevel() instanceof ServerLevel serverLevel)) {
+            return null;
+        }
+        CustomerSpawnerLevelSettings settings = blockEntity.getLevelSettings(selectedLevel);
+        Container inventory = settings.getInventory();
+        List<List<ItemStack>> rowSellItems = new ArrayList<>(6);
+        List<ItemStack> rowCostItems = new ArrayList<>(6);
+        for (int row = 0; row < 6; row++) {
+            List<ItemStack> sellItems = new ArrayList<>(8);
+            for (int column = 0; column < 8; column++) {
+                sellItems.add(inventory.getItem(row * 9 + column));
+            }
+            rowSellItems.add(sellItems);
+            rowCostItems.add(inventory.getItem(row * 9 + 8));
+        }
+        List<String> availablePetTypeIds = petTypes.stream().map(CustomerPet.PetType::entityId).toList();
+        LinkedHashMap<String, ItemStack> petFoods = new LinkedHashMap<>();
+        for (CustomerPet.PetType petType : petTypes) {
+            petFoods.put(petType.entityId(), settings.getPetFood(petType));
+        }
+        return new CustomerInternalEvents.CustomerSpawnerConfigChanged(
+                serverLevel,
+                blockEntity.getBlockPos(),
+                blockEntity.getSpawnerMode(),
+                player.getUUID(),
+                selectedLevel,
+                rowSellItems,
+                rowCostItems,
+                settings.getRequiredStars(),
+                settings.getMaxCustomers(),
+                settings.getPetPercentage(),
+                settings.isPetTypesCustomized(),
+                new LinkedHashSet<>(settings.getEnabledPetTypes(availablePetTypeIds)),
+                petFoods,
+                settings.isAutoCost(),
+                settings.getEnabledAppearanceIds().stream().map(ResourceLocation::toString).toList()
+        );
     }
 
     private class LevelContainer implements Container {

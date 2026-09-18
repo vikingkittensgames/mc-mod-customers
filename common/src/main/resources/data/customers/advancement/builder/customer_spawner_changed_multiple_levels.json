@@ -1,0 +1,26 @@
+{
+  "parent": "customers:builder/customer_spawner_changed",
+  "criteria": {
+    "customer_spawner_changed_multiple_levels": {
+      "trigger": "customers:customer_spawner_changed",
+      "conditions": {
+        "num_sell_items": { "min": 1 },
+        "level": { "min": 1 }
+      }
+    }
+  },
+  "display": {
+    "description": { "translate": "advancements.customers.builder.customer.customer_spawner_changed_multiple_levels.description" },
+    "icon": {
+      "id": "customers:advancement_icon",
+      "count": 1,
+      "components": { "minecraft:custom_model_data": 51 }
+    },
+    "title": { "translate": "advancements.customers.builder.customer.customer_spawner_changed_multiple_levels.title" }
+  },
+  "requirements": [
+    [
+      "customer_spawner_changed_multiple_levels"
+    ]
+  ]
+}

@@ -39,6 +39,21 @@ Add customer events as public static classes in `CustomerInternalEvents` and sup
 
 `CustomerServed` means that the player supplied an item to the customer; it does not mean that every request belonging to that customer has been completed. Use a separate completion event if a future feature needs that meaning.
 
+### Counter block placement events
+
+`CounterBlockPlaced` is emitted when a player places a block matching the
+configured counter block of a loaded Customer Spawner within that spawner's
+maximum counter distance. One placement can emit an event for multiple nearby
+spawners. Placing the block directly above a spawner changes that spawner's
+counter type and does not emit the event for that same spawner.
+
+`CustomerSpawnerCache` keeps the loaded server-side spawners indexed by level
+and position. A spawner registers when its block entity receives its level and
+unregisters when the block entity is removed, including chunk unloading.
+Loader-specific placement and break listeners update counter types and publish
+the common event. Cache lookup uses the same spherical distance boundary as
+normal counter discovery.
+
 ## Custom Advancement Triggers
 
 Register trigger types in `CustomersTriggers`. Each implementation is a top-level `CustomersTriggerX` class in the `advancements.triggers` package so its codec, matching rules, and dispatch entry point stay together. The `customers:item_served` trigger is dispatched by `CustomersAdvancementEvents`, which is registered with the internal event system during common initialization. Minecraft's advancement system handles client synchronization, so this trigger does not require a custom network payload.
@@ -57,6 +72,7 @@ The trigger accepts these optional conditions:
 | `cost_count` | Exact count or vanilla integer range for the payment stack |
 | `is_pet_item` | Whether the served item fed the customer's active pet |
 | `total_items_served` | Exact value or vanilla integer range for the player's persistent item-transaction total |
+| `total_pet_items_served` | Exact value or vanilla integer range for the player's persistent pet-item transaction total |
 
 Conditions are combined with AND semantics. Leaving every condition out matches any attributed customer transaction:
 
@@ -119,6 +135,12 @@ For example, this criterion matches when the player's persistent total reaches 1
 }
 ```
 
+The `customers:counter_placed` trigger listens to `CounterBlockPlaced`. Its
+optional `spawner_location`, `spawner_mode`, `counter_location`, and
+`counter_block` conditions can identify both the configured Customer Spawner
+and the matching block the player placed. `counter_block` is a block ID such as
+`minecraft:oak_planks`.
+
 To add another trigger:
 
 1. Add the underlying internal event and emit it after the operation succeeds.
@@ -150,15 +172,24 @@ When adding an advancement, create its JSON below the appropriate branch, point 
 
 ## Statistics
 
-Register custom statistic IDs in `CustomersStatistics`, using one public static nested class per statistic. `CustomersAdvancementEvents` increments `customers:item_served` once for each attributed `ItemServed` event before dispatching the trigger. The trigger can therefore compare `total_items_served` with the updated persistent statistic on the same transaction. The statistic counts completed requested-item transactions, not the number of individual items in the served stack.
+Register custom statistic IDs in `CustomersStatistics`, using one public static nested class per statistic. `CustomersAdvancementEvents` increments `customers:item_served` once for each attributed `ItemServed` event and increments `customers:pet_item_served` when that event supplied an item to a customer pet before dispatching the trigger. The trigger can therefore compare `total_items_served` and `total_pet_items_served` with the updated persistent statistics on the same transaction. These statistics count completed requested-item transactions, not the number of individual items in the served stack.
 
 New statistics should be incremented by the same internal-event handler that dispatches their related trigger. This keeps gameplay code responsible only for reporting facts and keeps achievement bookkeeping in the advancements package.
 
 ## Forge and NeoForge
 
-This initial implementation has no Forge- or NeoForge-specific event classes. Every new Java class is under the common module, and the advancement JSON, translations, and background texture are common resources. Both loaders use the same Minecraft advancement trigger and custom-statistic registries through the existing `IRegistrationHelper` compatibility service. Minecraft also performs advancement progress synchronization on both loaders, so no loader-specific payload is necessary.
+Most event, trigger, and statistic behavior remains in common. Both loaders use
+the same Minecraft advancement trigger and custom-statistic registries through
+the existing `IRegistrationHelper` compatibility service. Minecraft also
+performs advancement progress synchronization on both loaders, so advancement
+triggers do not require loader-specific payloads.
 
-The internal event system deliberately does not use either loader's public event bus. Its annotation, handler discovery, dispatch, and gameplay events therefore behave identically on Forge and NeoForge. Nothing was added under `forge/src` or `neoforge/src` for this work.
+The internal event system deliberately does not use either loader's public
+event bus. Its annotation, handler discovery, dispatch, and gameplay events
+therefore behave identically on Forge and NeoForge. Block placement and break
+notifications are the exception: small adapters in `CustomerForgeEvents` and
+`CustomerEvents` subscribe to their loader's block events, restrict handling to
+the server, and delegate to the common `CustomerSpawnerCache` implementation.
 
 Keep future internal events, Customers advancement triggers, and statistic behavior in common whenever they use Minecraft APIs shared by both supported loaders. A class belongs in the Forge or NeoForge module only when it must subscribe to that loader's lifecycle or gameplay event bus, register through an API not covered by `IRegistrationHelper`, or integrate with a loader-specific API from another mod. In that case, put only the small adapter in the loader module and have it publish or consume a common internal event so the core behavior and tests remain shared.
 
@@ -179,23 +210,45 @@ Prefer FTB's Advancement Task for existing Customers advancements and its Stat
 Task for arbitrary per-player `customers:item_served` or
 `customers:shift_finished` totals. The single `customers:customers_task` entry
 in FTB's task menu opens a Customers submenu containing `Item Served`,
-`Customer Served`, and `Shift Finished`. Pet-item quests use an Item Served task
-with `Is Pet Item` set to true. Item and Customer Served tasks can filter by
-spawner location and mode, customer profession, served item or tag, served stack
-count, cost item or tag, cost stack count, and pet-item status. Shift Finished
-tasks can filter by spawner location and mode, active level, score percentage,
-customer and item totals, and participating player counts.
+`Customer Served`, `Shift Finished`, `Leaderboard Changed`, `Customer Spawner
+Changed`, `Supplier Spawner Changed`, and `Counter Block Placed`. Pet-item quests
+use an Item Served task with `Is Pet Item` set to true. Item and Customer Served
+tasks can filter by spawner location and mode, customer profession, served item
+or tag, served stack count, cost item or tag, cost stack count, and pet-item
+status. Shift Finished tasks can filter by spawner location and mode, active
+level, score percentage, customer and item totals, and participating player
+counts.
+Leaderboard Changed tasks can filter by spawner and leaderboard locations,
+spawner mode, active level, a changed player's previous and new scores, whether
+that player was or is the leader, and whether the overall leader changed. The
+event only identifies a current or previous leader when that score list contains
+more than one player.
+Customer Spawner Changed tasks can filter by spawner location and mode, active
+level, required stars, maximum customers, pet percentage, whether the pet-type
+selection was customized, automatic-cost state, and configured sell-item,
+cost-item, and appearance counts. Supplier Spawner Changed tasks expose the
+spawner location, automatic-cost state, and those same three counts. Their
+internal events retain the complete inventory, pet, appearance, and offer
+lists, but those lists are not trigger or task conditions yet.
+Counter Block Placed tasks expose the nearby spawner location and mode together
+with the placed counter's location and block ID. They progress for the placing
+player when the block matches a nearby Customer Spawner's configured counter.
 
 Custom Customers tasks listen directly to Customers internal events and add one
 to the serving player's FTB team progress for each matching item or customer
 event. A matching shift adds progress once to every participating FTB team,
-even when multiple members of that team participated. These tasks do not read
-player lifetime statistics, so their configured count belongs to that task and
-team. They also do not award historical progress: an event counts only while
-the quest is eligible to progress. Each task delegates event matching to its
-corresponding Customers advancement trigger instance. Conditions based on a
-player's lifetime totals remain advancement-specific and are not exposed in
-the FTB task editor.
+even when multiple members of that team participated. A leaderboard change
+also adds at most one progress point to each affected team and evaluates
+player-specific conditions against members whose score or leadership status
+changed. Spawner configuration changes add progress to the team of the player
+who made the change. An inventory gesture produces at most one event, and
+loading, opening, or automatic spawner maintenance does not produce one. These
+tasks do not read player lifetime statistics, so their
+configured count belongs to that task and team. They also do not award
+historical progress: an event counts only while the quest is eligible to
+progress. Each task delegates event matching to its corresponding Customers
+advancement trigger instance. Conditions based on a player's lifetime totals
+remain advancement-specific and are not exposed in the FTB task editor.
 
 Item predicate filters use FTB Library's native item selector plus an optional
 tag text field. A non-empty tag takes precedence over the selected item.

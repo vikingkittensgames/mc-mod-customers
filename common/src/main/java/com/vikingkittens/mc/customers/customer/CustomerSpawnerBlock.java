@@ -101,6 +101,7 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!LevelCUtils.isClientSide(level) && !state.is(newState.getBlock())) {
+            CustomerSpawnerCache.remove(level, pos);
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof CustomerSpawnerBlockEntity entity) {
                 entity.beforeRemove();
@@ -151,6 +152,9 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
     protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof CustomerSpawnerBlockEntity entity) {
+            if (!LevelCUtils.isClientSide(level)) {
+                CustomerSpawnerCache.update(level, pos);
+            }
             entity.updateState();
         }
     }

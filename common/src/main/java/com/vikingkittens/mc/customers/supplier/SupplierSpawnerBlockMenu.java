@@ -7,17 +7,20 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
+import com.vikingkittens.mc.customers.common.events.InternalEvents;
 import com.vikingkittens.mc.customers.economy.Economy;
 
 public class SupplierSpawnerBlockMenu extends AbstractContainerMenu {
@@ -154,8 +157,10 @@ public class SupplierSpawnerBlockMenu extends AbstractContainerMenu {
             return false;
         }
         if (id == AUTO_COST_BUTTON_ID && Economy.isEnabled() && !Economy.forceAutoCost()) {
-            blockEntity.setAutoCost(!blockEntity.isAutoCost());
-            broadcastChanges();
+            changeConfiguration(player, () -> {
+                blockEntity.setAutoCost(!blockEntity.isAutoCost());
+                broadcastChanges();
+            });
             return true;
         }
         int index = id - 1000;
@@ -166,11 +171,20 @@ public class SupplierSpawnerBlockMenu extends AbstractContainerMenu {
         List<ResourceLocation> enabled =
                 new ArrayList<>(blockEntity.getEnabledAppearanceIds());
         ResourceLocation appearance = appearanceIds.get(index);
-        if (!enabled.remove(appearance)) {
-            enabled.add(appearance);
-        }
-        blockEntity.setEnabledAppearanceIds(enabled);
+        changeConfiguration(player, () -> {
+            if (!enabled.remove(appearance)) {
+                enabled.add(appearance);
+            }
+            blockEntity.setEnabledAppearanceIds(enabled);
+        });
         return true;
+    }
+
+    @Override
+    public void clicked(int slotId, int button, ClickType clickType, Player player) {
+        SupplierInternalEvents.SupplierSpawnerConfigChanged before = configurationSnapshot(player);
+        super.clicked(slotId, button, clickType, player);
+        emitConfigurationChange(player, before);
     }
 
     @Override
@@ -272,5 +286,44 @@ public class SupplierSpawnerBlockMenu extends AbstractContainerMenu {
 
     private int getDataSlotCount() {
         return getGeneratedCostDataStart() + 48;
+    }
+
+    private void changeConfiguration(Player player, Runnable change) {
+        SupplierInternalEvents.SupplierSpawnerConfigChanged before = configurationSnapshot(player);
+        change.run();
+        emitConfigurationChange(player, before);
+    }
+
+    private void emitConfigurationChange(
+            Player player,
+            SupplierInternalEvents.SupplierSpawnerConfigChanged before
+    ) {
+        SupplierInternalEvents.SupplierSpawnerConfigChanged after = configurationSnapshot(player);
+        if (after != null && !after.hasSameConfiguration(before)) {
+            InternalEvents.emit(after);
+        }
+    }
+
+    private SupplierInternalEvents.SupplierSpawnerConfigChanged configurationSnapshot(Player player) {
+        if (blockEntity == null || !(blockEntity.getLevel() instanceof ServerLevel serverLevel)) {
+            return null;
+        }
+        List<SupplierInternalEvents.Offer> offers = new ArrayList<>(24);
+        for (int row = 0; row < 6; row++) {
+            for (int column = 0; column < 8; column += 2) {
+                offers.add(new SupplierInternalEvents.Offer(
+                        container.getItem(row * 9 + column),
+                        container.getItem(row * 9 + column + 1)
+                ));
+            }
+        }
+        return new SupplierInternalEvents.SupplierSpawnerConfigChanged(
+                serverLevel,
+                blockEntity.getBlockPos(),
+                player.getUUID(),
+                offers,
+                blockEntity.isAutoCost(),
+                blockEntity.getEnabledAppearanceIds().stream().map(ResourceLocation::toString).toList()
+        );
     }
 }

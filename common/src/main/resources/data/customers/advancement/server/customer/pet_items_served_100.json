@@ -1,0 +1,27 @@
+{
+  "parent": "customers:server/customer/item_served",
+  "criteria": {
+    "pet_items_served_100": {
+      "trigger": "customers:item_served",
+      "conditions": {
+        "is_pet_item": true,
+        "total_pet_items_served": { "min": 100 }
+      }
+    }
+  },
+  "display": {
+    "description": { "translate": "advancements.customers.server.customer.pet_items_served_100.description" },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "customers:advancement_icon",
+      "components": { "minecraft:custom_model_data": 29 }
+    },
+    "title": { "translate": "advancements.customers.server.customer.pet_items_served_100.title" }
+  },
+  "requirements": [
+    [
+      "pet_items_served_100"
+    ]
+  ]
+}

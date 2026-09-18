@@ -1,5 +1,6 @@
 package com.vikingkittens.mc.customers.customer;
 
+import java.util.Map;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -74,5 +75,36 @@ class CustomerLeaderboardScoresTest {
                 1,
                 new UUID(0L, 5L)
         )));
+    }
+
+    @Test
+    void returnsScoresForOnlyTheRequestedSpawnerModeAndLevel() {
+        CustomerLeaderboardScores scores = new CustomerLeaderboardScores();
+        BlockPos requestedSpawner = new BlockPos(10, 64, -5);
+        UUID includedPlayer = UUID.randomUUID();
+        UUID otherPlayer = UUID.randomUUID();
+        scores.add(new CustomerLeaderboardScores.Key(
+                requestedSpawner,
+                CustomerSpawnerMode.LUNCH,
+                2,
+                includedPlayer
+        ), 0.75F);
+        scores.add(new CustomerLeaderboardScores.Key(
+                requestedSpawner,
+                CustomerSpawnerMode.DINNER,
+                2,
+                otherPlayer
+        ), 0.9F);
+        scores.add(new CustomerLeaderboardScores.Key(
+                requestedSpawner,
+                CustomerSpawnerMode.LUNCH,
+                3,
+                otherPlayer
+        ), 0.8F);
+
+        assertEquals(
+                Map.of(includedPlayer, 0.75F),
+                scores.getScores(requestedSpawner, CustomerSpawnerMode.LUNCH, 2)
+        );
     }
 }

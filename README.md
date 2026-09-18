@@ -1015,18 +1015,35 @@ ink sac.
 ## Advancements and Statistics
 
 When FTB Quests is installed on NeoForge, quest builders can add a **Customers
-Task** and choose **Item Served**, **Customer Served**, or **Shift Finished**.
+Task** and choose **Item Served**, **Customer Served**, **Shift Finished**,
+**Leaderboard Changed**, **Customer Spawner Changed**, or **Supplier Spawner
+Changed**, and **Counter Block Placed**.
 These tasks count matching events independently for each FTB team instead of
-using a player's lifetime statistics. All three tasks can be limited to one
-Customer Spawner by its dimension and block position. Item and Customer Served
+using a player's lifetime statistics. Every task can be limited to one spawner
+by its dimension and block position. Item and Customer Served
 tasks can also filter by shift mode, customer profession, served item or tag
 and count, cost item or tag and count, and whether the served item belongs to a
 customer pet. Shift Finished tasks can also filter the shift mode, level,
 score, customer totals, item totals, and participating player counts.
+Leaderboard Changed tasks can filter by the leaderboard location, shift mode,
+level, a changed player's previous and new scores, whether that player was or
+is now the leader, and whether the overall leader changed. A leaderboard only
+has a leader when it contains scores for more than one player.
+Customer Spawner Changed tasks can filter the selected level, shift mode,
+required stars, maximum customers, pet percentage, whether pet types were
+customized, automatic-cost setting, and the numbers of configured sell items,
+cost items, and appearances. Supplier Spawner Changed tasks can filter the
+automatic-cost setting and the numbers of configured sell items, cost items,
+and appearances. These tasks count player-made changes in the spawner interface
+and do not count configuration loaded with the world or automatic maintenance.
+Counter Block Placed tasks can filter the nearby Customer Spawner and its shift
+mode, the placed counter's location, and the counter block type. They count a
+player placing a block that matches a nearby spawner's configured counter block.
 
 Customers adds its own advancement tab with separate Builder and Server branches. The Builder branch recognizes crafting Customer and Supplier Spawners. The Server branch begins tracking customer and supplier activity, including **First Item Served** for completing one requested-item transaction and **100 Items Served** for completing 100 attributed transactions.
+The Shift branch awards **Leader** when a player takes the lead on a Customer Leaderboard containing scores for multiple players.
 
-Item-serving advancements can distinguish the spawner location and mode, customer profession, requested item and amount, payment item and amount, and the player's total completed item transactions. Modpack authors can use these conditions to add goals such as serving customers at a particular shop, serving an impatient lunch customer, selling a particular quantity of an item, or completing a configured number of transactions. The **Items Served to Customers** statistic increases once per completed requested-item transaction; it does not count every individual item in the stack or distinct customer NPCs.
+Item-serving advancements can distinguish the spawner location and mode, customer profession, requested item and amount, payment item and amount, and the player's total completed item transactions. Pet-item advancements can additionally use the player's persistent pet-item transaction total. **100 Pet Items Served** requires 100 completed transactions that supplied an item to a customer's pet. Modpack authors can use these conditions to add goals such as serving customers at a particular shop, serving an impatient lunch customer, selling a particular quantity of an item, or completing a configured number of transactions. The **Items Served to Customers** statistic increases once per completed requested-item transaction; it does not count every individual item in the stack or distinct customer NPCs.
 
 See [events-and-advancements.md](events-and-advancements.md) for the data format and instructions for adding events, triggers, advancements, statistics, and optional quest integrations.
 
