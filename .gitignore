@@ -47,3 +47,10 @@ repo/
 inspiration/
 example-appearance/
 /customers-skins-*
+
+### Jekyll ###
+docs/.bundle/
+docs/.jekyll-cache/
+docs/.sass-cache/
+docs/_site/
+docs/vendor/

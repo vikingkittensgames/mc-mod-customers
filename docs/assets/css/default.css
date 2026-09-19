@@ -1,0 +1,185 @@
+html,
+body {
+  background: #000;
+  color: #d6d6d6;
+}
+
+body,
+main,
+table,
+td,
+code,
+pre,
+dt {
+  color: #b8b8b8;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+th,
+strong,
+b,
+em {
+  color: #fff;
+}
+
+body,
+button,
+input,
+select,
+textarea,
+code,
+pre {
+  font-family: 'Press Start 2P', Helvetica, Arial, sans-serif;
+}
+
+a,
+a:visited {
+  color: #fff;
+}
+
+a:hover,
+a:focus {
+  color: #ffd700;
+}
+
+.customers-docs-header {
+  background: #000;
+  border-bottom: 2px solid #fff;
+  padding: 1rem;
+}
+
+.customers-docs-header nav {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.customers-docs-title {
+  font-size: 1.25rem;
+}
+
+.customers-docs-content {
+  margin: 0 auto;
+  max-width: 1100px;
+  padding: 1rem;
+}
+
+img,
+video {
+  height: auto;
+  max-width: 100%;
+}
+
+img[src*="/assets/images/mode_"] {
+  height: 32px;
+  image-rendering: pixelated;
+  vertical-align: middle;
+  width: 32px;
+}
+
+div.highlighter-rouge:not(.language-text) .highlight,
+div.highlighter-rouge:not(.language-text) pre,
+div.highlighter-rouge:not(.language-text) code {
+  background-color: #2C3947;
+  color: #93a1a1;
+}
+
+div.highlighter-rouge:not(.language-text) pre {
+  box-shadow: none;
+}
+
+div.highlighter-rouge:not(.language-text) .c,
+div.highlighter-rouge:not(.language-text) .ch,
+div.highlighter-rouge:not(.language-text) .cd,
+div.highlighter-rouge:not(.language-text) .cm,
+div.highlighter-rouge:not(.language-text) .cpf,
+div.highlighter-rouge:not(.language-text) .c1,
+div.highlighter-rouge:not(.language-text) .cs {
+  color: #657b83;
+}
+
+div.highlighter-rouge:not(.language-text) .k,
+div.highlighter-rouge:not(.language-text) .kn,
+div.highlighter-rouge:not(.language-text) .kp,
+div.highlighter-rouge:not(.language-text) .kr,
+div.highlighter-rouge:not(.language-text) .kv {
+  color: #6c71c4;
+}
+
+div.highlighter-rouge:not(.language-text) .kc,
+div.highlighter-rouge:not(.language-text) .kd,
+div.highlighter-rouge:not(.language-text) .kt,
+div.highlighter-rouge:not(.language-text) .sr {
+  color: #2aa198;
+}
+
+div.highlighter-rouge:not(.language-text) .s,
+div.highlighter-rouge:not(.language-text) .sb,
+div.highlighter-rouge:not(.language-text) .sc,
+div.highlighter-rouge:not(.language-text) .dl,
+div.highlighter-rouge:not(.language-text) .sd,
+div.highlighter-rouge:not(.language-text) .s2,
+div.highlighter-rouge:not(.language-text) .sh,
+div.highlighter-rouge:not(.language-text) .sx,
+div.highlighter-rouge:not(.language-text) .s1,
+div.highlighter-rouge:not(.language-text) .m,
+div.highlighter-rouge:not(.language-text) .mb,
+div.highlighter-rouge:not(.language-text) .mf,
+div.highlighter-rouge:not(.language-text) .mh,
+div.highlighter-rouge:not(.language-text) .mi,
+div.highlighter-rouge:not(.language-text) .il,
+div.highlighter-rouge:not(.language-text) .mo,
+div.highlighter-rouge:not(.language-text) .mx {
+  color: #859900;
+}
+
+div.highlighter-rouge:not(.language-text) .nl,
+div.highlighter-rouge:not(.language-text) .na,
+div.highlighter-rouge:not(.language-text) .nt,
+div.highlighter-rouge:not(.language-text) .nc,
+div.highlighter-rouge:not(.language-text) .nn,
+div.highlighter-rouge:not(.language-text) .no {
+  color: #268bd2;
+}
+
+div.highlighter-rouge:not(.language-text) .err {
+  background-color: #2C3947;
+  color: #dc322f;
+}
+
+code.language-plaintext.highlighter-rouge,
+.language-text.highlighter-rouge,
+.language-text.highlighter-rouge .highlight,
+.language-text.highlighter-rouge pre,
+.language-text.highlighter-rouge code {
+  background-color: #2C3947;
+  color: #32CD32;
+}
+
+code.language-plaintext.highlighter-rouge {
+  padding: 0.1rem 0.25rem;
+}
+
+.language-text.highlighter-rouge pre {
+  box-shadow: none;
+}
+
+.customers-docs-back {
+  border-top: 2px solid #fff;
+  margin-top: 2rem;
+  padding-top: 1rem;
+}
+
+table,
+th,
+td {
+  border-color: #fff;
+}
