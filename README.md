@@ -1,4 +1,4 @@
-# Customers Minecraft Mod for NeoForge
+# Customers Minecraft Mod
 
 ![resturant.png](docs/screenshots/ |resturant.png)
 
@@ -17,16 +17,12 @@ me adding more features:
 
 <img src="buymeacoffee-qr-code.png" width="50%" height="50%" />
 
-## Supported Minecraft Versions
+## Supported Minecraft Versions and Mod Loaders
 
 For now we support Minecraft versions:
 * 1.20.1 - Forge
 * 1.21.1 - Forge & NeoForge
 * 1.21.11 (delayed update)
-
-## Mod Loader
-
-For now we are only supporting NeoForge.
 
 ## Customer Spawner Blocks
 

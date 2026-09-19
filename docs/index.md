@@ -2,7 +2,7 @@
 title: Customers Minecraft Mod
 ---
 
-# Customers Minecraft Mod for NeoForge
+# Customers Minecraft Mod
 
 ![resturant.png]({{ '/screenshots/resturant.png' | relative_url }})
 
@@ -19,16 +19,12 @@ me adding more features:
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png)](https://www.buymeacoffee.com/clubycoder)
 
-<img src="buymeacoffee-qr-code.png" width="50%" height="50%" />
+<img src="{{ '/assets/images/buymeacoffee-qr-code.png' | relative_url }}" alt="Buy Me a Coffee QR code" width="50%" height="50%" />
 
-## Supported Minecraft Versions
+## Supported Minecraft Versions and Mod Loaders
 
 For now we support Minecraft versions:
 * 1.20.1 - Forge
 * 1.21.1 - Forge & NeoForge
 * 1.21.11 (delayed update)
-
-## Mod Loader
-
-For now we are only supporting NeoForge.
 
