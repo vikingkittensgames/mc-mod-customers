@@ -1,0 +1,12 @@
+title: Customers Minecraft Mod
+description: Documentation for the Customers Minecraft mod
+remote_theme: julianolf/jekyll-theme-8bit
+
+plugins:
+  - jekyll-remote-theme
+
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default

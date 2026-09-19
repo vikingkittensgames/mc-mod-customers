@@ -1,6 +1,6 @@
 # Customers Minecraft Mod for NeoForge
 
-![resturant.png](screenshots/ |resturant.png)
+![resturant.png](docs/screenshots/ |resturant.png)
 
 ## Overview
 
@@ -48,7 +48,7 @@ During timed shifts, the customer maximum starts low, ramps up to the spawner's 
 maximum, and ramps down over the final portion of the shift. The longer
 Day and Night Shifts ramp up more gradually than the shorter meal shifts.
 
-![customer-spawners.png](screenshots/customer-spawners.png)
+![customer-spawners.png](docs/screenshots/customer-spawners.png)
 
 ### Crafting Customer Spawner Blocks
 
@@ -92,7 +92,7 @@ when the shifts are on.
 If a Customer Spawner is in Manual mode, a redstone pulse like with a button will spawn a
 customer.  This will let you completely customize the spawning with your redstone contraption.
 
-![redstone.png](screenshots/redstone.png)
+![redstone.png](docs/screenshots/redstone.png)
 
 ### Controlling Items For Purchase
 
@@ -142,9 +142,9 @@ Examples:
   it will randomly pick which row to buy from.  If it decides to buy 2, it will buy one
   item from each row.
 
-![customer-spawner-inventory.png](screenshots/customer-spawner-inventory.png)
+![customer-spawner-inventory.png](docs/screenshots/customer-spawner-inventory.png)
 
-![customer-trades.png](screenshots/customer-trades.png)
+![customer-trades.png](docs/screenshots/customer-trades.png)
 
 The Customer Spawner UI is also where you can chnge the spawner mode, set the max customers,
 and enable different customer appearances.
@@ -158,11 +158,11 @@ You may also want to integrate the cost of items with your existing server curre
 like custom coins that have other purposes vs vanilla emeralds.  This is where the economy
 configuration comes in.
 
-![economy-config.png](screenshots/economy-config.png)
+![economy-config.png](docs/screenshots/economy-config.png)
 
 |                    Spawner Manual                     |                 Spawner Automatic                 |                     Server Forced                     |
 |:-----------------------------------------------------:|:-------------------------------------------------:|:-----------------------------------------------------:|
-| ![economy-manual.png](screenshots/economy-manual.png) | ![economy-auto.png](screenshots/economy-auto.png) | ![economy-forced.png](screenshots/economy-forced.png) |
+| ![economy-manual.png](docs/screenshots/economy-manual.png) | ![economy-auto.png](docs/screenshots/economy-auto.png) | ![economy-forced.png](docs/screenshots/economy-forced.png) |
 
 The economy system can suggest costs for Customer and Supplier Spawner offers. Automatic costs are
 enabled globally by default, but each spawner starts in manual-cost mode. The small cost toggle
@@ -259,14 +259,14 @@ integrating with the
 [Villager Shop System](https://www.curseforge.com/minecraft/mc-mods/village-shop-system) mod and the
 [ProjectE](https://www.curseforge.com/minecraft/mc-mods/projecte) mod.
 
-![mod-logo-villager-shop-system.png](screenshots/mod-logo-villager-shop-system.png)
+![mod-logo-villager-shop-system.png](docs/screenshots/mod-logo-villager-shop-system.png)
 When [Villager Shop System](https://www.curseforge.com/minecraft/mc-mods/village-shop-system) is installed and enabled,
 we want to try and keep costs in sync with villager shops.
 Customers uses its sell-price calculator and the
 server's Village Shop System custom prices. Bulk villager ratios are rounded up to at least one
 emerald when an individual stack would otherwise truncate to zero.
 
-![mod-logo-projecte.png](screenshots/mod-logo-projecte.png)
+![mod-logo-projecte.png](docs/screenshots/mod-logo-projecte.png)
 When [ProjectE](https://www.curseforge.com/minecraft/mc-mods/projecte) is installed and enabled,
 We want to be in sync with the ProjectE item equivelancy system that you may
 have made adjustments to.
@@ -276,7 +276,7 @@ emerald cost. Items with no EMC value continue to the next provider.
 
 Neither integration is a required dependency, and each can be disabled independently.
 
-![economy-mods-config.png](screenshots/economy-mods-config.png)
+![economy-mods-config.png](docs/screenshots/economy-mods-config.png)
 
 ### Villager Trades and Recipe-Derived Costs
 
@@ -297,7 +297,7 @@ villager trades logs directly. Final fractional emerald values round up when an 
 
 ### Currency Conversion
 
-![economy-conversions.png](screenshots/economy-conversions.png)
+![economy-conversions.png](docs/screenshots/economy-conversions.png)
 
 If you don't want your server to use emeralds for currency,
 that's where currency conversions come in.  Automatic
@@ -416,19 +416,19 @@ In your builds you can use full blocks as the counter or table itself:
 
 | Spawner Setup | Build |
 |--------------|-------|
-| ![counter-spawner-full.png](screenshots/counter-spawner-full.png) | ![counter-full.png](screenshots/counter-full.png) |
+| ![counter-spawner-full.png](docs/screenshots/counter-spawner-full.png) | ![counter-full.png](docs/screenshots/counter-full.png) |
 
 a topper block like carpet of candle:
 
 | Spawner Setup | Build                                                 |
 |---------------|-------------------------------------------------------|
-| ![counter-spawner-topper.png](screenshots/counter-spawner-topper.png) | ![counter-topper.png](screenshots/counter-topper.png) |
+| ![counter-spawner-topper.png](docs/screenshots/counter-spawner-topper.png) | ![counter-topper.png](docs/screenshots/counter-topper.png) |
 
 or even custom blocks provided by other mods like furniture:
 
 | Spawner Setup | Build                                                  |
 |---------------|--------------------------------------------------------|
-| ![counter-spawner-custom.png](screenshots/counter-spawner-custom.png) | ![counter-custom.png](screenshots/counter-custom.png)  |
+| ![counter-spawner-custom.png](docs/screenshots/counter-spawner-custom.png) | ![counter-custom.png](docs/screenshots/counter-custom.png)  |
 
 ### Avoid Block
 
@@ -504,7 +504,7 @@ of the block, so players can see what is ready without opening an inventory scre
 are handled in first-in, first-out order: the item that has been waiting the longest is
 the first one taken from the counter.
 
-![pickup-counter-usage.png](screenshots/pickup-counter-usage.png)
+![pickup-counter-usage.png](docs/screenshots/pickup-counter-usage.png)
 
 ### Crafting Customer Pickup Counter Blocks
 
@@ -514,7 +514,7 @@ matching variant ingredients:
 ```text
 Iron Ingot | Variant Ingredient | Variant Ingredient
 ```
-![pickup-counter-crafting.png](screenshots/pickup-counter-crafting.png)
+![pickup-counter-crafting.png](docs/screenshots/pickup-counter-crafting.png)
 
 The following variants are available:
 
@@ -529,7 +529,7 @@ The following variants are available:
 Each variant uses the matching block texture, so pickup counters can be coordinated with
 the materials and decoration used in a kitchen, restaurant, shop, or market stand.
 
-![pickup-counter-types.png](screenshots/pickup-counter-types.png)
+![pickup-counter-types.png](docs/screenshots/pickup-counter-types.png)
 
 ### Placing and Taking Items
 
@@ -614,7 +614,7 @@ matching variant ingredients in every other crafting-grid position:
 | Variant Ingredient |      Emerald       | Variant Ingredient |
 | Variant Ingredient | Variant Ingredient | Variant Ingredient |
 
-![customer-payment-box-crafting.png](screenshots/customer-payment-box-crafting.png)
+![customer-payment-box-crafting.png](docs/screenshots/customer-payment-box-crafting.png)
 
 The following variants are available:
 
@@ -628,7 +628,7 @@ The following variants are available:
 
 Each payment box uses the matching block texture beneath its payment-box detailing.
 
-![customer-payment-box-types.png](screenshots/customer-payment-box-types.png)
+![customer-payment-box-types.png](docs/screenshots/customer-payment-box-types.png)
 
 ## Villager Customers
 
@@ -644,7 +644,7 @@ Each wears a different hat:
 
 |                       Normal                        |                         Impatient                         |                       Casual                        |
 |:---------------------------------------------------:|:---------------------------------------------------------:|:---------------------------------------------------:|
-| ![Normal Customer](screenshots/customer-normal.png) | ![Impatient Customer](screenshots/customer-impatient.png) | ![Casual Customer](screenshots/customer-casual.png) |
+| ![Normal Customer](docs/screenshots/customer-normal.png) | ![Impatient Customer](docs/screenshots/customer-impatient.png) | ![Casual Customer](docs/screenshots/customer-casual.png) |
 
 
 If you want your customers to have names, think about using the [Villager Names mod](https://www.curseforge.com/minecraft/mc-mods/villager-names).
@@ -665,12 +665,12 @@ near it.  This should give a nice pattern of filling our a counter or restaurant
 of tables.
 Customers prioritize available stairs and seat-like blocks near counters and will sit while waiting to be served.
 
-![customers-sitting.png](screenshots/customers-sitting.png)
+![customers-sitting.png](docs/screenshots/customers-sitting.png)
 
 If there are more customers than there are counters, the customers will line up and
 wait their turn:
 
-![customers-line.png](screenshots/customers-line.png)
+![customers-line.png](docs/screenshots/customers-line.png)
 
 ### Serving and Selling to the Customer
 
@@ -703,11 +703,11 @@ selected pet food and then passed through the configured currency conversions.
 The manual pet payment slot is disabled, and an existing item in it is dropped
 on top of the spawner when automatic costs are enabled.
 
-![pets1.png](screenshots/pets1.png)![pets2.png](screenshots/pets2.png)
+![pets1.png](docs/screenshots/pets1.png)![pets2.png](docs/screenshots/pets2.png)
 
 Pets can even be additional animals from mods like Animal Garden:
 
-![pets-mods1.png](screenshots/pets-mods1.png)![pets-mods2.png](screenshots/pets-mods2.png)
+![pets-mods1.png](docs/screenshots/pets-mods1.png)![pets-mods2.png](docs/screenshots/pets-mods2.png)
 
 Pets disappear when their customer leaves, dies, or is no longer tracked by the spawner.
 When a player gives the customer the pet's food, the pet shows heart particles.
@@ -717,7 +717,7 @@ how often spawned customers have pets. The value is set per spawner level. `0%` 
 customers from that level never have pets, and `100%` means every customer from that
 level tries to have a pet.
 
-![pets-settings.png](screenshots/pets-settings.png)
+![pets-settings.png](docs/screenshots/pets-settings.png)
 
 Click the underlined **Pets** label in the Customer Spawner interface to open the pet
 type list for the selected level. Each discovered pet type has a checkbox. By default,
@@ -790,7 +790,7 @@ customer's saved appearance variation to consistently select a zombie, skeleton,
 husk, drowned, or stray. Enable Monsters in a Customer Spawner's appearance list to make
 it available in any spawning mode.
 
-![night-shift-special.png](screenshots/night-shift-special.png)
+![night-shift-special.png](docs/screenshots/night-shift-special.png)
 
 ### Skins
 
@@ -802,7 +802,7 @@ appearance variation consistently selects one of the skins in that pack.
 The mod includes an **MC Skins** appearance containing Alex, Ari, Efe, Herobrine,
 Makena, Steve, and Zuri.
 
-![apperance-skins.png](screenshots/apperance-skins.png)
+![apperance-skins.png](docs/screenshots/apperance-skins.png)
 
 A skin pack uses synchronized data-pack definitions together with client resource-pack
 textures and optional sounds:
@@ -933,11 +933,11 @@ weighted variants, volume, pitch, subtitles, streaming, and replacement. Skin pa
 with IDs that conflict with code-defined appearances are ignored in favor of the
 code-defined appearance.
 
-![apperance-skins-datapack.png](screenshots/apperance-skins-datapack.png)
+![apperance-skins-datapack.png](docs/screenshots/apperance-skins-datapack.png)
 
 ### Minecraft Comes Alive Appearance
 
-![mod-logo-mca-reborn.png](screenshots/mod-logo-mca-reborn.png)
+![mod-logo-mca-reborn.png](docs/screenshots/mod-logo-mca-reborn.png)
 The [Minecraft Comes Alive](https://www.curseforge.com/minecraft/mc-mods/minecraft-comes-alive-reborn) appearance is supported for Minecraft 1.21.1 and
 newer only, with MCA Reborn version 7.7.9 or newer for Minecraft 1.21.1. When
 Minecraft Comes Alive Reborn is installed on a supported version, the appearance
@@ -949,7 +949,7 @@ waiting. The saved appearance variation keeps each villager's MCA appearance
 consistent. Customers and Suppliers using this appearance are always rendered
 as adults. The Minecraft 1.20.1 Forge build does not include this appearance.
 
-![apperance-mca.png](screenshots/apperance-mca.png)
+![apperance-mca.png](docs/screenshots/apperance-mca.png)
 
 ### Creating a Custom Appearance
 
@@ -966,7 +966,7 @@ you and other players will be working within shifts that have a start and end.  
 will get a progress bar that shows the shift, a progress bar that ticks down to the
 end, and a heads up view of what all active customers want for that shift.
 
-![orders-in-progress-bar.png](screenshots/orders-in-progress-bar.png)
+![orders-in-progress-bar.png](docs/screenshots/orders-in-progress-bar.png)
 
 At the end of a shift where at least one player or Automated system crafted or served an
 item, you and the other players will get a scoreboard showing how well you did. Automated
@@ -974,7 +974,7 @@ activity appears with redstone as its profile image. Along with the number of st
 for that shift, the scoreboard shows a green checkmark when you earned enough stars to pass
 the current level:
 
-![scoreboard.png](screenshots/scoreboard.png)
+![scoreboard.png](docs/screenshots/scoreboard.png)
 
 ### Levels and Leaderboards
 
@@ -988,11 +988,11 @@ You can configure up to eight levels in the Customer Spawner UI. Each level has 
 inventory of items customers want to buy, maximum number of customers, enabled appearances,
 and number of stars required to pass the level.
 
-![level1.png](screenshots/level1.png)
+![level1.png](docs/screenshots/level1.png)
 
-![level2.png](screenshots/level2.png)
+![level2.png](docs/screenshots/level2.png)
 
-![level3.png](screenshots/level3.png)
+![level3.png](docs/screenshots/level3.png)
 
 Use earlier levels for simpler shifts with fewer item options, easier items to craft, and
 fewer customers. Later levels can increase the variety and complexity of requested items
@@ -1007,14 +1007,14 @@ and player. Place a Customer Leaderboard in your build so players can see how th
 are doing. It shows the stars each player earned for a level and a green checkmark when that
 player has passed the level.
 
-![leaderboard-block.png](screenshots/leaderboard-block.png)
+![leaderboard-block.png](docs/screenshots/leaderboard-block.png)
 
-![leaderboard.png](screenshots/leaderboard.png)
+![leaderboard.png](docs/screenshots/leaderboard.png)
 
 Craft a Customer Leaderboard with stripped logs around an iron ingot, paper, emerald, and
 ink sac.
 
-![leaderboard-crafting.png](screenshots/leaderboard-crafting.png)
+![leaderboard-crafting.png](docs/screenshots/leaderboard-crafting.png)
 
 ## Advancements and Statistics
 
@@ -1068,9 +1068,9 @@ can automate a shop that customers can buy from.
 * Add a hopper directed into your Customer Pickup counter block(s).
 * Feed the items your customers want into that hopper like adding a barrel above it and filling it up.
 
-![automation1.png](screenshots/automation1.png)
+![automation1.png](docs/screenshots/automation1.png)
 
-[automation1.mp4](screenshots/automation1.mp4)
+[automation1.mp4](docs/screenshots/automation1.mp4)
 
 As your customers spawn and head to your counter, the Customer Pickup Counter will recognize
 what customers it is serving, get what items the customers want, and extract those items
@@ -1089,7 +1089,7 @@ of the day will new supplies to buy for your restaurant or stand when you can't 
 want to gather them your self.  Lets say your Customers want steaks, but you don't want
 to harvest a bunch of cows.  That's where a Supplier can help you out.
 
-![supplier.png](screenshots/supplier.png)
+![supplier.png](docs/screenshots/supplier.png)
 
 ### Crafting Supplier Spawner Blocks
 
@@ -1105,9 +1105,9 @@ offer of 32 raw steaks for 5 emeralds. The cost can be any item, not only emeral
 The Appearance checkboxes select which appearances Suppliers from that spawner may use.
 At least one appearance is always enabled.
 
-![supplier-spawner-inventory.png](screenshots/supplier-spawner-inventory.png)
+![supplier-spawner-inventory.png](docs/screenshots/supplier-spawner-inventory.png)
 
-![supplier-trades.png](screenshots/supplier-trades.png)
+![supplier-trades.png](docs/screenshots/supplier-trades.png)
 
 ### Supplier Spawning
 
@@ -1131,7 +1131,7 @@ disabled by default and can be enabled with the `enableBuildCommands` configurat
 * `/customers spawners counters` also lists the matching counter blocks found for each customer
   spawner and displays a rotating mode icon above each counter for 90 seconds.
 
-![command-spawners-counters.png](screenshots/command-spawners-counters.png)
+![command-spawners-counters.png](docs/screenshots/command-spawners-counters.png)
 
 ## Configuration
 
