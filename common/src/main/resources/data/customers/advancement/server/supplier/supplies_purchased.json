@@ -1,0 +1,22 @@
+{
+  "parent": "customers:server/supplier/root",
+  "criteria": {
+    "supplies_purchased": {
+      "trigger": "customers:supplies_purchased"
+    }
+  },
+  "display": {
+    "description": { "translate": "advancements.customers.server.supplier.supplies_purchased.description" },
+    "icon": {
+      "id": "customers:advancement_icon",
+      "count": 1,
+      "components": { "minecraft:custom_model_data": 53 }
+    },
+    "title": { "translate": "advancements.customers.server.supplier.supplies_purchased.title" }
+  },
+  "requirements": [
+    [
+      "supplies_purchased"
+    ]
+  ]
+}

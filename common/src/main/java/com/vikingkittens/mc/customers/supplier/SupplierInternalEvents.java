@@ -33,6 +33,30 @@ public final class SupplierInternalEvents {
         public @Nullable BlockPos spawnerPosition() { return spawnerPosition; }
     }
 
+    public static final class SuppliesPurchased extends SupplierEvent {
+        private final UUID playerId;
+        private final ItemStack supplyItem;
+        private final ItemStack costItem;
+
+        public SuppliesPurchased(
+                ServerLevel level,
+                @Nullable BlockPos spawnerPosition,
+                UUID playerId,
+                ItemStack supplyItem,
+                ItemStack costItem
+        ) {
+            super(level, spawnerPosition);
+            this.playerId = playerId;
+            this.supplyItem = supplyItem.copy();
+            this.costItem = costItem.copy();
+        }
+
+        public @Nullable UUID playerId() { return playerId; }
+
+        public ItemStack supplyItem() { return supplyItem.copy(); }
+        public ItemStack costItem() { return costItem.copy(); }
+    }
+
     public record Offer(ItemStack item, ItemStack cost) {}
 
     public static final class SupplierSpawnerConfigChanged extends SupplierInternalEvents.SupplierEvent {

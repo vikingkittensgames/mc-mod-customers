@@ -39,6 +39,10 @@ Add customer events as public static classes in `CustomerInternalEvents` and sup
 
 `CustomerServed` means that the player supplied an item to the customer; it does not mean that every request belonging to that customer has been completed. Use a separate completion event if a future feature needs that meaning.
 
+`SuppliesPurchased` represents one completed trade with a Supplier. It records
+the purchasing player, supplier spawner location, purchased supply stack, and
+paid cost stack. One event represents one transaction regardless of stack size.
+
 ### Counter block placement events
 
 `CounterBlockPlaced` is emitted when a player places a block matching the
@@ -166,7 +170,7 @@ Customers
     └── Supplier
 ```
 
-The Builder advancements use Minecraft's `recipe_crafted` trigger for the Customer and Supplier Spawner recipes. The organizational root, Builder, Server, Customer, and Supplier nodes suppress chat announcements and toast notifications. `First Item Served` and `100 Items Served` use `customers:item_served`.
+The Builder advancements use Minecraft's `recipe_crafted` trigger for the Customer and Supplier Spawner recipes. The organizational root, Builder, Server, Customer, and Supplier nodes suppress chat announcements and toast notifications. `First Item Served` and `100 Items Served` use `customers:item_served`. `Supplies Purchased` uses `customers:supplies_purchased` under the Server Supplier branch.
 
 When adding an advancement, create its JSON below the appropriate branch, point `parent` at the preceding node, add its English title and description to `assets/customers/lang/en_us.json`, and validate it in the game advancement screen.
 
@@ -211,7 +215,8 @@ Task for arbitrary per-player `customers:item_served` or
 `customers:shift_finished` totals. The single `customers:customers_task` entry
 in FTB's task menu opens a Customers submenu containing `Item Served`,
 `Customer Served`, `Shift Finished`, `Leaderboard Changed`, `Customer Spawner
-Changed`, `Supplier Spawner Changed`, and `Counter Block Placed`. Pet-item quests
+Changed`, `Supplier Spawner Changed`, `Supplies Purchased`, and `Counter Block
+Placed`. Pet-item quests
 use an Item Served task with `Is Pet Item` set to true. Item and Customer Served
 tasks can filter by spawner location and mode, customer profession, served item
 or tag, served stack count, cost item or tag, cost stack count, and pet-item
@@ -230,6 +235,9 @@ cost-item, and appearance counts. Supplier Spawner Changed tasks expose the
 spawner location, automatic-cost state, and those same three counts. Their
 internal events retain the complete inventory, pet, appearance, and offer
 lists, but those lists are not trigger or task conditions yet.
+Supplies Purchased tasks filter the supplier spawner location, purchased supply
+item or tag and count, and cost item or tag and count. They listen directly to
+the transaction event, so their counters remain independent per quest and team.
 Counter Block Placed tasks expose the nearby spawner location and mode together
 with the placed counter's location and block ID. They progress for the placing
 player when the block matches a nearby Customer Spawner's configured counter.

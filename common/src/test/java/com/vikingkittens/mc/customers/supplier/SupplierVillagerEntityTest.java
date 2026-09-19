@@ -1,28 +1,39 @@
 package com.vikingkittens.mc.customers.supplier;
 
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Predicate;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.MockedStatic;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.pathfinder.Path;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 import com.vikingkittens.mc.customers.common.MobUtils;
+import com.vikingkittens.mc.customers.common.events.InternalEvent;
+import com.vikingkittens.mc.customers.common.events.InternalEvents;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
 import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
@@ -116,6 +127,41 @@ class SupplierVillagerEntityTest {
                 1.0F,
                 mock(DamageSource.class)
         ));
+    }
+
+    @Test
+    void emitsSuppliesPurchasedAfterACompletedTrade() {
+        SupplierVillagerEntity supplier = mock(SupplierVillagerEntity.class, CALLS_REAL_METHODS);
+        ServerLevel level = mock(ServerLevel.class);
+        Player player = mock(Player.class);
+        MerchantOffer offer = mock(MerchantOffer.class);
+        UUID playerId = UUID.randomUUID();
+        BlockPos spawnerPosition = new BlockPos(10, 64, 20);
+
+        supplier.setSpawnerPos(spawnerPosition);
+        doReturn(level).when(supplier).level();
+        doReturn(player).when(supplier).getTradingPlayer();
+        when(player.getUUID()).thenReturn(playerId);
+        when(offer.assemble()).thenReturn(new ItemStack(Items.BREAD, 3));
+        when(offer.getCostA()).thenReturn(new ItemStack(Items.EMERALD, 2));
+
+        try (MockedStatic<InternalEvents> events = mockStatic(InternalEvents.class)) {
+            supplier.emitSuppliesPurchased(offer);
+
+            ArgumentCaptor<InternalEvent> eventCaptor = ArgumentCaptor.forClass(InternalEvent.class);
+            events.verify(() -> InternalEvents.emit(eventCaptor.capture()));
+            SupplierInternalEvents.SuppliesPurchased event = assertInstanceOf(
+                    SupplierInternalEvents.SuppliesPurchased.class,
+                    eventCaptor.getValue()
+            );
+            assertSame(level, event.level());
+            assertEquals(spawnerPosition, event.spawnerPosition());
+            assertEquals(playerId, event.playerId());
+            assertSame(Items.BREAD, event.supplyItem().getItem());
+            assertEquals(3, event.supplyItem().getCount());
+            assertSame(Items.EMERALD, event.costItem().getItem());
+            assertEquals(2, event.costItem().getCount());
+        }
     }
 
     @Test

@@ -7,11 +7,9 @@ import org.junit.jupiter.api.Test;
 
 import com.mojang.serialization.JsonOps;
 import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
-import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -31,10 +29,13 @@ class CustomersLocationPredicateTest {
     void matchesDimensionAndSpawnerPositionTogether() {
         CustomersLocationPredicate predicate = new CustomersLocationPredicate(Level.OVERWORLD, SHOP_POSITION);
 
-        assertTrue(predicate.matches(event(Level.OVERWORLD, SHOP_POSITION)));
-        assertFalse(predicate.matches(event(Level.OVERWORLD, SHOP_POSITION.above())));
-        assertFalse(predicate.matches(event(Level.NETHER, SHOP_POSITION)));
-        assertFalse(predicate.matches(event(Level.OVERWORLD, null)));
+        Level overworld = level(Level.OVERWORLD);
+        Level nether = level(Level.NETHER);
+
+        assertTrue(predicate.matches(overworld, SHOP_POSITION));
+        assertFalse(predicate.matches(overworld, SHOP_POSITION.above()));
+        assertFalse(predicate.matches(nether, SHOP_POSITION));
+        assertFalse(predicate.matches(overworld, null));
     }
 
     @Test
@@ -54,12 +55,9 @@ class CustomersLocationPredicateTest {
         assertEquals(SHOP_POSITION, predicate.position());
     }
 
-    private static CustomerInternalEvents.CustomerEvent event(
-            net.minecraft.resources.ResourceKey<Level> dimension,
-            BlockPos position
-    ) {
-        ServerLevel level = mock(ServerLevel.class);
+    private static Level level(net.minecraft.resources.ResourceKey<Level> dimension) {
+        Level level = mock(Level.class);
         when(level.dimension()).thenReturn(dimension);
-        return new CustomerInternalEvents.CustomerEvent(level, position, null);
+        return level;
     }
 }

@@ -86,7 +86,9 @@ public final class CustomersTriggerCounterPlaced
 
         public boolean matchesEvent(CustomerInternalEvents.CounterBlockPlaced event) {
             ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(event.counterBlockState().getBlock());
-            return spawnerLocation.map(value -> value.matches(event)).orElse(true)
+            return spawnerLocation
+                            .map(value -> value.matches(event.level(), event.spawnerPosition()))
+                            .orElse(true)
                     && spawnerMode.map(value -> value == event.spawnerMode()).orElse(true)
                     && counterLocation
                             .map(value -> value.matches(event.level(), event.counterBlockPosition()))

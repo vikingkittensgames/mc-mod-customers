@@ -102,6 +102,16 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
                 4
         ) {
             @Override
+            public boolean mayPlace(ItemStack stack) {
+                return !usesAutomaticCost();
+            }
+
+            @Override
+            public boolean mayPickup(Player player) {
+                return !usesAutomaticCost();
+            }
+
+            @Override
             public boolean isActive() {
                 return blockEntity != null || petFoodCostSlotVisible;
             }

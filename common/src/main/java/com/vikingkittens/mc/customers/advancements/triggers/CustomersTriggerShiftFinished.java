@@ -198,7 +198,9 @@ public final class CustomersTriggerShiftFinished
         }
 
         public boolean matchesEvent(CustomerInternalEvents.ShiftFinished event) {
-            return spawnerLocation.map(value -> value.matches(event)).orElse(true)
+            return spawnerLocation
+                            .map(value -> value.matches(event.level(), event.spawnerPosition()))
+                            .orElse(true)
                     && spawnerMode.map(value -> value == event.spawnerMode()).orElse(true)
                     && activeLevel.map(value -> value.matches(event.activeLevel())).orElse(true)
                     && percentage.map(value -> value.matches(event.percentage())).orElse(true)
