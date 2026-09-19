@@ -1,2 +1,0 @@
-* Builder command debug markers are not rendered above the blocks and seem to spin around the player's camera
-* The Customer and Supplier spawner blocks disabled state rendering with the disabled overlay is broken.  It only renders the default texture
