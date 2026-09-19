@@ -19,7 +19,7 @@ me adding more features:
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png)](https://www.buymeacoffee.com/clubycoder)
 
-<img src="{{ '/assets/images/buymeacoffee-qr-code.png' | relative_url }}" alt="Buy Me a Coffee QR code" width="50%" height="50%" />
+<img src="{{ '/assets/images/buymeacoffee-qr-code.png' | relative_url }}" alt="Buy Me a Coffee QR code" width="25%" height="25%" />
 
 ## Supported Minecraft Versions and Mod Loaders
 
