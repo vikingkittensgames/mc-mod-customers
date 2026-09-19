@@ -26,6 +26,7 @@ import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerItem
 import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerLeaderboardChanged;
 import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerShiftFinished;
 import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerSupplierSpawnerChanged;
+import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerSuppliesPurchased;
 import com.vikingkittens.mc.customers.common.events.InternalEvent;
 import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
 import com.vikingkittens.mc.customers.supplier.SupplierInternalEvents;
@@ -80,6 +81,11 @@ public final class CustomersFTBTasks {
                 "customers:textures/block/supplier_spawner_block_top.png",
                 SupplierInternalEvents.SupplierSpawnerConfigChanged.class
         ),
+        SUPPLIES_PURCHASED(
+                "supplies_purchased",
+                "customers:item/advancement_icon_sack",
+                SupplierInternalEvents.SuppliesPurchased.class
+        ),
         COUNTER_PLACED(
                 "counter_placed",
                 "customers:textures/item/advancement_icon_table.png",
@@ -131,6 +137,8 @@ public final class CustomersFTBTasks {
                 CustomersTriggerCustomerSpawnerChanged.Instance.ANY;
         private CustomersTriggerSupplierSpawnerChanged.Instance supplierSpawnerChangedTrigger =
                 CustomersTriggerSupplierSpawnerChanged.Instance.ANY;
+        private CustomersTriggerSuppliesPurchased.Instance suppliesPurchasedTrigger =
+                CustomersTriggerSuppliesPurchased.Instance.ANY;
         private CustomersTriggerCounterPlaced.Instance counterPlacedTrigger =
                 CustomersTriggerCounterPlaced.Instance.ANY;
 
@@ -203,6 +211,12 @@ public final class CustomersFTBTasks {
             }
         }
 
+        void recordProgress(TeamData teamData, SupplierInternalEvents.SuppliesPurchased event) {
+            if (matches(event)) {
+                recordProgress(teamData);
+            }
+        }
+
         void recordProgress(TeamData teamData, CustomerInternalEvents.CounterBlockPlaced event) {
             if (matches(event)) {
                 recordProgress(teamData);
@@ -240,6 +254,10 @@ public final class CustomersFTBTasks {
 
         boolean matches(SupplierInternalEvents.SupplierSpawnerConfigChanged event) {
             return taskKind.handles(event) && supplierSpawnerChangedTrigger.matchesEvent(event);
+        }
+
+        boolean matches(SupplierInternalEvents.SuppliesPurchased event) {
+            return taskKind.handles(event) && suppliesPurchasedTrigger.matchesEvent(event);
         }
 
         boolean matches(CustomerInternalEvents.CounterBlockPlaced event) {
@@ -287,6 +305,12 @@ public final class CustomersFTBTasks {
                         provider,
                         CustomersTriggerSupplierSpawnerChanged.SCHEMA,
                         supplierSpawnerChangedTrigger
+                );
+                case SUPPLIES_PURCHASED -> CustomersFTBTriggerSchema.writeData(
+                        tag,
+                        provider,
+                        CustomersTriggerSuppliesPurchased.SCHEMA,
+                        suppliesPurchasedTrigger
                 );
                 case COUNTER_PLACED -> CustomersFTBTriggerSchema.writeData(
                         tag,
@@ -339,6 +363,12 @@ public final class CustomersFTBTasks {
                         CustomersTriggerSupplierSpawnerChanged.SCHEMA,
                         CustomersTriggerSupplierSpawnerChanged.Instance.ANY
                 );
+                case SUPPLIES_PURCHASED -> suppliesPurchasedTrigger = CustomersFTBTriggerSchema.readData(
+                        tag,
+                        provider,
+                        CustomersTriggerSuppliesPurchased.SCHEMA,
+                        CustomersTriggerSuppliesPurchased.Instance.ANY
+                );
                 case COUNTER_PLACED -> counterPlacedTrigger = CustomersFTBTriggerSchema.readData(
                         tag,
                         provider,
@@ -384,6 +414,11 @@ public final class CustomersFTBTasks {
                         CustomersTriggerSupplierSpawnerChanged.SCHEMA,
                         supplierSpawnerChangedTrigger
                 );
+                case SUPPLIES_PURCHASED -> CustomersFTBTriggerSchema.writeNetData(
+                        buffer,
+                        CustomersTriggerSuppliesPurchased.SCHEMA,
+                        suppliesPurchasedTrigger
+                );
                 case COUNTER_PLACED -> CustomersFTBTriggerSchema.writeNetData(
                         buffer,
                         CustomersTriggerCounterPlaced.SCHEMA,
@@ -410,6 +445,8 @@ public final class CustomersFTBTasks {
                         CustomersFTBTriggerSchema.readNetData(buffer, CustomersTriggerCustomerSpawnerChanged.SCHEMA);
                 case SUPPLIER_SPAWNER_CHANGED -> supplierSpawnerChangedTrigger =
                         CustomersFTBTriggerSchema.readNetData(buffer, CustomersTriggerSupplierSpawnerChanged.SCHEMA);
+                case SUPPLIES_PURCHASED -> suppliesPurchasedTrigger =
+                        CustomersFTBTriggerSchema.readNetData(buffer, CustomersTriggerSuppliesPurchased.SCHEMA);
                 case COUNTER_PLACED -> counterPlacedTrigger =
                         CustomersFTBTriggerSchema.readNetData(buffer, CustomersTriggerCounterPlaced.SCHEMA);
             }
@@ -457,6 +494,12 @@ public final class CustomersFTBTasks {
                         CustomersTriggerSupplierSpawnerChanged.SCHEMA,
                         () -> supplierSpawnerChangedTrigger,
                         value -> supplierSpawnerChangedTrigger = value
+                );
+                case SUPPLIES_PURCHASED -> CustomersFTBTriggerSchema.fillConfigGroup(
+                        config,
+                        CustomersTriggerSuppliesPurchased.SCHEMA,
+                        () -> suppliesPurchasedTrigger,
+                        value -> suppliesPurchasedTrigger = value
                 );
                 case COUNTER_PLACED -> CustomersFTBTriggerSchema.fillConfigGroup(
                         config,

@@ -696,8 +696,12 @@ there despawn.
 Customer Spawners can give some customers a small pet that follows them around while
 they are visiting. Pets are chosen from animal entity types that accept at least one
 registered item as food. Customers with pets get one extra trade for their pet's food.
-That extra trade asks for 1 of the pet food item and uses the item in the upper-right
-slot of the Pets panel as its payment. Leave that slot empty to pay one emerald.
+That extra trade asks for 1 of the pet food item. In manual-cost mode it uses the
+item in the upper-right slot of the Pets panel as payment; leave that slot empty
+to pay one emerald. In automatic-cost mode, the payment is calculated from the
+selected pet food and then passed through the configured currency conversions.
+The manual pet payment slot is disabled, and an existing item in it is dropped
+on top of the spawner when automatic costs are enabled.
 
 ![pets1.png](screenshots/pets1.png)![pets2.png](screenshots/pets2.png)
 
@@ -1016,8 +1020,8 @@ ink sac.
 
 When FTB Quests is installed on NeoForge, quest builders can add a **Customers
 Task** and choose **Item Served**, **Customer Served**, **Shift Finished**,
-**Leaderboard Changed**, **Customer Spawner Changed**, or **Supplier Spawner
-Changed**, and **Counter Block Placed**.
+**Leaderboard Changed**, **Customer Spawner Changed**, **Supplier Spawner
+Changed**, **Supplies Purchased**, or **Counter Block Placed**.
 These tasks count matching events independently for each FTB team instead of
 using a player's lifetime statistics. Every task can be limited to one spawner
 by its dimension and block position. Item and Customer Served
@@ -1036,14 +1040,20 @@ cost items, and appearances. Supplier Spawner Changed tasks can filter the
 automatic-cost setting and the numbers of configured sell items, cost items,
 and appearances. These tasks count player-made changes in the spawner interface
 and do not count configuration loaded with the world or automatic maintenance.
+Supplies Purchased tasks can filter the purchased supply item or tag and stack
+count, along with the cost item or tag and stack count.
 Counter Block Placed tasks can filter the nearby Customer Spawner and its shift
 mode, the placed counter's location, and the counter block type. They count a
 player placing a block that matches a nearby spawner's configured counter block.
 
-Customers adds its own advancement tab with separate Builder and Server branches. The Builder branch recognizes crafting Customer and Supplier Spawners. The Server branch begins tracking customer and supplier activity, including **First Item Served** for completing one requested-item transaction and **100 Items Served** for completing 100 attributed transactions.
+Customers adds its own advancement tab with separate Builder and Server branches. The Builder branch recognizes crafting Customer and Supplier Spawners. The Server branch begins tracking customer and supplier activity, including **First Item Served** for completing one requested-item transaction, **100 Items Served** for completing 100 attributed transactions, and **Supplies Purchased** for completing a Supplier transaction.
 The Shift branch awards **Leader** when a player takes the lead on a Customer Leaderboard containing scores for multiple players.
 
 Item-serving advancements can distinguish the spawner location and mode, customer profession, requested item and amount, payment item and amount, and the player's total completed item transactions. Pet-item advancements can additionally use the player's persistent pet-item transaction total. **100 Pet Items Served** requires 100 completed transactions that supplied an item to a customer's pet. Modpack authors can use these conditions to add goals such as serving customers at a particular shop, serving an impatient lunch customer, selling a particular quantity of an item, or completing a configured number of transactions. The **Items Served to Customers** statistic increases once per completed requested-item transaction; it does not count every individual item in the stack or distinct customer NPCs.
+
+The **Supplies Purchased** statistic increases once for each completed Supplier
+transaction. It counts transactions rather than the number of items in the
+purchased stack.
 
 See [events-and-advancements.md](events-and-advancements.md) for the data format and instructions for adding events, triggers, advancements, statistics, and optional quest integrations.
 

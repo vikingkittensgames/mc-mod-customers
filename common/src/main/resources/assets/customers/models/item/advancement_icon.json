@@ -37,6 +37,7 @@
 
     { "predicate": { "custom_model_data": 50 }, "model": "customers:item/advancement_icon_config" },
     { "predicate": { "custom_model_data": 51 }, "model": "customers:item/advancement_icon_config_plus" },
-    { "predicate": { "custom_model_data": 52 }, "model": "customers:item/advancement_icon_table" }
+    { "predicate": { "custom_model_data": 52 }, "model": "customers:item/advancement_icon_table" },
+    { "predicate": { "custom_model_data": 53 }, "model": "customers:item/advancement_icon_sack" }
   ]
 }

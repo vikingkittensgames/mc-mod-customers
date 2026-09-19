@@ -50,6 +50,12 @@ public final class CustomersStatistics {
                     "customer_impatient_served",
                     () -> ResourceLocation.fromNamespaceAndPath(Customers.MODID, "customer_impatient_served")
             );
+    public static final CustomersRegistryEntry<ResourceLocation, ResourceLocation> SUPPLIES_PURCHASED =
+            CustomersServices.registration().register(
+                    Registries.CUSTOM_STAT,
+                    "supplies_purchased",
+                    () -> ResourceLocation.fromNamespaceAndPath(Customers.MODID, "supplies_purchased")
+            );
 
     private CustomersStatistics() {}
 

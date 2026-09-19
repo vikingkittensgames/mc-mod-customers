@@ -173,14 +173,29 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     static boolean addPetFoodOffer(MerchantOffers offers, ItemStack petFood, ItemStack payment) {
+        return addPetFoodOffer(offers, petFood, payment, false, ignored -> null);
+    }
+
+    static boolean addPetFoodOffer(
+            MerchantOffers offers,
+            ItemStack petFood,
+            ItemStack payment,
+            boolean automaticCost,
+            Function<ItemStack, ItemStack> costCalculator
+    ) {
         if (offers.isEmpty() || petFood.isEmpty()) {
             return false;
         }
-        ItemStack paymentStack = payment.isEmpty() ? new ItemStack(getPaymentItem()) : payment.copy();
+        ItemStack paymentStack = automaticCost
+                ? costCalculator.apply(petFood)
+                : payment.isEmpty() ? new ItemStack(getPaymentItem()) : payment.copy();
+        if (paymentStack == null || paymentStack.isEmpty()) {
+            return false;
+        }
         offers.add(new MerchantOffer(
                 ItemStackCUtils.createItemCost(petFood, 1),
                 Optional.empty(),
-                paymentStack,
+                paymentStack.copy(),
                 1,
                 0,
                 0
@@ -980,26 +995,35 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         if (level == null || LevelCUtils.isClientSide(level)) {
             return;
         }
-        Container inventory = settings.getInventory();
-        boolean changed = false;
+        for (ItemStack cost : removeCostItems(settings.getInventory())) {
+            Containers.dropItemStack(
+                    level,
+                    worldPosition.getX() + 0.5D,
+                    worldPosition.getY() + 1.0D,
+                    worldPosition.getZ() + 0.5D,
+                    cost
+            );
+        }
+    }
+
+    static List<ItemStack> removeCostItems(Container inventory) {
+        List<ItemStack> costs = new ArrayList<>();
         for (int slot = INVENTORY_ROW_SIZE - 1;
                 slot < CustomerSpawnerLevelSettings.OFFER_INVENTORY_SIZE;
                 slot += INVENTORY_ROW_SIZE) {
             ItemStack cost = inventory.removeItemNoUpdate(slot);
             if (!cost.isEmpty()) {
-                changed = true;
-                Containers.dropItemStack(
-                        level,
-                        worldPosition.getX() + 0.5D,
-                        worldPosition.getY() + 1.0D,
-                        worldPosition.getZ() + 0.5D,
-                        cost
-                );
+                costs.add(cost);
             }
         }
-        if (changed) {
+        ItemStack petFoodCost = inventory.removeItemNoUpdate(CustomerSpawnerLevelSettings.PET_FOOD_COST_SLOT);
+        if (!petFoodCost.isEmpty()) {
+            costs.add(petFoodCost);
+        }
+        if (!costs.isEmpty()) {
             inventory.setChanged();
         }
+        return costs;
     }
 
     public void spawnCustomer() {
@@ -1062,7 +1086,13 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                                 .filter(type -> type.entityId().equals(pet.petTypeId()))
                                 .findFirst()
                                 .orElseThrow();
-                        if (addPetFoodOffer(offers, settings.getPetFood(petType), settings.getPetFoodCost())) {
+                        if (addPetFoodOffer(
+                                offers,
+                                settings.getPetFood(petType),
+                                settings.getPetFoodCost(),
+                                automaticCost,
+                                Economy::calculateItemStackCost
+                        )) {
                             customer.setOffers(offers);
                         }
                     }

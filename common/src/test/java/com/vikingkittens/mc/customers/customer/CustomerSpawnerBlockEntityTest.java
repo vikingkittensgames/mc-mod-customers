@@ -19,6 +19,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -732,6 +733,49 @@ class CustomerSpawnerBlockEntityTest {
         ));
         assertEquals(Items.EMERALD, defaultPaymentOffers.get(1).getResult().getItem());
         assertEquals(1, defaultPaymentOffers.get(1).getResult().getCount());
+    }
+
+    @Test
+    void automaticPetFoodOfferUsesTheCalculatedAndConvertedCost() {
+        MerchantOffers offers = new MerchantOffers();
+        offers.add(new MerchantOffer(
+                ItemStackCUtils.createItemCost(new ItemStack(Items.BREAD), 1),
+                Optional.empty(),
+                Items.EMERALD.getDefaultInstance(),
+                1,
+                0,
+                0
+        ));
+
+        assertTrue(CustomerSpawnerBlockEntity.addPetFoodOffer(
+                offers,
+                Items.COD.getDefaultInstance(),
+                new ItemStack(Items.DIAMOND, 4),
+                true,
+                ignored -> new ItemStack(Items.GOLD_NUGGET, 3)
+        ));
+
+        MerchantOffer petOffer = offers.get(1);
+        assertSame(Items.GOLD_NUGGET, petOffer.getResult().getItem());
+        assertEquals(3, petOffer.getResult().getCount());
+    }
+
+    @Test
+    void automaticCostsRemoveConfiguredOfferAndPetFoodCosts() {
+        SimpleContainer inventory = new SimpleContainer(CustomerSpawnerLevelSettings.INVENTORY_SIZE);
+        inventory.setItem(8, new ItemStack(Items.EMERALD, 2));
+        inventory.setItem(
+                CustomerSpawnerLevelSettings.PET_FOOD_COST_SLOT,
+                new ItemStack(Items.DIAMOND, 3)
+        );
+
+        List<ItemStack> removed = CustomerSpawnerBlockEntity.removeCostItems(inventory);
+
+        assertEquals(2, removed.size());
+        assertSame(Items.EMERALD, removed.get(0).getItem());
+        assertSame(Items.DIAMOND, removed.get(1).getItem());
+        assertTrue(inventory.getItem(8).isEmpty());
+        assertTrue(inventory.getItem(CustomerSpawnerLevelSettings.PET_FOOD_COST_SLOT).isEmpty());
     }
 
     @Test

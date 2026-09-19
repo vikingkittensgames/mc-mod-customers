@@ -109,6 +109,17 @@ public final class CustomersFTBEvents {
     }
 
     @InternalEventHandler
+    public static void onSuppliesPurchased(SupplierInternalEvents.SuppliesPurchased event) {
+        if (event.playerId() == null) {
+            return;
+        }
+        ServerPlayer player = event.level().getServer().getPlayerList().getPlayer(event.playerId());
+        if (player != null) {
+            recordProgress(player, (task, teamData) -> task.recordProgress(teamData, event));
+        }
+    }
+
+    @InternalEventHandler
     public static void onCounterBlockPlaced(CustomerInternalEvents.CounterBlockPlaced event) {
         ServerPlayer player = event.level().getServer().getPlayerList().getPlayer(event.playerId());
         if (player != null) {

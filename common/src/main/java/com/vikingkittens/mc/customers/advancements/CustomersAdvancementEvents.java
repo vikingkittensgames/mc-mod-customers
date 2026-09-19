@@ -112,6 +112,26 @@ public final class CustomersAdvancementEvents {
     }
 
     @InternalEventHandler
+    public static void onSuppliesPurchased(SupplierInternalEvents.SuppliesPurchased event) {
+        if (event.playerId() == null) {
+            return;
+        }
+        ServerPlayer player = event.level().getServer().getPlayerList().getPlayer(event.playerId());
+        if (player != null) {
+            var suppliesPurchasedStat = Stats.CUSTOM.get(CustomersStatistics.SUPPLIES_PURCHASED.get(),
+                    StatFormatter.DEFAULT);
+            player.awardStat(suppliesPurchasedStat, 1);
+            int totalSuppliesPurchased = player.getStats().getValue(suppliesPurchasedStat);
+
+            CustomersTriggers.SUPPLIES_PURCHASED.get().trigger(
+                    player,
+                    event,
+                    totalSuppliesPurchased
+            );
+        }
+    }
+
+    @InternalEventHandler
     public static void onCustomerSpawnerChanged(CustomerInternalEvents.CustomerSpawnerConfigChanged event) {
         ServerPlayer player = event.level().getServer().getPlayerList().getPlayer(event.playerId());
         if (player != null) {
@@ -120,18 +140,18 @@ public final class CustomersAdvancementEvents {
     }
 
     @InternalEventHandler
-    public static void onSupplierSpawnerChanged(SupplierInternalEvents.SupplierSpawnerConfigChanged event) {
-        ServerPlayer player = event.level().getServer().getPlayerList().getPlayer(event.playerId());
-        if (player != null) {
-            CustomersTriggers.SUPPLIER_SPAWNER_CHANGED.get().trigger(player, event);
-        }
-    }
-
-    @InternalEventHandler
     public static void onCounterBlockPlaced(CustomerInternalEvents.CounterBlockPlaced event) {
         ServerPlayer player = event.level().getServer().getPlayerList().getPlayer(event.playerId());
         if (player != null) {
             CustomersTriggers.COUNTER_PLACED.get().trigger(player, event);
+        }
+    }
+
+    @InternalEventHandler
+    public static void onSupplierSpawnerChanged(SupplierInternalEvents.SupplierSpawnerConfigChanged event) {
+        ServerPlayer player = event.level().getServer().getPlayerList().getPlayer(event.playerId());
+        if (player != null) {
+            CustomersTriggers.SUPPLIER_SPAWNER_CHANGED.get().trigger(player, event);
         }
     }
 }

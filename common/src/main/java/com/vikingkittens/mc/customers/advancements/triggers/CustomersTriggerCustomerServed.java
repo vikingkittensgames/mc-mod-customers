@@ -221,7 +221,9 @@ public final class CustomersTriggerCustomerServed
         }
 
         public boolean matchesEvent(CustomerInternalEvents.CustomerServed event) {
-            return spawnerLocation.map(value -> value.matches(event)).orElse(true)
+            return spawnerLocation
+                            .map(value -> value.matches(event.level(), event.spawnerPosition()))
+                            .orElse(true)
                     && spawnerMode.map(value -> value == event.spawnerMode()).orElse(true)
                     && customerProfession.map(value -> value.equals(event.customerProfession())).orElse(true)
                     && servedItem.map(value -> value.test(event.servedItem())).orElse(true)

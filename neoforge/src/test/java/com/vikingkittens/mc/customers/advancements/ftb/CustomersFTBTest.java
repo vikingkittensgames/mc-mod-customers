@@ -29,6 +29,7 @@ import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerCust
 import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerItemServed;
 import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerLeaderboardChanged;
 import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerSupplierSpawnerChanged;
+import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerSuppliesPurchased;
 import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 import com.vikingkittens.mc.customers.supplier.SupplierInternalEvents;
@@ -60,6 +61,7 @@ class CustomersFTBTest {
                         CustomersFTBTasks.CustomersTaskKind.LEADERBOARD_CHANGED,
                         CustomersFTBTasks.CustomersTaskKind.CUSTOMER_SPAWNER_CHANGED,
                         CustomersFTBTasks.CustomersTaskKind.SUPPLIER_SPAWNER_CHANGED,
+                        CustomersFTBTasks.CustomersTaskKind.SUPPLIES_PURCHASED,
                         CustomersFTBTasks.CustomersTaskKind.COUNTER_PLACED
                 ),
                 List.of(CustomersFTBTasks.CustomersTaskKind.values())
@@ -83,6 +85,10 @@ class CustomersFTBTest {
         assertEquals(
                 "customers:textures/block/supplier_spawner_block_top.png",
                 CustomersFTBTasks.CustomersTaskKind.SUPPLIER_SPAWNER_CHANGED.iconResource()
+        );
+        assertEquals(
+                "customers:item/advancement_icon_sack",
+                CustomersFTBTasks.CustomersTaskKind.SUPPLIES_PURCHASED.iconResource()
         );
         assertEquals(
                 "customers:textures/item/advancement_icon_table.png",
@@ -113,6 +119,10 @@ class CustomersFTBTest {
                 CustomersFTBTasks.CustomersTaskKind.SUPPLIER_SPAWNER_CHANGED.displayNameKey()
         );
         assertEquals(
+                "ftbquests.task.customers.customers_task.supplies_purchased",
+                CustomersFTBTasks.CustomersTaskKind.SUPPLIES_PURCHASED.displayNameKey()
+        );
+        assertEquals(
                 "ftbquests.task.customers.customers_task.counter_placed",
                 CustomersFTBTasks.CustomersTaskKind.COUNTER_PLACED.displayNameKey()
         );
@@ -126,6 +136,7 @@ class CustomersFTBTest {
         CustomerInternalEvents.LeaderboardChanged leaderboardChanged = leaderboardChangedEvent();
         CustomerInternalEvents.CustomerSpawnerConfigChanged customerSpawnerChanged = customerSpawnerChangedEvent();
         SupplierInternalEvents.SupplierSpawnerConfigChanged supplierSpawnerChanged = supplierSpawnerChangedEvent();
+        SupplierInternalEvents.SuppliesPurchased suppliesPurchased = suppliesPurchasedEvent();
         CustomerInternalEvents.CounterBlockPlaced counterPlaced = counterPlacedEvent();
 
         assertTrue(CustomersFTBTasks.CustomersTaskKind.ITEM_SERVED.handles(itemServed));
@@ -140,6 +151,8 @@ class CustomersFTBTest {
         assertFalse(CustomersFTBTasks.CustomersTaskKind.SUPPLIER_SPAWNER_CHANGED.handles(customerSpawnerChanged));
         assertTrue(CustomersFTBTasks.CustomersTaskKind.SUPPLIER_SPAWNER_CHANGED.handles(supplierSpawnerChanged));
         assertFalse(CustomersFTBTasks.CustomersTaskKind.CUSTOMER_SPAWNER_CHANGED.handles(supplierSpawnerChanged));
+        assertTrue(CustomersFTBTasks.CustomersTaskKind.SUPPLIES_PURCHASED.handles(suppliesPurchased));
+        assertFalse(CustomersFTBTasks.CustomersTaskKind.SUPPLIER_SPAWNER_CHANGED.handles(suppliesPurchased));
         assertTrue(CustomersFTBTasks.CustomersTaskKind.COUNTER_PLACED.handles(counterPlaced));
         assertFalse(CustomersFTBTasks.CustomersTaskKind.ITEM_SERVED.handles(counterPlaced));
     }
@@ -264,6 +277,28 @@ class CustomersFTBTest {
                         "counter_block"
                 ),
                 CustomersFTBTriggerSchema.configPropertyOrder(CustomersTriggerCounterPlaced.SCHEMA)
+        );
+    }
+
+    @Test
+    void exposesEverySuppliesPurchasedTaskPropertyInSchemaOrder() {
+        assertEquals(
+                List.of(
+                        "spawner_location_enabled",
+                        "spawner_location_dimension",
+                        "spawner_location_x",
+                        "spawner_location_y",
+                        "spawner_location_z",
+                        "supply_item",
+                        "supply_item_tag",
+                        "supply_count_min",
+                        "supply_count_max",
+                        "cost_item",
+                        "cost_item_tag",
+                        "cost_count_min",
+                        "cost_count_max"
+                ),
+                CustomersFTBTriggerSchema.configPropertyOrder(CustomersTriggerSuppliesPurchased.SCHEMA)
         );
     }
 
@@ -415,6 +450,16 @@ class CustomersFTBTest {
                 )),
                 false,
                 List.of("customers:default")
+        );
+    }
+
+    private static SupplierInternalEvents.SuppliesPurchased suppliesPurchasedEvent() {
+        return new SupplierInternalEvents.SuppliesPurchased(
+                mock(ServerLevel.class),
+                BlockPos.ZERO,
+                UUID.randomUUID(),
+                new ItemStack(Items.BREAD, 3),
+                new ItemStack(Items.EMERALD, 2)
         );
     }
 

@@ -147,7 +147,9 @@ public final class CustomersTriggerCustomerSpawnerChanged
         public static final Codec<Instance> CODEC = SCHEMA.codec();
 
         public boolean matchesEvent(CustomerInternalEvents.CustomerSpawnerConfigChanged event) {
-            return spawnerLocation.map(value -> value.matches(event)).orElse(true)
+            return spawnerLocation
+                            .map(value -> value.matches(event.level(), event.spawnerPosition()))
+                            .orElse(true)
                     && spawnerMode.map(value -> value == event.spawnerMode()).orElse(true)
                     && activeLevel.map(value -> value.matches(event.activeLevel())).orElse(true)
                     && requiredStars.map(value -> value.matches(event.requiredStars())).orElse(true)

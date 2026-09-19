@@ -132,7 +132,9 @@ public final class CustomersTriggerLeaderboardChanged
         public boolean matchesEvent(CustomerInternalEvents.LeaderboardChanged event, UUID playerId) {
             Float previousPlayerScore = event.previousScores().get(playerId);
             Float newPlayerScore = event.scores().get(playerId);
-            return spawnerLocation.map(value -> value.matches(event)).orElse(true)
+            return spawnerLocation
+                            .map(value -> value.matches(event.level(), event.spawnerPosition()))
+                            .orElse(true)
                     && spawnerMode.map(value -> value == event.spawnerMode()).orElse(true)
                     && leaderboardLocation
                             .map(value -> value.matches(event.level(), event.leaderboardPosition()))

@@ -10,6 +10,7 @@ import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerItem
 import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerLeaderboardChanged;
 import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerShiftFinished;
 import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerSupplierSpawnerChanged;
+import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerSuppliesPurchased;
 import com.vikingkittens.mc.customers.compatability.CustomersRegistryEntry;
 import com.vikingkittens.mc.customers.compatability.CustomersServices;
 
@@ -37,6 +38,13 @@ public final class CustomersTriggers {
                     Registries.TRIGGER_TYPE,
                     "leaderboard_changed",
                     CustomersTriggerLeaderboardChanged::new
+            );
+    public static final CustomersRegistryEntry<CriterionTrigger<?>, CustomersTriggerSuppliesPurchased>
+            SUPPLIES_PURCHASED =
+            CustomersServices.registration().register(
+                    Registries.TRIGGER_TYPE,
+                    "supplies_purchased",
+                    CustomersTriggerSuppliesPurchased::new
             );
     public static final CustomersRegistryEntry<CriterionTrigger<?>, CustomersTriggerCustomerSpawnerChanged>
             CUSTOMER_SPAWNER_CHANGED = CustomersServices.registration().register(

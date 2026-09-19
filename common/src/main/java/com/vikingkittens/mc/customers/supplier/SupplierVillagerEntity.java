@@ -29,6 +29,7 @@ import net.minecraft.world.entity.ai.goal.LookAtTradingPlayerGoal;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerData;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -42,6 +43,7 @@ import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerType;
 import com.vikingkittens.mc.customers.common.MobUtils;
 import com.vikingkittens.mc.customers.common.PositionUtils;
+import com.vikingkittens.mc.customers.common.events.InternalEvents;
 import com.vikingkittens.mc.customers.compatability.CustomersServices;
 import com.vikingkittens.mc.customers.compatability.EntityCUtils;
 import com.vikingkittens.mc.customers.compatability.InteractionCUtils;
@@ -460,6 +462,25 @@ public class SupplierVillagerEntity extends Villager implements CustomersVillage
             return InteractionCUtils.sidedSuccess(LevelCUtils.isClientSide(level()));
         }
         return super.mobInteract(player, hand);
+    }
+
+    @Override
+    protected void rewardTradeXp(MerchantOffer offer) {
+        super.rewardTradeXp(offer);
+        emitSuppliesPurchased(offer);
+    }
+
+    void emitSuppliesPurchased(MerchantOffer offer) {
+        Player tradingPlayer = getTradingPlayer();
+        if (tradingPlayer != null && level() instanceof ServerLevel serverLevel) {
+            InternalEvents.emit(new SupplierInternalEvents.SuppliesPurchased(
+                    serverLevel,
+                    spawnerPos,
+                    tradingPlayer.getUUID(),
+                    offer.assemble(),
+                    offer.getCostA()
+            ));
+        }
     }
 
     @Override
