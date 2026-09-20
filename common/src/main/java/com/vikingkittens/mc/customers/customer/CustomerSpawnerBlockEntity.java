@@ -426,9 +426,6 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     @Override
     public void setLevel(Level level) {
         super.setLevel(level);
-        if (level instanceof ServerLevel) {
-            CustomerSpawnerCache.update(level, worldPosition, level.getBlockState(worldPosition.above()));
-        }
     }
 
     private CustomerSpawnerLevelSettings createLevelSettings() {

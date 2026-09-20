@@ -11,6 +11,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
 
 import com.vikingkittens.mc.customers.common.events.InternalEvents;
 import com.vikingkittens.mc.customers.compatability.CustomersServices;
@@ -48,6 +49,22 @@ public final class CustomerSpawnerCache {
 
     public static void remove(Level level, BlockPos spawnerPosition) {
         CACHE.remove(new Key(level, spawnerPosition));
+    }
+
+    public static void onChunkLoaded(Level level, LevelChunk chunk) {
+        chunk.getBlockEntities().forEach((position, blockEntity) -> {
+            if (blockEntity instanceof CustomerSpawnerBlockEntity) {
+                update(level, position, chunk.getBlockState(position.above()));
+            }
+        });
+    }
+
+    public static void onChunkUnloaded(Level level, LevelChunk chunk) {
+        chunk.getBlockEntities().forEach((position, blockEntity) -> {
+            if (blockEntity instanceof CustomerSpawnerBlockEntity) {
+                remove(level, position);
+            }
+        });
     }
 
     public static List<Value> getValuesNearPosition(Level level, BlockPos blockPosition) {

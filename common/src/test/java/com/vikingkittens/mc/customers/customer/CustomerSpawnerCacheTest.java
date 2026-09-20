@@ -1,5 +1,6 @@
 package com.vikingkittens.mc.customers.customer;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -17,11 +18,13 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -229,7 +232,10 @@ class CustomerSpawnerCacheTest {
         when(type.isValid(spawnerState)).thenReturn(true);
         CustomerSpawnerBlockEntity spawner = new CustomerSpawnerBlockEntity(type, FIRST_SPAWNER, spawnerState);
         ServerLevel level = mock(ServerLevel.class);
-        when(level.getBlockState(FIRST_SPAWNER.above())).thenReturn(Blocks.OAK_PLANKS.defaultBlockState());
+        LevelChunk chunk = mock(LevelChunk.class);
+        when(chunk.getBlockEntities()).thenReturn(Map.of(FIRST_SPAWNER, spawner));
+        when(chunk.getBlockState(FIRST_SPAWNER.above())).thenReturn(Blocks.OAK_PLANKS.defaultBlockState());
+        CustomerSpawnerCache.onChunkLoaded(level, chunk);
         spawner.setLevel(level);
 
         List<CustomerSpawnerCache.Value> loaded =
@@ -239,6 +245,35 @@ class CustomerSpawnerCacheTest {
         assertEquals(1, loaded.size());
         assertSame(FIRST_SPAWNER, loaded.getFirst().spawnerPosition());
         assertTrue(CustomerSpawnerCache.getValuesNearPosition(level, FIRST_SPAWNER, 1).isEmpty());
+    }
+
+    @Test
+    void chunkUnloadRemovesItsCachedSpawners() {
+        ServerLevel level = mock(ServerLevel.class);
+        LevelChunk chunk = mock(LevelChunk.class);
+        CustomerSpawnerBlockEntity spawner = mock(CustomerSpawnerBlockEntity.class);
+        when(chunk.getBlockEntities()).thenReturn(Map.of(FIRST_SPAWNER, spawner));
+        when(chunk.getBlockState(FIRST_SPAWNER.above())).thenReturn(Blocks.OAK_PLANKS.defaultBlockState());
+
+        CustomerSpawnerCache.onChunkLoaded(level, chunk);
+        CustomerSpawnerCache.onChunkUnloaded(level, chunk);
+
+        assertTrue(CustomerSpawnerCache.getValuesNearPosition(level, FIRST_SPAWNER, 1).isEmpty());
+    }
+
+    @Test
+    void blockEntityLoadDoesNotWaitForABlockStateLookup() {
+        BlockEntityType<?> type = mock(BlockEntityType.class);
+        BlockState spawnerState = mock(BlockState.class);
+        when(type.isValid(spawnerState)).thenReturn(true);
+        CustomerSpawnerBlockEntity spawner = new CustomerSpawnerBlockEntity(type, FIRST_SPAWNER, spawnerState);
+        ServerLevel level = mock(ServerLevel.class);
+        when(level.getBlockState(FIRST_SPAWNER.above())).thenAnswer(ignored -> {
+            Thread.sleep(30_000);
+            return Blocks.OAK_PLANKS.defaultBlockState();
+        });
+
+        assertTimeoutPreemptively(Duration.ofMillis(250), () -> spawner.setLevel(level));
     }
 
     private static CustomerSpawnerBlockEntity spawner(CustomerSpawnerMode mode) {

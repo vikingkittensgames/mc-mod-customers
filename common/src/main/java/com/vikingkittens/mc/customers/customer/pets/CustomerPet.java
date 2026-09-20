@@ -162,11 +162,6 @@ public final class CustomerPet {
                 BuiltInRegistries.ENTITY_TYPE::getKey,
                 BuiltInRegistries.ITEM::getId
         );
-        pets.forEach(pet -> LOGGER.info(
-                "Discovered customer pet {} with foods {}",
-                pet.entityId,
-                pet.foods.stream().map(stack -> BuiltInRegistries.ITEM.getKey(stack.getItem())).toList()
-        ));
     }
 
     static List<Pet> discoverPets(

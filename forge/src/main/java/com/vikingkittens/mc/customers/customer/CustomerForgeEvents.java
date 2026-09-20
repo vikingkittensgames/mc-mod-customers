@@ -7,6 +7,7 @@ import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
 
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
@@ -14,6 +15,7 @@ import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
+import net.minecraftforge.event.level.ChunkEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -34,6 +36,8 @@ public final class CustomerForgeEvents {
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, CustomerForgeEvents::onCustomerLeaderboardBreak);
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, CustomerForgeEvents::onBlockPlace);
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, CustomerForgeEvents::onBlockBroken);
+        MinecraftForge.EVENT_BUS.addListener(CustomerForgeEvents::onChunkLoad);
+        MinecraftForge.EVENT_BUS.addListener(CustomerForgeEvents::onChunkUnload);
     }
 
     static void registerAttributes(EntityAttributeCreationEvent event) {
@@ -110,6 +114,20 @@ public final class CustomerForgeEvents {
                     event.getPos(),
                     event.getState()
             );
+        }
+    }
+
+    static void onChunkLoad(ChunkEvent.Load event) {
+        if (event.getLevel() instanceof ServerLevel level &&
+                event.getChunk() instanceof LevelChunk chunk) {
+            CustomerSpawnerCache.onChunkLoaded(level, chunk);
+        }
+    }
+
+    static void onChunkUnload(ChunkEvent.Unload event) {
+        if (event.getLevel() instanceof ServerLevel level &&
+                event.getChunk() instanceof LevelChunk chunk) {
+            CustomerSpawnerCache.onChunkUnloaded(level, chunk);
         }
     }
 

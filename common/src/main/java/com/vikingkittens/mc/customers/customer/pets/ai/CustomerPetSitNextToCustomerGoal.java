@@ -66,11 +66,9 @@ public final class CustomerPetSitNextToCustomerGoal extends MobMoveToGoal {
     @Override
     protected void onDone() {
         if (targetPos != null && findBuyingCustomer()) {
-            LOGGER.debug("$$$$$$$ Pet ready to sit {} -- {}", pet, targetPos);
             EntityCUtils.snapTo(pet, targetPos.getBottomCenter(), pet.getYRot(), pet.getXRot());
             pet.getLookControl().setLookAt(customer, 10.0F, pet.getMaxHeadXRot());
             if (pet instanceof TamableAnimal tamablePet) {
-                LOGGER.debug("$$$$$$$ Telling {} to sit", pet);
                 tamablePet.setOrderedToSit(true);
             }
         }

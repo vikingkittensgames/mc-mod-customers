@@ -126,8 +126,6 @@ public class SupplierVillagerEntity extends Villager implements CustomersVillage
 
                     serverLevel.addFreshEntity(supplier);
 
-                    LOGGER.warn("Supplier spawned at {}", supplier.blockPosition());
-
                     return supplier;
                 } else {
                     LOGGER.error("Failed to spawn supplier, unable to find good spawn position {}", spawnerPos);
@@ -176,14 +174,6 @@ public class SupplierVillagerEntity extends Villager implements CustomersVillage
                         );
                         boolean pathFound = path != null;
                         boolean canReachSpawner = pathFound && path.canReach();
-
-                        LOGGER.warn("Supplier attempt [{}]: pos={}, path-found={}, can-reach={}",
-                                attempt,
-                                candidatePos,
-                                pathFound,
-                                canReachSpawner
-                        );
-
                         return canReachSpawner;
                     }
             );
