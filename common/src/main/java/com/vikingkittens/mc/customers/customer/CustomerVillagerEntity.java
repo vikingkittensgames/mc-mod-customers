@@ -49,6 +49,7 @@ import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.portal.DimensionTransition;
 import net.minecraft.world.phys.Vec3;
 
 import com.vikingkittens.mc.customers.Customers;
@@ -101,6 +102,12 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
             }
         }
         return false;
+    }
+
+    @Override
+    public Entity changeDimension(DimensionTransition transition) {
+        discard();
+        return null;
     }
 
     static List<CustomerPaymentBoxBlockEntity> findPaymentBoxes(

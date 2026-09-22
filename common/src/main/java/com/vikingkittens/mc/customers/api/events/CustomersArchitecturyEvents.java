@@ -2,7 +2,7 @@ package com.vikingkittens.mc.customers.api.events;
 
 import java.util.function.Predicate;
 
-import com.vikingkittens.mc.customers.compatability.CustomersServices;
+import dev.architectury.platform.Platform;
 
 /**
  * Planned public bridge from Customers internal events to Architectury events.
@@ -39,7 +39,7 @@ public final class CustomersArchitecturyEvents {
     }
 
     public static boolean isEnabled() {
-        return isEnabled(CustomersServices.platform()::isModLoaded);
+        return isEnabled(Platform::isModLoaded);
     }
 
     static boolean isEnabled(Predicate<String> loadedMods) {

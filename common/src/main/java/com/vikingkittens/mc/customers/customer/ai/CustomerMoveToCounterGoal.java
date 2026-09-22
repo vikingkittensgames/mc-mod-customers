@@ -2,6 +2,7 @@ package com.vikingkittens.mc.customers.customer.ai;
 
 import java.util.*;
 import java.util.function.IntSupplier;
+import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 
@@ -11,6 +12,7 @@ import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.Block;
 
 import com.vikingkittens.mc.customers.common.ai.MobMoveToGoal;
 import com.vikingkittens.mc.customers.compatability.CustomersServices;
@@ -22,16 +24,24 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
 
     private final CustomerVillagerEntity customer;
     private final IntSupplier maxCounterDistance;
+    private final Supplier<Block> spawnerBlock;
     BlockPos counterPosition;
 
     public CustomerMoveToCounterGoal(CustomerVillagerEntity customer, double speedModifier) {
-        this(customer, speedModifier, CustomersServices.config()::maxCounterDistance);
+        this(customer, speedModifier, CustomersServices.config()::maxCounterDistance,
+                CustomerSpawner.CUSTOMER_SPAWNER_BLOCK::get);
     }
 
     CustomerMoveToCounterGoal(CustomerVillagerEntity customer, double speedModifier, IntSupplier maxCounterDistance) {
+        this(customer, speedModifier, maxCounterDistance, CustomerSpawner.CUSTOMER_SPAWNER_BLOCK::get);
+    }
+
+    CustomerMoveToCounterGoal(CustomerVillagerEntity customer, double speedModifier, IntSupplier maxCounterDistance,
+            Supplier<Block> spawnerBlock) {
         super(customer, null, speedModifier);
         this.customer = customer;
         this.maxCounterDistance = maxCounterDistance;
+        this.spawnerBlock = spawnerBlock;
     }
 
     @Override
@@ -84,7 +94,7 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
                     customer.getSpawnerPos(),
                     customer.getCounterBlockState(),
                     maxCounterDistance.getAsInt(),
-                    CustomerSpawner.CUSTOMER_SPAWNER_BLOCK::get
+                    spawnerBlock
             );
             List<CustomerCounter.SurroundingPosition> validPositions = CustomerCounter.findValidSurroundingPositions(
                     customer.level(),

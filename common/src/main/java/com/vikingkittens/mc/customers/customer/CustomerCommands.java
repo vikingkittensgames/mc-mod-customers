@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import dev.architectury.networking.NetworkManager;
+
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.ChatFormatting;
@@ -68,7 +70,7 @@ public class CustomerCommands {
         }
 
         if (includeCounters) {
-            CustomersServices.network().sendToPlayer(
+            NetworkManager.sendToPlayer(
                     player,
                     new CustomerCounterMarkersPayload(
                             List.copyOf(markers.values()),

@@ -3,7 +3,7 @@ package com.vikingkittens.mc.customers.appearance.mca;
 import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 
-import com.vikingkittens.mc.customers.compatability.CustomersServices;
+import dev.architectury.platform.Platform;
 
 public final class McaCustomersVillagerMod {
     public static final String MOD_ID = "mca";
@@ -11,12 +11,12 @@ public final class McaCustomersVillagerMod {
     private McaCustomersVillagerMod() {}
 
     public static boolean isLoaded() {
-        return CustomersServices.platform().isModLoaded(MOD_ID);
+        return Platform.isModLoaded(MOD_ID);
     }
 
     public static boolean isSupported() {
         return isSupported(
-                CustomersServices.platform()::isModLoaded,
+                Platform::isModLoaded,
                 McaCustomersVillagerMod::hasHairPoolApi
         );
     }

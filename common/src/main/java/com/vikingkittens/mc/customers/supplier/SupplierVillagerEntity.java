@@ -20,6 +20,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -34,6 +35,7 @@ import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.Path;
+import net.minecraft.world.level.portal.DimensionTransition;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillager;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearance;
@@ -79,6 +81,12 @@ public class SupplierVillagerEntity extends Villager implements CustomersVillage
             );
 
     public static final String NAME = "supplier_villager";
+
+    @Override
+    public Entity changeDimension(DimensionTransition transition) {
+        discard();
+        return null;
+    }
 
     public static SupplierVillagerEntity spawn(
             Level level,

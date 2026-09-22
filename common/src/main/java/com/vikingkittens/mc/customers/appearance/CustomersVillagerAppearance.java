@@ -2,23 +2,10 @@ package com.vikingkittens.mc.customers.appearance;
 
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 
-import com.vikingkittens.mc.customers.Customers;
-import com.vikingkittens.mc.customers.compatability.CustomersRegistry;
-import com.vikingkittens.mc.customers.compatability.CustomersServices;
-
 public interface CustomersVillagerAppearance {
-    ResourceKey<Registry<CustomersVillagerAppearance>> APPEARANCE_REGISTRY_KEY =
-            ResourceKey.createRegistryKey(
-                    ResourceLocation.fromNamespaceAndPath(Customers.MODID, "villager_appearance"));
-    CustomersRegistry<CustomersVillagerAppearance> APPEARANCE_REGISTRY =
-            CustomersServices.registration().createRegistry(APPEARANCE_REGISTRY_KEY);
-
     Component getName();
 
     default boolean isApplicable(CustomersVillager villager) {

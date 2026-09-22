@@ -100,8 +100,8 @@ This mod is also open-source and open to contributions is they fit the general d
 
 [[dependencies.${mod_id}]]
     modId="architectury"
-    type="optional"
-    reason="Enables publishing Customers events through Architectury."
+    type="required"
+    reason="Provides Customers cross-loader API support."
     versionRange="${architectury_version_range}"
     ordering="AFTER"
     side="BOTH"

@@ -1,15 +1,27 @@
 plugins {
     id 'customers-loader'
-    id 'net.neoforged.moddev'
+    id 'dev.architectury.loom'
+    id 'com.github.johnrengelman.shadow'
     id 'idea'
     id 'com.diffplug.spotless'
+}
+
+def neoForgeRunDirectory = "../run-neoforge-${minecraft_version}"
+def commonProject = project(':common')
+
+sourceSets {
+    gameTest {
+        compileClasspath += sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.runtimeClasspath
+        compileClasspath += commonProject.sourceSets.gameTest.output
+        runtimeClasspath += commonProject.sourceSets.gameTest.output
+    }
 }
 
 sourceSets.test.compileClasspath += sourceSets.main.compileClasspath
 sourceSets.test.runtimeClasspath += sourceSets.main.runtimeClasspath
 
 sourceSets.main.resources {
-    srcDir('src/generated/resources')
     // Exclude common development only resources from finalized outputs
     exclude("**/*.bbmodel") // BlockBench project files
     exclude("**/*.kra") // Krita project files
@@ -18,7 +30,7 @@ sourceSets.main.resources {
 
 spotless {
     java {
-        target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
+        target 'src/main/java/**/*.java', 'src/test/java/**/*.java', 'src/gameTest/java/**/*.java'
         importOrder(
                 'java',
                 '',
@@ -37,97 +49,68 @@ tasks.named('check') {
     dependsOn tasks.named('spotlessCheck')
 }
 
-neoForge {
-    // Specify the version of NeoForge to use.
-    version = project.neo_version
+loom {
+    silentMojangMappingsLicense()
 
-    parchment {
-        mappingsVersion = project.parchment_mappings_version
-        minecraftVersion = project.parchment_minecraft_version
+    mods {
+        main {
+            sourceSet sourceSets.main
+            sourceSet commonProject.sourceSets.main
+            sourceSet sourceSets.gameTest
+            sourceSet commonProject.sourceSets.gameTest
+        }
     }
 
-    // This line is optional. Access Transformers are automatically detected
-    // accessTransformers = project.files('src/main/resources/META-INF/accesstransformer.cfg')
-
-    // Default run configurations.
-    // These can be tweaked, removed, or duplicated as needed.
     runs {
         client {
             client()
-
-            // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            name = 'NeoForge Client'
+            runDir = neoForgeRunDirectory
+            vmArg "-Dneoforge.enabledGameTestNamespaces=${mod_id}"
         }
 
         server {
             server()
-            programArgument '--nogui'
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            name = 'NeoForge Server'
+            runDir = neoForgeRunDirectory
+            programArg '--nogui'
+            vmArg "-Dneoforge.enabledGameTestNamespaces=${mod_id}"
         }
 
-        // This run config launches GameTestServer and runs all registered gametests, then exits.
-        // By default, the server will crash when no gametests are provided.
-        // The gametest system is also enabled by default for other run configs under the /test command.
-        gameTestServer {
-            type = "gameTestServer"
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        gameTest {
+            server()
+            name = 'NeoForge Game Tests'
+            runDir = neoForgeRunDirectory
+            property 'neoforge.enableGameTest', 'true'
+            property 'neoforge.gameTestServer', 'true'
+            vmArg "-Dneoforge.enabledGameTestNamespaces=${mod_id},minecraft"
+            source sourceSets.gameTest
         }
 
-        data {
-            data()
-
-            // example of overriding the workingDirectory set in configureEach above, uncomment if you want to use it
-            // gameDirectory = project.file('run-data')
-
-            // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
-            programArguments.addAll '--mod', project.mod_id, '--all',
-                    '--output', project.file('src/generated/resources').getAbsolutePath(),
-                    '--existing', rootProject.file('common/src/main/resources').getAbsolutePath()
-        }
-
-        // applies to all the run configs above
-        configureEach {
-            gameDirectory = rootProject.file("run-neoforge-${minecraft_version}")
-
-            // Recommended logging data for a userdev environment
-            // The markers can be added/remove as needed separated by commas.
-            // "SCAN": For mods scan.
-            // "REGISTRIES": For firing of registry events.
-            // "REGISTRYDUMP": For getting the contents of all registries.
-            systemProperty 'forge.logging.markers', 'REGISTRIES'
-
-            // Recommended logging level for the console
-            // You can set various levels here.
-            // Please read: https://stackoverflow.com/questions/2031163/when-to-use-the-different-log-levels
-            logLevel = org.slf4j.event.Level.DEBUG
-        }
     }
-
-    mods {
-        // define mod <-> source bindings
-        // these are used to tell the game which sources are for which mod
-        // multi mod projects should define one per mod
-        "${mod_id}" {
-            sourceSet(sourceSets.main)
-        }
-    }
-}
-
-// Sets up a dependency configuration called 'localRuntime'.
-// This configuration should be used instead of 'runtimeOnly' to declare
-// a dependency that will be present for runtime testing but that is
-// "optional", meaning it will not be pulled by dependents of this mod.
-configurations {
-    runtimeClasspath.extendsFrom localRuntime
 }
 
 dependencies {
-    compileOnly "dev.architectury:architectury-neoforge:${architectury_version}"
-    localRuntime "dev.architectury:architectury-neoforge:${architectury_version}"
-    compileOnly "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
-    localRuntime "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
-    compileOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    mappings loom.layered {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-${parchment_minecraft_version}:${parchment_mappings_version}@zip")
+    }
+    neoForge "net.neoforged:neoforge:${neo_version}"
+
+    modCompileOnly "dev.architectury:architectury-neoforge:${architectury_version}"
+    modLocalRuntime "dev.architectury:architectury-neoforge:${architectury_version}"
+    modCompileOnly "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
+    modLocalRuntime "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
+    modCompileOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
     testRuntimeOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
+
+    common(project(path: ':common', configuration: 'namedElements')) {
+        transitive = false
+    }
+    shadowBundle(project(path: ':common', configuration: 'namedElements')) {
+        transitive = false
+    }
 
     testImplementation project(':testsupport')
     testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
@@ -178,24 +161,16 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
     from "src/main/templates"
     into "build/generated/sources/modMetadata"
 }
-// Include the output of "generateModMetadata" as an input directory for the build
-// this works with both building through Gradle and the IDE.
 sourceSets.main.resources.srcDir generateModMetadata
-// To avoid having to run "generateModMetadata" manually, make it run on every project reload
-neoForge.ideSyncTask generateModMetadata
 
-tasks.named('jar').configure {
-    dependsOn('runData')
+tasks.named('shadowJar', Jar) {
+    configurations = [project.configurations.shadowBundle]
+    archiveClassifier = 'dev-shadow'
 }
 
-tasks.named('build').configure {
-    dependsOn(tasks.named('runData'))
-}
-
-tasks.configureEach {
-    if (name == 'runClient') {
-        dependsOn('runData')
-    }
+tasks.named('remapJar') {
+    dependsOn(tasks.named('shadowJar'))
+    inputFile = tasks.named('shadowJar').flatMap { it.archiveFile }
 }
 
 // IDEA no longer automatically downloads sources/javadoc jars for dependencies, so we need to explicitly enable the behavior.

@@ -1,6 +1,7 @@
 plugins {
     id 'base'
-    id 'net.neoforged.moddev' version '2.0.141' apply false
+    id 'dev.architectury.loom' version "${architectury_loom_version}" apply false
+    id 'com.github.johnrengelman.shadow' version "${shadow_plugin_version}" apply false
     id 'com.diffplug.spotless' version '8.9.0' apply false
 }
 
@@ -16,28 +17,22 @@ tasks.register('runServerNeoForge') {
     dependsOn(':neoforge:runServer')
 }
 
-tasks.register('runDataNeoForge') {
+tasks.register('runClientFabric') {
     group = 'customers runs'
-    description = 'Runs Customers data generation for NeoForge.'
-    dependsOn(':neoforge:runData')
+    description = 'Runs the Customers Fabric client.'
+    dependsOn(':fabric:runClient')
 }
 
-tasks.register('runClientForge') {
+tasks.register('runServerFabric') {
     group = 'customers runs'
-    description = 'Runs the Customers Forge client.'
-    dependsOn(':forge:runClient')
+    description = 'Runs the Customers Fabric server.'
+    dependsOn(':fabric:runServer')
 }
 
-tasks.register('runServerForge') {
-    group = 'customers runs'
-    description = 'Runs the Customers Forge server.'
-    dependsOn(':forge:runServer')
-}
-
-tasks.register('runDataForge') {
-    group = 'customers runs'
-    description = 'Runs Customers data generation for Forge.'
-    dependsOn(':forge:runData')
+tasks.register('buildFabric') {
+    group = 'build'
+    description = 'Builds the Customers Fabric JAR.'
+    dependsOn(':fabric:build')
 }
 
 tasks.register('buildNeoForge') {
@@ -46,20 +41,14 @@ tasks.register('buildNeoForge') {
     dependsOn(':neoforge:build')
 }
 
-tasks.register('buildForge') {
-    group = 'build'
-    description = 'Builds the Customers Forge JAR.'
-    dependsOn(':forge:build')
-}
-
 tasks.register('buildAllLoaders') {
     group = 'build'
-    description = 'Builds the Customers NeoForge and Forge JARs.'
-    dependsOn('buildNeoForge', 'buildForge')
+    description = 'Builds the Customers Fabric and NeoForge JARs.'
+    dependsOn('buildFabric', 'buildNeoForge')
 }
 
 tasks.register('testAllLoaders') {
     group = 'verification'
-    description = 'Runs common and loader-specific tests.'
-    dependsOn(':common:test', ':forge:test', ':neoforge:test')
+    description = 'Runs common, Fabric, and NeoForge tests.'
+    dependsOn(':common:test', ':fabric:test', ':neoforge:test')
 }

@@ -10,16 +10,8 @@ public final class CustomersServices {
         return PlatformHolder.INSTANCE;
     }
 
-    public static IItemStackHelper itemStacks() {
-        return ItemStackHolder.INSTANCE;
-    }
-
     public static IConfigHelper config() {
         return ConfigHolder.INSTANCE;
-    }
-
-    public static INetworkHelper network() {
-        return NetworkHolder.INSTANCE;
     }
 
     public static IRegistrationHelper registration() {
@@ -51,16 +43,8 @@ public final class CustomersServices {
         private static final IPlatformHelper INSTANCE = load(IPlatformHelper.class);
     }
 
-    private static final class ItemStackHolder {
-        private static final IItemStackHelper INSTANCE = load(IItemStackHelper.class);
-    }
-
     private static final class ConfigHolder {
         private static final IConfigHelper INSTANCE = load(IConfigHelper.class);
-    }
-
-    private static final class NetworkHolder {
-        private static final INetworkHelper INSTANCE = load(INetworkHelper.class);
     }
 
     private static final class RegistrationHolder {

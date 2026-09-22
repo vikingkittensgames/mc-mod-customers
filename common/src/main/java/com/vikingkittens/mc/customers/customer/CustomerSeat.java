@@ -1,17 +1,20 @@
 package com.vikingkittens.mc.customers.customer;
 
+import dev.architectury.registry.registries.DeferredRegister;
+import dev.architectury.registry.registries.RegistrySupplier;
+
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 
-import com.vikingkittens.mc.customers.compatability.CustomersRegistryEntry;
-import com.vikingkittens.mc.customers.compatability.CustomersServices;
+import com.vikingkittens.mc.customers.Customers;
 
 public final class CustomerSeat {
-    public static final CustomersRegistryEntry<EntityType<?>, EntityType<CustomerSeatEntity>> ENTITY_TYPE =
-            CustomersServices.registration().register(
-                    Registries.ENTITY_TYPE,
-                    CustomerSeatEntity.NAME,
+    private static final DeferredRegister<EntityType<?>> ENTITY_TYPES =
+            DeferredRegister.create(Customers.MODID, Registries.ENTITY_TYPE);
+
+    public static final RegistrySupplier<EntityType<CustomerSeatEntity>> ENTITY_TYPE =
+            ENTITY_TYPES.register(CustomerSeatEntity.NAME,
                     () -> EntityType.Builder.of(CustomerSeatEntity::new, MobCategory.MISC)
                             .sized(0.25F, 0.25F)
                             .noSave()
@@ -21,5 +24,7 @@ public final class CustomerSeat {
 
     private CustomerSeat() {}
 
-    public static void initialize() {}
+    public static void initialize() {
+        ENTITY_TYPES.register();
+    }
 }

@@ -1,5 +1,7 @@
 package com.vikingkittens.mc.customers.compatability;
 
+import dev.architectury.hooks.item.ItemStackHooks;
+
 import net.minecraft.core.component.DataComponentPredicate;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -19,7 +21,7 @@ public final class ItemStackCUtils {
         stack.onCraftedBy(player.level(), player, count);
     }
     public static ItemStack getCraftingRemainder(ItemStack stack) {
-        return CustomersServices.itemStacks().getCraftingRemainder(stack);
+        return ItemStackHooks.hasCraftingRemainingItem(stack) ? ItemStackHooks.getCraftingRemainingItem(stack) : ItemStack.EMPTY;
     }
 
     public static boolean isSameItemAndTags(ItemStack first, ItemStack second) {

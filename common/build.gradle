@@ -1,20 +1,24 @@
 plugins {
     id 'customers-common'
-    id 'net.neoforged.moddev'
+    id 'dev.architectury.loom'
     id 'com.diffplug.spotless'
 }
 
-neoForge {
-    neoFormVersion = neo_form_version
-
-    parchment {
-        minecraftVersion = parchment_minecraft_version
-        mappingsVersion = parchment_mappings_version
-    }
+loom {
+    silentMojangMappingsLicense()
 }
 
 sourceSets.test.compileClasspath += sourceSets.main.compileClasspath
 sourceSets.test.runtimeClasspath += sourceSets.main.runtimeClasspath
+
+sourceSets {
+    gameTest {
+        compileClasspath += sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.runtimeClasspath
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+}
 
 sourceSets.main.resources {
     exclude('**/*.bbmodel')
@@ -24,7 +28,7 @@ sourceSets.main.resources {
 
 spotless {
     java {
-        target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
+        target 'src/main/java/**/*.java', 'src/test/java/**/*.java', 'src/gameTest/java/**/*.java'
         importOrder(
                 'java',
                 '',
@@ -44,30 +48,20 @@ tasks.named('check') {
 }
 
 dependencies {
-    compileOnly "dev.architectury:architectury:${architectury_version}"
-    compileOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    mappings loom.layered {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-${parchment_minecraft_version}:${parchment_mappings_version}@zip")
+    }
+
+    modCompileOnly "dev.architectury:architectury:${architectury_version}"
+    modCompileOnly "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    testRuntimeOnly "dev.architectury:architectury:${architectury_version}"
+    modCompileOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
     testRuntimeOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
 
     testImplementation project(':testsupport')
     testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
     testImplementation "org.mockito:mockito-core:5.12.0"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
-}
-
-configurations {
-    commonJava {
-        canBeResolved = false
-        canBeConsumed = true
-    }
-    commonResources {
-        canBeResolved = false
-        canBeConsumed = true
-    }
-}
-
-artifacts {
-    commonJava sourceSets.main.java.sourceDirectories.singleFile
-    sourceSets.main.resources.sourceDirectories.files.each { resourceDirectory ->
-        commonResources resourceDirectory
-    }
 }

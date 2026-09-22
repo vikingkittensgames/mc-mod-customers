@@ -4,13 +4,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import dev.architectury.networking.NetworkManager;
+
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.entity.BlockEntity;
-
-import com.vikingkittens.mc.customers.compatability.CustomersServices;
 
 public final class BlockBreakConfirmation {
     private static final long EXPIRATION_MILLIS = 60_000L;
@@ -33,7 +33,7 @@ public final class BlockBreakConfirmation {
 
         ConfirmationToken confirmation = ConfirmationToken.create(player.getUUID(), Util.getMillis(), EXPIRATION_MILLIS);
         PENDING_BREAKS.put(confirmation.token(), new PendingBreak(player.getUUID(), confirmation.token(), pos, blockEntity));
-        CustomersServices.network().sendToPlayer(player,
+        NetworkManager.sendToPlayer(player,
                 new BlockBreakConfirmationPromptPayload(player.getUUID(), confirmation.token(), titleKey, messageKey));
         return true;
     }

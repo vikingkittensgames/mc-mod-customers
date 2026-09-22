@@ -89,14 +89,19 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
 
         @Override
         public ItemStack insert(ItemStack stack, boolean simulate) {
-            if (stack.isEmpty()) {
-                return ItemStack.EMPTY;
-            }
+            return insertAll(List.of(stack), simulate).getFirst();
+        }
+
+        @Override
+        public List<ItemStack> insertAll(
+                List<ItemStack> stacks,
+                boolean simulate
+        ) {
             return simulate
-                    ? counter.previewCraftedStackConnected(null, stack)
-                    : counter.insertCraftedStackConnectedByOwner(
+                    ? counter.previewCraftedStacksConnected(null, stacks)
+                    : counter.insertCraftedStacksConnectedByOwner(
                             null,
-                            stack
+                            stacks
                     );
         }
 
@@ -262,6 +267,85 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
         ItemStack remainder = stack.copy();
         remainder.shrink(allocation.acceptedCount());
         return remainder;
+    }
+
+    static List<ItemStack> previewLiveDemandStacks(
+            List<CustomerPickupCounterBlockEntity> counters,
+            List<CustomerSpawnerBlockEntity> spawners,
+            @Nullable UUID crafterId,
+            List<ItemStack> stacks
+    ) {
+        List<ItemStack> existingStacks = new ArrayList<>(
+                counters.stream()
+                        .flatMap(counter -> counter.getDisplayItems().stream())
+                        .toList()
+        );
+        List<StoredStack> acceptedStacks = new ArrayList<>();
+        List<ItemStack> remainders = new ArrayList<>(stacks.size());
+        List<CustomerOffer> customerOffers = findCustomerOffers(spawners);
+        for (ItemStack stack : stacks) {
+            if (stack.isEmpty()) {
+                remainders.add(ItemStack.EMPTY);
+                continue;
+            }
+            IncomingAllocation allocation = allocateIncoming(
+                    customerOffers,
+                    existingStacks,
+                    stack
+            );
+            if (allocation.acceptedCount() == 0) {
+                remainders.add(stack.copy());
+                continue;
+            }
+            ItemStack acceptedStack = stack.copy();
+            acceptedStack.setCount(allocation.acceptedCount());
+            List<StoredStack> candidateStacks = new ArrayList<>(acceptedStacks);
+            candidateStacks.add(new StoredStack(
+                    acceptedStack,
+                    true,
+                    crafterId
+            ));
+            if (!hasCapacity(counters, candidateStacks)) {
+                remainders.add(stack.copy());
+                continue;
+            }
+            acceptedStacks.add(candidateStacks.getLast());
+            existingStacks.add(acceptedStack);
+            ItemStack remainder = stack.copy();
+            remainder.shrink(allocation.acceptedCount());
+            remainders.add(remainder);
+        }
+        return List.copyOf(remainders);
+    }
+
+    static List<ItemStack> insertLiveDemandStacks(
+            List<CustomerPickupCounterBlockEntity> counters,
+            List<CustomerSpawnerBlockEntity> spawners,
+            @Nullable UUID crafterId,
+            List<ItemStack> stacks
+    ) {
+        List<ItemStack> remainders = previewLiveDemandStacks(
+                counters,
+                spawners,
+                crafterId,
+                stacks
+        );
+        List<ItemStack> insertedRemainders = new ArrayList<>(stacks.size());
+        for (int index = 0; index < stacks.size(); index++) {
+            ItemStack stack = stacks.get(index);
+            ItemStack previewRemainder = remainders.get(index);
+            if (stack.getCount() == previewRemainder.getCount()) {
+                insertedRemainders.add(stack.copy());
+                continue;
+            }
+            insertedRemainders.add(insertLiveDemandStack(
+                    counters,
+                    spawners,
+                    crafterId,
+                    stack
+            ));
+        }
+        return List.copyOf(insertedRemainders);
     }
 
     static List<StoredStack> splitByAssignment(
@@ -824,6 +908,25 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
         );
     }
 
+    public List<ItemStack> insertCraftedStacksConnectedByOwner(
+            @Nullable UUID crafterId,
+            List<ItemStack> stacks
+    ) {
+        List<CustomerPickupCounterBlockEntity> counters =
+                level == null
+                        ? List.of(this)
+                        : getConnectedCounters(level, worldPosition);
+        List<CustomerSpawnerBlockEntity> spawners =
+                level == null
+                        ? List.of()
+                        : getCustomerSpawners(
+                                level,
+                                worldPosition,
+                                customerScope(crafterId)
+                        );
+        return insertLiveDemandStacks(counters, spawners, crafterId, stacks);
+    }
+
     public ItemStack previewCraftedStackConnected(
             @Nullable UUID crafterId,
             ItemStack stack
@@ -846,6 +949,25 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
                 crafterId,
                 stack
         );
+    }
+
+    public List<ItemStack> previewCraftedStacksConnected(
+            @Nullable UUID crafterId,
+            List<ItemStack> stacks
+    ) {
+        List<CustomerPickupCounterBlockEntity> counters =
+                level == null
+                        ? List.of(this)
+                        : getConnectedCounters(level, worldPosition);
+        List<CustomerSpawnerBlockEntity> spawners =
+                level == null
+                        ? List.of()
+                        : getCustomerSpawners(
+                                level,
+                                worldPosition,
+                                customerScope(crafterId)
+                        );
+        return previewLiveDemandStacks(counters, spawners, crafterId, stacks);
     }
 
     public ItemInsertionTarget getItemInsertionTarget() {

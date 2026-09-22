@@ -21,7 +21,7 @@ me adding more features:
 
 For now we support Minecraft versions:
 * 1.20.1 - Forge
-* 1.21.1 - Forge & NeoForge
+* 1.21.1 - NeoForge & Fabric
 * 1.21.11 (delayed update)
 
 ## Documentation
@@ -34,13 +34,10 @@ https://vikingkittensgames.github.io/mc-mod-customers/
 
 ### NeoForge
 
-Use the gradle NeoForge runDataNeoForge & buildNeoForge tools to build a release JAR which
-will be in the neoforge/build/libs folder.  To test use the runClientNeoForge task.
+Use the Gradle NeoForge buildNeoForge tool to build a release JAR in the
+neoforge/build/libs folder. To test, use the runClientNeoForge task.
 
 ```powershell
-# Building data
-.\gradlew.bat runDataNeoForge
-
 # Building release JAR
 .\gradlew.bat buildNeoForge
 
@@ -50,13 +47,10 @@ will be in the neoforge/build/libs folder.  To test use the runClientNeoForge ta
 
 ### Forge
 
-Use the gradle Forge runDataForge & buildForge tools to build a release JAR which
-will be in the forge/build/libs folder.  To test use the runClientForge task.
+Use the Gradle Forge buildForge tool to build a release JAR in the
+forge/build/libs folder. To test, use the runClientForge task.
 
 ```powershell
-# Building data
-.\gradlew.bat runDataForge
-
 # Building release JAR
 .\gradlew.bat buildForge
 

@@ -1,0 +1,59 @@
+package com.vikingkittens.mc.customers.customer;
+
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.alchemy.Potions;
+
+import com.vikingkittens.mc.customers.advancements.CustomersStatistics;
+import com.vikingkittens.mc.customers.advancements.CustomersTriggers;
+import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
+import com.vikingkittens.mc.customers.appearance.monsters.MonsterCustomersVillagerAppearanceEvents;
+import com.vikingkittens.mc.customers.supplier.Supplier;
+import com.vikingkittens.mc.customers.supplier.SupplierSpawner;
+
+public final class CustomersGameTestAssertions {
+    private CustomersGameTestAssertions() {}
+
+    public static void assertCustomersContentRegistered(GameTestHelper helper) {
+        assertId(helper, "customers:item_served", CustomersTriggers.ITEM_SERVED.getId());
+        assertId(helper, "customers:leaderboard_changed", CustomersTriggers.LEADERBOARD_CHANGED.getId());
+        assertId(helper, "customers:customer_spawner_changed", CustomersTriggers.CUSTOMER_SPAWNER_CHANGED.getId());
+        assertId(helper, "customers:supplier_spawner_changed", CustomersTriggers.SUPPLIER_SPAWNER_CHANGED.getId());
+        assertId(helper, "customers:counter_placed", CustomersTriggers.COUNTER_PLACED.getId());
+        assertId(helper, "customers:item_served", CustomersStatistics.ITEM_SERVED.getId());
+        assertId(helper, "customers:pet_item_served", CustomersStatistics.PET_ITEM_SERVED.getId());
+        assertId(helper, "customers:default", CustomersVillagerAppearances.DEFAULT_APPEARANCE.getId());
+        assertId(helper, "customers:monsters", MonsterCustomersVillagerAppearanceEvents.APPEARANCE.getId());
+        assertId(helper, "customers:customer_payment_box_block_entity", CustomerPaymentBox.BLOCK_ENTITY.getId());
+        assertId(helper, "customers:customer_seat", CustomerSeat.ENTITY_TYPE.getId());
+        assertId(helper, "customers:customer_villager", Customer.CUSTOMER_VILLAGER.getId());
+        assertId(helper, "customers:customer", Customer.CUSTOMER_PROFESSION.getId());
+        assertId(helper, "customers:customer_casual", Customer.CUSTOMER_CASUAL_PROFESSION.getId());
+        assertId(helper, "customers:customer_impatient", Customer.CUSTOMER_IMPATIENT_PROFESSION.getId());
+        assertId(helper, "customers:customer_spawner_block", CustomerSpawner.CUSTOMER_SPAWNER_BLOCK.getId());
+        assertId(helper, "customers:customer_pickup_counter", CustomerPickupCounter.BLOCK_ENTITY.getId());
+        assertId(helper, "customers:supplier_villager", Supplier.SUPPLIER_VILLAGER.getId());
+        assertId(helper, "customers:supplier_spawner_block", SupplierSpawner.SUPPLIER_SPAWNER_BLOCK.getId());
+    }
+
+    public static void assertTradeRemainders(GameTestHelper helper) {
+        ItemStack water = PotionContents.createItemStack(Items.POTION, Potions.WATER);
+        assertItem(helper, Items.GLASS_BOTTLE, CustomerVillagerEntity.getTradeRemainderStack(water));
+        assertItem(helper, Items.BUCKET, CustomerVillagerEntity.getTradeRemainderStack(new ItemStack(Items.MILK_BUCKET)));
+        ItemStack bowls = CustomerVillagerEntity.getTradeRemainderStack(new ItemStack(Items.MUSHROOM_STEW, 3));
+        assertItem(helper, Items.BOWL, bowls);
+        helper.assertValueEqual(3, bowls.getCount(), "mushroom stew remainder count");
+    }
+
+    private static void assertId(GameTestHelper helper, String expected, ResourceLocation actual) {
+        helper.assertValueEqual(ResourceLocation.parse(expected), actual, expected);
+    }
+
+    private static void assertItem(GameTestHelper helper, Item expected, ItemStack actual) {
+        helper.assertValueEqual(expected, actual.getItem(), expected.toString());
+    }
+}

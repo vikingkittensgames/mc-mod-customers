@@ -1,0 +1,110 @@
+plugins {
+    id 'customers-loader'
+    id 'dev.architectury.loom'
+    id 'com.github.johnrengelman.shadow'
+    id 'com.diffplug.spotless'
+}
+
+def commonProject = project(':common')
+
+sourceSets {
+    gameTest {
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+        compileClasspath += sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.runtimeClasspath
+        compileClasspath += commonProject.sourceSets.gameTest.output
+        runtimeClasspath += commonProject.sourceSets.gameTest.output
+    }
+}
+
+spotless {
+    java {
+        target 'src/main/java/**/*.java', 'src/test/java/**/*.java', 'src/gameTest/java/**/*.java'
+        importOrder(
+                'java',
+                '',
+                'com.mojang|net.minecraft',
+                'net.fabricmc',
+                'com.vikingkittens',
+                '\\#'
+        )
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('spotlessCheck')
+}
+
+loom {
+    silentMojangMappingsLicense()
+    mods {
+        main {
+            sourceSet sourceSets.main
+            sourceSet commonProject.sourceSets.main
+        }
+        gameTest {
+            sourceSet sourceSets.gameTest
+            sourceSet commonProject.sourceSets.gameTest
+        }
+    }
+    runs {
+        client {
+            client()
+            runDir = "../run-fabric-${minecraft_version}"
+        }
+        server {
+            server()
+            runDir = "../run-fabric-${minecraft_version}"
+            programArg '--nogui'
+        }
+        gameTest {
+            server()
+            runDir = "../run-fabric-${minecraft_version}"
+            property 'fabric-api.gametest', 'true'
+            source sourceSets.gameTest
+        }
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    mappings loom.layered {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-${parchment_minecraft_version}:${parchment_mappings_version}@zip")
+    }
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+    modImplementation "dev.architectury:architectury-fabric:${architectury_version}"
+    implementation project(path: ':common', configuration: 'namedElements')
+    common(project(path: ':common', configuration: 'namedElements')) { transitive = false }
+    shadowBundle(project(path: ':common', configuration: 'namedElements')) { transitive = false }
+
+}
+
+tasks.named('processResources', ProcessResources) {
+    inputs.properties([
+        architectury_version  : architectury_version,
+        fabric_api_version    : fabric_api_version,
+        fabric_loader_version : fabric_loader_version,
+        minecraft_version     : minecraft_version,
+        mod_id                : mod_id,
+        mod_name              : mod_name,
+        mod_version           : mod_version
+    ])
+    filesMatching('fabric.mod.json') {
+        expand(inputs.properties)
+    }
+}
+
+tasks.named('shadowJar', Jar) {
+    configurations = [project.configurations.shadowBundle]
+    archiveClassifier = 'dev-shadow'
+}
+
+tasks.named('remapJar') {
+    dependsOn(tasks.named('shadowJar'))
+    inputFile = tasks.named('shadowJar').flatMap { it.archiveFile }
+}

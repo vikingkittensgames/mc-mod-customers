@@ -151,6 +151,33 @@ class CustomerPickupCounterBlockTest {
     }
 
     @Test
+    void handlesSneakingInteractionWithTheHeldStack() {
+        Level level = mock(Level.class);
+        Player player = mock(Player.class);
+        CustomerPickupCounterBlockEntity counter = mock(CustomerPickupCounterBlockEntity.class);
+        ItemStack held = new ItemStack(Items.BREAD, 25);
+        when(level.getBlockEntity(BlockPos.ZERO)).thenReturn(counter);
+        when(player.getItemInHand(InteractionHand.MAIN_HAND)).thenReturn(held);
+        when(player.isShiftKeyDown()).thenReturn(true);
+        when(counter.hasAssignableCraftedItemConnected(any(ItemStack.class))).thenReturn(true);
+        when(counter.insertCraftedStackConnected(eq(player), any(ItemStack.class))).thenReturn(ItemStack.EMPTY);
+
+        assertEquals(
+                InteractionResult.SUCCESS,
+                CustomerPickupCounterBlock.handleSecondaryUse(
+                        level,
+                        BlockPos.ZERO,
+                        player,
+                        InteractionHand.MAIN_HAND
+                )
+        );
+        verify(counter).insertCraftedStackConnected(
+                eq(player),
+                argThat(inserted -> inserted.is(Items.BREAD) && inserted.getCount() == 25)
+        );
+    }
+
+    @Test
     void givesTheOldestStackToASneakingEmptyHand() {
         CustomerPickupCounterBlock block = createBlock();
         Level level = mock(Level.class);

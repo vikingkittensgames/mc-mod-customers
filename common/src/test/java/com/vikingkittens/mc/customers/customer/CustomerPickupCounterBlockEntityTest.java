@@ -128,6 +128,33 @@ class CustomerPickupCounterBlockEntityTest {
     }
 
     @Test
+    void previewsBatchDemandAgainstEarlierPendingStacks() {
+        CustomerPickupCounterBlockEntity counter = createCounter();
+        CustomerSpawnerBlockEntity spawner =
+                mock(CustomerSpawnerBlockEntity.class);
+        CustomerVillagerEntity customer =
+                mock(CustomerVillagerEntity.class);
+        MerchantOffers offers = new MerchantOffers();
+        offers.add(offer(Items.COOKIE, 5));
+        when(spawner.getActiveCustomers()).thenReturn(List.of(customer));
+        when(customer.getOffers()).thenReturn(offers);
+
+        List<ItemStack> remainders =
+                CustomerPickupCounterBlockEntity.previewLiveDemandStacks(
+                        List.of(counter),
+                        List.of(spawner),
+                        null,
+                        List.of(
+                                new ItemStack(Items.COOKIE, 3),
+                                new ItemStack(Items.COOKIE, 3)
+                        )
+                );
+
+        assertTrue(remainders.getFirst().isEmpty());
+        assertEquals(1, remainders.getLast().getCount());
+    }
+
+    @Test
     void allocatesOnlyRemainingDemandToAnIncomingStack() {
         CustomerSpawnerBlockEntity firstSpawner =
                 mock(CustomerSpawnerBlockEntity.class);

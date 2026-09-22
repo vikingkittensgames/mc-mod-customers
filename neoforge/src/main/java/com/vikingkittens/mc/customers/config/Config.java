@@ -10,49 +10,57 @@ public class Config {
 
     public static final ModConfigSpec.BooleanValue ENABLE_CUSTOMER_SPAWNER_BLOCK_RECIPE = BUILDER
             .comment("Whether the customer spawner block recipe is enabled.")
-            .define("enableCustomerSpawnerBlockRecipe", true);
+            .define(CustomersConfig.ENABLE_CUSTOMER_SPAWNER_BLOCK_RECIPE,
+                    CustomersConfig.DEFAULT.customerSpawnerRecipeEnabled());
 
     public static final ModConfigSpec.BooleanValue ENABLE_SUPPLIER_SPAWNER_BLOCK_RECIPE = BUILDER
             .comment("Whether the supplier spawner block recipe is enabled.")
-            .define("enableSupplierSpawnerBlockRecipe", true);
+            .define(CustomersConfig.ENABLE_SUPPLIER_SPAWNER_BLOCK_RECIPE,
+                    CustomersConfig.DEFAULT.supplierSpawnerRecipeEnabled());
 
     public static final ModConfigSpec.BooleanValue ENABLE_CUSTOMER_LEADERBOARD_BLOCK_RECIPE = BUILDER
             .comment("Whether the customer leaderboard block recipe is enabled.")
-            .define("enableCustomerLeaderboardBlockRecipe", true);
+            .define(CustomersConfig.ENABLE_CUSTOMER_LEADERBOARD_BLOCK_RECIPE,
+                    CustomersConfig.DEFAULT.customerLeaderboardRecipeEnabled());
 
     public static final ModConfigSpec.IntValue MAX_COUNTER_DISTANCE = BUILDER
-            .defineInRange("maxCounterDistance", 64, 1, Integer.MAX_VALUE);
+            .defineInRange(CustomersConfig.MAX_COUNTER_DISTANCE, CustomersConfig.DEFAULT.maxCounterDistance(), 1,
+                    Integer.MAX_VALUE);
 
     public static final ModConfigSpec.IntValue MAX_LEADERBOARD_DISTANCE = BUILDER
-            .defineInRange("maxLeaderboardDistance", 64, 1, Integer.MAX_VALUE);
+            .defineInRange(CustomersConfig.MAX_LEADERBOARD_DISTANCE, CustomersConfig.DEFAULT.maxLeaderboardDistance(), 1,
+                    Integer.MAX_VALUE);
 
     public static final ModConfigSpec.IntValue MAX_CUSTOMERS = BUILDER
-            .defineInRange("maxCustomers", 4, 1, Integer.MAX_VALUE);
+            .defineInRange(CustomersConfig.MAX_CUSTOMERS, CustomersConfig.DEFAULT.defaultMaxCustomers(), 1,
+                    Integer.MAX_VALUE);
 
     public static final ModConfigSpec.IntValue CUSTOMER_GIVE_UP_SECONDS = BUILDER
-            .defineInRange("customerGiveUpSeconds", 120, 1, Integer.MAX_VALUE);
+            .defineInRange(CustomersConfig.CUSTOMER_GIVE_UP_SECONDS, CustomersConfig.DEFAULT.customerGiveUpSeconds(), 1,
+                    Integer.MAX_VALUE);
 
     public static final ModConfigSpec.BooleanValue ENABLE_BUILD_COMMANDS = BUILDER
-            .define("enableBuildCommands", false);
+            .define(CustomersConfig.ENABLE_BUILD_COMMANDS, CustomersConfig.DEFAULT.buildCommandsEnabled());
 
     public static final ModConfigSpec.BooleanValue ENABLE_QUICK_SELL = BUILDER
-            .define("enableQuickSell", false);
+            .define(CustomersConfig.ENABLE_QUICK_SELL, CustomersConfig.DEFAULT.quickSellEnabled());
 
     public static final ModConfigSpec.BooleanValue ENABLE_ECONOMY = BUILDER
             .comment("Enable Economy / Cost Suggestions")
-            .define("enableEconomy", true);
+            .define(CustomersConfig.ENABLE_ECONOMY, CustomersConfig.DEFAULT.economyEnabled());
 
     public static final ModConfigSpec.BooleanValue ECONOMY_USE_VILLAGER_SHOP_SYSTEM = BUILDER
             .comment("Use Villager Shop System Costs")
-            .define("economyUseVillagerShopSystem", true);
+            .define(CustomersConfig.ECONOMY_USE_VILLAGER_SHOP_SYSTEM,
+                    CustomersConfig.DEFAULT.economyUseVillagerShopSystem());
 
     public static final ModConfigSpec.BooleanValue ECONOMY_USE_PROJECT_E = BUILDER
             .comment("Use ProjectE Costs")
-            .define("economyUseProjectE", true);
+            .define(CustomersConfig.ECONOMY_USE_PROJECT_E, CustomersConfig.DEFAULT.economyUseProjectE());
 
     public static final ModConfigSpec.BooleanValue FORCE_AUTO_COST = BUILDER
             .comment("Force Automatic Item Costs")
-            .define("forceAutoCost", false);
+            .define(CustomersConfig.FORCE_AUTO_COST, CustomersConfig.DEFAULT.forceAutoCost());
 
     public static final ModConfigSpec SPEC = BUILDER.build();
 

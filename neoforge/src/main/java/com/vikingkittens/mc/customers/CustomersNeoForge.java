@@ -12,25 +12,17 @@ import com.vikingkittens.mc.customers.config.Config;
 import com.vikingkittens.mc.customers.config.RecipeConditions;
 import com.vikingkittens.mc.customers.customer.CustomerPaymentBoxNeoForgeEvents;
 import com.vikingkittens.mc.customers.customer.CustomerPickupCounterNeoForgeEvents;
-import com.vikingkittens.mc.customers.customer.CustomerSpawnerNeoForgeEvents;
-import com.vikingkittens.mc.customers.customer.data.CustomersData;
-import com.vikingkittens.mc.customers.economy.EconomyNeoForgeEvents;
-import com.vikingkittens.mc.customers.supplier.SupplierSpawnerNeoForgeEvents;
 
 @Mod(Customers.MODID)
 public final class CustomersNeoForge {
     public CustomersNeoForge(IEventBus modEventBus, ModContainer modContainer) {
-        CustomerSpawnerNeoForgeEvents.register(modEventBus);
         Customers.initialize();
         CustomersFTB.initialize();
         CustomerPaymentBoxNeoForgeEvents.register(modEventBus);
         CustomerPickupCounterNeoForgeEvents.register(modEventBus);
-        SupplierSpawnerNeoForgeEvents.register(modEventBus);
-        EconomyNeoForgeEvents.register();
         RecipeConditions.register(modEventBus);
         ((NeoForgeRegistrationHelper) CustomersServices.registration())
                 .bind(modEventBus);
-        modEventBus.addListener(CustomersData::gatherData);
 
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }

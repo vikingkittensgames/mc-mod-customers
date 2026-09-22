@@ -27,6 +27,6 @@ public final class PlayerCUtils {
         return player.serverLevel();
     }
     public static void closeContainer(Player player) {
-        CustomersServices.platform().closeContainer(player);
+        player.closeContainer();
     }
 }
