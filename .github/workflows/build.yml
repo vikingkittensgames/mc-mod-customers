@@ -30,10 +30,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Verify formatting and build both loaders
-        run: ./gradlew --no-daemon clean spotlessCheck testAllLoaders runDataForge runDataNeoForge buildAllLoaders
-
-      - name: Verify generated data is current
-        run: git diff --check && git diff --exit-code -- forge/src/generated neoforge/src/generated
+        run: ./gradlew --no-daemon clean spotlessCheck testAllLoaders buildAllLoaders
 
       - name: Upload Forge JAR
         uses: actions/upload-artifact@v4

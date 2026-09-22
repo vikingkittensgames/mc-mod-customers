@@ -2,6 +2,8 @@ package com.vikingkittens.mc.customers.client.common;
 
 import java.util.List;
 
+import dev.architectury.networking.NetworkManager;
+
 import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -13,7 +15,6 @@ import com.vikingkittens.mc.customers.client.compatability.GuiGraphicsCUtils;
 import com.vikingkittens.mc.customers.client.compatability.TextureC;
 import com.vikingkittens.mc.customers.common.BlockBreakConfirmationConfirmPayload;
 import com.vikingkittens.mc.customers.common.BlockBreakConfirmationPromptPayload;
-import com.vikingkittens.mc.customers.compatability.CustomersServices;
 
 public class BlockBreakConfirmationScreen extends Screen {
     private static final int WIDTH = 224;
@@ -38,7 +39,7 @@ public class BlockBreakConfirmationScreen extends Screen {
         addRenderableWidget(Button.builder(Component.translatable("screen.customers.break_confirmation.cancel"), button -> onClose())
                 .bounds(leftPos + 8, topPos + 70, 86, 20).build());
         addRenderableWidget(Button.builder(Component.translatable("screen.customers.break_confirmation.confirm"), button -> {
-                    CustomersServices.network().sendToServer(new BlockBreakConfirmationConfirmPayload(payload.playerId(), payload.token()));
+                    NetworkManager.sendToServer(new BlockBreakConfirmationConfirmPayload(payload.playerId(), payload.token()));
                     onClose();
                 })
                 .bounds(leftPos + 98, topPos + 70, 86, 20).build());

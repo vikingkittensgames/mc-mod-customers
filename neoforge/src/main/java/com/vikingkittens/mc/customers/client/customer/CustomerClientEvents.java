@@ -1,41 +1,19 @@
 package com.vikingkittens.mc.customers.client.customer;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.entity.NoopRenderer;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.ClientHooks;
-import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.CustomizeGuiOverlayEvent;
-import net.neoforged.neoforge.client.event.EntityRenderersEvent;
-import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RenderNameTagEvent;
 
 import com.vikingkittens.mc.customers.Customers;
-import com.vikingkittens.mc.customers.client.appearance.CustomersVillagerAppearanceEntityRenderer;
-import com.vikingkittens.mc.customers.client.supplier.SupplierSpawnerBlockScreen;
-import com.vikingkittens.mc.customers.customer.Customer;
-import com.vikingkittens.mc.customers.customer.CustomerPickupCounter;
-import com.vikingkittens.mc.customers.customer.CustomerSpawner;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
-import com.vikingkittens.mc.customers.supplier.SupplierSpawner;
 
 @EventBusSubscriber(modid = Customers.MODID, value = Dist.CLIENT)
 public class CustomerClientEvents {
-    @SubscribeEvent
-    public static void registerScreens(RegisterMenuScreensEvent event) {
-        event.register(
-                CustomerSpawner.CUSTOMER_SPAWNER_MENU.get(),
-                CustomerSpawnerBlockScreen::new
-        );
-        event.register(
-                SupplierSpawner.SUPPLIER_SPAWNER_MENU.get(),
-                SupplierSpawnerBlockScreen::new
-        );
-    }
-
     /**
      * Renders customer request groups for customer spawner boss bars.
      *
@@ -66,43 +44,6 @@ public class CustomerClientEvents {
                     event.getIncrement()
             ));
         });
-    }
-
-    /**
-     * Clears synchronized customer spawner data when leaving a world.
-     *
-     * @param event client logout event
-     */
-    @SubscribeEvent
-    public static void onClientLogout(ClientPlayerNetworkEvent.LoggingOut event) {
-        CustomerSpawnerSnapshotManager.clear();
-    }
-
-    @SubscribeEvent
-    public static void registerLayerDefinitions(
-            EntityRenderersEvent.RegisterLayerDefinitions event
-    ) {
-        event.registerLayerDefinition(
-                CustomerVillagerEntityRenderer.MODEL_LAYER,
-                CustomerVillagerEntityRenderer.Model::createBodyLayer
-        );
-    }
-
-    @SubscribeEvent
-    public static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerBlockEntityRenderer(
-                CustomerPickupCounter.BLOCK_ENTITY.get(),
-                CustomerPickupCounterBlockEntityRenderer::new
-        );
-        event.registerEntityRenderer(Customer.CUSTOMER_SEAT.get(), NoopRenderer::new);
-        event.registerEntityRenderer(
-                Customer.CUSTOMER_VILLAGER.get(),
-                context ->
-                        new CustomersVillagerAppearanceEntityRenderer<>(
-                                context,
-                                new CustomerVillagerEntityRenderer(context)
-                        )
-        );
     }
 
     @SubscribeEvent

@@ -3,39 +3,16 @@ plugins {
 }
 
 configurations {
-    commonJava {
+    common {
         canBeResolved = true
         canBeConsumed = false
     }
-    commonResources {
+    shadowBundle {
         canBeResolved = true
         canBeConsumed = false
     }
 }
 
-dependencies {
-    compileOnly(project(':common')) {
-        capabilities {
-            requireCapability("${project.group}:${mod_id}")
-        }
-    }
-    commonJava project(path: ':common', configuration: 'commonJava')
-    commonResources project(path: ':common', configuration: 'commonResources')
-}
-
-tasks.named('compileJava', JavaCompile) {
-    dependsOn(configurations.commonJava)
-    source(configurations.commonJava)
-}
-
-tasks.named('processResources', ProcessResources) {
-    dependsOn(configurations.commonResources)
-    from(configurations.commonResources)
-}
-
-tasks.named('sourcesJar', Jar) {
-    dependsOn(configurations.commonJava)
-    from(configurations.commonJava)
-    dependsOn(configurations.commonResources)
-    from(configurations.commonResources)
-}
+configurations.compileClasspath.extendsFrom(configurations.common)
+configurations.testCompileClasspath.extendsFrom(configurations.common)
+configurations.testRuntimeClasspath.extendsFrom(configurations.common)

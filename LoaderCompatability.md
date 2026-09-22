@@ -134,7 +134,6 @@ The root project provides consistently named loader tasks:
 | --- | --- | --- |
 | Client | `runClientNeoForge` | `runClientForge` |
 | Server | `runServerNeoForge` | `runServerForge` |
-| Data generation | `runDataNeoForge` | `runDataForge` |
 | Build loader JAR | `buildNeoForge` | `buildForge` |
 
 `buildAllLoaders` builds both distributable loader JARs.
@@ -314,11 +313,10 @@ to `common` before their callers. Tests that still require a loader-aware
 Minecraft bootstrap remain in the loader module until that bootstrap is
 separated from the shared test behavior.
 
-Player-facing handwritten assets and shared data live in `common`. Loader
-modules retain loader metadata, service descriptors, genuinely
-loader-specific resources, and their own generated resources. Forge writes
-to `forge/src/generated/resources`, while NeoForge writes to
-`neoforge/src/generated/resources`.
+Player-facing assets and shared data live in `common`. Loader modules retain
+loader metadata, service descriptors, and genuinely loader-specific resources,
+such as condition JSON that uses a loader's condition codec. No module uses a
+generated-resource directory.
 
 Shared persistence uses vanilla NBT and item-stack codecs. Its item-list
 encoding preserves the former NeoForge `ItemStackHandler` layout, including
@@ -357,6 +355,11 @@ helper to the loader event bus. Loader-specific event and capability adapters ar
 Forge attaches an `InvWrapper` to the shared payment-box block entity through `AttachCapabilitiesEvent`. NeoForge registers its equivalent
 capability through `RegisterCapabilitiesEvent`. Vanilla hoppers can use the shared `Container` directly; these adapters support loader-aware
 modded automation.
+
+Fabric exposes payment boxes through Fabric API's automatic `Container` storage
+fallback. Pickup counters use a transaction-aware `ItemStorage.SIDED` adapter
+that reserves the common `ItemInsertionTarget` batch before committing it after
+the outer Fabric transaction succeeds.
 
 Pickup-counter block, item, and block-entity declarations use the shared registration service. NeoForge creative-tab and item-handler
 capability events live in `CustomerPickupCounterNeoForgeEvents`, leaving the feature facade free of loader APIs in preparation for moving the
@@ -414,14 +417,13 @@ Conditional recipe resources are loader-specific. NeoForge uses a `neoforge:cond
 condition-codec registry. Forge uses a singular `forge:condition` object, Forge's `ICondition` signature with `DynamicOps`, and
 `ForgeRegistries.Keys.CONDITION_SERIALIZERS`. Both implementations read the same settings through `IConfigHelper`.
 
-Recipe providers use portable vanilla APIs and live in `common`. Data-generator registration and block-loot providers remain loader-specific
-because Forge and NeoForge patch or widen those APIs beyond the common NeoForm surface. Block-state and model providers also remain
-loader-specific. Their model-generator APIs are structurally equivalent but use different loader namespaces, so the two providers are mirrored
-with identical model geometry, textures, render types, composite children, facing variants, and item transforms.
-
-Each loader writes its complete data-generator output to its own `src/generated/resources` directory and packages that directory only in its
-own artifact. Handwritten resources remain shared in `common/src/main/resources`. This avoids collisions between Forge's `forge:composite` and
-NeoForge's `neoforge:composite` model loader IDs while allowing each loader's `runData` task to operate independently.
+Recipes, recipe-unlock advancements, loot tables, blockstates, and models are
+maintained as static JSON. Loader-neutral resources live in
+`common/src/main/resources`; loader-specific condition syntax remains in the
+loader module. Counter models use ordinary vanilla elements, and disabled
+spawner models use `minecraft:block/cube_bottom_top` with flattened
+Customers-owned textures. No loader uses a composite model loader or a
+generated-resource directory.
 
 Customer and supplier entities obtain biome-specific villager types through
 `IPlatformHelper`. This keeps NeoForge data-map access and Forge's patched

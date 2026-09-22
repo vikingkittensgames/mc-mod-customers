@@ -84,6 +84,31 @@ public class CustomerPickupCounterBlock extends BaseEntityBlock {
             InteractionHand hand,
             BlockHitResult hitResult
     ) {
+        return useHeldItem(level, pos, player, hand, stack);
+    }
+
+    public static InteractionResult handleSecondaryUse(
+            Level level,
+            BlockPos pos,
+            Player player,
+            InteractionHand hand
+    ) {
+        ItemStack stack = player.getItemInHand(hand);
+        if (stack.isEmpty()) {
+            useWithoutHeldItem(level, pos, player);
+        } else {
+            useHeldItem(level, pos, player, hand, stack);
+        }
+        return InteractionResult.SUCCESS;
+    }
+
+    private static ItemInteractionResult useHeldItem(
+            Level level,
+            BlockPos pos,
+            Player player,
+            InteractionHand hand,
+            ItemStack stack
+    ) {
         if (stack.isEmpty()) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
@@ -146,6 +171,14 @@ public class CustomerPickupCounterBlock extends BaseEntityBlock {
             BlockPos pos,
             Player player,
             BlockHitResult hitResult
+    ) {
+        return useWithoutHeldItem(level, pos, player);
+    }
+
+    private static InteractionResult useWithoutHeldItem(
+            Level level,
+            BlockPos pos,
+            Player player
     ) {
         if (!(level.getBlockEntity(pos)
                 instanceof CustomerPickupCounterBlockEntity counter)) {

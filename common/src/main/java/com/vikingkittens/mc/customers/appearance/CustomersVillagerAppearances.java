@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.function.IntUnaryOperator;
 import java.util.stream.Stream;
 
+import dev.architectury.registry.registries.RegistrySupplier;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.RegistryAccess;
@@ -13,8 +14,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
 import com.vikingkittens.mc.customers.Customers;
-import com.vikingkittens.mc.customers.compatability.CustomersRegistryEntry;
-import com.vikingkittens.mc.customers.compatability.CustomersServices;
 
 public final class CustomersVillagerAppearances {
     public static final ResourceLocation DEFAULT =
@@ -25,18 +24,16 @@ public final class CustomersVillagerAppearances {
     private static final List<CustomersVillagerAppearanceProvider> PROVIDERS =
             new ArrayList<>();
 
-    public static final CustomersRegistryEntry<
-            CustomersVillagerAppearance,
-            DefaultCustomersVillagerAppearance
-    > DEFAULT_APPEARANCE = CustomersServices.registration().register(
-            CustomersVillagerAppearance.APPEARANCE_REGISTRY_KEY,
-            DEFAULT.getPath(),
-            DefaultCustomersVillagerAppearance::new
-    );
+    public static RegistrySupplier<DefaultCustomersVillagerAppearance> DEFAULT_APPEARANCE;
 
     private CustomersVillagerAppearances() {}
 
-    public static void initialize() {}
+    public static void initialize() {
+        DEFAULT_APPEARANCE = CustomersVillagerAppearanceRegistries.appearances().register(
+                DEFAULT,
+                DefaultCustomersVillagerAppearance::new
+        );
+    }
 
     public static void registerProvider(
             CustomersVillagerAppearanceProvider provider
@@ -77,10 +74,7 @@ public final class CustomersVillagerAppearances {
             ResourceLocation appearanceId,
         RegistryAccess registryAccess
     ) {
-        CustomersVillagerAppearance registered =
-                CustomersVillagerAppearance.APPEARANCE_REGISTRY.get().get(
-                        appearanceId
-                );
+        CustomersVillagerAppearance registered = CustomersVillagerAppearanceRegistries.appearances().get(appearanceId);
         if (registered != null || registryAccess == null) {
             return registered;
         }
@@ -97,19 +91,13 @@ public final class CustomersVillagerAppearances {
     public static List<ResourceLocation> getAvailableAppearanceIds(
             RegistryAccess registryAccess
     ) {
-        Stream<ResourceLocation> registered =
-                CustomersVillagerAppearance.APPEARANCE_REGISTRY.get()
-                        .keySet()
-                        .stream();
+        Stream<ResourceLocation> registered = CustomersVillagerAppearanceRegistries.appearances().getIds().stream();
         Stream<ResourceLocation> provided = PROVIDERS.stream()
                 .flatMap(provider ->
                         provider.getAvailableIds(registryAccess)
                 )
                         .filter(appearanceId ->
-                                !CustomersVillagerAppearance
-                                        .APPEARANCE_REGISTRY
-                                        .get()
-                                        .containsKey(appearanceId)
+                        !CustomersVillagerAppearanceRegistries.appearances().contains(appearanceId)
                         );
         return Stream.concat(registered, provided)
                 .distinct()

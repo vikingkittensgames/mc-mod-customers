@@ -1,21 +1,19 @@
 package com.vikingkittens.mc.customers.advancements;
 
+import dev.architectury.registry.registries.DeferredRegister;
+import dev.architectury.registry.registries.RegistrySupplier;
+
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.Item;
 
-import com.vikingkittens.mc.customers.compatability.CustomersRegistryEntry;
-import com.vikingkittens.mc.customers.compatability.CustomersServices;
-import com.vikingkittens.mc.customers.compatability.IRegistrationHelper;
+import com.vikingkittens.mc.customers.Customers;
 
 public final class CustomersAdvancements {
     public static final String ADVANCEMENT_ICON_NAME = "advancement_icon";
 
-    private static final IRegistrationHelper REGISTRATIONS =
-            CustomersServices.registration();
+    private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(Customers.MODID, Registries.ITEM);
 
-    public static final CustomersRegistryEntry<Item, Item> ADVANCEMENT_ICON =
-            REGISTRATIONS.register(
-                    Registries.ITEM,
+    public static final RegistrySupplier<Item> ADVANCEMENT_ICON = ITEMS.register(
                     ADVANCEMENT_ICON_NAME,
                     () -> new Item(new Item.Properties())
             );
@@ -23,6 +21,7 @@ public final class CustomersAdvancements {
     private CustomersAdvancements() {}
 
     public static void initialize() {
+        ITEMS.register();
         CustomersTriggers.initialize();
         CustomersStatistics.initialize();
         CustomersAdvancementEvents.initialize();

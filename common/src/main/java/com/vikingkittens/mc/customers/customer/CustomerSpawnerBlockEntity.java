@@ -8,6 +8,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import dev.architectury.networking.NetworkManager;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
@@ -1327,7 +1328,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         for (UUID playerId : playerIds) {
             ServerPlayer player = playersById.get(playerId);
             if (player != null) {
-                CustomersServices.network().sendToPlayer(
+                NetworkManager.sendToPlayer(
                         player,
                         new CustomerSpawnerSnapshotPayload(
                                 getBlockPos(),
@@ -1357,7 +1358,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     private void sendSnapshotRemoval(ServerPlayer player) {
-        CustomersServices.network().sendToPlayer(
+        NetworkManager.sendToPlayer(
                 player,
                 new CustomerSpawnerSnapshotPayload(
                         getBlockPos(),
@@ -1447,7 +1448,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             try {
                 Player player = level.getPlayerByUUID(playerId);
                 if (player instanceof ServerPlayer serverPlayer) {
-                    CustomersServices.network().sendToPlayer(serverPlayer, payload);
+                    NetworkManager.sendToPlayer(serverPlayer, payload);
                 }
             } catch (Throwable throwable) {
                 LOGGER.warn("Unable to send completed customer shift results to player {}", playerId, throwable);

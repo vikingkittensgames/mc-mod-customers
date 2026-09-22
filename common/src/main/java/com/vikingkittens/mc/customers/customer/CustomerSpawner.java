@@ -1,5 +1,8 @@
 package com.vikingkittens.mc.customers.customer;
 
+import dev.architectury.registry.registries.DeferredRegister;
+import dev.architectury.registry.registries.RegistrySupplier;
+
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
@@ -8,9 +11,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 
-import com.vikingkittens.mc.customers.compatability.CustomersRegistryEntry;
-import com.vikingkittens.mc.customers.compatability.CustomersServices;
-import com.vikingkittens.mc.customers.compatability.IRegistrationHelper;
+import com.vikingkittens.mc.customers.Customers;
 
 /***
  * Customer Spawner main feature class that covers registering the pieces
@@ -21,16 +22,22 @@ import com.vikingkittens.mc.customers.compatability.IRegistrationHelper;
  * features.
  */
 public class CustomerSpawner {
-    private static final IRegistrationHelper REGISTRATIONS =
-            CustomersServices.registration();
+    private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(Customers.MODID, Registries.BLOCK);
+    private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES =
+            DeferredRegister.create(Customers.MODID, Registries.BLOCK_ENTITY_TYPE);
+    private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(Customers.MODID, Registries.ITEM);
+    private static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(Customers.MODID, Registries.MENU);
 
     // -------------------- Registries --------------------
-    public static void initialize() {}
+    public static void initialize() {
+        BLOCKS.register();
+        BLOCK_ENTITY_TYPES.register();
+        ITEMS.register();
+        MENUS.register();
+    }
 
     // -------------------- Blocks --------------------
-    public static final CustomersRegistryEntry<Block, CustomerSpawnerBlock>
-            CUSTOMER_SPAWNER_BLOCK = REGISTRATIONS.register(
-                    Registries.BLOCK,
+    public static final RegistrySupplier<CustomerSpawnerBlock> CUSTOMER_SPAWNER_BLOCK = BLOCKS.register(
                     CustomerSpawnerBlock.NAME,
                     () -> new CustomerSpawnerBlock(
                             BlockBehaviour.Properties.of()
@@ -38,31 +45,23 @@ public class CustomerSpawner {
             );
 
     // -------------------- Block Entities --------------------
-    public static final CustomersRegistryEntry<
-            BlockEntityType<?>,
-            BlockEntityType<CustomerSpawnerBlockEntity>
-    > CUSTOMER_SPAWNER_ENTITY = REGISTRATIONS.registerBlockEntityType(
+    public static final RegistrySupplier<BlockEntityType<CustomerSpawnerBlockEntity>> CUSTOMER_SPAWNER_ENTITY =
+            BLOCK_ENTITY_TYPES.register(
             CustomerSpawnerBlockEntity.NAME,
-            CustomerSpawnerBlockEntity::new,
-            () -> new Block[] {CUSTOMER_SPAWNER_BLOCK.get()}
+            () -> BlockEntityType.Builder.of(CustomerSpawnerBlockEntity::new, CUSTOMER_SPAWNER_BLOCK.get()).build(null)
     );
 
     // -------------------- Items --------------------
-    public static final CustomersRegistryEntry<Item, BlockItem>
-            CUSTOMER_SPAWNER_ITEM = REGISTRATIONS.register(
-                    Registries.ITEM,
+    public static final RegistrySupplier<BlockItem> CUSTOMER_SPAWNER_ITEM = ITEMS.register(
                     CustomerSpawnerBlock.NAME,
                     () -> new BlockItem(
                             CUSTOMER_SPAWNER_BLOCK.get(),
                             new Item.Properties()
                     )
             );
-    public static final CustomersRegistryEntry<
-            MenuType<?>,
-            MenuType<CustomerSpawnerBlockMenu>
-    > CUSTOMER_SPAWNER_MENU = REGISTRATIONS.registerMenuType(
+    public static final RegistrySupplier<MenuType<CustomerSpawnerBlockMenu>> CUSTOMER_SPAWNER_MENU = MENUS.register(
             "customer_spawner",
-            CustomerSpawnerBlockMenu::new
+            () -> new MenuType<>(CustomerSpawnerBlockMenu::new, net.minecraft.world.flag.FeatureFlags.DEFAULT_FLAGS)
     );
 
 }

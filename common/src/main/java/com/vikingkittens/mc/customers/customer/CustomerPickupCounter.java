@@ -3,6 +3,9 @@ package com.vikingkittens.mc.customers.customer;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import dev.architectury.registry.registries.DeferredRegister;
+import dev.architectury.registry.registries.RegistrySupplier;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.BlockItem;
@@ -14,44 +17,48 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 
-import com.vikingkittens.mc.customers.compatability.CustomersRegistryEntry;
-import com.vikingkittens.mc.customers.compatability.CustomersServices;
-import com.vikingkittens.mc.customers.compatability.IRegistrationHelper;
+import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.customer.data.CustomerOverlayBlockVariant;
 import com.vikingkittens.mc.customers.customer.data.CustomerOverlayBlockVariants;
 
 public final class CustomerPickupCounter {
-    private static final IRegistrationHelper REGISTRATIONS = CustomersServices.registration();
+    private static final DeferredRegister<Block> BLOCK_REGISTRY = DeferredRegister.create(Customers.MODID, Registries.BLOCK);
+    private static final DeferredRegister<Item> ITEM_REGISTRY = DeferredRegister.create(Customers.MODID, Registries.ITEM);
+    private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES =
+            DeferredRegister.create(Customers.MODID, Registries.BLOCK_ENTITY_TYPE);
 
-    public static final Map<CustomerOverlayBlockVariant, CustomersRegistryEntry<Block, CustomerPickupCounterBlock>>
+    public static final Map<CustomerOverlayBlockVariant, RegistrySupplier<CustomerPickupCounterBlock>>
             BLOCKS = registerBlocks();
-    public static final Map<CustomerOverlayBlockVariant, CustomersRegistryEntry<Item, BlockItem>>
+    public static final Map<CustomerOverlayBlockVariant, RegistrySupplier<BlockItem>>
             ITEMS = registerItems();
-    public static final CustomersRegistryEntry<BlockEntityType<?>, BlockEntityType<CustomerPickupCounterBlockEntity>>
-            BLOCK_ENTITY = REGISTRATIONS.registerBlockEntityType(
+    public static final RegistrySupplier<BlockEntityType<CustomerPickupCounterBlockEntity>> BLOCK_ENTITY =
+            BLOCK_ENTITY_TYPES.register(
             CustomerPickupCounterBlockEntity.NAME,
-            CustomerPickupCounter::createBlockEntity,
-            () -> BLOCKS.values().stream().map(CustomersRegistryEntry::get).toArray(CustomerPickupCounterBlock[]::new)
+            () -> BlockEntityType.Builder.of(CustomerPickupCounter::createBlockEntity,
+                    BLOCKS.values().stream().map(RegistrySupplier::get).toArray(CustomerPickupCounterBlock[]::new)).build(null)
     );
 
     private CustomerPickupCounter() {
     }
 
-    public static void initialize() {}
+    public static void initialize() {
+        BLOCK_REGISTRY.register();
+        ITEM_REGISTRY.register();
+        BLOCK_ENTITY_TYPES.register();
+    }
 
     public static String getBlockName(CustomerOverlayBlockVariant variant) {
         return variant.name() + "_customer_pickup_counter";
     }
 
-    private static Map<CustomerOverlayBlockVariant, CustomersRegistryEntry<Block, CustomerPickupCounterBlock>>
+    private static Map<CustomerOverlayBlockVariant, RegistrySupplier<CustomerPickupCounterBlock>>
             registerBlocks() {
-        Map<CustomerOverlayBlockVariant, CustomersRegistryEntry<Block, CustomerPickupCounterBlock>> blocks =
+        Map<CustomerOverlayBlockVariant, RegistrySupplier<CustomerPickupCounterBlock>> blocks =
                 new LinkedHashMap<>();
         for (CustomerOverlayBlockVariant variant : CustomerOverlayBlockVariants.ALL) {
             blocks.put(
                     variant,
-                    REGISTRATIONS.register(
-                            Registries.BLOCK,
+                    BLOCK_REGISTRY.register(
                             getBlockName(variant),
                             () -> new CustomerPickupCounterBlock(
                                     createProperties(variant)
@@ -71,14 +78,13 @@ public final class CustomerPickupCounter {
                 .noOcclusion();
     }
 
-    private static Map<CustomerOverlayBlockVariant, CustomersRegistryEntry<Item, BlockItem>> registerItems() {
-        Map<CustomerOverlayBlockVariant, CustomersRegistryEntry<Item, BlockItem>> items = new LinkedHashMap<>();
-        for (Map.Entry<CustomerOverlayBlockVariant, CustomersRegistryEntry<Block, CustomerPickupCounterBlock>> entry :
+    private static Map<CustomerOverlayBlockVariant, RegistrySupplier<BlockItem>> registerItems() {
+        Map<CustomerOverlayBlockVariant, RegistrySupplier<BlockItem>> items = new LinkedHashMap<>();
+        for (Map.Entry<CustomerOverlayBlockVariant, RegistrySupplier<CustomerPickupCounterBlock>> entry :
                 BLOCKS.entrySet()) {
             items.put(
                     entry.getKey(),
-                    REGISTRATIONS.register(
-                            Registries.ITEM,
+                    ITEM_REGISTRY.register(
                             getBlockName(entry.getKey()),
                             () -> new BlockItem(entry.getValue().get(), new Item.Properties())
                     )

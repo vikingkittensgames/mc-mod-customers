@@ -1,16 +1,14 @@
 package com.vikingkittens.mc.customers.appearance.monsters;
 
+import dev.architectury.registry.registries.RegistrySupplier;
+
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearance;
-import com.vikingkittens.mc.customers.compatability.CustomersRegistryEntry;
-import com.vikingkittens.mc.customers.compatability.CustomersServices;
+import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearanceRegistries;
 
 public final class MonsterCustomersVillagerAppearanceEvents {
-    public static final CustomersRegistryEntry<
-            CustomersVillagerAppearance,
-            MonsterCustomersVillagerAppearance
-    > APPEARANCE = CustomersServices.registration().register(
-            CustomersVillagerAppearance.APPEARANCE_REGISTRY_KEY,
-            MonsterCustomersVillagerAppearance.ID.getPath(),
+    public static final RegistrySupplier<MonsterCustomersVillagerAppearance> APPEARANCE =
+            CustomersVillagerAppearanceRegistries.appearances().register(
+            MonsterCustomersVillagerAppearance.ID,
             MonsterCustomersVillagerAppearance::new
     );
 

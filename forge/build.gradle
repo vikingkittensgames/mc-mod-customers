@@ -34,24 +34,10 @@ minecraft {
             }
         }
 
-        data {
-            workingDirectory rootProject.file("run-forge-${minecraft_version}")
-            ideaModule "${rootProject.name}.${project.name}.main"
-            taskName 'runData'
-            args '--mod', mod_id, '--all',
-                    '--output', project.file('src/generated/resources'),
-                    '--existing', rootProject.file('common/src/main/resources')
-            mods {
-                customers {
-                    source sourceSets.main
-                }
-            }
-        }
     }
 }
 
 sourceSets.main.resources {
-    srcDir('src/generated/resources')
     exclude('**/*.bbmodel')
     exclude('**/*.kra')
     exclude('**/.cache/**')
@@ -121,16 +107,5 @@ def generateModMetadata = tasks.register('generateModMetadata', ProcessResources
 sourceSets.main.resources.srcDir generateModMetadata
 
 tasks.named('jar').configure {
-    dependsOn('runData')
     finalizedBy('reobfJar')
-}
-
-tasks.named('build').configure {
-    dependsOn(tasks.named('runData'))
-}
-
-tasks.configureEach {
-    if (name == 'runClient') {
-        dependsOn('runData')
-    }
 }

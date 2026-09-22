@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import dev.architectury.networking.NetworkManager;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -117,7 +119,7 @@ public class CustomerLeaderboardBlockEntity extends BlockEntity {
             }
             payloadScores.put(key, new CustomerLeaderboardOpenPayload.Score(score, levelPassed));
         });
-        CustomersServices.network().sendToPlayer(player, new CustomerLeaderboardOpenPayload(worldPosition, payloadScores));
+        NetworkManager.sendToPlayer(player, new CustomerLeaderboardOpenPayload(worldPosition, payloadScores));
     }
 
     @Override

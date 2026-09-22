@@ -2,6 +2,7 @@ package com.vikingkittens.mc.customers.economy;
 
 import java.lang.reflect.Method;
 
+import dev.architectury.platform.Platform;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
@@ -40,7 +41,7 @@ public final class EconomyItemCostProviderVillagerShopSystem implements EconomyI
     @Override
     public ItemStack calculateItemStackCost(ItemStack item) {
         if (!CustomersServices.config().economyUseVillagerShopSystem()
-                || !CustomersServices.platform().isModLoaded(MOD_ID)
+                || !Platform.isModLoaded(MOD_ID)
                 || !loadApi()) {
             return null;
         }
@@ -64,7 +65,7 @@ public final class EconomyItemCostProviderVillagerShopSystem implements EconomyI
 
     void serverStarted(MinecraftServer server) {
         if (!CustomersServices.config().economyUseVillagerShopSystem()
-                || !CustomersServices.platform().isModLoaded(MOD_ID)
+                || !Platform.isModLoaded(MOD_ID)
                 || !loadApi()) {
             return;
         }

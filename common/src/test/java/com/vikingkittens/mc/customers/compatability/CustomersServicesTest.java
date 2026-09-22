@@ -28,11 +28,6 @@ class CustomersServicesTest {
     }
 
     @Test
-    void loadsVanillaNetworkProvider() {
-        assertEquals(VanillaNetworkHelper.class, CustomersServices.network().getClass());
-    }
-
-    @Test
     void requiresExactlyOnePlatformImplementation() {
         IPlatformHelper helper = new TestPlatformHelper();
 
@@ -50,18 +45,5 @@ class CustomersServicesTest {
         );
     }
 
-    private static final class TestPlatformHelper implements IPlatformHelper {
-        @Override
-        public String platformName() {
-            return "Test";
-        }
-
-        @Override
-        public boolean isModLoaded(String modId) {
-            return false;
-        }
-
-        @Override
-        public void closeContainer(net.minecraft.world.entity.player.Player player) {}
-    }
+    private static final class TestPlatformHelper implements IPlatformHelper {}
 }

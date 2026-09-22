@@ -1,0 +1,10 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "top": "customers:block/supplier_spawner_block_disabled_top",
+    "bottom": "customers:block/supplier_spawner_block_disabled_bottom",
+    "side": "customers:block/supplier_spawner_block_disabled_side",
+    "particle": "customers:block/supplier_spawner_block_disabled_top"
+  }
+}

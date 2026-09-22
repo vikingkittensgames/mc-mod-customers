@@ -1,7 +1,6 @@
 package com.vikingkittens.mc.customers.appearance.mca;
 
-import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearance;
-import com.vikingkittens.mc.customers.compatability.CustomersServices;
+import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearanceRegistries;
 
 public final class McaCustomersVillagerAppearanceEvents {
     private static boolean initialized;
@@ -12,9 +11,8 @@ public final class McaCustomersVillagerAppearanceEvents {
         if (initialized || !McaCustomersVillagerMod.isSupported()) {
             return;
         }
-        CustomersServices.registration().register(
-                CustomersVillagerAppearance.APPEARANCE_REGISTRY_KEY,
-                McaCustomersVillagerAppearance.ID.getPath(),
+        CustomersVillagerAppearanceRegistries.appearances().register(
+                McaCustomersVillagerAppearance.ID,
                 McaCustomersVillagerAppearance::new);
         initialized = true;
     }

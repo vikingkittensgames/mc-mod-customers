@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${mod_version}",
+  "name": "${mod_name}",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.vikingkittens.mc.customers.fabric.CustomersFabric"],
+    "client": ["com.vikingkittens.mc.customers.fabric.CustomersFabricClient"]
+  },
+  "mixins": [
+    "customers.fabric.mixins.json"
+  ],
+  "depends": {
+    "architectury": ">=${architectury_version}",
+    "fabric-api": "${fabric_api_version}",
+    "fabricloader": ">=${fabric_loader_version}",
+    "minecraft": "${minecraft_version}",
+    "java": ">=21"
+  }
+}

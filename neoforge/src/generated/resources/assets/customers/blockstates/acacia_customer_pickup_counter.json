@@ -1,7 +1,0 @@
-{
-  "variants": {
-    "": {
-      "model": "customers:block/acacia_customer_pickup_counter"
-    }
-  }
-}
