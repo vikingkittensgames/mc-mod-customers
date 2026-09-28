@@ -51,9 +51,13 @@ any other villager trader.  Right click on them to open up the trade and sell th
 of the items.  After being sold one of the items they want, that item will be removed
 from the trades.
 
-Quick selling can be enabled with the `enableQuickSell` configuration option. When enabled,
+Quick selling is enabled by default and can be disabled with the `enableQuickSell` configuration option. When enabled,
 right-clicking a customer while holding enough of a wanted item in your main hand immediately
 completes one matching sale instead of opening the trading screen.
+
+Customers, their pets, and Suppliers are invulnerable by default. This can be disabled with the
+`customersAreInvulnerable` configuration option. A vulnerable customer who is damaged while buying
+gives up and leaves. Customers and Suppliers never become zombie villagers; when killed, they die.
 
 ### Thank You and Goodbye
 

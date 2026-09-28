@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -34,6 +35,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
@@ -618,6 +620,11 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
     }
 
     @Override
+    public RegistryAccess getCustomersRegistryAccess() {
+        return level().registryAccess();
+    }
+
+    @Override
     public CustomersVillagerType getCustomersVillagerType() {
         return switch (getSnapshotType()) {
             case NORMAL -> CustomersVillagerType.CUSTOMER_NORMAL;
@@ -1044,12 +1051,20 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
     }
 
     @Override
-    public boolean causeFallDamage(
-            float fallDistance,
-            float multiplier,
-            DamageSource source
+    public boolean isInvulnerableTo(DamageSource source) {
+        return CustomersServices.config().customersAreInvulnerable()
+                || super.isInvulnerableTo(source);
+    }
+
+    @Override
+    public <T extends Mob> @Nullable T convertTo(
+            EntityType<T> entityType,
+            boolean transferInventory
     ) {
-        return false;
+        if (EntityType.ZOMBIE_VILLAGER.equals(entityType)) {
+            return null;
+        }
+        return super.convertTo(entityType, transferInventory);
     }
 
     @Override

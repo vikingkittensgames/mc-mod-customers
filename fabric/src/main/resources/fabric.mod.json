@@ -9,6 +9,7 @@
     "client": ["com.vikingkittens.mc.customers.fabric.CustomersFabricClient"]
   },
   "mixins": [
+    "customers.common.mixins.json",
     "customers.fabric.mixins.json"
   ],
   "depends": {

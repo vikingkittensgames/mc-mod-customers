@@ -31,8 +31,13 @@ class ConfigTest {
     }
 
     @Test
-    void quickSellIsDisabledByDefault() {
-        assertEquals(false, Config.ENABLE_QUICK_SELL.getDefault());
+    void quickSellIsEnabledByDefault() {
+        assertEquals(true, Config.ENABLE_QUICK_SELL.getDefault());
+    }
+
+    @Test
+    void customersAreInvulnerableByDefault() {
+        assertEquals(true, Config.CUSTOMERS_ARE_INVULNERABLE.getDefault());
     }
 
     @Test

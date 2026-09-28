@@ -1,6 +1,5 @@
 package com.vikingkittens.mc.customers.customer.pets;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -11,9 +10,7 @@ import java.util.function.ToIntFunction;
 import java.util.stream.StreamSupport;
 
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
 
-import com.mojang.logging.LogUtils;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -24,7 +21,6 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -40,6 +36,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.compatability.CustomersServices;
 import com.vikingkittens.mc.customers.compatability.EntityCUtils;
 import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
 import com.vikingkittens.mc.customers.compatability.LevelCUtils;
@@ -47,18 +44,16 @@ import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 import com.vikingkittens.mc.customers.customer.pets.ai.CustomerPetFollowCustomerGoal;
 import com.vikingkittens.mc.customers.customer.pets.ai.CustomerPetSitNextToCustomerGoal;
 import com.vikingkittens.mc.customers.customer.pets.ai.CustomerPetSitWhenOrderedToGoal;
+import com.vikingkittens.mc.customers.customer.pets.mixin.CustomerPetMobAccessor;
 
 public final class CustomerPet {
     public static final TagKey<EntityType<?>> CAN_NOT_BE_PET = TagKey.create(
             Registries.ENTITY_TYPE,
             ResourceLocation.fromNamespaceAndPath(Customers.MODID, "can_not_be_pet")
     );
-    private static final Logger LOGGER = LogUtils.getLogger();
     private static final byte ANIMAL_HEARTS_EVENT = 18;
     private static final float CUSTOMER_HEIGHT = 1.95F;
     private static final float MAX_PET_HEIGHT = CUSTOMER_HEIGHT * 0.5F;
-    private static final Field GOAL_SELECTOR_FIELD = getSelectorField("goalSelector");
-    private static final Field TARGET_SELECTOR_FIELD = getSelectorField("targetSelector");
 
     private static List<Pet> pets;
 
@@ -121,6 +116,15 @@ public final class CustomerPet {
                 serverLevel.getEntity(petId) instanceof Animal pet) {
             pet.discard();
         }
+    }
+
+    public static boolean updateInvulnerability(Level level, UUID petId, boolean invulnerable) {
+        if (!(level instanceof ServerLevel serverLevel) ||
+                !(serverLevel.getEntity(petId) instanceof Animal pet)) {
+            return false;
+        }
+        pet.setInvulnerable(invulnerable);
+        return true;
     }
 
     public static @Nullable String getPetTypeId(Level level, UUID petId) {
@@ -246,11 +250,11 @@ public final class CustomerPet {
     }
 
     private static boolean preparePet(Animal pet, UUID customerId) {
-        GoalSelector goalSelector = getSelector(pet, GOAL_SELECTOR_FIELD);
-        GoalSelector targetSelector = getSelector(pet, TARGET_SELECTOR_FIELD);
-        if (goalSelector == null || targetSelector == null) {
+        if (!(pet instanceof CustomerPetMobAccessor accessor)) {
             return false;
         }
+        GoalSelector goalSelector = accessor.customers$getGoalSelector();
+        GoalSelector targetSelector = accessor.customers$getTargetSelector();
         if (pet.level() instanceof ServerLevel serverLevel && serverLevel.getEntity(pet.getUUID()) != pet) {
             pet.finalizeSpawn(
                     serverLevel,
@@ -260,7 +264,7 @@ public final class CustomerPet {
             );
             configurePetSize(pet);
         }
-        pet.setInvulnerable(true);
+        pet.setInvulnerable(CustomersServices.config().customersAreInvulnerable());
         pet.setNoAi(false);
         pet.noPhysics = false;
         pet.setTarget(null);
@@ -281,27 +285,6 @@ public final class CustomerPet {
         goalSelector.addGoal(3, new CustomerPetFollowCustomerGoal(pet, customerId));
         goalSelector.addGoal(4, new LookAtPlayerGoal(pet, Player.class, 8.0F));
         return true;
-    }
-
-    private static Field getSelectorField(String name) {
-        try {
-            Field field = Mob.class.getDeclaredField(name);
-            field.setAccessible(true);
-            return field;
-        } catch (ReflectiveOperationException exception) {
-            return null;
-        }
-    }
-
-    private static GoalSelector getSelector(Animal pet, Field field) {
-        if (field == null) {
-            return null;
-        }
-        try {
-            return (GoalSelector)field.get(pet);
-        } catch (ReflectiveOperationException exception) {
-            return null;
-        }
     }
 
     static final class Pet {

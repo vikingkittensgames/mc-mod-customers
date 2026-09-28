@@ -53,7 +53,7 @@ public final class CustomersVillagerAppearances {
                         enabledAppearanceIds,
                         appearanceId -> get(
                                 appearanceId,
-                                villager.registryAccess()
+                                villager.getCustomersRegistryAccess()
                         ),
                         villager,
                         randomIndex
@@ -66,7 +66,7 @@ public final class CustomersVillagerAppearances {
     ) {
         return get(
                 villager.getAppearanceId(),
-                villager.registryAccess()
+                villager.getCustomersRegistryAccess()
         );
     }
 

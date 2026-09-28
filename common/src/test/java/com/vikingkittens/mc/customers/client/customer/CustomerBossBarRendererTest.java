@@ -29,6 +29,12 @@ class CustomerBossBarRendererTest {
     }
 
     @Test
+    void addsOnlyTheCustomHeightToTheVanillaAbsoluteNextPosition() {
+        assertEquals(50, CustomerBossBarRenderer.calculateNextY(31, 19));
+        assertEquals(106, CustomerBossBarRenderer.calculateNextY(69, 37));
+    }
+
+    @Test
     void usesAlmostTheFullScreenWidthForCustomerGroups() {
         assertEquals(300, CustomerBossBarRenderer.calculateLayoutWidth(320));
     }

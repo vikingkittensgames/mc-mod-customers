@@ -123,6 +123,8 @@ When both loaders patch the same overridable Minecraft method but the vanilla co
 the matching public method without `@Override`; normal JVM virtual dispatch still invokes it on loader runtimes.
 Shared search and gameplay utilities accept registered blocks, configuration values, or suppliers as explicit inputs instead of reaching
 through loader-resident feature facades.
+Shared code uses remapped mixin accessors instead of reflection when it requires protected Minecraft fields.
+Raw field-name strings are not remapped in production JARs.
 Loader-backed configuration reads should be deferred behind suppliers when shared or unit-tested behavior needs the value. Tests inject
 ordinary values without bootstrapping the loader configuration lifecycle.
 
@@ -259,8 +261,11 @@ container capability.
 entrypoints register those specs with their loader lifecycle.
 Shared-bound gameplay callers obtain numeric configuration through `CustomersServices.config()`. Loader-native config classes remain confined
 to provider implementations and loader-only registration or condition code.
-Boolean command, interaction, and recipe-condition decisions also use `IConfigHelper`. NeoForge's native `Config` is referenced only by its
+Boolean command, interaction, recipe-condition, and entity-protection decisions also use `IConfigHelper`. NeoForge's native `Config` is referenced only by its
 service provider and entrypoint registration.
+
+Fabric entity interaction cancellation uses Architectury's built-in `INTERACT_ENTITY` integration.
+Fabric adapters must not forward `UseEntityCallback` back into the same Architectury event.
 
 NeoForge and Forge provide similar config-spec systems from different
 packages. Common gameplay code uses plain configuration getters supplied by
@@ -282,6 +287,18 @@ Both loader data-generation tasks must produce equivalent common resources.
 Optional integrations are enabled only when a compatible artifact and
 runtime mod are available for the active loader. Integration classes must not
 be loaded when their target mod is absent.
+
+FTB Quests task types and task-screen providers live in common code against
+the shared FTB Quests API classes. The named NeoForge artifact supplies the
+compile-time API because the intermediary shared artifact requires Loom
+1.17.491. Fabric and NeoForge entrypoints provide only the
+initialization hooks, and their build modules select the corresponding loader
+runtime artifact.
+
+Shared trigger schemas read record backing fields rather than reflective
+record accessors. Fabric remaps Minecraft-interface accessor names in
+production classes without updating the corresponding record accessor
+metadata, which can make `RecordComponent.getAccessor()` return `null`.
 
 MCA appearance support requires separate dependency and compatibility checks
 for NeoForge and Forge. Lack of a compatible MCA build for one loader
@@ -385,6 +402,10 @@ register customer and supplier attributes, creative-tab items, dimension-change 
 Loader-neutral screens, renderers, client appearance implementations, render proxies, synchronized client state, and layout logic live in
 `common`. Loader modules retain only client lifecycle events, render-stage hooks, name-tag events, payload handlers, and loader-specific
 configuration screens.
+
+Fabric boss-bar mixins preserve vanilla's absolute next-bar position and add only the extra height used by
+customer item rows. Treating that absolute position as a per-bar increment causes state to carry between
+bars and frames.
 
 Forge client MOD-bus adapters register shared customer and supplier screens, entity renderers, the pickup-counter renderer, model layers, and
 client appearance implementations. Client implementation remains in `common`; only Forge event subscriptions remain in the Forge module.

@@ -6,6 +6,17 @@ plugins {
 }
 
 def commonProject = project(':common')
+def productionRunDirectory = rootProject.file("run-prod-fabric-${minecraft_version}")
+def productionJavaLauncher = javaToolchains.launcherFor {
+    languageVersion = JavaLanguageVersion.of(java_version)
+}
+
+configurations {
+    productionClientMods {
+        canBeConsumed = false
+        canBeResolved = true
+    }
+}
 
 sourceSets {
     gameTest {
@@ -78,6 +89,9 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
     modImplementation "dev.architectury:architectury-fabric:${architectury_version}"
+    modCompileOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
+    productionClientMods("net.fabricmc.fabric-api:fabric-api:${fabric_api_version}") { transitive = false }
+    productionClientMods("dev.architectury:architectury-fabric:${architectury_version}") { transitive = false }
     implementation project(path: ':common', configuration: 'namedElements')
     common(project(path: ':common', configuration: 'namedElements')) { transitive = false }
     shadowBundle(project(path: ':common', configuration: 'namedElements')) { transitive = false }
@@ -107,4 +121,34 @@ tasks.named('shadowJar', Jar) {
 tasks.named('remapJar') {
     dependsOn(tasks.named('shadowJar'))
     inputFile = tasks.named('shadowJar').flatMap { it.archiveFile }
+}
+
+tasks.register('prepareProdClient', Copy) {
+    group = 'customers runs'
+    description = 'Builds and copies production Fabric mods into the production run directory.'
+    dependsOn(tasks.named('build'))
+    into(new File(productionRunDirectory, 'mods'))
+    from(tasks.named('remapJar').flatMap { it.archiveFile }) {
+        rename { 'customers-under-test.jar' }
+    }
+    from(configurations.productionClientMods) {
+        rename(/architectury-fabric-.+\.jar/, 'architectury-api-under-test.jar')
+        rename(/fabric-api-.+\.jar/, 'fabric-api-under-test.jar')
+    }
+}
+
+tasks.register('runProdClient', Exec) {
+    group = 'customers runs'
+    description = 'Runs the packaged Customers Fabric mod in a production client.'
+    dependsOn(rootProject.tasks.named('installPortableMc'), tasks.named('prepareProdClient'))
+
+    doFirst {
+        commandLine(
+                rootProject.productionClientLauncher.get(),
+                '--main-dir', rootProject.productionClientMainDirectory.asFile.absolutePath,
+                'start', "fabric:${minecraft_version}:${fabric_loader_version}",
+                '--mc-dir', productionRunDirectory.absolutePath,
+                '--username', providers.gradleProperty('production_username').getOrElse('Dev'),
+                '--jvm', productionJavaLauncher.get().executablePath.asFile.absolutePath)
+    }
 }

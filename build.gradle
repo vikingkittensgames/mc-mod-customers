@@ -5,10 +5,83 @@ plugins {
     id 'com.diffplug.spotless' version '8.9.0' apply false
 }
 
+def portableMcDirectory = layout.projectDirectory.dir(".gradle/portablemc-launcher/${portablemc_version}")
+def portableMcArchive = portableMcDirectory.file("portablemc-${portablemc_version}-windows-x86_64-msvc.zip")
+def portableMcExecutable = portableMcDirectory.file('portablemc.exe')
+
+tasks.register('installPortableMc') {
+    group = 'customers runs'
+    description = 'Downloads the pinned PortableMC production launcher.'
+    inputs.property('portablemcVersion', portablemc_version)
+    inputs.property('portablemcWindowsX86_64Sha256', portablemc_windows_x86_64_sha256)
+    outputs.file(portableMcExecutable)
+
+    onlyIf {
+        !providers.gradleProperty('portablemc_executable').isPresent()
+    }
+
+    doLast {
+        def operatingSystem = System.getProperty('os.name').toLowerCase(Locale.ROOT)
+        def architecture = System.getProperty('os.arch').toLowerCase(Locale.ROOT)
+        if (!operatingSystem.contains('windows') || !(architecture in ['amd64', 'x86_64'])) {
+            throw new GradleException(
+                    'Automatic PortableMC installation currently supports Windows x86_64. ' +
+                            'Set -Pportablemc_executable=/path/to/portablemc on another platform.')
+        }
+
+        def launcherDirectory = portableMcDirectory.asFile
+        def archiveFile = portableMcArchive.asFile
+        launcherDirectory.mkdirs()
+        if (!archiveFile.exists()) {
+            def download = new URI(
+                    "https://github.com/theorzr/portablemc/releases/download/v${portablemc_version}/${archiveFile.name}")
+                    .toURL()
+            def temporaryArchive = new File(launcherDirectory, "${archiveFile.name}.part")
+            download.withInputStream { input ->
+                temporaryArchive.withOutputStream { output -> output << input }
+            }
+            java.nio.file.Files.move(
+                    temporaryArchive.toPath(),
+                    archiveFile.toPath(),
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+        }
+
+        def digest = java.security.MessageDigest.getInstance('SHA-256')
+        archiveFile.withInputStream { input ->
+            byte[] buffer = new byte[8192]
+            for (int count = input.read(buffer); count >= 0; count = input.read(buffer)) {
+                digest.update(buffer, 0, count)
+            }
+        }
+        def actualChecksum = digest.digest().encodeHex().toString()
+        if (!actualChecksum.equalsIgnoreCase(portablemc_windows_x86_64_sha256)) {
+            archiveFile.delete()
+            throw new GradleException(
+                    "PortableMC checksum mismatch: expected ${portablemc_windows_x86_64_sha256}, got ${actualChecksum}")
+        }
+
+        copy {
+            from zipTree(archiveFile)
+            include 'portablemc.exe'
+            into launcherDirectory
+        }
+    }
+}
+
+ext.productionClientLauncher = providers.gradleProperty('portablemc_executable')
+        .orElse(portableMcExecutable.asFile.absolutePath)
+ext.productionClientMainDirectory = layout.projectDirectory.dir('.gradle/portablemc-runtime')
+
 tasks.register('runClientNeoForge') {
     group = 'customers runs'
     description = 'Runs the Customers NeoForge client.'
     dependsOn(':neoforge:runClient')
+}
+
+tasks.register('runProdClientNeoForge') {
+    group = 'customers runs'
+    description = 'Builds and runs the Customers NeoForge production client.'
+    dependsOn(':neoforge:runProdClient')
 }
 
 tasks.register('runServerNeoForge') {
@@ -21,6 +94,12 @@ tasks.register('runClientFabric') {
     group = 'customers runs'
     description = 'Runs the Customers Fabric client.'
     dependsOn(':fabric:runClient')
+}
+
+tasks.register('runProdClientFabric') {
+    group = 'customers runs'
+    description = 'Builds and runs the Customers Fabric production client.'
+    dependsOn(':fabric:runProdClient')
 }
 
 tasks.register('runServerFabric') {

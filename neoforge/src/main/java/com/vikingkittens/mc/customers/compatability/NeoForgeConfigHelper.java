@@ -49,6 +49,11 @@ public final class NeoForgeConfigHelper implements IConfigHelper {
     }
 
     @Override
+    public boolean customersAreInvulnerable() {
+        return Config.CUSTOMERS_ARE_INVULNERABLE.get();
+    }
+
+    @Override
     public boolean economyEnabled() {
         return Config.ENABLE_ECONOMY.get();
     }

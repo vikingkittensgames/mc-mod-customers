@@ -42,6 +42,7 @@ public final class CustomersFabricCompatibility implements IConfigHelper, IPlatf
     @Override public int customerGiveUpSeconds() { return CONFIG.customerGiveUpSeconds(); }
     @Override public boolean buildCommandsEnabled() { return CONFIG.buildCommandsEnabled(); }
     @Override public boolean quickSellEnabled() { return CONFIG.quickSellEnabled(); }
+    @Override public boolean customersAreInvulnerable() { return CONFIG.customersAreInvulnerable(); }
     @Override public boolean economyEnabled() { return CONFIG.economyEnabled(); }
     @Override public boolean economyUseVillagerShopSystem() { return CONFIG.economyUseVillagerShopSystem(); }
     @Override public boolean economyUseProjectE() { return CONFIG.economyUseProjectE(); }

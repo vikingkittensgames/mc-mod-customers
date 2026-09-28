@@ -50,6 +50,8 @@ public final class CustomersConfigFile {
                 booleanValue(properties, CustomersConfig.ENABLE_BUILD_COMMANDS,
                         CustomersConfig.DEFAULT.buildCommandsEnabled()),
                 booleanValue(properties, CustomersConfig.ENABLE_QUICK_SELL, CustomersConfig.DEFAULT.quickSellEnabled()),
+                booleanValue(properties, CustomersConfig.CUSTOMERS_ARE_INVULNERABLE,
+                        CustomersConfig.DEFAULT.customersAreInvulnerable()),
                 booleanValue(properties, CustomersConfig.ENABLE_ECONOMY, CustomersConfig.DEFAULT.economyEnabled()),
                 booleanValue(properties, CustomersConfig.ECONOMY_USE_VILLAGER_SHOP_SYSTEM,
                         CustomersConfig.DEFAULT.economyUseVillagerShopSystem()),
@@ -93,7 +95,9 @@ public final class CustomersConfigFile {
                 # Range: > 1
                 customerGiveUpSeconds = 120
                 enableBuildCommands = false
-                enableQuickSell = false
+                enableQuickSell = true
+                # Prevent customers, their pets, and suppliers from taking damage.
+                customersAreInvulnerable = true
                 # Enable Economy / Cost Suggestions
                 enableEconomy = true
                 # Use Villager Shop System Costs

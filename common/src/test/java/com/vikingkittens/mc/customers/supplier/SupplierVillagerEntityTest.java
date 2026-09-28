@@ -14,6 +14,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -34,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
@@ -116,17 +118,23 @@ class SupplierVillagerEntityTest {
     }
 
     @Test
-    void ignoresFallDamage() {
+    void isInvulnerableByDefault() {
         SupplierVillagerEntity supplier = mock(
                 SupplierVillagerEntity.class,
                 CALLS_REAL_METHODS
         );
 
-        assertFalse(supplier.causeFallDamage(
-                100.0F,
-                1.0F,
-                mock(DamageSource.class)
-        ));
+        assertTrue(supplier.isInvulnerableTo(mock(DamageSource.class)));
+    }
+
+    @Test
+    void doesNotConvertToAZombieVillager() {
+        SupplierVillagerEntity supplier = mock(
+                SupplierVillagerEntity.class,
+                CALLS_REAL_METHODS
+        );
+
+        assertNull(supplier.convertTo(EntityType.ZOMBIE_VILLAGER, false));
     }
 
     @Test

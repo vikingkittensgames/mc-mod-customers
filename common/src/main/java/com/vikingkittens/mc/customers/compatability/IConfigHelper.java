@@ -19,6 +19,8 @@ public interface IConfigHelper {
 
     boolean quickSellEnabled();
 
+    boolean customersAreInvulnerable();
+
     boolean economyEnabled();
 
     boolean economyUseVillagerShopSystem();

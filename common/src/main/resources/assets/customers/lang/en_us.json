@@ -82,6 +82,9 @@
   "messages.customers.give_up14": "Someone else will sell me %s.",
   "messages.customers.give_up15": "I came for %s, not an endurance test.",
 
+  "messages.customers.supplies": "I have your supplies for the day.",
+  "messages.customers.outofstock": "I'm out of stock.  See you tomorrow.",
+
   "messages.customers.scoreboard.summary": "%s finished with a score of %s",
   "messages.customers.scoreboard.detail.total_customers": "%s total customers",
   "messages.customers.scoreboard.detail.customers_served": "%s customers served",
@@ -115,7 +118,6 @@
   "screen.customers.break_confirmation.cancel": "Cancel Break",
   "screen.customers.break_confirmation.confirm": "Confirm Break",
 
-  "messages.customers.supplies": "I have your supplies for the day.",
   "messages.customers.break_confirmation.expired": "Block breaking confirmation expired",
   "messages.customers.pickup_counter.full": "The pickup counter is full.",
   "messages.customers.pickup_counter.not_wanted": "No active customer wants that item.",
@@ -133,11 +135,11 @@
   "customers.configuration.customerGiveUpSeconds": "Customer Give Up Seconds",
   "customers.configuration.enableBuildCommands": "Enable Build Commands",
   "customers.configuration.enableQuickSell": "Enable Quick Sell",
+  "customers.configuration.customersAreInvulnerable": "Customers are Invulnerable",
   "customers.configuration.enableEconomy": "Enable Economy / Cost Suggestions",
   "customers.configuration.economyUseVillagerShopSystem": "Use Villager Shop System Costs",
   "customers.configuration.economyUseProjectE": "Use ProjectE Costs",
   "customers.configuration.forceAutoCost": "Force Automatic Item Costs",
-
 
   "advancements.customers.root.title": "Customers",
   "advancements.customers.root.description": "Build and operate Customers shop",

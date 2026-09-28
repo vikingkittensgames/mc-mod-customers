@@ -185,6 +185,7 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
             }
             CustomerSeatEntity.trySit(customer.level(), targetPos.below(), customer);
             customer.setState(CustomerState.BUYING);
+            customer.setHealth(customer.getMaxHealth());
         }
     }
 }

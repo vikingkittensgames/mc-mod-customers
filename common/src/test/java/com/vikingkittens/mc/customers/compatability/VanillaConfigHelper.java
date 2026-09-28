@@ -43,7 +43,12 @@ public final class VanillaConfigHelper implements IConfigHelper {
 
     @Override
     public boolean quickSellEnabled() {
-        return false;
+        return true;
+    }
+
+    @Override
+    public boolean customersAreInvulnerable() {
+        return true;
     }
 
     @Override
