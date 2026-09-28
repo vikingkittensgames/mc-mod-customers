@@ -1,6 +1,7 @@
 package com.vikingkittens.mc.customers.advancements.triggers;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.RecordComponent;
 import java.util.ArrayList;
@@ -55,8 +56,8 @@ public final class CustomersTriggerSchema<T> {
 
     public Object value(T instance, Property<T> property) {
         try {
-            return property.component().getAccessor().invoke(instance);
-        } catch (IllegalAccessException | InvocationTargetException exception) {
+            return property.field().get(instance);
+        } catch (IllegalAccessException exception) {
             throw new IllegalStateException("Unable to read trigger property " + property.serializedName(), exception);
         }
     }
@@ -154,7 +155,7 @@ public final class CustomersTriggerSchema<T> {
             List<?> editorValues,
             boolean taskEditable,
             int componentIndex,
-            RecordComponent component
+            Field field
     ) {}
 
     public static final class Builder<T> {
@@ -209,9 +210,26 @@ public final class CustomersTriggerSchema<T> {
                     List.copyOf(editorValues),
                     taskEditable,
                     componentIndex,
-                    components.get(componentIndex)
+                    field(components.get(componentIndex))
             ));
             return this;
+        }
+
+        private static Field field(RecordComponent component) {
+            try {
+                Field field = component.getDeclaringRecord().getDeclaredField(component.getName());
+                if (!field.trySetAccessible()) {
+                    throw new IllegalArgumentException(
+                            "Trigger record component is not accessible: " + component.getName()
+                    );
+                }
+                return field;
+            } catch (NoSuchFieldException exception) {
+                throw new IllegalArgumentException(
+                        "Trigger record component has no backing field: " + component.getName(),
+                        exception
+                );
+            }
         }
 
         public CustomersTriggerSchema<T> build() {

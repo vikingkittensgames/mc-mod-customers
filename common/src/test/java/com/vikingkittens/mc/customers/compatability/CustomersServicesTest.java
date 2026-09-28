@@ -20,7 +20,8 @@ class CustomersServicesTest {
         assertEquals(4, config.defaultMaxCustomers());
         assertEquals(120, config.customerGiveUpSeconds());
         assertEquals(false, config.buildCommandsEnabled());
-        assertEquals(false, config.quickSellEnabled());
+        assertEquals(true, config.quickSellEnabled());
+        assertEquals(true, config.customersAreInvulnerable());
         assertEquals(true, config.economyEnabled());
         assertEquals(true, config.economyUseVillagerShopSystem());
         assertEquals(true, config.economyUseProjectE());

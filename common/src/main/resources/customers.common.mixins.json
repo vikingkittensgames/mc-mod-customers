@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "com.vikingkittens.mc.customers.customer.pets.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "CustomerPetMobAccessor"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -68,6 +68,20 @@ public final class CustomerBossBarRenderer {
     }
 
     /**
+     * Adds a customized boss bar's extra height to the vanilla absolute Y position.
+     *
+     * @param vanillaNextY vanilla absolute Y position for the next boss bar
+     * @param additionalIncrement height added by the customized boss bar
+     * @return corrected absolute Y position for the next boss bar
+     */
+    public static int calculateNextY(
+            int vanillaNextY,
+            int additionalIncrement
+    ) {
+        return vanillaNextY + additionalIncrement;
+    }
+
+    /**
      * Calculates the available width for customer item groups.
      *
      * @param guiWidth current scaled GUI width

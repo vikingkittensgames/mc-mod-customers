@@ -7,7 +7,18 @@ plugins {
 }
 
 def neoForgeRunDirectory = "../run-neoforge-${minecraft_version}"
+def productionRunDirectory = rootProject.file("run-prod-neoforge-${minecraft_version}")
 def commonProject = project(':common')
+def productionJavaLauncher = javaToolchains.launcherFor {
+    languageVersion = JavaLanguageVersion.of(java_version)
+}
+
+configurations {
+    productionClientMods {
+        canBeConsumed = false
+        canBeResolved = true
+    }
+}
 
 sourceSets {
     gameTest {
@@ -100,6 +111,7 @@ dependencies {
 
     modCompileOnly "dev.architectury:architectury-neoforge:${architectury_version}"
     modLocalRuntime "dev.architectury:architectury-neoforge:${architectury_version}"
+    productionClientMods("dev.architectury:architectury-neoforge:${architectury_version}") { transitive = false }
     modCompileOnly "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
     modLocalRuntime "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
     modCompileOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
@@ -171,6 +183,35 @@ tasks.named('shadowJar', Jar) {
 tasks.named('remapJar') {
     dependsOn(tasks.named('shadowJar'))
     inputFile = tasks.named('shadowJar').flatMap { it.archiveFile }
+}
+
+tasks.register('prepareProdClient', Copy) {
+    group = 'customers runs'
+    description = 'Builds and copies production NeoForge mods into the production run directory.'
+    dependsOn(tasks.named('build'))
+    into(new File(productionRunDirectory, 'mods'))
+    from(tasks.named('remapJar').flatMap { it.archiveFile }) {
+        rename { 'customers-under-test.jar' }
+    }
+    from(configurations.productionClientMods) {
+        rename(/architectury-neoforge-.+\.jar/, 'architectury-api-under-test.jar')
+    }
+}
+
+tasks.register('runProdClient', Exec) {
+    group = 'customers runs'
+    description = 'Runs the packaged Customers NeoForge mod in a production client.'
+    dependsOn(rootProject.tasks.named('installPortableMc'), tasks.named('prepareProdClient'))
+
+    doFirst {
+        commandLine(
+                rootProject.productionClientLauncher.get(),
+                '--main-dir', rootProject.productionClientMainDirectory.asFile.absolutePath,
+                'start', "neoforge::${neo_version}",
+                '--mc-dir', productionRunDirectory.absolutePath,
+                '--username', providers.gradleProperty('production_username').getOrElse('Dev'),
+                '--jvm', productionJavaLauncher.get().executablePath.asFile.absolutePath)
+    }
 }
 
 // IDEA no longer automatically downloads sources/javadoc jars for dependencies, so we need to explicitly enable the behavior.

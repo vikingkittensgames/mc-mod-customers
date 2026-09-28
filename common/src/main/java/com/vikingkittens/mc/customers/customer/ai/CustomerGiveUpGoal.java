@@ -36,7 +36,10 @@ public class CustomerGiveUpGoal extends MobTimedGoal {
                 (
                         (
                                 customer.getState() == CustomerState.BUYING &&
-                                (customer.getGiveUpTicks() > 0 && customer.getTicksSinceTrade() > customer.getGiveUpTicks())
+                                (
+                                    (customer.getGiveUpTicks() > 0 && customer.getTicksSinceTrade() > customer.getGiveUpTicks()) ||
+                                    customer.getHealth() < customer.getMaxHealth()
+                                )
                         ) ||
                                 customer.getState() == CustomerState.FORCED_GIVING_UP
                 ) ||

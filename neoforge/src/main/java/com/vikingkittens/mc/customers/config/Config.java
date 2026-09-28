@@ -45,6 +45,11 @@ public class Config {
     public static final ModConfigSpec.BooleanValue ENABLE_QUICK_SELL = BUILDER
             .define(CustomersConfig.ENABLE_QUICK_SELL, CustomersConfig.DEFAULT.quickSellEnabled());
 
+    public static final ModConfigSpec.BooleanValue CUSTOMERS_ARE_INVULNERABLE = BUILDER
+            .comment("Prevent customers, their pets, and suppliers from taking damage.")
+            .define(CustomersConfig.CUSTOMERS_ARE_INVULNERABLE,
+                    CustomersConfig.DEFAULT.customersAreInvulnerable());
+
     public static final ModConfigSpec.BooleanValue ENABLE_ECONOMY = BUILDER
             .comment("Enable Economy / Cost Suggestions")
             .define(CustomersConfig.ENABLE_ECONOMY, CustomersConfig.DEFAULT.economyEnabled());

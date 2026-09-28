@@ -12,6 +12,7 @@ public record CustomersConfig(
         int customerGiveUpSeconds,
         boolean buildCommandsEnabled,
         boolean quickSellEnabled,
+        boolean customersAreInvulnerable,
         boolean economyEnabled,
         boolean economyUseVillagerShopSystem,
         boolean economyUseProjectE,
@@ -27,12 +28,13 @@ public record CustomersConfig(
     public static final String CUSTOMER_GIVE_UP_SECONDS = "customerGiveUpSeconds";
     public static final String ENABLE_BUILD_COMMANDS = "enableBuildCommands";
     public static final String ENABLE_QUICK_SELL = "enableQuickSell";
+    public static final String CUSTOMERS_ARE_INVULNERABLE = "customersAreInvulnerable";
     public static final String ENABLE_ECONOMY = "enableEconomy";
     public static final String ECONOMY_USE_VILLAGER_SHOP_SYSTEM = "economyUseVillagerShopSystem";
     public static final String ECONOMY_USE_PROJECT_E = "economyUseProjectE";
     public static final String FORCE_AUTO_COST = "forceAutoCost";
 
     public static final CustomersConfig DEFAULT = new CustomersConfig(
-            true, true, true, 64, 64, 4, 120, false, false, true, true, true, false
+            true, true, true, 64, 64, 4, 120, false, true, true, true, true, true, false
     );
 }

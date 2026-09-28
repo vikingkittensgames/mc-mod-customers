@@ -1130,7 +1130,15 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 reservationCleanupLoadTicks >= RESERVATION_CLEANUP_LOAD_GRACE_TICKS) {
             customerPets.entrySet().removeIf(entry -> {
                 Entity pet = serverLevel.getEntity(entry.getValue());
-                return pet == null || !pet.isAlive() || pet.isRemoved();
+                if (pet == null || !pet.isAlive() || pet.isRemoved()) {
+                    return true;
+                }
+                CustomerPet.updateInvulnerability(
+                        level,
+                        entry.getValue(),
+                        CustomersServices.config().customersAreInvulnerable()
+                );
+                return false;
             });
         }
         if (needsCustomerPetGoalSetup) {

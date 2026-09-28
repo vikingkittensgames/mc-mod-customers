@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
@@ -22,6 +23,7 @@ import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.doNothing;
@@ -125,17 +127,23 @@ class CustomerVillagerEntityTest {
     }
 
     @Test
-    void ignoresFallDamage() {
+    void isInvulnerableByDefault() {
         CustomerVillagerEntity customer = mock(
                 CustomerVillagerEntity.class,
                 CALLS_REAL_METHODS
         );
 
-        assertFalse(customer.causeFallDamage(
-                100.0F,
-                1.0F,
-                mock(DamageSource.class)
-        ));
+        assertTrue(customer.isInvulnerableTo(mock(DamageSource.class)));
+    }
+
+    @Test
+    void doesNotConvertToAZombieVillager() {
+        CustomerVillagerEntity customer = mock(
+                CustomerVillagerEntity.class,
+                CALLS_REAL_METHODS
+        );
+
+        assertNull(customer.convertTo(EntityType.ZOMBIE_VILLAGER, false));
     }
     @Test
     void roundTripsCounterTargetBlockPosition() {

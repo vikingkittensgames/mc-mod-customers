@@ -12,8 +12,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.trading.MerchantOffer;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
+import com.vikingkittens.mc.customers.customer.CustomerState;
+import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -22,6 +26,26 @@ class CustomerGiveUpGoalTest {
     @BeforeAll
     static void bootstrapMinecraft() {
         MinecraftTestBootstrap.bootstrap();
+    }
+
+    @Test
+    void givesUpWhenDamagedWhileBuying() {
+        CustomerVillagerEntity customer = mock(CustomerVillagerEntity.class);
+        when(customer.getState()).thenReturn(CustomerState.BUYING);
+        when(customer.getHealth()).thenReturn(19.0F);
+        when(customer.getMaxHealth()).thenReturn(20.0F);
+
+        assertTrue(new CustomerGiveUpGoal(customer).canUse());
+    }
+
+    @Test
+    void doesNotGiveUpFromDamageBeforeBuying() {
+        CustomerVillagerEntity customer = mock(CustomerVillagerEntity.class);
+        when(customer.getState()).thenReturn(CustomerState.MOVING_TO_COUNTER);
+        when(customer.getHealth()).thenReturn(19.0F);
+        when(customer.getMaxHealth()).thenReturn(20.0F);
+
+        assertFalse(new CustomerGiveUpGoal(customer).canUse());
     }
 
     @Test

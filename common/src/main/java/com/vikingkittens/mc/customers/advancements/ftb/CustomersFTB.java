@@ -2,7 +2,7 @@ package com.vikingkittens.mc.customers.advancements.ftb;
 
 import java.util.function.Predicate;
 
-import net.neoforged.fml.ModList;
+import dev.architectury.platform.Platform;
 
 public final class CustomersFTB {
     public static final String MOD_ID = "ftbquests";
@@ -68,10 +68,11 @@ public final class CustomersFTB {
      * tasks can be placed in one quest, sequential tasks can enforce ordering,
      * and dependencies can connect quests across chapters.
      *
-     * Every class in this package belongs to the NeoForge module because FTB
-     * Quests 1.21.1 has no Forge artifact. CustomersFTB must remain free of
-     * dev.ftb imports so it can safely perform the availability check before
-     * the JVM loads CustomersFTBTasks or CustomersFTBEvents.
+     * The integration compiles against FTB Quests' shared API. Loader modules
+     * provide their matching runtime and call this entrypoint only where that
+     * runtime is supported. CustomersFTB must remain free of dev.ftb imports
+     * so it can safely perform the availability check before the JVM loads
+     * CustomersFTBTasks or CustomersFTBEvents.
      */
 
     private CustomersFTB() {}
@@ -85,7 +86,7 @@ public final class CustomersFTB {
     }
 
     public static boolean isEnabled() {
-        return isEnabled(ModList.get()::isLoaded);
+        return isEnabled(Platform::isModLoaded);
     }
 
     static boolean isEnabled(Predicate<String> loadedMods) {

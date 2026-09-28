@@ -21,6 +21,8 @@ public final class CustomerWantedItemsRenderer {
     private static final int MAX_OVERHEAD_ITEMS = 3;
     private static final float NAME_TAG_TEXT_SCALE = 0.025F;
     private static final float NAME_TAG_ITEM_GAP = 0.12F;
+    private static final double NAME_TAG_RENDER_DISTANCE_SQUARED = 4096.0D;
+    private static final float BASE_VERTICAL_OFFSET = 0.25F;
 
     private CustomerWantedItemsRenderer() {}
 
@@ -43,18 +45,19 @@ public final class CustomerWantedItemsRenderer {
         }
 
         Minecraft minecraft = Minecraft.getInstance();
-        float nameTagOffset = nameTagRendered
-                ? minecraft.font.lineHeight * NAME_TAG_TEXT_SCALE + NAME_TAG_ITEM_GAP
-                : 0.0F;
         poseStack.pushPose();
-        float offset = 0.25F;
         float appearanceNameTagOffset = CustomersVillagerClientAppearances.getNameTagOffset(customer);
-        if (appearanceNameTagOffset != 0.0F) {
-            offset += appearanceNameTagOffset - nameTagOffset;
-        }
-        poseStack.translate(0, customer.getBbHeight() + offset, 0);
+        float verticalOffset = getVerticalOffset(
+                nameTagRendered,
+                appearanceNameTagOffset,
+                minecraft.font.lineHeight
+        );
+        poseStack.translate(
+                0,
+                customer.getBbHeight() + verticalOffset,
+                0
+        );
         poseStack.mulPose(minecraft.getEntityRenderDispatcher().cameraOrientation());
-        poseStack.translate(0.0F, nameTagOffset, 0.0F);
 
         float iconSpacing = 0.5F;
         float startX = -((offerDisplayItems.size() - 1) * iconSpacing) / 2.0F;
@@ -85,6 +88,32 @@ public final class CustomerWantedItemsRenderer {
             return customer;
         }
         return null;
+    }
+
+    public static boolean isNameTagRendered(
+            Entity renderedEntity,
+            boolean sourceVisibility,
+            double distanceToSqr
+    ) {
+        return !renderedEntity.getDisplayName().getString().isBlank()
+                && distanceToSqr <= NAME_TAG_RENDER_DISTANCE_SQUARED
+                && getDefaultNameTagVisibility(
+                        renderedEntity,
+                        sourceVisibility
+                );
+    }
+
+    static float getVerticalOffset(
+            boolean nameTagRendered,
+            float appearanceNameTagOffset,
+            int fontLineHeight
+    ) {
+        float nameTagOffset = nameTagRendered
+                ? fontLineHeight * NAME_TAG_TEXT_SCALE + NAME_TAG_ITEM_GAP
+                : 0.0F;
+        return BASE_VERTICAL_OFFSET
+                + appearanceNameTagOffset
+                + nameTagOffset;
     }
 
     public static boolean getDefaultNameTagVisibility(Entity renderedEntity, boolean sourceVisibility) {

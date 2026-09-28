@@ -8,7 +8,7 @@ import net.minecraft.resources.ResourceLocation;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
 public interface CustomersVillager {
-    RegistryAccess registryAccess();
+    RegistryAccess getCustomersRegistryAccess();
 
     CustomersVillagerType getCustomersVillagerType();
 

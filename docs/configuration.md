@@ -14,7 +14,8 @@ title: Configuration
 | Maximum Customers | `maxCustomers` | Sets the maximum number of customers that each Customer Spawner tries to keep spawned. | `4`     |
 | Customer Give Up Seconds | `customerGiveUpSeconds` | Sets how many seconds a customer waits without completing a trade before giving up and leaving. | `120`   |
 | Enable Build Commands | `enableBuildCommands` | Enables the customer and supplier build inspection commands. | `false` |
-| Enable Quick Sell | `enableQuickSell` | Enables selling directly to a customer by right-clicking while holding enough of a wanted item in the main hand. | `false` |
+| Enable Quick Sell | `enableQuickSell` | Enables selling directly to a customer by right-clicking while holding enough of a wanted item in the main hand. | `true` |
+| Customers are Invulnerable | `customersAreInvulnerable` | Prevents customers, their pets, and suppliers from taking damage. | `true` |
 | Enable Economy / Cost Suggestions | `enableEconomy` | Enables economy-backed cost suggestions and automatic costs. | `true` |
 | Use Village Shop System Costs | `economyUseVillagerShopSystem` | Uses Village Shop System costs when that mod is installed. | `true` |
 | Use ProjectE Costs | `economyUseProjectE` | Uses ProjectE EMC costs when that mod is installed. | `true` |

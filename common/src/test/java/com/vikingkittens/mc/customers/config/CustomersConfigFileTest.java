@@ -26,6 +26,7 @@ class CustomersConfigFileTest {
                 customerGiveUpSeconds = 90
                 enableBuildCommands = true
                 enableQuickSell = true
+                customersAreInvulnerable = false
                 enableEconomy = false
                 economyUseVillagerShopSystem = false
                 economyUseProjectE = false
@@ -41,6 +42,7 @@ class CustomersConfigFileTest {
         assertEquals(90, config.customerGiveUpSeconds());
         assertEquals(true, config.buildCommandsEnabled());
         assertEquals(true, config.quickSellEnabled());
+        assertEquals(false, config.customersAreInvulnerable());
         assertEquals(false, config.economyEnabled());
         assertEquals(false, config.economyUseVillagerShopSystem());
         assertEquals(false, config.economyUseProjectE());
@@ -67,6 +69,8 @@ class CustomersConfigFileTest {
         assertEquals(CustomersConfig.DEFAULT, config);
         assertTrue(Files.exists(path));
         assertTrue(Files.readString(path).contains("enableCustomerSpawnerBlockRecipe = true"));
+        assertTrue(Files.readString(path).contains("enableQuickSell = true"));
+        assertTrue(Files.readString(path).contains("customersAreInvulnerable = true"));
         assertTrue(Files.readString(path).contains("forceAutoCost = false"));
     }
 }

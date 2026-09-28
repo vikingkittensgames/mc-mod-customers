@@ -14,6 +14,9 @@ import net.minecraft.tags.ItemTags;
 import net.minecraft.util.profiling.InactiveProfiler;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.ai.Brain;
+import net.minecraft.world.entity.ai.goal.GoalSelector;
+import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.FlyingAnimal;
 import net.minecraft.world.flag.FeatureFlags;
@@ -23,11 +26,13 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
+import com.vikingkittens.mc.customers.customer.pets.mixin.CustomerPetMobAccessor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -163,5 +168,42 @@ class CustomerPetTest {
         CustomerPet.discard(level, petId);
 
         verify(pet).discard();
+    }
+
+    @Test
+    void updatesTrackedPetInvulnerability() {
+        ServerLevel level = mock(ServerLevel.class);
+        UUID petId = UUID.randomUUID();
+        Animal pet = mock(Animal.class);
+        when(level.getEntity(petId)).thenReturn(pet);
+
+        assertTrue(CustomerPet.updateInvulnerability(level, petId, true));
+        assertTrue(CustomerPet.updateInvulnerability(level, petId, false));
+
+        verify(pet).setInvulnerable(true);
+        verify(pet).setInvulnerable(false);
+    }
+
+    @Test
+    void setsUpGoalsThroughRemappedMixinAccessor() {
+        ServerLevel level = mock(ServerLevel.class);
+        UUID petId = UUID.randomUUID();
+        UUID customerId = UUID.randomUUID();
+        Animal pet = mock(
+                Animal.class,
+                withSettings().extraInterfaces(CustomerPetMobAccessor.class)
+        );
+        GoalSelector goalSelector = mock(GoalSelector.class);
+        GoalSelector targetSelector = mock(GoalSelector.class);
+        Brain<?> brain = mock(Brain.class);
+        when(level.getEntity(petId)).thenReturn(pet);
+        when(pet.level()).thenReturn(level);
+        when(pet.getUUID()).thenReturn(petId);
+        when(pet.getNavigation()).thenReturn(mock(PathNavigation.class));
+        doReturn(brain).when(pet).getBrain();
+        when(((CustomerPetMobAccessor)pet).customers$getGoalSelector()).thenReturn(goalSelector);
+        when(((CustomerPetMobAccessor)pet).customers$getTargetSelector()).thenReturn(targetSelector);
+
+        assertTrue(CustomerPet.setupGoals(level, petId, customerId));
     }
 }

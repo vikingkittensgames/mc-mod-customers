@@ -20,7 +20,10 @@ public final class ForgeConfigHelper implements IConfigHelper {
     private static final ForgeConfigSpec.IntValue CUSTOMER_GIVE_UP_SECONDS =
             BUILDER.defineInRange("customerGiveUpSeconds", 120, 1, Integer.MAX_VALUE);
     private static final ForgeConfigSpec.BooleanValue BUILD_COMMANDS = BUILDER.define("enableBuildCommands", false);
-    private static final ForgeConfigSpec.BooleanValue QUICK_SELL = BUILDER.define("enableQuickSell", false);
+    private static final ForgeConfigSpec.BooleanValue QUICK_SELL = BUILDER.define("enableQuickSell", true);
+    private static final ForgeConfigSpec.BooleanValue CUSTOMERS_ARE_INVULNERABLE = BUILDER
+            .comment("Prevent customers, their pets, and suppliers from taking damage.")
+            .define("customersAreInvulnerable", true);
     private static final ForgeConfigSpec.BooleanValue ENABLE_ECONOMY = BUILDER
             .comment("Enable Economy / Cost Suggestions")
             .define("enableEconomy", true);
@@ -79,6 +82,11 @@ public final class ForgeConfigHelper implements IConfigHelper {
     @Override
     public boolean quickSellEnabled() {
         return QUICK_SELL.get();
+    }
+
+    @Override
+    public boolean customersAreInvulnerable() {
+        return CUSTOMERS_ARE_INVULNERABLE.get();
     }
 
     @Override

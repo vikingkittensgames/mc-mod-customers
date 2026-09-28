@@ -21,12 +21,15 @@ import com.vikingkittens.mc.customers.client.customer.CustomerSpawnerSnapshotMan
 
 @Mixin(BossHealthOverlay.class)
 abstract class BossHealthOverlayMixin {
+    @Unique
+    private static final int CUSTOMERS$VANILLA_INCREMENT = 19;
+
     @Shadow
     @Final
     private Minecraft minecraft;
 
     @Unique
-    private int customers$nextIncrement = 19;
+    private int customers$additionalIncrement;
 
     @Unique
     private boolean customers$skipTitle;
@@ -61,14 +64,16 @@ abstract class BossHealthOverlayMixin {
                             minecraft.player,
                             snapshot.spawnerPos()
                     )) {
-                customers$nextIncrement = CustomerBossBarRenderer.render(
+                int adjustedIncrement = CustomerBossBarRenderer.render(
                         graphics,
                         bossEvent,
                         snapshot,
                         x,
                         y,
-                        customers$nextIncrement
+                        CUSTOMERS$VANILLA_INCREMENT
                 );
+                customers$additionalIncrement =
+                        adjustedIncrement - CUSTOMERS$VANILLA_INCREMENT;
             }
         }, () -> drawBar(graphics, x, y, bossEvent));
     }
@@ -108,9 +113,12 @@ abstract class BossHealthOverlayMixin {
                     )
             )
     )
-    private int adjustCustomerBossBarIncrement(int vanillaIncrement) {
-        int increment = customers$nextIncrement;
-        customers$nextIncrement = vanillaIncrement;
-        return increment;
+    private int adjustCustomerBossBarIncrement(int vanillaNextY) {
+        int adjustedNextY = CustomerBossBarRenderer.calculateNextY(
+                vanillaNextY,
+                customers$additionalIncrement
+        );
+        customers$additionalIncrement = 0;
+        return adjustedNextY;
     }
 }
