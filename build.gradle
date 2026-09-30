@@ -6,14 +6,16 @@ plugins {
 }
 
 def portableMcDirectory = layout.projectDirectory.dir(".gradle/portablemc-launcher/${portablemc_version}")
-def portableMcArchive = portableMcDirectory.file("portablemc-${portablemc_version}-windows-x86_64-msvc.zip")
-def portableMcExecutable = portableMcDirectory.file('portablemc.exe')
+def portableMcIsWindows = System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')
+def portableMcExecutable = portableMcDirectory.file(portableMcIsWindows ? 'portablemc.exe' : 'portablemc')
 
 tasks.register('installPortableMc') {
     group = 'customers runs'
     description = 'Downloads the pinned PortableMC production launcher.'
     inputs.property('portablemcVersion', portablemc_version)
     inputs.property('portablemcWindowsX86_64Sha256', portablemc_windows_x86_64_sha256)
+    inputs.property('portablemcMacosAarch64Sha256', portablemc_macos_aarch64_sha256)
+    inputs.property('portablemcMacosX86_64Sha256', portablemc_macos_x86_64_sha256)
     outputs.file(portableMcExecutable)
 
     onlyIf {
@@ -23,14 +25,36 @@ tasks.register('installPortableMc') {
     doLast {
         def operatingSystem = System.getProperty('os.name').toLowerCase(Locale.ROOT)
         def architecture = System.getProperty('os.arch').toLowerCase(Locale.ROOT)
-        if (!operatingSystem.contains('windows') || !(architecture in ['amd64', 'x86_64'])) {
+        def portableMcPlatform
+        if (operatingSystem.contains('windows') && architecture in ['amd64', 'x86_64']) {
+            portableMcPlatform = [
+                    archiveName   : "portablemc-${portablemc_version}-windows-x86_64-msvc.zip",
+                    archiveIsZip  : true,
+                    checksum      : portablemc_windows_x86_64_sha256,
+                    executableName: 'portablemc.exe'
+            ]
+        } else if (operatingSystem.contains('mac') && architecture in ['aarch64', 'arm64']) {
+            portableMcPlatform = [
+                    archiveName   : "portablemc-${portablemc_version}-macos-aarch64.tar.gz",
+                    archiveIsZip  : false,
+                    checksum      : portablemc_macos_aarch64_sha256,
+                    executableName: 'portablemc'
+            ]
+        } else if (operatingSystem.contains('mac') && architecture in ['amd64', 'x86_64']) {
+            portableMcPlatform = [
+                    archiveName   : "portablemc-${portablemc_version}-macos-x86_64.tar.gz",
+                    archiveIsZip  : false,
+                    checksum      : portablemc_macos_x86_64_sha256,
+                    executableName: 'portablemc'
+            ]
+        } else {
             throw new GradleException(
-                    'Automatic PortableMC installation currently supports Windows x86_64. ' +
+                    'Automatic PortableMC installation supports Windows x86_64 and macOS aarch64/x86_64. ' +
                             'Set -Pportablemc_executable=/path/to/portablemc on another platform.')
         }
 
         def launcherDirectory = portableMcDirectory.asFile
-        def archiveFile = portableMcArchive.asFile
+        def archiveFile = new File(launcherDirectory, portableMcPlatform.archiveName)
         launcherDirectory.mkdirs()
         if (!archiveFile.exists()) {
             def download = new URI(
@@ -54,16 +78,25 @@ tasks.register('installPortableMc') {
             }
         }
         def actualChecksum = digest.digest().encodeHex().toString()
-        if (!actualChecksum.equalsIgnoreCase(portablemc_windows_x86_64_sha256)) {
+        if (!actualChecksum.equalsIgnoreCase(portableMcPlatform.checksum)) {
             archiveFile.delete()
             throw new GradleException(
-                    "PortableMC checksum mismatch: expected ${portablemc_windows_x86_64_sha256}, got ${actualChecksum}")
+                    "PortableMC checksum mismatch: expected ${portableMcPlatform.checksum}, got ${actualChecksum}")
         }
 
         copy {
-            from zipTree(archiveFile)
-            include 'portablemc.exe'
+            from(portableMcPlatform.archiveIsZip
+                    ? zipTree(archiveFile)
+                    : tarTree(resources.gzip(archiveFile)))
+            include "**/${portableMcPlatform.executableName}"
+            eachFile { fileCopyDetails ->
+                fileCopyDetails.path = portableMcPlatform.executableName
+            }
+            includeEmptyDirs = false
             into launcherDirectory
+        }
+        if (!portableMcIsWindows && !new File(launcherDirectory, portableMcPlatform.executableName).setExecutable(true)) {
+            throw new GradleException('Unable to mark the PortableMC launcher as executable.')
         }
     }
 }
