@@ -73,7 +73,6 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     private static final int INVENTORY_ROW_SIZE = 9;
     private static final int SPAWN_CHECK_MAX_TICKS = 4;
     private static final int RESERVATION_CLEANUP_LOAD_GRACE_TICKS = 20 * 30;
-    private static final long ACTIVE_LEVEL_LEADERBOARD_LOOKUP_TICKS = 20L;
     private static final double PLAYER_VIEW_RANGE = 64.0D;
 
     static Item getPaymentItem() {
@@ -220,7 +219,8 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     private int reservationCleanupLoadTicks;
     private ServerBossEvent progressBar;
     private CustomerLeaderboardBlockEntity activeLevelLeaderboard;
-    private long lastActiveLevelLeaderboardLookupTick = Long.MIN_VALUE;
+    private long activeLevelLeaderboardCacheRevision = Long.MIN_VALUE;
+    private int activeLevelLeaderboardMaxDistance = Integer.MIN_VALUE;
     private final Set<UUID> playerIds = new HashSet<>();
     private long ticksSinceUpdateSpawned = 0;
     private long ticksSinceUpdatePlayers = 0;
@@ -482,15 +482,24 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     private CustomerLeaderboardBlockEntity getActiveLevelLeaderboard() {
-        long gameTime = level.getGameTime();
-        if (lastActiveLevelLeaderboardLookupTick == Long.MIN_VALUE
-                || gameTime - lastActiveLevelLeaderboardLookupTick >= ACTIVE_LEVEL_LEADERBOARD_LOOKUP_TICKS) {
+        return getActiveLevelLeaderboard(
+                CustomersServices.config().maxLeaderboardDistance()
+        );
+    }
+
+    CustomerLeaderboardBlockEntity getActiveLevelLeaderboard(
+            int maxDistance
+    ) {
+        long revision = CustomerLeaderboardCache.getRevision();
+        if (activeLevelLeaderboardCacheRevision != revision
+                || activeLevelLeaderboardMaxDistance != maxDistance) {
             activeLevelLeaderboard = CustomerLeaderboardBlockEntity.findClosest(
                     level,
                     worldPosition,
-                    CustomersServices.config().maxLeaderboardDistance()
+                    maxDistance
             );
-            lastActiveLevelLeaderboardLookupTick = gameTime;
+            activeLevelLeaderboardCacheRevision = revision;
+            activeLevelLeaderboardMaxDistance = maxDistance;
         }
         return activeLevelLeaderboard;
     }
@@ -1563,11 +1572,8 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     private void sendScoresToLeaderboard(CustomerSpawnerMode spawnerMode, int activeLevel) {
-        CustomerLeaderboardBlockEntity leaderboard = CustomerLeaderboardBlockEntity.findClosest(
-                level,
-                worldPosition,
-                CustomersServices.config().maxLeaderboardDistance()
-        );
+        CustomerLeaderboardBlockEntity leaderboard =
+                getActiveLevelLeaderboard();
         if (leaderboard == null) {
             return;
         }

@@ -400,15 +400,62 @@ class CustomerPickupCounterDemandTest {
     }
     @Test
     void revalidatesOnceEverySecond() {
+        BlockPos position = new BlockPos(3, 2, 8);
+        long phase = Math.floorMod(position.asLong(), 20L);
         assertTrue(
-                CustomerPickupCounterBlockEntity.shouldRevalidate(20)
+                CustomerPickupCounterBlockEntity.shouldRevalidate(
+                        phase,
+                        position
+                )
         );
         assertTrue(
-                CustomerPickupCounterBlockEntity.shouldRevalidate(40)
+                CustomerPickupCounterBlockEntity.shouldRevalidate(
+                        phase + 20L,
+                        position
+                )
         );
         assertFalse(
-                CustomerPickupCounterBlockEntity.shouldRevalidate(39)
+                CustomerPickupCounterBlockEntity.shouldRevalidate(
+                        phase + 1L,
+                        position
+                )
         );
+    }
+
+    @Test
+    void staggersRevalidationByCounterPosition() {
+        BlockPos first = BlockPos.ZERO;
+        BlockPos second = new BlockPos(1, 0, 0);
+        long firstPhase = Math.floorMod(first.asLong(), 20L);
+        long secondPhase = Math.floorMod(second.asLong(), 20L);
+
+        assertTrue(CustomerPickupCounterBlockEntity.shouldRevalidate(
+                firstPhase,
+                first
+        ));
+        assertFalse(CustomerPickupCounterBlockEntity.shouldRevalidate(
+                firstPhase,
+                second
+        ));
+        assertTrue(CustomerPickupCounterBlockEntity.shouldRevalidate(
+                secondPhase,
+                second
+        ));
+    }
+
+    @Test
+    void skipsRevalidationForEmptyCounterNetworks() {
+        CustomerPickupCounterBlockEntity counter = createCounter();
+
+        assertFalse(CustomerPickupCounterBlockEntity.hasStoredStacks(
+                List.of(counter)
+        ));
+
+        counter.insertStack(new ItemStack(Items.BREAD));
+
+        assertTrue(CustomerPickupCounterBlockEntity.hasStoredStacks(
+                List.of(counter)
+        ));
     }
 
     @Test

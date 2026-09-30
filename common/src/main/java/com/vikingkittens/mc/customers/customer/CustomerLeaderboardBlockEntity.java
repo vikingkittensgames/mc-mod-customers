@@ -1,6 +1,5 @@
 package com.vikingkittens.mc.customers.customer;
 
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -10,6 +9,7 @@ import java.util.UUID;
 import dev.architectury.networking.NetworkManager;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
@@ -20,7 +20,6 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
 import com.vikingkittens.mc.customers.client.common.PlayerProfileUtils;
-import com.vikingkittens.mc.customers.common.SearchUtils;
 import com.vikingkittens.mc.customers.compatability.CustomersServices;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
 import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
@@ -87,17 +86,19 @@ public class CustomerLeaderboardBlockEntity extends BlockEntity {
             BlockPos position,
             int maxDistance
     ) {
-        return SearchUtils.findBlocksInBox(
+        return CustomerLeaderboardCache.findClosest(
                 level,
                 position,
-                maxDistance * 2 + 1,
-                        (ignored, state) -> state.is(CustomerLeaderboard.BLOCK.get())
-                ).stream()
-                .map(level::getBlockEntity)
-                .filter(CustomerLeaderboardBlockEntity.class::isInstance)
-                .map(CustomerLeaderboardBlockEntity.class::cast)
-                .min(Comparator.comparingDouble(leaderboard -> leaderboard.worldPosition.distSqr(position)))
-                .orElse(null);
+                maxDistance
+        );
+    }
+
+    @Override
+    public void setRemoved() {
+        if (level instanceof ServerLevel) {
+            CustomerLeaderboardCache.remove(level, worldPosition);
+        }
+        super.setRemoved();
     }
 
     public void open(ServerPlayer player) {

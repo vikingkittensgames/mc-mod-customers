@@ -37,7 +37,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import com.vikingkittens.mc.customers.common.OfferUtils;
-import com.vikingkittens.mc.customers.common.SearchUtils;
 import com.vikingkittens.mc.customers.compatability.ItemInsertionTarget;
 import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
 import com.vikingkittens.mc.customers.compatability.LevelCUtils;
@@ -61,9 +60,8 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
 
     public static final String NAME = "customer_pickup_counter";
     public static final int INVENTORY_SIZE = 9;
-    private static final int CUSTOMER_SPAWNER_SEARCH_SIZE = 64;
-    private static final long CUSTOMER_SPAWNER_CACHE_TICKS = 20L;
     private static final long ITEM_COLLECTION_INTERVAL_TICKS = 8L;
+    private static final long REVALIDATION_INTERVAL_TICKS = 20L;
     private static final String TAG_INVENTORY = "inventory";
     private static final String TAG_STACK_METADATA = "stackMetadata";
     private static final String TAG_CRAFTER_ID = "crafterId";
@@ -77,7 +75,7 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
     private final PersistedContainer inventory = new PersistedContainer(INVENTORY_SIZE, this::inventoryChanged);
     private final UUID[] crafterIds = new UUID[INVENTORY_SIZE];
     private final ItemInsertionTarget itemInsertionTarget = new InsertionTarget(this);
-    private long customerSpawnerCacheGameTime = Long.MIN_VALUE;
+    private long customerSpawnerCacheRevision = Long.MIN_VALUE;
     private List<CustomerSpawnerBlockEntity> cachedAllCustomerSpawners = List.of();
     private List<CustomerSpawnerBlockEntity> cachedCounterCustomerSpawners = List.of();
     private long lastItemCollectionGameTime = Long.MIN_VALUE;
@@ -1009,30 +1007,11 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
             Level level,
             BlockPos pos
     ) {
-        List<BlockPos> spawnerPositions = SearchUtils.findBlocksInBox(
-                level,
-                pos,
-                CUSTOMER_SPAWNER_SEARCH_SIZE,
-                (candidatePos, state) ->
-                        state.is(
-                                CustomerSpawner
-                                        .CUSTOMER_SPAWNER_BLOCK
-                                        .get()
-                        )
-        );
-        List<CustomerVillagerEntity> customers =
-                SearchUtils.findEntitiesInBox(
-                        level,
-                        CustomerVillagerEntity.class,
-                        pos,
-                        CUSTOMER_SPAWNER_SEARCH_SIZE,
-                        customer -> customer.getSpawnerPos() != null
-                );
-        return findCustomerSpawners(
-                level,
-                spawnerPositions,
-                customers
-        );
+        List<BlockPos> spawnerPositions =
+                CustomerSpawnerCache.getValuesNearPosition(level, pos).stream()
+                        .map(CustomerSpawnerCache.Value::spawnerPosition)
+                        .toList();
+        return findCustomerSpawners(level, spawnerPositions);
     }
 
     static List<CustomerSpawnerBlockEntity> findCustomerSpawners(
@@ -1048,16 +1027,14 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
         );
     }
 
-    private List<CustomerSpawnerBlockEntity> getCustomerSpawners(
+    List<CustomerSpawnerBlockEntity> getCustomerSpawners(
             Level level,
             BlockPos pos,
             CustomerScope scope
     ) {
-        long gameTime = level.getGameTime();
-        if (customerSpawnerCacheGameTime == Long.MIN_VALUE
-                || gameTime - customerSpawnerCacheGameTime
-                        >= CUSTOMER_SPAWNER_CACHE_TICKS) {
-            customerSpawnerCacheGameTime = gameTime;
+        long revision = CustomerSpawnerCache.getRevision();
+        if (customerSpawnerCacheRevision != revision) {
+            customerSpawnerCacheRevision = revision;
             cachedAllCustomerSpawners = findCustomerSpawners(level, pos);
             cachedCounterCustomerSpawners = filterCustomerSpawners(
                     level,
@@ -1073,15 +1050,10 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
 
     static List<CustomerSpawnerBlockEntity> findCustomerSpawners(
             Level level,
-            List<BlockPos> nearbySpawnerPositions,
-            List<CustomerVillagerEntity> nearbyCustomers
+            List<BlockPos> nearbySpawnerPositions
     ) {
         Set<BlockPos> spawnerPositions =
                 new LinkedHashSet<>(nearbySpawnerPositions);
-        nearbyCustomers.stream()
-                .map(CustomerVillagerEntity::getSpawnerPos)
-                .filter(java.util.Objects::nonNull)
-                .forEach(spawnerPositions::add);
 
         List<CustomerSpawnerBlockEntity> spawners =
                 new ArrayList<>(spawnerPositions.size());
@@ -1447,8 +1419,19 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
         }
         return List.copyOf(returnedStacks);
     }
-    static boolean shouldRevalidate(long gameTime) {
-        return gameTime % 20L == 0L;
+    static boolean shouldRevalidate(long gameTime, BlockPos pos) {
+        return Math.floorMod(gameTime, REVALIDATION_INTERVAL_TICKS)
+                == Math.floorMod(
+                        pos.asLong(),
+                        REVALIDATION_INTERVAL_TICKS
+                );
+    }
+
+    static boolean hasStoredStacks(
+            List<CustomerPickupCounterBlockEntity> counters
+    ) {
+        return counters.stream()
+                .anyMatch(counter -> !counter.inventory.isEmpty());
     }
 
     static boolean isRevalidationLeader(
@@ -1547,13 +1530,16 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
             counter.lastItemCollectionGameTime = level.getGameTime();
             acceptDroppedItems(level, pos, counter);
         }
-        if (!shouldRevalidate(level.getGameTime())) {
+        if (!shouldRevalidate(level.getGameTime(), pos)) {
             return;
         }
         List<CustomerPickupCounterBlockEntity> counters =
                 getConnectedCounters(level, pos);
         if (!isRevalidationLeader(counters, pos)
                 || !(level instanceof ServerLevel serverLevel)) {
+            return;
+        }
+        if (!hasStoredStacks(counters)) {
             return;
         }
         List<CustomerSpawnerBlockEntity> spawners =

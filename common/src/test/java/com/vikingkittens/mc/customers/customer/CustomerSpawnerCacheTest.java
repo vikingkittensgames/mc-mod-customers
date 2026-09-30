@@ -66,6 +66,39 @@ class CustomerSpawnerCacheTest {
     }
 
     @Test
+    void revisionChangesOnlyWhenCachedContentsChange() {
+        Level level = mock(Level.class);
+        long initialRevision = CustomerSpawnerCache.getRevision();
+
+        CustomerSpawnerCache.update(
+                level,
+                FIRST_SPAWNER,
+                Blocks.OAK_PLANKS.defaultBlockState()
+        );
+        assertEquals(initialRevision + 1, CustomerSpawnerCache.getRevision());
+
+        CustomerSpawnerCache.update(
+                level,
+                FIRST_SPAWNER,
+                Blocks.OAK_PLANKS.defaultBlockState()
+        );
+        assertEquals(initialRevision + 1, CustomerSpawnerCache.getRevision());
+
+        CustomerSpawnerCache.update(
+                level,
+                FIRST_SPAWNER,
+                Blocks.BRICKS.defaultBlockState()
+        );
+        assertEquals(initialRevision + 2, CustomerSpawnerCache.getRevision());
+
+        CustomerSpawnerCache.remove(level, FIRST_SPAWNER);
+        assertEquals(initialRevision + 3, CustomerSpawnerCache.getRevision());
+
+        CustomerSpawnerCache.remove(level, FIRST_SPAWNER);
+        assertEquals(initialRevision + 3, CustomerSpawnerCache.getRevision());
+    }
+
+    @Test
     void updateRemovesAnEntryWhoseSpawnerNoLongerExists() {
         Level level = mock(Level.class);
         CustomerSpawnerBlockEntity spawner = mock(CustomerSpawnerBlockEntity.class);

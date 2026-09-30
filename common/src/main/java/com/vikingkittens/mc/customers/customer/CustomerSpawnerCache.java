@@ -28,6 +28,7 @@ public final class CustomerSpawnerCache {
     ) {}
 
     private static final Map<Key, Value> CACHE = new HashMap<>();
+    private static long revision;
 
     private CustomerSpawnerCache() {}
 
@@ -41,14 +42,21 @@ public final class CustomerSpawnerCache {
 
     static void update(Level level, BlockPos spawnerPosition, BlockState counterBlockState) {
         BlockPos immutablePosition = spawnerPosition.immutable();
-        CACHE.put(
-                new Key(level, immutablePosition),
-                new Value(immutablePosition, counterBlockState)
-        );
+        Value value = new Value(immutablePosition, counterBlockState);
+        Value previousValue = CACHE.put(new Key(level, immutablePosition), value);
+        if (!value.equals(previousValue)) {
+            revision++;
+        }
     }
 
     public static void remove(Level level, BlockPos spawnerPosition) {
-        CACHE.remove(new Key(level, spawnerPosition));
+        if (CACHE.remove(new Key(level, spawnerPosition)) != null) {
+            revision++;
+        }
+    }
+
+    public static long getRevision() {
+        return revision;
     }
 
     public static void onChunkLoaded(Level level, LevelChunk chunk) {
@@ -163,6 +171,9 @@ public final class CustomerSpawnerCache {
     }
 
     static void clear() {
-        CACHE.clear();
+        if (!CACHE.isEmpty()) {
+            CACHE.clear();
+            revision++;
+        }
     }
 }
