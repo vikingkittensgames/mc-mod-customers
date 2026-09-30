@@ -1,5 +1,6 @@
 package com.vikingkittens.mc.customers.customer;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
@@ -7,6 +8,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 
 import com.vikingkittens.mc.customers.advancements.CustomersStatistics;
 import com.vikingkittens.mc.customers.advancements.CustomersTriggers;
@@ -47,6 +50,37 @@ public final class CustomersGameTestAssertions {
         ItemStack bowls = CustomerVillagerEntity.getTradeRemainderStack(new ItemStack(Items.MUSHROOM_STEW, 3));
         assertItem(helper, Items.BOWL, bowls);
         helper.assertValueEqual(3, bowls.getCount(), "mushroom stew remainder count");
+    }
+
+    public static void assertCustomersCanSit(GameTestHelper helper) {
+        assertCustomerCanSit(helper, new BlockPos(1, 1, 1), Blocks.OAK_SLAB);
+        assertCustomerCanSit(helper, new BlockPos(3, 1, 1), Blocks.OAK_STAIRS);
+    }
+
+    private static void assertCustomerCanSit(
+            GameTestHelper helper,
+            BlockPos seatPosition,
+            Block seatBlock
+    ) {
+        helper.setBlock(seatPosition, seatBlock);
+        CustomerVillagerEntity customer = helper.spawn(
+                Customer.CUSTOMER_VILLAGER.get(),
+                seatPosition.above()
+        );
+        boolean startedSitting = CustomerSeatEntity.trySit(
+                helper.getLevel(),
+                helper.absolutePos(seatPosition),
+                customer
+        );
+        helper.assertTrue(
+                startedSitting,
+                "Customer did not mount " + seatBlock
+        );
+        helper.assertValueEqual(
+                CustomerSeat.ENTITY_TYPE.get(),
+                customer.getVehicle().getType(),
+                "customer seat vehicle"
+        );
     }
 
     private static void assertId(GameTestHelper helper, String expected, ResourceLocation actual) {

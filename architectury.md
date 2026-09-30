@@ -273,6 +273,147 @@ a later patch is required by the loader toolchain. Test the exact production
 JAR on every declared Minecraft version; recompiling separately is safer when
 method descriptors or class locations differ.
 
+## Minecraft 1.21.11 Port Details
+
+This section records the differences and decisions verified while porting the
+completed 1.21.1 Architectury implementation to 1.21.11. It is authoritative
+for the `architectury-1.21.11` branch and must be updated as each compatibility
+difference is implemented and tested.
+
+### Build baseline
+
+| Setting | 1.21.11 value |
+| --- | --- |
+| Java | `21` |
+| Architectury Loom | `1.13.469` |
+| Architectury API | `19.0.1` |
+| NeoForge | `21.11.45` |
+| NeoForge loader range | `[3,)` |
+| Fabric Loader | `0.19.5` |
+| Fabric API | `0.141.6+1.21.11` |
+| Parchment | `1.21.11:2025.12.20` |
+| FTB Quests | `2111.1.5` |
+| Minecraft runtime range | `[1.21.11]` |
+
+Architectury API, Fabric API, and FTB Quests publish 1.21.11 artifacts built
+with Loom 1.13.x, so the branch retains Architectury Loom 1.13.469.
+
+FTB Quests publishes shared, Fabric, and NeoForge 1.21.11 artifacts. Retain
+the common Customers task implementation and the thin loader initialization
+hooks established on the 1.21.1 branch.
+
+MCA Reborn does not currently publish a 1.21.11 artifact. The MCA appearance
+integration must remain disabled on this branch unless a compatible artifact
+becomes available and is manually tested.
+
+### Porting differences
+
+The initial mapped compilation confirmed these package and type changes:
+
+| Minecraft 1.21.1 | Minecraft 1.21.11 |
+| --- | --- |
+| `net.minecraft.resources.ResourceLocation` | `net.minecraft.resources.Identifier` |
+| `net.minecraft.advancements.critereon` | `net.minecraft.advancements.criterion` |
+| `net.minecraft.Util` | `net.minecraft.util.Util` |
+| `MobSpawnType` | `EntitySpawnReason` |
+| `world.entity.npc` villager types | `world.entity.npc.villager` |
+| `DimensionTransition` / `changeDimension` | `TeleportTransition` / `teleport` |
+| `client.resources.PlayerSkin` | `world.entity.player.PlayerSkin` |
+| `client.renderer.RenderType` | `client.renderer.rendertype.RenderType` |
+| `DataComponentPredicate` for exact components | `DataComponentExactPredicate` |
+| Offer costs could retain the stack's resolved component map | Build `DataComponentExactPredicate` from non-default components only; normalize offers loaded from affected 1.21.11 saves |
+| `ItemInteractionResult.SUCCESS` | `InteractionResult.SUCCESS` |
+| `ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION` | `InteractionResult.TRY_WITH_EMPTY_HAND` |
+| `ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION` | `InteractionResult.PASS` |
+| `DirectionProperty` | `EnumProperty<Direction>` |
+| `ServerQuestFile.getInstance().ifPresent(...)` | `ServerQuestFile.ifExists(...)` |
+| FTB task creation `Consumer<Task>` | `BiConsumer<Task, CompoundTag>` |
+| `CompoundTag` scalar getters | Return `Optional` values |
+| `ResourceKey.location()` | `ResourceKey.identifier()` |
+| `RegistryAccess.registry` / `registryOrThrow` | `lookup` / `lookupOrThrow` |
+| `Registry.get(Identifier)` for values | `Registry.getValue(Identifier)` |
+| `ItemPredicate.Builder.of(value)` | `of(HolderGetter, value)` |
+| Entity render methods operating directly on entities | Extract reusable render states, then submit them |
+| Renderer-owned mutable model state reached the single active model | Carry custom poses through the shared render state so base and profession-layer models receive the same pose |
+| One-parameter `BlockEntityRenderer<T>` | `BlockEntityRenderer<T, S>` with extraction and submission |
+| Separate armor model-layer constants | `ArmorModelSet<ModelLayerLocation>` |
+| FTB Library `ConfigGroup` | `EditableConfigGroup` |
+| FTB Library config/UI packages | `client.config`, `client.config.gui`, and `client.gui.widget` |
+| FTB Library `config.NameMap` | `util.NameMap` |
+| `BlockEntityType.Builder.of(...)` | Construct through `IRegistrationHelper`; Fabric uses `FabricBlockEntityTypeBuilder` and NeoForge uses its access-transformed constructor |
+| Block and item properties could be constructed without registry keys | Pass the matching `ResourceKey` into block and item factories and call `setId(...)` before construction |
+| Item models were discovered directly under `models/item`, with custom-model-data `overrides` in the baked model | Add `items/<item>.json` item definitions and express custom-model-data selection with `minecraft:range_dispatch` |
+| GUI text colors could omit the alpha byte | Supply explicit ARGB colors; a zero alpha byte renders text transparent |
+| The old `GuiGraphics.blit` texture-region overload accepted a texture identifier directly | Use the render-pipeline overload through `GuiGraphicsCUtils.blit` |
+| Advancement backgrounds used full `textures/...png` paths | Use texture identifiers without the `textures/` prefix or `.png` suffix |
+| `minecraft:custom_model_data` accepted a numeric component value | Encode it as an object containing the `floats` list |
+| Item-model textures were available through the combined block/item atlas | Item textures use a separate atlas; explicitly add non-`textures/item` model textures to `atlases/items.json` |
+| Shaped-recipe ingredients used `{ "item": "<id>" }` and `{ "tag": "<id>" }` objects | Encode items as `"<id>"`, tags as `"#<id>"`, and alternatives as arrays of those strings |
+| A shared `pack.mcmeta` described both mod resources and data | Omit it and let each loader supply metadata for the active pack type; Minecraft 1.21.11 resource format 75.0 rejects `supported_formats`, while data format 94.1 requires it for a shared range beginning at 75 |
+| Loader GameTests used vanilla `@GameTest`; NeoForge discovered `@GameTestHolder` classes | Fabric supplies its own `@GameTest`; NeoForge registers test functions and `FunctionGameTestInstance` values |
+| `Block.onRemove(...)` cleanup | `affectNeighborsAfterRemoval(ServerLevel, ...)` cleanup |
+| `LevelHeightAccessor.getMinBuildHeight()` / `getMaxBuildHeight()` | `getMinY()` / `getMaxY()` |
+| `GoalSelector(ProfilerSupplier)` | No-argument `GoalSelector()` |
+| `SoundEvent.getLocation()` | `SoundEvent.location()` |
+| `EntityType.create(Level)` | `EntityType.create(Level, EntitySpawnReason)` |
+| Non-serializable vehicle entity types could be mounted | Server-side `startRiding` rejects vehicle types registered with `.noSave()`; the invisible customer seat must be serializable |
+| NeoForge `common.util.TriState` | Vanilla `net.minecraft.util.TriState` |
+| NeoForge biome data-map values are direct `VillagerType` values | Biome data maps return `ResourceKey<VillagerType>` |
+| NeoForge `Capabilities.ItemHandler.BLOCK` and `IItemHandler` | `Capabilities.Item.BLOCK` and `ResourceHandler<ItemResource>` |
+| Fabric resource conditions receive `HolderLookup.Provider` | Resource conditions receive `RegistryOps.RegistryInfoLookup` |
+| Fabric world-render events under `client.rendering.v1` | Events under `client.rendering.v1.world`, with extracted camera render state |
+| `BossHealthOverlay.render` stored its vertical offset in local-variable slot 3 | The added profiler local moves the vertical offset to slot 4; Fabric's boss-bar mixin must target slot 4 |
+| NeoForge staged render event plus `Stage` enum | Typed events such as `RenderLevelStageEvent.AfterEntities` |
+| Entity-render hooks receive pose stacks and buffers directly | Common renderers submit through `SubmitNodeCollector` using extracted `EntityRenderState` |
+| `GuiGraphics.drawString(...)` returns an integer width | `drawString(...)` returns `void` |
+| Block entities serialized directly through `CompoundTag` | Block entities use `ValueInput` and `ValueOutput`; Customers retains its 1.21.1 `Size`/`Items`/`Slot` inventory schema and reuses child/list handles so repeated writes append |
+
+`Identifier` retains the factory methods used by Customers, including
+`parse`, `fromNamespaceAndPath`, and `withDefaultNamespace`.
+
+The 1.21.11 branch keeps Minecraft-version differences behind the existing
+Customers compatibility utilities or thin loader adapters. Architectury API
+remains the first choice for registration, networking, events, and client
+registration when it exposes the required behavior.
+
+Minecraft does not data-fix item stacks nested inside Customers-owned fields.
+The persistence adapters therefore reproduce the established 1.21.1 sparse
+inventory schema through the 1.21.11 value-input and value-output APIs.
+Minecraft's `ValueOutput.child` and `childrenList` methods replace an existing
+value each time they are called. `ValueOutputDataWriter` caches those handles
+so the unchanged 1.21.1 customer and supplier persistence loops retain every
+configured entry.
+
+NeoForge GameTests must apply Loom's `gameTestServer` userdev template rather
+than setting a property on a normal server run. Fabric continues to enable its
+GameTest runner with `fabric-api.gametest`.
+
+Standard customer and supplier entity renderer registration remains common
+through Architectury. `CustomersVillagerAppearanceEntityRenderer` delegates
+to the selected appearance renderer and then submits wanted-item icons using
+the delegate's extracted name-tag state. This keeps wanted items visible
+independently of name-tag rendering and removes both the Fabric
+`EntityRendererMixin` and the NeoForge name-tag event adapter.
+
+Architectury API 19 does not expose counter-marker world-render events.
+Fabric therefore uses `WorldRenderEvents.AFTER_ENTITIES`; NeoForge uses
+`RenderLevelStageEvent.AfterEntities`. Both adapters pass the pose stack,
+camera render state, and model-view matrix to the same common renderer.
+
+NeoForge 21.11 replaces the deprecated item-handler capability used by the
+1.21.1 branch. Payment boxes expose `VanillaContainerWrapper`, while pickup
+counters expose the transaction-aware `NeoForgeItemInsertionTarget` as a
+`ResourceHandler<ItemResource>`. Fabric retains its loader-specific transfer
+adapter because Architectury API 19 has no common inventory-transfer API.
+
+Common tests must depend on Architectury through Loom's `modImplementation`
+configuration. Adding the raw Architectury artifact directly to
+`testRuntimeOnly` leaves intermediary Minecraft names on the JUnit runtime
+classpath.
+
+This section replaces the deleted
+`Minecraft-1.21.1-to-1.21.11.md` pre-Architectury migration document.
+
 ## API Migration Areas
 
 ### Platform and optional-mod checks
@@ -448,14 +589,14 @@ before introducing mixins. Keep any unavoidable mixin narrowly scoped to event
 capture and call common Customers behavior from it.
 
 Fabric registers counter-marker rendering through
-`WorldRenderEvents.AFTER_ENTITIES`, using the same common renderer and camera
-coordinates as NeoForge. Fabric has no individual boss-bar or name-tag callback
+`WorldRenderEvents.AFTER_ENTITIES`, using the same common renderer and
+extracted camera state as NeoForge. Fabric has no individual boss-bar callback
 with the information and cancellation needed by Customers. Its client-only
 `BossHealthOverlayMixin` delegates customer bars to `CustomerBossBarRenderer`,
 suppresses vanilla title rendering for those bars, and applies the shared
-layout increment. `EntityRendererMixin` delegates after a vanilla name tag has
-rendered to `CustomerWantedItemsRenderer`. Both mixins leave every non-Customers
-render path unchanged.
+layout increment. Wanted-item rendering runs from the common
+`CustomersVillagerAppearanceEntityRenderer` after the selected appearance
+renderer submits, so it uses the same production path on Fabric and NeoForge.
 
 ### Commands
 
@@ -527,8 +668,8 @@ capture and loader-specific render submission should remain in loader modules.
 
 ### Inventories and automation
 
-Architectury API 13 does not provide one common abstraction covering Forge and
-NeoForge item-handler capabilities and Fabric's transfer APIs.
+Architectury API does not provide one common abstraction covering Forge item
+handlers, NeoForge 21.11 resource handlers, and Fabric transfer APIs.
 
 Keep:
 
@@ -536,7 +677,7 @@ Keep:
 - a transaction-aware Fabric Transfer API adapter for pickup counters; payment
   boxes use the automatic `Container` fallback
 - Forge item-handler wrappers
-- NeoForge item-handler wrappers
+- NeoForge `ResourceHandler<ItemResource>` wrappers
 - loader capability or transfer registration
 
 Continue using vanilla `Container` behavior for gameplay and persistence.
@@ -565,13 +706,11 @@ resource split when a loader requires a distinct condition codec.
 
 ### FTB Quests
 
-Keep FTB Quests code in `neoforge` unless the exact FTB Quests API integration
-used by Customers becomes available and tested on Fabric. Architectury does
-not make an optional loader-specific integration portable.
-
-`CustomersFTB`, task registration, task configuration UI, and FTB event
-listeners should continue to initialize only when FTB Quests is loaded.
-They may consume common Customers events and trigger schemas.
+FTB Quests 2111.1.x publishes compatible Fabric and NeoForge artifacts.
+Customers keeps its task types, trigger schemas, configuration UI, and event
+listeners in `common`; thin loader client and server hooks initialize them
+only when FTB Quests is present. Each loader supplies its matching FTB Quests
+runtime artifact.
 
 ### MCA and other optional mods
 
