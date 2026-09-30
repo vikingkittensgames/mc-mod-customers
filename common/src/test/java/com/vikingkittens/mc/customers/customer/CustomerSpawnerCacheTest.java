@@ -28,6 +28,8 @@ import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class CustomerSpawnerCacheTest {
@@ -256,6 +258,37 @@ class CustomerSpawnerCacheTest {
         );
 
         assertTrue(events.isEmpty());
+    }
+
+    @Test
+    void matchingCounterChangesInvalidateTheSpawnerCounterCache() {
+        ServerLevel level = mock(ServerLevel.class);
+        CustomerSpawnerBlockEntity spawner =
+                mock(CustomerSpawnerBlockEntity.class);
+        when(level.getBlockEntity(FIRST_SPAWNER)).thenReturn(spawner);
+        CustomerSpawnerCache.update(
+                level,
+                FIRST_SPAWNER,
+                Blocks.OAK_PLANKS.defaultBlockState()
+        );
+        BlockPos counterPosition = FIRST_SPAWNER.offset(4, 0, 0);
+
+        CustomerSpawnerCache.onBlockPlaced(
+                level,
+                counterPosition,
+                Blocks.OAK_PLANKS.defaultBlockState(),
+                null,
+                64,
+                event -> {}
+        );
+        CustomerSpawnerCache.onBlockBroken(
+                level,
+                counterPosition,
+                Blocks.OAK_PLANKS.defaultBlockState(),
+                64
+        );
+
+        verify(spawner, times(2)).invalidateCounterPositions();
     }
 
     @Test

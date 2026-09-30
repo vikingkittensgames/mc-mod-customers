@@ -116,25 +116,30 @@ public final class CustomerSpawnerCache {
             int maxDistance,
             Consumer<CustomerInternalEvents.CounterBlockPlaced> eventConsumer
     ) {
-        if (blockState.getBlock() instanceof CustomerSpawnerBlock) {
+        boolean spawnerPlaced = blockState.getBlock() instanceof CustomerSpawnerBlock;
+        if (spawnerPlaced) {
             update(level, blockPosition);
         }
 
         for (Value value : getValuesNearPosition(level, blockPosition, maxDistance)) {
             if (blockPosition.equals(value.spawnerPosition().above())) {
                 update(level, value.spawnerPosition(), blockState);
-            } else if (player != null
-                    && level instanceof ServerLevel serverLevel
-                    && blockState.is(value.counterBlockState().getBlock())
-                    && level.getBlockEntity(value.spawnerPosition()) instanceof CustomerSpawnerBlockEntity spawner) {
-                eventConsumer.accept(new CustomerInternalEvents.CounterBlockPlaced(
-                        serverLevel,
-                        value.spawnerPosition(),
-                        spawner.getSpawnerMode(),
-                        player.getUUID(),
-                        blockPosition,
-                        blockState
-                ));
+            } else if (level.getBlockEntity(value.spawnerPosition())
+                    instanceof CustomerSpawnerBlockEntity spawner) {
+                boolean matchingCounterPlaced = blockState.is(value.counterBlockState().getBlock());
+                if (spawnerPlaced || matchingCounterPlaced) {
+                    spawner.invalidateCounterPositions();
+                }
+                if (player != null && level instanceof ServerLevel serverLevel && matchingCounterPlaced) {
+                    eventConsumer.accept(new CustomerInternalEvents.CounterBlockPlaced(
+                            serverLevel,
+                            value.spawnerPosition(),
+                            spawner.getSpawnerMode(),
+                            player.getUUID(),
+                            blockPosition,
+                            blockState
+                    ));
+                }
             }
         }
     }
@@ -158,14 +163,17 @@ public final class CustomerSpawnerCache {
             BlockState blockState,
             int maxDistance
     ) {
-        if (blockState.getBlock() instanceof CustomerSpawnerBlock) {
+        boolean spawnerBroken = blockState.getBlock() instanceof CustomerSpawnerBlock;
+        if (spawnerBroken) {
             remove(level, blockPosition);
-            return;
         }
 
         for (Value value : getValuesNearPosition(level, blockPosition, maxDistance)) {
             if (blockPosition.equals(value.spawnerPosition().above())) {
                 update(level, value.spawnerPosition(), Blocks.AIR.defaultBlockState());
+            } else if ((spawnerBroken || blockState.is(value.counterBlockState().getBlock()))
+                    && level.getBlockEntity(value.spawnerPosition()) instanceof CustomerSpawnerBlockEntity spawner) {
+                spawner.invalidateCounterPositions();
             }
         }
     }
