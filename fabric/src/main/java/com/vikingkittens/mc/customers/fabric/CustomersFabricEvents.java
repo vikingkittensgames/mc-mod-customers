@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 
 import com.vikingkittens.mc.customers.customer.CustomerInteractions;
+import com.vikingkittens.mc.customers.customer.CustomerLeaderboardCache;
 import com.vikingkittens.mc.customers.customer.CustomerPickupCounterBlock;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerCache;
 
@@ -23,9 +24,21 @@ public final class CustomersFabricEvents {
                                 hand
                         )
                         : InteractionResult.PASS);
-        PlayerBlockBreakEvents.AFTER.register((level, player, position, state, blockEntity) ->
-                CustomerSpawnerCache.onBlockBroken(level, position, state));
-        ServerChunkEvents.CHUNK_LOAD.register(CustomerSpawnerCache::onChunkLoaded);
-        ServerChunkEvents.CHUNK_UNLOAD.register(CustomerSpawnerCache::onChunkUnloaded);
+        PlayerBlockBreakEvents.AFTER.register((level, player, position, state, blockEntity) -> {
+            CustomerSpawnerCache.onBlockBroken(level, position, state);
+            CustomerLeaderboardCache.onBlockBroken(
+                    level,
+                    position,
+                    state
+            );
+        });
+        ServerChunkEvents.CHUNK_LOAD.register((level, chunk) -> {
+            CustomerSpawnerCache.onChunkLoaded(level, chunk);
+            CustomerLeaderboardCache.onChunkLoaded(level, chunk);
+        });
+        ServerChunkEvents.CHUNK_UNLOAD.register((level, chunk) -> {
+            CustomerSpawnerCache.onChunkUnloaded(level, chunk);
+            CustomerLeaderboardCache.onChunkUnloaded(level, chunk);
+        });
     }
 }

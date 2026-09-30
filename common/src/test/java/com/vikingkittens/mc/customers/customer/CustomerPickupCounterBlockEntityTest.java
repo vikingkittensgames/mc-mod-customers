@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -20,8 +21,10 @@ import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 import com.vikingkittens.mc.customers.compatability.persistence.PersistedContainer;
@@ -32,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -39,6 +43,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class CustomerPickupCounterBlockEntityTest {
+    @AfterEach
+    void clearSpawnerCache() {
+        CustomerSpawnerCache.clear();
+    }
+
     @Test
     void playerOwnedItemsUseAllCustomerDemand() {
         assertEquals(
@@ -1004,49 +1013,91 @@ class CustomerPickupCounterBlockEntityTest {
     }
 
     @Test
-    void findsSpawnerReferencedByNearbyCustomer() {
+    void findsCachedSpawnerInsideConfiguredSphericalDistance() {
         Level level = mock(Level.class);
-        CustomerVillagerEntity customer =
-                mock(CustomerVillagerEntity.class);
         CustomerSpawnerBlockEntity spawner =
                 mock(CustomerSpawnerBlockEntity.class);
         BlockPos spawnerPos = new BlockPos(40, 0, 0);
-        when(customer.getSpawnerPos()).thenReturn(spawnerPos);
         when(level.getBlockEntity(spawnerPos)).thenReturn(spawner);
+        CustomerSpawnerCache.update(
+                level,
+                spawnerPos,
+                Blocks.AIR.defaultBlockState()
+        );
 
-        List<CustomerSpawnerBlockEntity> spawners =
+        assertEquals(
+                List.of(spawner),
                 CustomerPickupCounterBlockEntity.findCustomerSpawners(
                         level,
-                        List.of(),
-                        List.of(customer)
-                );
-
-        assertEquals(List.of(spawner), spawners);
+                        BlockPos.ZERO
+                )
+        );
+        verify(level, never()).getEntitiesOfClass(
+                eq(CustomerVillagerEntity.class),
+                any(AABB.class),
+                any()
+        );
     }
 
     @Test
-    void findsEachCustomerSpawnerOnlyOnce() {
+    void resolvesEachCachedSpawnerOnlyOnce() {
         Level level = mock(Level.class);
-        CustomerVillagerEntity firstCustomer =
-                mock(CustomerVillagerEntity.class);
-        CustomerVillagerEntity secondCustomer =
-                mock(CustomerVillagerEntity.class);
         CustomerSpawnerBlockEntity spawner =
                 mock(CustomerSpawnerBlockEntity.class);
         BlockPos spawnerPos = BlockPos.ZERO;
-        when(firstCustomer.getSpawnerPos()).thenReturn(spawnerPos);
-        when(secondCustomer.getSpawnerPos()).thenReturn(spawnerPos);
         when(level.getBlockEntity(spawnerPos)).thenReturn(spawner);
 
         List<CustomerSpawnerBlockEntity> spawners =
                 CustomerPickupCounterBlockEntity.findCustomerSpawners(
                         level,
-                        List.of(spawnerPos),
-                        List.of(firstCustomer, secondCustomer)
+                        List.of(spawnerPos, spawnerPos)
                 );
 
         assertEquals(List.of(spawner), spawners);
         verify(level, times(1)).getBlockEntity(spawnerPos);
+    }
+
+    @Test
+    void refreshesCachedSpawnersOnlyWhenCacheRevisionChanges() {
+        Level level = mock(Level.class);
+        BlockPos counterPos = BlockPos.ZERO;
+        BlockPos spawnerPos = new BlockPos(40, 0, 0);
+        CustomerPickupCounterBlockEntity counter = createCounter();
+        CustomerSpawnerBlockEntity spawner =
+                mock(CustomerSpawnerBlockEntity.class);
+        when(spawner.getBlockPos()).thenReturn(spawnerPos);
+        when(level.getBlockEntity(spawnerPos)).thenReturn(spawner);
+        when(level.getBlockState(counterPos))
+                .thenReturn(Blocks.OAK_PLANKS.defaultBlockState());
+        CustomerSpawnerCache.update(
+                level,
+                spawnerPos,
+                Blocks.OAK_PLANKS.defaultBlockState()
+        );
+
+        counter.getCustomerSpawners(
+                level,
+                counterPos,
+                CustomerPickupCounterBlockEntity.CustomerScope.ALL
+        );
+        counter.getCustomerSpawners(
+                level,
+                counterPos,
+                CustomerPickupCounterBlockEntity.CustomerScope.ALL
+        );
+        verify(level, times(1)).getBlockEntity(spawnerPos);
+
+        CustomerSpawnerCache.update(
+                level,
+                spawnerPos,
+                Blocks.BRICKS.defaultBlockState()
+        );
+        counter.getCustomerSpawners(
+                level,
+                counterPos,
+                CustomerPickupCounterBlockEntity.CustomerScope.ALL
+        );
+        verify(level, times(2)).getBlockEntity(spawnerPos);
     }
 
     @Test
