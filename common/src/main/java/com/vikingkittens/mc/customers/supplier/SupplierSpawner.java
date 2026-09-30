@@ -12,6 +12,8 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.compatability.CustomersServices;
+import com.vikingkittens.mc.customers.compatability.RegistrationCUtils;
 
 public class SupplierSpawner {
     private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(Customers.MODID, Registries.BLOCK);
@@ -29,10 +31,12 @@ public class SupplierSpawner {
     }
 
     // -------------------- Blocks --------------------
-    public static final RegistrySupplier<SupplierSpawnerBlock> SUPPLIER_SPAWNER_BLOCK = BLOCKS.register(
+    public static final RegistrySupplier<SupplierSpawnerBlock> SUPPLIER_SPAWNER_BLOCK =
+            RegistrationCUtils.registerBlock(
+                    BLOCKS,
                     SupplierSpawnerBlock.NAME,
-                    () -> new SupplierSpawnerBlock(
-                            BlockBehaviour.Properties.of()
+                    key -> new SupplierSpawnerBlock(
+                            BlockBehaviour.Properties.of().setId(key)
                     )
             );
 
@@ -40,7 +44,10 @@ public class SupplierSpawner {
     public static final RegistrySupplier<BlockEntityType<SupplierSpawnerBlockEntity>> SUPPLIER_SPAWNER_ENTITY =
             BLOCK_ENTITY_TYPES.register(
             SupplierSpawnerBlockEntity.NAME,
-            () -> BlockEntityType.Builder.of(SupplierSpawnerBlockEntity::new, SUPPLIER_SPAWNER_BLOCK.get()).build(null)
+            () -> CustomersServices.registration().createBlockEntityType(
+                    SupplierSpawnerBlockEntity::new,
+                    SUPPLIER_SPAWNER_BLOCK.get()
+            )
     );
 
     public static final RegistrySupplier<MenuType<SupplierSpawnerBlockMenu>> SUPPLIER_SPAWNER_MENU = MENUS.register(
@@ -49,11 +56,13 @@ public class SupplierSpawner {
     );
 
     // -------------------- Items --------------------
-    public static final RegistrySupplier<BlockItem> SUPPLIER_SPAWNER_ITEM = ITEMS.register(
+    public static final RegistrySupplier<BlockItem> SUPPLIER_SPAWNER_ITEM =
+            RegistrationCUtils.registerItem(
+                    ITEMS,
                     SupplierSpawnerBlock.NAME,
-                    () -> new BlockItem(
+                    key -> new BlockItem(
                             SUPPLIER_SPAWNER_BLOCK.get(),
-                            new Item.Properties()
+                            new Item.Properties().setId(key)
                     )
             );
 

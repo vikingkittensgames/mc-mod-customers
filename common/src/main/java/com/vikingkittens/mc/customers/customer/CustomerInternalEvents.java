@@ -13,7 +13,7 @@ import java.util.UUID;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
@@ -48,7 +48,7 @@ public final class CustomerInternalEvents {
     public abstract static class ServedEvent extends CustomerEvent {
         private final UUID playerId;
         private final UUID customerId;
-        private final ResourceLocation customerProfession;
+        private final Identifier customerProfession;
         private final ItemStack servedItem;
         private final ItemStack costItem;
         private final boolean isPetItem;
@@ -59,7 +59,7 @@ public final class CustomerInternalEvents {
                 @Nullable CustomerSpawnerMode spawnerMode,
                 @Nullable UUID playerId,
                 UUID customerId,
-                ResourceLocation customerProfession,
+                Identifier customerProfession,
                 ItemStack servedItem,
                 ItemStack costItem,
                 boolean isPetItem
@@ -77,7 +77,7 @@ public final class CustomerInternalEvents {
 
         public UUID customerId() { return customerId; }
 
-        public ResourceLocation customerProfession() { return customerProfession; }
+        public Identifier customerProfession() { return customerProfession; }
 
         public ItemStack servedItem() { return servedItem.copy(); }
         public ItemStack costItem() { return costItem.copy(); }
@@ -92,7 +92,7 @@ public final class CustomerInternalEvents {
                 @Nullable CustomerSpawnerMode spawnerMode,
                 @Nullable UUID playerId,
                 UUID customerId,
-                ResourceLocation customerProfession,
+                Identifier customerProfession,
                 ItemStack servedItem,
                 ItemStack costItem,
                 boolean isPetItem
@@ -118,7 +118,7 @@ public final class CustomerInternalEvents {
                 @Nullable CustomerSpawnerMode spawnerMode,
                 @Nullable UUID playerId,
                 UUID customerId,
-                ResourceLocation customerProfession,
+                Identifier customerProfession,
                 ItemStack servedItem,
                 ItemStack costItem,
                 boolean isPetItem

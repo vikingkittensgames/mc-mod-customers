@@ -10,34 +10,36 @@ import org.slf4j.Logger;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.ConversionParams;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.LookAtTradingPlayerGoal;
-import net.minecraft.world.entity.npc.Villager;
-import net.minecraft.world.entity.npc.VillagerData;
+import net.minecraft.world.entity.npc.villager.Villager;
+import net.minecraft.world.entity.npc.villager.VillagerData;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.Path;
-import net.minecraft.world.level.portal.DimensionTransition;
+import net.minecraft.world.level.portal.TeleportTransition;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillager;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearance;
@@ -51,6 +53,7 @@ import com.vikingkittens.mc.customers.common.events.InternalEvents;
 import com.vikingkittens.mc.customers.compatability.CustomersServices;
 import com.vikingkittens.mc.customers.compatability.EntityCUtils;
 import com.vikingkittens.mc.customers.compatability.InteractionCUtils;
+import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
 import com.vikingkittens.mc.customers.compatability.LevelCUtils;
 import com.vikingkittens.mc.customers.compatability.VillagerCUtils;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
@@ -85,7 +88,7 @@ public class SupplierVillagerEntity extends Villager implements CustomersVillage
     public static final String NAME = "supplier_villager";
 
     @Override
-    public Entity changeDimension(DimensionTransition transition) {
+    public Entity teleport(TeleportTransition transition) {
         discard();
         return null;
     }
@@ -132,7 +135,7 @@ public class SupplierVillagerEntity extends Villager implements CustomersVillage
 
                     supplier.setState(SupplierState.INITIALIZING);
 
-                    supplier.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(spawnerPos), MobSpawnType.COMMAND, null);
+                    supplier.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(spawnerPos), EntitySpawnReason.COMMAND, null);
 
                     serverLevel.addFreshEntity(supplier);
 
@@ -233,12 +236,12 @@ public class SupplierVillagerEntity extends Villager implements CustomersVillage
     }
 
     @Override
-    public ResourceLocation getAppearanceId() {
-        return ResourceLocation.parse(entityData.get(DATA_APPEARANCE));
+    public Identifier getAppearanceId() {
+        return Identifier.parse(entityData.get(DATA_APPEARANCE));
     }
 
     @Override
-    public void setAppearanceId(ResourceLocation appearanceId) {
+    public void setAppearanceId(Identifier appearanceId) {
         entityData.set(DATA_APPEARANCE, appearanceId.toString());
     }
 
@@ -349,7 +352,7 @@ public class SupplierVillagerEntity extends Villager implements CustomersVillage
     }
 
     public void setAppearanceContext(
-            ResourceLocation appearanceId,
+            Identifier appearanceId,
             float variationSeed
     ) {
         setAppearanceId(appearanceId);
@@ -381,9 +384,10 @@ public class SupplierVillagerEntity extends Villager implements CustomersVillage
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag compound) {
-        super.readAdditionalSaveData(compound);
-        readSupplierData(PersistenceCUtils.reader(compound));
+    public void readAdditionalSaveData(ValueInput input) {
+        super.readAdditionalSaveData(input);
+        setOffers(ItemStackCUtils.normalizeOfferCosts(getOffers()));
+        readSupplierData(PersistenceCUtils.reader(input));
     }
     void readSupplierData(DataReader input) {
         CustomersVillagerAppearancePersistence.read(input, this);
@@ -399,9 +403,9 @@ public class SupplierVillagerEntity extends Villager implements CustomersVillage
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag compound) {
-        super.addAdditionalSaveData(compound);
-        writeSupplierData(PersistenceCUtils.writer(compound));
+    public void addAdditionalSaveData(ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        writeSupplierData(PersistenceCUtils.writer(output));
     }
     void writeSupplierData(DataWriter output) {
         CustomersVillagerAppearancePersistence.write(output, this);
@@ -422,24 +426,43 @@ public class SupplierVillagerEntity extends Villager implements CustomersVillage
     }
 
     @Override
-    public boolean isInvulnerableTo(DamageSource source) {
+    public boolean isInvulnerableTo(ServerLevel level, DamageSource source) {
         return CustomersServices.config().customersAreInvulnerable()
-                || super.isInvulnerableTo(source);
+                || super.isInvulnerableTo(level, source);
     }
 
     @Override
     public <T extends Mob> @Nullable T convertTo(
             EntityType<T> entityType,
-            boolean transferInventory
+            ConversionParams conversionParams,
+            EntitySpawnReason spawnReason,
+            ConversionParams.AfterConversion<T> afterConversion
     ) {
         if (EntityType.ZOMBIE_VILLAGER.equals(entityType)) {
             return null;
         }
-        return super.convertTo(entityType, transferInventory);
+        return super.convertTo(
+                entityType,
+                conversionParams,
+                spawnReason,
+                afterConversion
+        );
     }
 
     @Override
-    protected void customServerAiStep() {
+    public <T extends Mob> @Nullable T convertTo(
+            EntityType<T> entityType,
+            ConversionParams conversionParams,
+            ConversionParams.AfterConversion<T> afterConversion
+    ) {
+        if (EntityType.ZOMBIE_VILLAGER.equals(entityType)) {
+            return null;
+        }
+        return super.convertTo(entityType, conversionParams, afterConversion);
+    }
+
+    @Override
+    protected void customServerAiStep(ServerLevel level) {
     }
 
     @Override

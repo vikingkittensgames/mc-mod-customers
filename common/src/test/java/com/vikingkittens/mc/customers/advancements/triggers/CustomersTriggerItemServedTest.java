@@ -8,12 +8,12 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import com.mojang.serialization.JsonOps;
-import net.minecraft.advancements.critereon.MinMaxBounds;
+import net.minecraft.advancements.criterion.MinMaxBounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -58,7 +58,7 @@ class CustomersTriggerItemServedTest {
         CustomersTriggerItemServed.Instance instance = new CustomersTriggerItemServed.Instance(
                 Optional.empty(),
                 Optional.of(CustomerSpawnerMode.LUNCH),
-                Optional.of(ResourceLocation.parse("customers:customer_impatient")),
+                Optional.of(Identifier.parse("customers:customer_impatient")),
                 Optional.empty(),
                 Optional.of(MinMaxBounds.Ints.atLeast(3)),
                 Optional.empty(),
@@ -227,7 +227,7 @@ class CustomersTriggerItemServedTest {
                 mode,
                 UUID.randomUUID(),
                 UUID.randomUUID(),
-                ResourceLocation.parse("customers:customer_impatient"),
+                Identifier.parse("customers:customer_impatient"),
                 new ItemStack(Items.APPLE, servedCount),
                 new ItemStack(Items.EMERALD, costCount),
                 isPetItem

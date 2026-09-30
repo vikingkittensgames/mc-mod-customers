@@ -6,8 +6,9 @@ import org.jetbrains.annotations.Nullable;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.item.ItemModelResolver;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -21,7 +22,6 @@ public final class CustomerWantedItemsRenderer {
     private static final int MAX_OVERHEAD_ITEMS = 3;
     private static final float NAME_TAG_TEXT_SCALE = 0.025F;
     private static final float NAME_TAG_ITEM_GAP = 0.12F;
-    private static final double NAME_TAG_RENDER_DISTANCE_SQUARED = 4096.0D;
     private static final float BASE_VERTICAL_OFFSET = 0.25F;
 
     private CustomerWantedItemsRenderer() {}
@@ -30,7 +30,7 @@ public final class CustomerWantedItemsRenderer {
             Entity renderedEntity,
             boolean nameTagRendered,
             PoseStack poseStack,
-            MultiBufferSource buffer,
+            SubmitNodeCollector nodeCollector,
             int packedLight
     ) {
         CustomerVillagerEntity customer = getRenderedCustomer(renderedEntity);
@@ -57,23 +57,32 @@ public final class CustomerWantedItemsRenderer {
                 customer.getBbHeight() + verticalOffset,
                 0
         );
-        poseStack.mulPose(minecraft.getEntityRenderDispatcher().cameraOrientation());
+        poseStack.mulPose(minecraft.gameRenderer.getMainCamera().rotation());
 
         float iconSpacing = 0.5F;
         float startX = -((offerDisplayItems.size() - 1) * iconSpacing) / 2.0F;
         for (int index = 0; index < offerDisplayItems.size(); index++) {
             poseStack.pushPose();
             poseStack.translate(startX + index * iconSpacing, 0, 0);
-            minecraft.getItemRenderer().renderStatic(
+            ItemStackRenderState itemRenderState = new ItemStackRenderState();
+            ItemModelResolver itemModelResolver = minecraft.getItemModelResolver();
+            itemModelResolver.updateForTopItem(
+                    itemRenderState,
                     offerDisplayItems.get(index),
                     ItemDisplayContext.GROUND,
-                    packedLight,
-                    OverlayTexture.NO_OVERLAY,
-                    poseStack,
-                    buffer,
                     customer.level(),
-                    0
+                    null,
+                    customer.getId()
             );
+            if (!itemRenderState.isEmpty()) {
+                itemRenderState.submit(
+                        poseStack,
+                        nodeCollector,
+                        packedLight,
+                        0,
+                        0
+                );
+            }
             poseStack.popPose();
         }
         poseStack.popPose();
@@ -90,19 +99,6 @@ public final class CustomerWantedItemsRenderer {
         return null;
     }
 
-    public static boolean isNameTagRendered(
-            Entity renderedEntity,
-            boolean sourceVisibility,
-            double distanceToSqr
-    ) {
-        return !renderedEntity.getDisplayName().getString().isBlank()
-                && distanceToSqr <= NAME_TAG_RENDER_DISTANCE_SQUARED
-                && getDefaultNameTagVisibility(
-                        renderedEntity,
-                        sourceVisibility
-                );
-    }
-
     static float getVerticalOffset(
             boolean nameTagRendered,
             float appearanceNameTagOffset,
@@ -114,11 +110,5 @@ public final class CustomerWantedItemsRenderer {
         return BASE_VERTICAL_OFFSET
                 + appearanceNameTagOffset
                 + nameTagOffset;
-    }
-
-    public static boolean getDefaultNameTagVisibility(Entity renderedEntity, boolean sourceVisibility) {
-        return renderedEntity instanceof CustomersVillagerRenderProxy proxy
-                ? proxy.shouldRenderNameTag()
-                : sourceVisibility;
     }
 }

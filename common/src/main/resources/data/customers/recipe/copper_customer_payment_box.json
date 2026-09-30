@@ -2,15 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "E": {
-      "item": "minecraft:emerald"
-    },
-    "G": {
-      "item": "minecraft:gold_ingot"
-    },
-    "V": {
-      "item": "minecraft:copper_ingot"
-    }
+    "E": "minecraft:emerald",
+    "G": "minecraft:gold_ingot",
+    "V": "minecraft:copper_ingot"
   },
   "pattern": [
     "VGV",

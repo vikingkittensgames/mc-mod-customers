@@ -6,7 +6,7 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
@@ -16,7 +16,7 @@ public final class EconomyItemCostProviderDefault implements EconomyItemCostProv
     private static final long ONE_HOUR_MILLIS = 60L * 60L * 1_000L;
 
     private final Logger logger;
-    private final Set<ResourceLocation> itemIds = new LinkedHashSet<>();
+    private final Set<Identifier> itemIds = new LinkedHashSet<>();
     private long serverStartMillis;
     private long lastFlushedDay;
     private boolean firstFlushPending;

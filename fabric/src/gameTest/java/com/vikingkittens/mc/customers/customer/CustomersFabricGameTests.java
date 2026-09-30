@@ -2,16 +2,15 @@ package com.vikingkittens.mc.customers.customer;
 
 import java.util.List;
 
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
 
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 
@@ -27,22 +26,35 @@ import com.vikingkittens.mc.customers.customer.CustomerSeat;
 import com.vikingkittens.mc.customers.customer.CustomerSpawner;
 import com.vikingkittens.mc.customers.fabric.CustomerPickupCounterFabricStorage;
 import com.vikingkittens.mc.customers.supplier.Supplier;
+import com.vikingkittens.mc.customers.supplier.SupplierGameTestAssertions;
 import com.vikingkittens.mc.customers.supplier.SupplierSpawner;
 
-public final class CustomersFabricGameTests implements FabricGameTest {
-    @GameTest(template = EMPTY_STRUCTURE)
+public final class CustomersFabricGameTests {
+    @GameTest(maxTicks = 100)
     public void registersCustomersContent(GameTestHelper helper) {
         CustomersGameTestAssertions.assertCustomersContentRegistered(helper);
         helper.succeed();
     }
 
-    @GameTest(template = EMPTY_STRUCTURE)
+    @GameTest(maxTicks = 100)
     public void createsTradeRemainders(GameTestHelper helper) {
         CustomersGameTestAssertions.assertTradeRemainders(helper);
         helper.succeed();
     }
 
-    @GameTest(template = EMPTY_STRUCTURE)
+    @GameTest(maxTicks = 100)
+    public void customersCanSit(GameTestHelper helper) {
+        CustomersGameTestAssertions.assertCustomersCanSit(helper);
+        helper.succeed();
+    }
+
+    @GameTest(maxTicks = 100)
+    public void supplierTradesSurviveSaveAndLoad(GameTestHelper helper) {
+        SupplierGameTestAssertions.assertTradesSurviveSaveAndLoad(helper);
+        helper.succeed();
+    }
+
+    @GameTest(maxTicks = 100)
     public void commitsOnlyCompletedFabricTransactions(GameTestHelper helper) {
         RecordingInsertionTarget target = new RecordingInsertionTarget();
         CustomerPickupCounterFabricStorage storage =

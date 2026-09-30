@@ -2,7 +2,7 @@ package com.vikingkittens.mc.customers.customer.data;
 
 import java.util.List;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
@@ -105,7 +105,7 @@ public final class CustomerOverlayBlockVariants {
                 name,
                 () -> ingredient,
                 () -> textureBlock,
-                ResourceLocation.withDefaultNamespace(
+                Identifier.withDefaultNamespace(
                         "block/" + textureName
                 )
         );

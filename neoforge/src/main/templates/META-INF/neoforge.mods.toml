@@ -90,14 +90,6 @@ config="customers.common.mixins.json"
     side="BOTH"
 
 [[dependencies.${mod_id}]]
-    modId="mca"
-    type="optional"
-    reason="Enables the optional Minecraft Comes Alive appearance."
-    versionRange="${mca_version_range}"
-    ordering="AFTER"
-    side="BOTH"
-
-[[dependencies.${mod_id}]]
     modId="architectury"
     type="required"
     reason="Provides Customers cross-loader API support."

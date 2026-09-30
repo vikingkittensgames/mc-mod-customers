@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "customers:item/iron_customer_pickup_counter"
+  }
+}

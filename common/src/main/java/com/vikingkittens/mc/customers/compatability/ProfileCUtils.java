@@ -9,6 +9,6 @@ public final class ProfileCUtils {
     private ProfileCUtils() {
     }
     public static String getName(GameProfile profile) {
-        return profile.getName();
+        return profile.name();
     }
 }

@@ -6,7 +6,7 @@ import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
 
 import com.mojang.serialization.JsonOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -24,14 +24,14 @@ class SkinCustomersVillagerDefinitionTest {
                         """)
         ).getOrThrow();
 
-        assertEquals(ResourceLocation.parse("example:steve"), definition.texture());
+        assertEquals(Identifier.parse("example:steve"), definition.texture());
         assertEquals(SkinCustomersVillagerModel.WIDE, definition.model());
         assertFalse(definition.legacy());
         assertEquals(SkinCustomersVillagerDefinition.DEFAULT_SCALE, definition.scale());
         assertEquals(SkinCustomersVillagerDefinition.DEFAULT_SHADOW_RADIUS, definition.shadowRadius());
         assertEquals(0.0F, definition.nameTagOffset());
         assertTrue(definition.sounds().isEmpty());
-        assertEquals(ResourceLocation.parse("example:textures/customers/skins/steve.png"), definition.getTextureLocation());
+        assertEquals(Identifier.parse("example:textures/customers/skins/steve.png"), definition.getTextureLocation());
     }
 
     @Test
@@ -61,9 +61,9 @@ class SkinCustomersVillagerDefinitionTest {
         assertEquals(1.1F, definition.scale());
         assertEquals(0.4F, definition.shadowRadius());
         assertEquals(0.2F, definition.nameTagOffset());
-        assertEquals(Optional.of(ResourceLocation.parse("example:alex_ambient")), definition.getSound(SkinCustomersVillagerSound.AMBIENT));
-        assertEquals(Optional.of(ResourceLocation.parse("example:alex_yes")), definition.getSound(SkinCustomersVillagerSound.YES));
-        assertEquals(Optional.of(ResourceLocation.parse("example:alex_no")), definition.getSound(SkinCustomersVillagerSound.NO));
+        assertEquals(Optional.of(Identifier.parse("example:alex_ambient")), definition.getSound(SkinCustomersVillagerSound.AMBIENT));
+        assertEquals(Optional.of(Identifier.parse("example:alex_yes")), definition.getSound(SkinCustomersVillagerSound.YES));
+        assertEquals(Optional.of(Identifier.parse("example:alex_no")), definition.getSound(SkinCustomersVillagerSound.NO));
         assertEquals(Optional.empty(), definition.getSound(SkinCustomersVillagerSound.DEATH));
     }
 }

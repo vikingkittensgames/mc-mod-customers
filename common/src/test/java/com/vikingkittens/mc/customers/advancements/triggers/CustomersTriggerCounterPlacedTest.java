@@ -12,8 +12,8 @@ import com.mojang.serialization.JsonOps;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -44,14 +44,14 @@ class CustomersTriggerCounterPlacedTest {
                 Optional.of(new CustomersLocationPredicate(Level.OVERWORLD, SPAWNER_POSITION)),
                 Optional.of(CustomerSpawnerMode.LUNCH),
                 Optional.of(new CustomersLocationPredicate(Level.OVERWORLD, COUNTER_POSITION)),
-                Optional.of(ResourceLocation.parse("minecraft:oak_planks"))
+                Optional.of(Identifier.parse("minecraft:oak_planks"))
         );
 
         assertTrue(instance.matchesEvent(event()));
         assertFalse(CustomersTriggerCounterPlaced.SCHEMA.with(
                         instance,
                         CustomersTriggerCounterPlaced.SCHEMA.property("counter_block").orElseThrow(),
-                        Optional.of(ResourceLocation.parse("minecraft:bricks"))
+                        Optional.of(Identifier.parse("minecraft:bricks"))
                 )
                 .matchesEvent(event()));
     }

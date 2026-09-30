@@ -8,22 +8,22 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "E": { "item": "minecraft:emerald" },
-    "I": { "item": "minecraft:iron_ingot" },
-    "P": { "item": "minecraft:paper" },
+    "E": "minecraft:emerald",
+    "I": "minecraft:iron_ingot",
+    "P": "minecraft:paper",
     "S": [
-      { "item": "minecraft:stripped_acacia_log" },
-      { "item": "minecraft:stripped_birch_log" },
-      { "item": "minecraft:stripped_cherry_log" },
-      { "item": "minecraft:stripped_dark_oak_log" },
-      { "item": "minecraft:stripped_jungle_log" },
-      { "item": "minecraft:stripped_mangrove_log" },
-      { "item": "minecraft:stripped_oak_log" },
-      { "item": "minecraft:stripped_spruce_log" },
-      { "item": "minecraft:stripped_crimson_stem" },
-      { "item": "minecraft:stripped_warped_stem" }
+      "minecraft:stripped_acacia_log",
+      "minecraft:stripped_birch_log",
+      "minecraft:stripped_cherry_log",
+      "minecraft:stripped_dark_oak_log",
+      "minecraft:stripped_jungle_log",
+      "minecraft:stripped_mangrove_log",
+      "minecraft:stripped_oak_log",
+      "minecraft:stripped_spruce_log",
+      "minecraft:stripped_crimson_stem",
+      "minecraft:stripped_warped_stem"
     ],
-    "X": { "item": "minecraft:ink_sac" }
+    "X": "minecraft:ink_sac"
   },
   "pattern": ["SIS", "PEP", "SXS"],
   "result": { "id": "customers:customer_leaderboard", "count": 1 }

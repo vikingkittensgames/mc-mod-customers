@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -26,7 +27,7 @@ class EntityCUtilsTest {
         EntityType<Entity> entityType = mock(EntityType.class);
         Level level = mock(Level.class);
         Entity entity = mock(Entity.class);
-        when(entityType.create(level))
+        when(entityType.create(level, EntitySpawnReason.COMMAND))
                 .thenReturn(entity);
 
         assertSame(entity, EntityCUtils.create(entityType, level));
@@ -38,7 +39,7 @@ class EntityCUtilsTest {
 
         EntityCUtils.snapTo(entity, position, 90.0F, 15.0F);
 
-        verify(entity).moveTo(
+        verify(entity).snapTo(
                 position.x,
                 position.y,
                 position.z,
@@ -53,15 +54,15 @@ class EntityCUtilsTest {
 
         EntityCUtils.snapTo(entity, position, 90.0F, 15.0F);
 
-        verify(entity).moveTo(position, 90.0F, 15.0F);
+        verify(entity).snapTo(position, 90.0F, 15.0F);
     }
     @Test
     void mountsEntityAndSendsGameEvent() {
         Entity passenger = mock(Entity.class);
         Entity vehicle = mock(Entity.class);
-        when(passenger.startRiding(vehicle, true)).thenReturn(true);
+        when(passenger.startRiding(vehicle, true, true)).thenReturn(true);
 
         assertTrue(EntityCUtils.startRiding(passenger, vehicle, true));
-        verify(passenger).startRiding(vehicle, true);
+        verify(passenger).startRiding(vehicle, true, true);
     }
 }

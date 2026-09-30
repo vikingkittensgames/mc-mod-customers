@@ -8,8 +8,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.client.resources.DefaultPlayerSkin;
-import net.minecraft.client.resources.PlayerSkin;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.player.PlayerSkin;
 
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.compatability.ProfileCUtils;
@@ -17,9 +17,9 @@ import com.vikingkittens.mc.customers.compatability.ProfileCUtils;
 public final class PlayerProfileUtils {
     private PlayerProfileUtils() {}
 
-    public static ResourceLocation getPicture(UUID playerId) {
+    public static Identifier getPicture(UUID playerId) {
         if (FakePlayers.isFakePlayer(playerId)) {
-            return ResourceLocation.fromNamespaceAndPath(
+            return Identifier.fromNamespaceAndPath(
                     Customers.MODID,
                     "textures/customers/skins/" + FakePlayers.getName(playerId).toLowerCase() + ".png"
             );
@@ -28,7 +28,7 @@ public final class PlayerProfileUtils {
         ClientPacketListener connection = minecraft.getConnection();
         PlayerInfo playerInfo = connection == null ? null : connection.getPlayerInfo(playerId);
         PlayerSkin skin = playerInfo == null ? DefaultPlayerSkin.get(playerId) : playerInfo.getSkin();
-        return skin.texture();
+        return skin.body().texturePath();
     }
 
     public static String getName(UUID playerId) {

@@ -10,10 +10,14 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import net.minecraft.advancements.critereon.ItemPredicate;
+import com.mojang.serialization.Lifecycle;
+import net.minecraft.advancements.criterion.ItemPredicate;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.MappedRegistry;
+import net.minecraft.core.RegistrationInfo;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -337,9 +341,28 @@ class CustomersFTBTest {
 
     @Test
     void createsTagPredicateWithPrecedenceOverItemSelection() {
-        TagKey<Item> logs = TagKey.create(Registries.ITEM, ResourceLocation.parse("minecraft:logs"));
+        TagKey<Item> logs = TagKey.create(Registries.ITEM, Identifier.parse("minecraft:logs"));
+        MappedRegistry<Item> items =
+                new MappedRegistry<>(Registries.ITEM, Lifecycle.stable());
+        var oakLog = items.register(
+                ResourceKey.create(
+                        Registries.ITEM,
+                        Identifier.parse("test:oak_log")
+                ),
+                Items.OAK_LOG,
+                RegistrationInfo.BUILT_IN
+        );
+        items.bindTag(
+                logs,
+                List.of(oakLog)
+        );
+        items.freeze();
         Optional<ItemPredicate> predicate = CustomersFTBTriggerSchema
-                .itemPredicate(new ItemStack(Items.APPLE), "#minecraft:logs")
+                .itemPredicate(
+                        items,
+                        new ItemStack(Items.APPLE),
+                        "#minecraft:logs"
+                )
                 .orElseThrow();
 
         assertEquals(
@@ -368,7 +391,7 @@ class CustomersFTBTest {
                 CustomerSpawnerMode.LUNCH,
                 UUID.randomUUID(),
                 UUID.randomUUID(),
-                ResourceLocation.parse("customers:customer"),
+                Identifier.parse("customers:customer"),
                 new ItemStack(Items.APPLE),
                 new ItemStack(Items.EMERALD),
                 false
@@ -382,7 +405,7 @@ class CustomersFTBTest {
                 CustomerSpawnerMode.LUNCH,
                 UUID.randomUUID(),
                 UUID.randomUUID(),
-                ResourceLocation.parse("customers:customer"),
+                Identifier.parse("customers:customer"),
                 new ItemStack(Items.APPLE),
                 new ItemStack(Items.EMERALD),
                 false

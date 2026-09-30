@@ -2,15 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "E": {
-      "item": "minecraft:emerald"
-    },
-    "G": {
-      "item": "minecraft:gold_ingot"
-    },
-    "V": {
-      "item": "minecraft:stripped_spruce_log"
-    }
+    "E": "minecraft:emerald",
+    "G": "minecraft:gold_ingot",
+    "V": "minecraft:stripped_spruce_log"
   },
   "pattern": [
     "VGV",

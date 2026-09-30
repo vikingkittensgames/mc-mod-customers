@@ -9,7 +9,7 @@ import java.util.function.Function;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillager;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearance;
@@ -17,13 +17,13 @@ import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 
 public final class CustomersVillagerClientAppearances {
     private static final Map<
-                    ResourceLocation,
+                    Identifier,
                     Function<
                             EntityRendererProvider.Context,
                             CustomersVillagerClientAppearance>>
             FACTORIES = new HashMap<>();
     private static final Map<
-                    ResourceLocation,
+                    Identifier,
                     CustomersVillagerClientAppearance>
             APPEARANCES = new HashMap<>();
     private static final List<CustomersVillagerClientAppearanceProvider>
@@ -36,7 +36,7 @@ public final class CustomersVillagerClientAppearances {
     private CustomersVillagerClientAppearances() {}
 
     public static void register(
-            ResourceLocation appearanceId,
+            Identifier appearanceId,
             Function<
                             EntityRendererProvider.Context,
                             CustomersVillagerClientAppearance>

@@ -4,10 +4,10 @@ import java.util.List;
 import java.util.Optional;
 
 import com.mojang.serialization.Codec;
-import net.minecraft.advancements.critereon.ContextAwarePredicate;
-import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
+import net.minecraft.advancements.criterion.ContextAwarePredicate;
+import net.minecraft.advancements.criterion.SimpleCriterionTrigger;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringRepresentable;
 
@@ -32,7 +32,7 @@ public final class CustomersTriggerCounterPlaced
             Optional<CustomersLocationPredicate> spawnerLocation,
             Optional<CustomerSpawnerMode> spawnerMode,
             Optional<CustomersLocationPredicate> counterLocation,
-            Optional<ResourceLocation> counterBlock
+            Optional<Identifier> counterBlock
     ) implements SimpleInstance {
         public static final Instance ANY = new Instance(
                 Optional.empty(),
@@ -76,7 +76,7 @@ public final class CustomersTriggerCounterPlaced
                         .property(
                                 "counterBlock",
                                 "counter_block",
-                                ResourceLocation.CODEC,
+                                Identifier.CODEC,
                                 CustomersTriggerSchema.Editor.OPTIONAL_RESOURCE_LOCATION,
                                 true
                         )
@@ -85,7 +85,7 @@ public final class CustomersTriggerCounterPlaced
         public static final Codec<Instance> CODEC = SCHEMA.codec();
 
         public boolean matchesEvent(CustomerInternalEvents.CounterBlockPlaced event) {
-            ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(event.counterBlockState().getBlock());
+            Identifier blockId = BuiltInRegistries.BLOCK.getKey(event.counterBlockState().getBlock());
             return spawnerLocation
                             .map(value -> value.matches(event.level(), event.spawnerPosition()))
                             .orElse(true)

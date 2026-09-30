@@ -14,6 +14,8 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.compatability.CustomersServices;
+import com.vikingkittens.mc.customers.compatability.RegistrationCUtils;
 
 public final class CustomerLeaderboard {
     private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(Customers.MODID, Registries.BLOCK);
@@ -21,20 +23,32 @@ public final class CustomerLeaderboard {
     private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES =
             DeferredRegister.create(Customers.MODID, Registries.BLOCK_ENTITY_TYPE);
 
-    public static final RegistrySupplier<CustomerLeaderboardBlock> BLOCK = BLOCKS.register(
+    public static final RegistrySupplier<CustomerLeaderboardBlock> BLOCK = RegistrationCUtils.registerBlock(
+            BLOCKS,
             CustomerLeaderboardBlock.NAME,
-            () -> new CustomerLeaderboardBlock(
-                    BlockBehaviour.Properties.ofFullCopy(Blocks.OAK_PLANKS).noOcclusion()
+            key -> new CustomerLeaderboardBlock(
+                    BlockBehaviour.Properties.ofFullCopy(Blocks.OAK_PLANKS)
+                            .noOcclusion()
+                            .setId(key)
             )
     );
-    public static final RegistrySupplier<BlockItem> ITEM = ITEMS.register(
+    public static final RegistrySupplier<BlockItem> ITEM = RegistrationCUtils.registerItem(
+            ITEMS,
             CustomerLeaderboardBlock.NAME,
-            () -> new BlockItem(BLOCK.get(), new Item.Properties())
+            key -> new BlockItem(
+                    BLOCK.get(),
+                    new Item.Properties()
+                            .setId(key)
+                            .useBlockDescriptionPrefix()
+            )
     );
     public static final RegistrySupplier<BlockEntityType<CustomerLeaderboardBlockEntity>> BLOCK_ENTITY =
             BLOCK_ENTITY_TYPES.register(
             CustomerLeaderboardBlockEntity.NAME,
-            () -> BlockEntityType.Builder.of(CustomerLeaderboard::createBlockEntity, BLOCK.get()).build(null)
+            () -> CustomersServices.registration().createBlockEntityType(
+                    CustomerLeaderboard::createBlockEntity,
+                    BLOCK.get()
+            )
     );
 
     private CustomerLeaderboard() {}

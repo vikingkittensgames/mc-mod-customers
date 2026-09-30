@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public final class CustomersVillagerAppearanceSelector {
     private CustomersVillagerAppearanceSelector() {}
@@ -25,13 +25,13 @@ public final class CustomersVillagerAppearanceSelector {
         );
     }
 
-    public static ResourceLocation selectApplicableId(
-            List<ResourceLocation> appearanceIds,
-            Function<ResourceLocation, CustomersVillagerAppearance> resolver,
+    public static Identifier selectApplicableId(
+            List<Identifier> appearanceIds,
+            Function<Identifier, CustomersVillagerAppearance> resolver,
             CustomersVillager villager,
             IntUnaryOperator randomIndex
     ) {
-        List<ResourceLocation> applicable = appearanceIds.stream()
+        List<Identifier> applicable = appearanceIds.stream()
                 .filter(appearanceId -> {
                     CustomersVillagerAppearance appearance =
                             resolver.apply(appearanceId);

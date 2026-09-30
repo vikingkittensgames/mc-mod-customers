@@ -4,11 +4,11 @@ import java.util.List;
 import java.util.Optional;
 
 import com.mojang.serialization.Codec;
-import net.minecraft.advancements.critereon.ContextAwarePredicate;
-import net.minecraft.advancements.critereon.ItemPredicate;
-import net.minecraft.advancements.critereon.MinMaxBounds;
-import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.advancements.criterion.ContextAwarePredicate;
+import net.minecraft.advancements.criterion.ItemPredicate;
+import net.minecraft.advancements.criterion.MinMaxBounds;
+import net.minecraft.advancements.criterion.SimpleCriterionTrigger;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringRepresentable;
 
@@ -45,7 +45,7 @@ public final class CustomersTriggerCustomerServed
             Optional<ContextAwarePredicate> player,
             Optional<CustomersLocationPredicate> spawnerLocation,
             Optional<CustomerSpawnerMode> spawnerMode,
-            Optional<ResourceLocation> customerProfession,
+            Optional<Identifier> customerProfession,
             Optional<ItemPredicate> servedItem,
             Optional<MinMaxBounds.Ints> servedCount,
             Optional<ItemPredicate> costItem,
@@ -59,7 +59,7 @@ public final class CustomersTriggerCustomerServed
         public Instance(
                 Optional<ContextAwarePredicate> player,
                 Optional<CustomerSpawnerMode> spawnerMode,
-                Optional<ResourceLocation> customerProfession,
+                Optional<Identifier> customerProfession,
                 Optional<ItemPredicate> servedItem,
                 Optional<MinMaxBounds.Ints> servedCount,
                 Optional<ItemPredicate> costItem,
@@ -129,7 +129,7 @@ public final class CustomersTriggerCustomerServed
                         .property(
                                 "customerProfession",
                                 "customer_profession",
-                                ResourceLocation.CODEC,
+                                Identifier.CODEC,
                                 CustomersTriggerSchema.Editor.OPTIONAL_RESOURCE_LOCATION,
                                 true
                         )

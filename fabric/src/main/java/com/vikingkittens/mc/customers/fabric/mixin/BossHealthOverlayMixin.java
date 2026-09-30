@@ -83,10 +83,10 @@ abstract class BossHealthOverlayMixin {
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/client/gui/GuiGraphics;drawString("
-                            + "Lnet/minecraft/client/gui/Font;Lnet/minecraft/network/chat/Component;III)I"
+                            + "Lnet/minecraft/client/gui/Font;Lnet/minecraft/network/chat/Component;III)V"
             )
     )
-    private int renderBossBarTitle(
+    private void renderBossBarTitle(
             GuiGraphics graphics,
             Font font,
             Component title,
@@ -96,20 +96,20 @@ abstract class BossHealthOverlayMixin {
     ) {
         if (customers$skipTitle) {
             customers$skipTitle = false;
-            return 0;
+            return;
         }
-        return graphics.drawString(font, title, x, y, color);
+        graphics.drawString(font, title, x, y, color);
     }
 
     @ModifyVariable(
             method = "render",
             at = @At("STORE"),
-            index = 3,
+            index = 4,
             slice = @Slice(
                     from = @At(
                             value = "INVOKE",
                             target = "Lnet/minecraft/client/gui/GuiGraphics;drawString("
-                                    + "Lnet/minecraft/client/gui/Font;Lnet/minecraft/network/chat/Component;III)I"
+                                    + "Lnet/minecraft/client/gui/Font;Lnet/minecraft/network/chat/Component;III)V"
                     )
             )
     )

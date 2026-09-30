@@ -4,23 +4,20 @@ import java.util.Collection;
 import java.util.stream.Stream;
 
 import dev.architectury.event.events.client.ClientPlayerEvent;
+import dev.architectury.registry.client.gui.MenuScreenRegistry;
 import dev.architectury.registry.client.level.entity.EntityModelLayerRegistry;
 import dev.architectury.registry.client.level.entity.EntityRendererRegistry;
 import dev.architectury.registry.client.rendering.BlockEntityRendererRegistry;
 import dev.architectury.registry.client.rendering.RenderTypeRegistry;
-import dev.architectury.registry.menu.MenuRegistry;
 
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.client.renderer.entity.NoopRenderer;
 import net.minecraft.client.renderer.entity.VillagerRenderer;
 import net.minecraft.world.level.block.Block;
 
-import com.vikingkittens.mc.customers.appearance.mca.McaCustomersVillagerAppearance;
-import com.vikingkittens.mc.customers.appearance.mca.McaCustomersVillagerMod;
 import com.vikingkittens.mc.customers.appearance.monsters.MonsterCustomersVillagerAppearance;
 import com.vikingkittens.mc.customers.client.appearance.CustomersVillagerAppearanceEntityRenderer;
 import com.vikingkittens.mc.customers.client.appearance.CustomersVillagerClientAppearances;
-import com.vikingkittens.mc.customers.client.appearance.mca.McaCustomersVillagerClientAppearance;
 import com.vikingkittens.mc.customers.client.appearance.monsters.MonsterCustomersVillagerClientAppearance;
 import com.vikingkittens.mc.customers.client.appearance.skins.SkinCustomersVillagerClientAppearanceProvider;
 import com.vikingkittens.mc.customers.client.customer.CustomerPickupCounterBlockEntityRenderer;
@@ -57,16 +54,10 @@ public final class CustomersClientRegistrations {
         Block[] blocks = Stream.concat(paymentBoxes.stream(), pickupCounters.stream())
                 .map(java.util.function.Supplier::get)
                 .toArray(Block[]::new);
-        RenderTypeRegistry.register(RenderType.translucent(), blocks);
+        RenderTypeRegistry.register(ChunkSectionLayer.TRANSLUCENT, blocks);
     }
 
     private static void registerAppearances() {
-        if (McaCustomersVillagerMod.isSupported()) {
-            CustomersVillagerClientAppearances.register(
-                    McaCustomersVillagerAppearance.ID,
-                    McaCustomersVillagerClientAppearance::new
-            );
-        }
         CustomersVillagerClientAppearances.register(
                 MonsterCustomersVillagerAppearance.ID,
                 MonsterCustomersVillagerClientAppearance::new
@@ -77,11 +68,11 @@ public final class CustomersClientRegistrations {
     }
 
     private static void registerScreens() {
-        MenuRegistry.registerScreenFactory(
+        MenuScreenRegistry.registerScreenFactory(
                 CustomerSpawner.CUSTOMER_SPAWNER_MENU.get(),
                 CustomerSpawnerBlockScreen::new
         );
-        MenuRegistry.registerScreenFactory(
+        MenuScreenRegistry.registerScreenFactory(
                 SupplierSpawner.SUPPLIER_SPAWNER_MENU.get(),
                 SupplierSpawnerBlockScreen::new
         );

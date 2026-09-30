@@ -8,11 +8,11 @@ import org.junit.jupiter.api.Test;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.util.profiling.InactiveProfiler;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.goal.GoalSelector;
@@ -52,8 +52,8 @@ class CustomerPetTest {
         EntityType<Animal> animalType = mock(EntityType.class);
         Entity nonAnimal = mock(Entity.class);
         Animal animal = mock(Animal.class);
-        when(nonAnimalType.create(level)).thenReturn(nonAnimal);
-        when(animalType.create(level)).thenReturn(animal);
+        when(nonAnimalType.create(level, EntitySpawnReason.COMMAND)).thenReturn(nonAnimal);
+        when(animalType.create(level, EntitySpawnReason.COMMAND)).thenReturn(animal);
         when(animalType.getDescription()).thenReturn(Component.literal("Test Pet"));
         when(animal.isFood(any(ItemStack.class))).thenAnswer(invocation -> {
             ItemStack food = invocation.getArgument(0, ItemStack.class);
@@ -65,8 +65,8 @@ class CustomerPetTest {
                 List.of(nonAnimalType, animalType),
                 List.of(Items.WHEAT, Items.CARROT, Items.APPLE),
                 entityType -> entityType == animalType
-                        ? ResourceLocation.withDefaultNamespace("test_pet")
-                        : ResourceLocation.withDefaultNamespace("not_a_pet"),
+                        ? Identifier.withDefaultNamespace("test_pet")
+                        : Identifier.withDefaultNamespace("not_a_pet"),
                 item -> 0
         );
 
@@ -85,18 +85,17 @@ class CustomerPetTest {
                 level,
                 List.of(animalType),
                 List.of(Items.CARROT),
-                entityType -> ResourceLocation.withDefaultNamespace("test_pet"),
+                entityType -> Identifier.withDefaultNamespace("test_pet"),
                 item -> 0
         );
 
         assertTrue(pets.isEmpty());
-        verify(animalType, never()).create(level);
+        verify(animalType, never()).create(level, EntitySpawnReason.COMMAND);
     }
 
     @Test
     void printsDiscoveredPetsAndFoodFromRegistries() {
         Level level = mock(Level.class);
-        when(level.getProfilerSupplier()).thenReturn(() -> InactiveProfiler.INSTANCE);
         when(level.enabledFeatures()).thenReturn(FeatureFlags.DEFAULT_FLAGS);
 
         List<CustomerPet.Pet> pets = CustomerPet.discoverPets(
@@ -117,7 +116,7 @@ class CustomerPetTest {
         Level level = mock(Level.class);
         EntityType<Animal> animalType = mock(EntityType.class);
         Animal animal = mock(Animal.class);
-        when(animalType.create(level)).thenReturn(animal);
+        when(animalType.create(level, EntitySpawnReason.COMMAND)).thenReturn(animal);
         when(animalType.getDescription()).thenReturn(Component.literal("Test Pet"));
         when(animal.isFood(any(ItemStack.class))).thenReturn(true);
 
@@ -125,7 +124,7 @@ class CustomerPetTest {
                 level,
                 List.of(animalType),
                 List.of(Items.APPLE, Items.CARROT),
-                entityType -> ResourceLocation.withDefaultNamespace("test_pet"),
+                entityType -> Identifier.withDefaultNamespace("test_pet"),
                 item -> item == Items.CARROT ? 10 : 20
         );
 
@@ -139,7 +138,7 @@ class CustomerPetTest {
         Animal animal = mock(Animal.class, withSettings().extraInterfaces(FlyingAnimal.class));
         Item parrotFoodItem = mock(Item.class);
         ItemStack parrotFoodStack = mock(ItemStack.class);
-        when(animalType.create(level)).thenReturn(animal);
+        when(animalType.create(level, EntitySpawnReason.COMMAND)).thenReturn(animal);
         when(animalType.getDescription()).thenReturn(Component.literal("Test Flying Pet"));
         when(parrotFoodItem.getDefaultInstance()).thenReturn(parrotFoodStack);
         when(parrotFoodStack.is(ItemTags.PARROT_FOOD)).thenReturn(true);
@@ -149,7 +148,7 @@ class CustomerPetTest {
                 level,
                 List.of(animalType),
                 List.of(parrotFoodItem),
-                entityType -> ResourceLocation.withDefaultNamespace("test_flying_pet"),
+                entityType -> Identifier.withDefaultNamespace("test_flying_pet"),
                 item -> 0
         );
 

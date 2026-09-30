@@ -4,8 +4,8 @@ import org.junit.jupiter.api.Test;
 
 import com.mojang.serialization.Codec;
 import net.minecraft.core.Registry;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 
 import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 
@@ -16,7 +16,7 @@ class NeoForgeDataPackRegistryTest {
     @Test
     void registersDeclaredDataPackRegistryDuringNeoForgeRegistryEvent() {
         ResourceKey<Registry<String>> key = ResourceKey.createRegistryKey(
-                ResourceLocation.parse("customers:neoforge_data_pack_test_registry"));
+                Identifier.parse("customers:neoforge_data_pack_test_registry"));
         NeoForgeRegistrationHelper helper = new NeoForgeRegistrationHelper();
         DataPackRegistryEvent.NewRegistry event = mock(DataPackRegistryEvent.NewRegistry.class);
 

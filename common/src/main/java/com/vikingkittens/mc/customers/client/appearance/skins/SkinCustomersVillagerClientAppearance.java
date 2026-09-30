@@ -11,16 +11,16 @@ import com.vikingkittens.mc.customers.appearance.skins.SkinPackCustomersVillager
 import com.vikingkittens.mc.customers.client.appearance.CustomersVillagerClientAppearance;
 
 public final class SkinCustomersVillagerClientAppearance implements CustomersVillagerClientAppearance {
-    private final MobRenderer<?, ?> wideRenderer;
-    private final MobRenderer<?, ?> slimRenderer;
+    private final MobRenderer<?, ?, ?> wideRenderer;
+    private final MobRenderer<?, ?, ?> slimRenderer;
 
     public SkinCustomersVillagerClientAppearance(EntityRendererProvider.Context context) {
-        wideRenderer = new SkinCustomersVillagerRenderer<>(context, false);
-        slimRenderer = new SkinCustomersVillagerRenderer<>(context, true);
+        wideRenderer = new SkinCustomersVillagerRenderer(context, false);
+        slimRenderer = new SkinCustomersVillagerRenderer(context, true);
     }
 
     @Override
-    public MobRenderer<?, ?> getRenderer(CustomersVillager villager) {
+    public MobRenderer<?, ?, ?> getRenderer(CustomersVillager villager) {
         return getSkin(villager).model() == SkinCustomersVillagerModel.SLIM ? slimRenderer : wideRenderer;
     }
 

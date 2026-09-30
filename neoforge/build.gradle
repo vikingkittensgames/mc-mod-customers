@@ -89,11 +89,11 @@ loom {
         }
 
         gameTest {
-            server()
+            environment 'server'
+            forgeTemplate 'gameTestServer'
             name = 'NeoForge Game Tests'
             runDir = neoForgeRunDirectory
             property 'neoforge.enableGameTest', 'true'
-            property 'neoforge.gameTestServer', 'true'
             vmArg "-Dneoforge.enabledGameTestNamespaces=${mod_id},minecraft"
             source sourceSets.gameTest
         }
@@ -114,9 +114,6 @@ dependencies {
     productionClientMods("dev.architectury:architectury-neoforge:${architectury_version}") { transitive = false }
     modCompileOnly "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
     modLocalRuntime "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
-    modCompileOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
-    testRuntimeOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
-
     common(project(path: ':common', configuration: 'namedElements')) {
         transitive = false
     }
@@ -161,7 +158,6 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
             neo_version            : neo_version,
             architectury_version_range: architectury_version_range,
             ftb_quests_version_range  : ftb_quests_version_range,
-            mca_version_range      : mca_version_range,
             loader_version_range   : loader_version_range,
             mod_id                 : mod_id,
             mod_name               : mod_name,

@@ -10,7 +10,7 @@
     "icon": {
       "id": "customers:advancement_icon",
       "count": 1,
-      "components": { "minecraft:custom_model_data": 52 }
+      "components": { "minecraft:custom_model_data": { "floats": [52] } }
     },
     "title": { "translate": "advancements.customers.builder.customer.counter_placed.title" }
   },

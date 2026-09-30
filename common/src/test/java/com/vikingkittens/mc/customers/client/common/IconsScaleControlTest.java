@@ -4,13 +4,15 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.input.MouseButtonInfo;
+import net.minecraft.resources.Identifier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class IconsScaleControlTest {
-    private static final ResourceLocation ICON =
-            ResourceLocation.fromNamespaceAndPath("customers", "test");
+    private static final Identifier ICON =
+            Identifier.fromNamespaceAndPath("customers", "test");
 
     @Test
     void selectsHalfStarValuesFromTheClickedIconHalf() {
@@ -31,14 +33,14 @@ class IconsScaleControlTest {
                 selectedValue::set
         );
 
-        control.onClick(10, 20);
+        control.onClick(new MouseButtonEvent(10, 20, new MouseButtonInfo(0, 0)), false);
         assertEquals(0.5F, control.getValue());
         assertEquals(0.5F, selectedValue.get());
 
-        control.onClick(10 + 16, 20);
+        control.onClick(new MouseButtonEvent(10 + 16, 20, new MouseButtonInfo(0, 0)), false);
         assertEquals(1.5F, control.getValue());
 
-        control.onClick(10 + 32 + 8, 20);
+        control.onClick(new MouseButtonEvent(10 + 32 + 8, 20, new MouseButtonInfo(0, 0)), false);
         assertEquals(3.0F, control.getValue());
     }
 }

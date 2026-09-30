@@ -1,7 +1,7 @@
 package com.vikingkittens.mc.customers.client.customer;
 
-import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.Util;
 
 import com.vikingkittens.mc.customers.client.common.BlockBreakConfirmationScreen;
 import com.vikingkittens.mc.customers.common.BlockBreakConfirmationPromptPayload;

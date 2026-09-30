@@ -6,7 +6,7 @@ import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
 
 import com.mojang.serialization.JsonOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -27,6 +27,6 @@ class SkinPackCustomersVillagerDefinitionTest {
         ).getOrThrow();
 
         assertEquals("Example Skins", definition.getName().getString());
-        assertEquals(List.of(ResourceLocation.parse("example:steve"), ResourceLocation.parse("example:alex")), definition.skins());
+        assertEquals(List.of(Identifier.parse("example:steve"), Identifier.parse("example:alex")), definition.skins());
     }
 }

@@ -5,10 +5,10 @@ import org.jetbrains.annotations.Nullable;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
@@ -75,7 +75,7 @@ public class CustomerPickupCounterBlock extends BaseEntityBlock {
         return null;
     }
     @Override
-    protected ItemInteractionResult useItemOn(
+    protected InteractionResult useItemOn(
             ItemStack stack,
             BlockState state,
             Level level,
@@ -102,7 +102,7 @@ public class CustomerPickupCounterBlock extends BaseEntityBlock {
         return InteractionResult.SUCCESS;
     }
 
-    private static ItemInteractionResult useHeldItem(
+    private static InteractionResult useHeldItem(
             Level level,
             BlockPos pos,
             Player player,
@@ -110,11 +110,11 @@ public class CustomerPickupCounterBlock extends BaseEntityBlock {
             ItemStack stack
     ) {
         if (stack.isEmpty()) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
         if (!(level.getBlockEntity(pos)
                 instanceof CustomerPickupCounterBlockEntity counter)) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
         if (!LevelCUtils.isClientSide(level)) {
             ItemStack source = player.isCreative() ? stack.copy() : stack;
@@ -132,8 +132,7 @@ public class CustomerPickupCounterBlock extends BaseEntityBlock {
                                 "messages.customers.pickup_counter.not_wanted"
                         )
                 );
-                return ItemInteractionResult
-                        .SKIP_DEFAULT_BLOCK_INTERACTION;
+                return InteractionResult.PASS;
             }
             ItemStack requestedRemainder =
                     counter.insertCraftedStackConnected(
@@ -161,7 +160,7 @@ public class CustomerPickupCounterBlock extends BaseEntityBlock {
                 );
             }
         }
-        return ItemInteractionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     @Override
@@ -194,16 +193,13 @@ public class CustomerPickupCounterBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected void onRemove(
+    protected void affectNeighborsAfterRemoval(
             BlockState state,
-            Level level,
+            ServerLevel level,
             BlockPos pos,
-            BlockState newState,
             boolean movedByPiston
     ) {
-        if (!state.is(newState.getBlock())
-                && !LevelCUtils.isClientSide(level)
-                && level.getBlockEntity(pos)
+        if (level.getBlockEntity(pos)
                         instanceof CustomerPickupCounterBlockEntity counter) {
             for (ItemStack stack : counter.getDisplayItems()) {
                 Containers.dropItemStack(
@@ -215,7 +211,7 @@ public class CustomerPickupCounterBlock extends BaseEntityBlock {
                 );
             }
         }
-        super.onRemove(state, level, pos, newState, movedByPiston);
+        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
     }
 
     @Override

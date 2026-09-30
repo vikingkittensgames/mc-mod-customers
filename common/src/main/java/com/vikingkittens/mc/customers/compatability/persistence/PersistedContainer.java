@@ -1,16 +1,17 @@
 package com.vikingkittens.mc.customers.compatability.persistence;
 
+import java.util.List;
 import java.util.function.Predicate;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
 
@@ -113,33 +114,28 @@ public class PersistedContainer implements Container {
     }
 
     public CompoundTag serializeNBT(HolderLookup.Provider registries) {
-        ListTag serializedItems = new ListTag();
-        for (int slot = 0; slot < items.size(); slot++) {
-            ItemStack stack = items.get(slot);
-            if (!stack.isEmpty()) {
-                CompoundTag serializedStack = new CompoundTag();
-                serializedStack.putInt("Slot", slot);
-                serializedItems.add(stack.save(registries, serializedStack));
-            }
-        }
+        CompoundTag wrapper = new CompoundTag();
+        PersistenceCUtils.writer(wrapper, registries)
+                .putItemStacks("inventory", items);
+        return wrapper.getCompoundOrEmpty("inventory");
+    }
 
-        CompoundTag serialized = new CompoundTag();
-        serialized.put("Items", serializedItems);
-        serialized.putInt("Size", items.size());
-        return serialized;
+    public void write(ValueOutput output) {
+        ItemStackListPersistence.write(output, items);
+    }
+
+    public void read(ValueInput input) {
+        items = ItemStackListPersistence.read(input);
     }
 
     public void deserializeNBT(HolderLookup.Provider registries, CompoundTag serialized) {
-        int size = serialized.contains("Size", Tag.TAG_INT) ? Math.max(0, serialized.getInt("Size")) : items.size();
-        NonNullList<ItemStack> loadedItems = NonNullList.withSize(size, ItemStack.EMPTY);
-        ListTag serializedItems = serialized.getList("Items", Tag.TAG_COMPOUND);
-        for (int index = 0; index < serializedItems.size(); index++) {
-            CompoundTag serializedStack = serializedItems.getCompound(index);
-            int slot = serializedStack.getInt("Slot");
-            if (slot >= 0 && slot < loadedItems.size()) {
-                ItemStack.parse(registries, serializedStack).ifPresent(stack -> loadedItems.set(slot, stack));
-            }
+        CompoundTag wrapper = new CompoundTag();
+        wrapper.put("inventory", serialized);
+        List<ItemStack> loadedItems = PersistenceCUtils.reader(wrapper, registries)
+                .getItemStacks("inventory");
+        items = NonNullList.withSize(loadedItems.size(), ItemStack.EMPTY);
+        for (int slot = 0; slot < loadedItems.size(); slot++) {
+            items.set(slot, loadedItems.get(slot));
         }
-        items = loadedItems;
     }
 }

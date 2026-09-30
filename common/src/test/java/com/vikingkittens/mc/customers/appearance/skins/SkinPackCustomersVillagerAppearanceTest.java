@@ -6,19 +6,19 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 class SkinPackCustomersVillagerAppearanceTest {
-    private static final ResourceLocation STEVE = ResourceLocation.parse("example:steve");
-    private static final ResourceLocation ALEX = ResourceLocation.parse("example:alex");
+    private static final Identifier STEVE = Identifier.parse("example:steve");
+    private static final Identifier ALEX = Identifier.parse("example:alex");
 
     @Test
     void selectsPackSkinDeterministicallyFromVariationSeed() {
-        List<ResourceLocation> skins = List.of(STEVE, ALEX);
+        List<Identifier> skins = List.of(STEVE, ALEX);
 
         assertEquals(Optional.of(STEVE), SkinPackCustomersVillagerAppearance.selectSkinId(skins, 0.0F));
         assertEquals(Optional.of(STEVE), SkinPackCustomersVillagerAppearance.selectSkinId(skins, 0.49F));
@@ -29,7 +29,7 @@ class SkinPackCustomersVillagerAppearanceTest {
 
     @Test
     void createsSoundEventsUsingReferencedSoundIds() {
-        ResourceLocation ambient = ResourceLocation.parse("example:steve_ambient");
+        Identifier ambient = Identifier.parse("example:steve_ambient");
         SkinCustomersVillagerDefinition definition = new SkinCustomersVillagerDefinition(
                 STEVE,
                 SkinCustomersVillagerModel.WIDE,
@@ -42,6 +42,6 @@ class SkinPackCustomersVillagerAppearanceTest {
 
         assertEquals(ambient, definition.getSound(SkinCustomersVillagerSound.AMBIENT).orElseThrow());
         assertNull(definition.getSound(SkinCustomersVillagerSound.DEATH).orElse(null));
-        assertEquals(ambient, SoundEvent.createVariableRangeEvent(ambient).getLocation());
+        assertEquals(ambient, SoundEvent.createVariableRangeEvent(ambient).location());
     }
 }

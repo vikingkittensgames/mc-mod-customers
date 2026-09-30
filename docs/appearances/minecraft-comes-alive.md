@@ -7,9 +7,10 @@ parent_url: /appearances/
 ### Minecraft Comes Alive Appearance
 
 ![mod-logo-mca-reborn.png]({{ '/screenshots/mod-logo-mca-reborn.png' | relative_url }})
-The [Minecraft Comes Alive](https://www.curseforge.com/minecraft/mc-mods/minecraft-comes-alive-reborn) appearance is supported for Minecraft 1.21.1 and
-newer only, with MCA Reborn version 7.7.9 or newer for Minecraft 1.21.1. When
-Minecraft Comes Alive Reborn is installed on a supported version, the appearance
+The [Minecraft Comes Alive](https://www.curseforge.com/minecraft/mc-mods/minecraft-comes-alive-reborn) appearance is supported for Minecraft 1.21.1 with
+MCA Reborn version 7.7.9 or newer. It is not available in the Minecraft 1.21.11
+build because MCA Reborn does not publish a compatible 1.21.11 version. When
+Minecraft Comes Alive Reborn is installed on a supported build, the appearance
 becomes available in Customer and Supplier Spawners. It uses
 MCA's human villager models, genetics, skin layers, clothing, hairstyles, and
 configured villager voices, including its yes and no trade responses, while

@@ -11,9 +11,11 @@ import org.mockito.InOrder;
 import org.mockito.MockedStatic;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.ConversionParams;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.player.Player;
@@ -49,8 +51,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class SupplierVillagerEntityTest {
-    private static final ResourceLocation TEST_APPEARANCE =
-            ResourceLocation.parse("example:test");
+    private static final Identifier TEST_APPEARANCE =
+            Identifier.parse("example:test");
 
     @BeforeAll
     static void bootstrapMinecraft() {
@@ -124,7 +126,10 @@ class SupplierVillagerEntityTest {
                 CALLS_REAL_METHODS
         );
 
-        assertTrue(supplier.isInvulnerableTo(mock(DamageSource.class)));
+        assertTrue(supplier.isInvulnerableTo(
+                mock(ServerLevel.class),
+                mock(DamageSource.class)
+        ));
     }
 
     @Test
@@ -134,7 +139,12 @@ class SupplierVillagerEntityTest {
                 CALLS_REAL_METHODS
         );
 
-        assertNull(supplier.convertTo(EntityType.ZOMBIE_VILLAGER, false));
+        assertNull(supplier.convertTo(
+                EntityType.ZOMBIE_VILLAGER,
+                mock(ConversionParams.class),
+                EntitySpawnReason.COMMAND,
+                mock(ConversionParams.AfterConversion.class)
+        ));
     }
 
     @Test
@@ -207,7 +217,7 @@ class SupplierVillagerEntityTest {
         }
 
         InOrder validationOrder = inOrder(supplier, navigation);
-        validationOrder.verify(supplier).moveTo(candidatePos, 0, 0);
+        validationOrder.verify(supplier).snapTo(candidatePos, 0, 0);
         validationOrder.verify(supplier).setOnGround(true);
         validationOrder.verify(navigation).createPath(navigationTarget, 0);
     }

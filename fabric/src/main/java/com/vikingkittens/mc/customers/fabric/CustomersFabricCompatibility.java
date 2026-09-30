@@ -2,15 +2,22 @@ package com.vikingkittens.mc.customers.fabric;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.function.BiFunction;
 
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.Codec;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
 
 import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
+import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.fabricmc.loader.api.FabricLoader;
 
 import com.vikingkittens.mc.customers.compatability.IConfigHelper;
@@ -27,6 +34,14 @@ public final class CustomersFabricCompatibility implements IConfigHelper, IPlatf
         return CONFIG;
     }
 
+
+    @Override
+    public <E extends BlockEntity> BlockEntityType<E> createBlockEntityType(
+            BiFunction<BlockPos, BlockState, E> factory,
+            Block... validBlocks
+    ) {
+        return FabricBlockEntityTypeBuilder.create(factory::apply, validBlocks).build();
+    }
 
     @Override
     public <T> void registerDataPackRegistry(ResourceKey<Registry<T>> key, Codec<T> codec) {

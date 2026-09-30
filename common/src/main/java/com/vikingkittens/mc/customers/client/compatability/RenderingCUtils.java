@@ -2,12 +2,13 @@ package com.vikingkittens.mc.customers.client.compatability;
 
 import java.util.List;
 
+import org.joml.Matrix4f;
+
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.gizmos.DrawableGizmoPrimitives;
+import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -20,34 +21,27 @@ public final class RenderingCUtils {
 
     public static void renderDebugBoxes(
             PoseStack poseStack,
-            Vec3 cameraPosition,
+            CameraRenderState cameraRenderState,
+            Matrix4f modelViewMatrix,
             List<DebugBoxC> boxes
     ) {
         if (boxes.isEmpty()) {
             return;
         }
 
+        if (!cameraRenderState.initialized) {
+            return;
+        }
+
         Minecraft minecraft = Minecraft.getInstance();
         MultiBufferSource.BufferSource bufferSource = minecraft.renderBuffers().bufferSource();
-        VertexConsumer buffer = bufferSource.getBuffer(RenderType.debugFilledBox());
+        DrawableGizmoPrimitives primitives = new DrawableGizmoPrimitives();
         for (DebugBoxC box : boxes) {
-            AABB bounds = box.bounds();
-            int color = box.color();
-            LevelRenderer.addChainedFilledBoxVertices(
-                    poseStack,
-                    buffer,
-                    bounds.minX - cameraPosition.x,
-                    bounds.minY - cameraPosition.y,
-                    bounds.minZ - cameraPosition.z,
-                    bounds.maxX - cameraPosition.x,
-                    bounds.maxY - cameraPosition.y,
-                    bounds.maxZ - cameraPosition.z,
-                    ((color >> 16) & 0xFF) / 255.0F,
-                    ((color >> 8) & 0xFF) / 255.0F,
-                    (color & 0xFF) / 255.0F,
-                    ((color >> 24) & 0xFF) / 255.0F
-            );
+            for (Vec3[] face : getBoxFaces(box.bounds())) {
+                primitives.addQuad(face[0], face[1], face[2], face[3], box.color());
+            }
         }
+        primitives.render(poseStack, bufferSource, cameraRenderState, modelViewMatrix);
         bufferSource.endBatch();
     }
 

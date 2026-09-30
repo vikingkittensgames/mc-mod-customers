@@ -28,7 +28,18 @@ com.vikingkittens.mc.customers.client.compatability
 
 Classes are grouped by the Minecraft concept they adapt and use the `CUtils` suffix.
 
+`EntityRendererCUtils` bridges the erased renderer and render-state generic
+types needed by the Minecraft 1.21.11 appearance dispatcher. It invokes the
+selected production renderer's normal state extraction and submission paths.
+
 ## Common and Server Compatibility
+
+### RegistrationCUtils
+
+`RegistrationCUtils` retains Architectury `DeferredRegister` registration while
+passing the matching registry key into block and item factories. Minecraft
+1.21.11 requires block and item properties to receive this key through
+`setId(...)` before their constructors run.
 
 ### INetworkHelper
 
@@ -546,11 +557,17 @@ This class may centralize customer render-data extraction where a stable API is 
 
 Renderer inheritance, renderer generics, model setup signatures, and event registration remain version-specific.
 
+### Block Entity Type Construction
+
+Minecraft 1.21.11 no longer provides the public vanilla
+`BlockEntityType.Builder` used by 1.21.1. Common registrations create block
+entity types through `IRegistrationHelper`: Fabric uses
+`FabricBlockEntityTypeBuilder`, while NeoForge uses its access-transformed
+`BlockEntityType` constructor.
+
 ## Version-Specific Integration Code
 
 ### Optional Advancement and Event APIs
-
-Architectury API 13.0.8 provides a NeoForge artifact, but no Forge artifact, for Minecraft 1.21.1. Shared availability checks may live in common, but direct Architectury event creation and publishing must be isolated from the Forge runtime. Do not advertise the Architectury bridge as available in the Forge build unless Architectury adds a compatible artifact.
 
 FTB Quests integration is shared in common code and uses its loader-neutral
 API classes. The named NeoForge distribution supplies those classes at

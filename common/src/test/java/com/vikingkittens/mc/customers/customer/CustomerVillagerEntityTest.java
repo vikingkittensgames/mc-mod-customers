@@ -11,9 +11,13 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.ConversionParams;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.monster.zombie.ZombieVillager;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
@@ -133,7 +137,10 @@ class CustomerVillagerEntityTest {
                 CALLS_REAL_METHODS
         );
 
-        assertTrue(customer.isInvulnerableTo(mock(DamageSource.class)));
+        assertTrue(customer.isInvulnerableTo(
+                mock(ServerLevel.class),
+                mock(DamageSource.class)
+        ));
     }
 
     @Test
@@ -143,7 +150,12 @@ class CustomerVillagerEntityTest {
                 CALLS_REAL_METHODS
         );
 
-        assertNull(customer.convertTo(EntityType.ZOMBIE_VILLAGER, false));
+        assertNull(customer.convertTo(
+                EntityType.ZOMBIE_VILLAGER,
+                mock(ConversionParams.class),
+                EntitySpawnReason.COMMAND,
+                mock(ConversionParams.AfterConversion.class)
+        ));
     }
     @Test
     void roundTripsCounterTargetBlockPosition() {
@@ -169,8 +181,8 @@ class CustomerVillagerEntityTest {
                 CALLS_REAL_METHODS
         );
         DataReader input = mock(DataReader.class);
-        ResourceLocation appearance =
-                ResourceLocation.parse("customers:monsters");
+        Identifier appearance =
+                Identifier.parse("customers:monsters");
         doNothing().when(customer).setAppearanceId(appearance);
         doNothing().when(customer).setVariationSeed(0.75F);
         doNothing().when(customer).setSpawnerMode(CustomerSpawnerMode.NIGHT);

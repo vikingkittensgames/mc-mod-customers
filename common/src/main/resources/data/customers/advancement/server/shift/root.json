@@ -13,7 +13,7 @@
     "icon": {
       "count": 1,
       "id": "customers:advancement_icon",
-      "components": { "minecraft:custom_model_data": 30 }
+      "components": { "minecraft:custom_model_data": { "floats": [30] } }
     },
     "show_toast": false,
     "title": {

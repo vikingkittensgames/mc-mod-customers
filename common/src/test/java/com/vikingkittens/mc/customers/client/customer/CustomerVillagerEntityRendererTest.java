@@ -7,12 +7,28 @@ import org.junit.jupiter.api.Test;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.renderer.entity.state.VillagerRenderState;
+import net.minecraft.world.entity.Pose;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CustomerVillagerEntityRendererTest {
+    @Test
+    void appliesSharedSittingRenderStateToBaseAndProfessionModels() {
+        VillagerRenderState renderState = new VillagerRenderState();
+        renderState.pose = Pose.SITTING;
+        CustomerVillagerEntityRenderer.Model baseModel = model();
+        CustomerVillagerEntityRenderer.Model professionModel = model();
+
+        baseModel.setupAnim(renderState);
+        professionModel.setupAnim(renderState);
+
+        assertSittingLegPose(baseModel);
+        assertSittingLegPose(professionModel);
+    }
+
     @Test
     void appliesHumanoidSittingLegPose() {
         ModelPart rightLeg = new ModelPart(List.of(), Map.of());
@@ -100,5 +116,21 @@ class CustomerVillagerEntityRendererTest {
     }
     private static ModelPart modelPart() {
         return new ModelPart(List.of(), Map.of());
+    }
+
+    private static CustomerVillagerEntityRenderer.Model model() {
+        return new CustomerVillagerEntityRenderer.Model(
+                CustomerVillagerEntityRenderer.Model.createBodyLayer().bakeRoot()
+        );
+    }
+
+    private static void assertSittingLegPose(
+            CustomerVillagerEntityRenderer.Model model
+    ) {
+        ModelPart root = model.root();
+        ModelPart rightLeg = root.getChild("right_leg");
+        ModelPart leftLeg = root.getChild("left_leg");
+        assertEquals(-1.4137167F, rightLeg.xRot);
+        assertEquals(-1.4137167F, leftLeg.xRot);
     }
 }

@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
 import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
@@ -13,17 +13,17 @@ public final class CustomersVillagerAppearanceSettings {
     static final String TAG_ENABLED_APPEARANCES =
             "CustomersEnabledAppearances";
 
-    private final LinkedHashSet<ResourceLocation> enabledAppearances =
+    private final LinkedHashSet<Identifier> enabledAppearances =
             new LinkedHashSet<>(
                     CustomersVillagerAppearances.INITIAL_ENABLED
             );
 
-    public List<ResourceLocation> getEnabledAppearances() {
+    public List<Identifier> getEnabledAppearances() {
         return List.copyOf(enabledAppearances);
     }
 
     public void setEnabledAppearances(
-            Collection<ResourceLocation> appearanceIds
+            Collection<Identifier> appearanceIds
     ) {
         enabledAppearances.clear();
         enabledAppearances.addAll(appearanceIds);
@@ -35,9 +35,9 @@ public final class CustomersVillagerAppearanceSettings {
     }
 
     public void read(DataReader input) {
-        List<ResourceLocation> loadedAppearanceIds =
+        List<Identifier> loadedAppearanceIds =
                 input.getStrings(TAG_ENABLED_APPEARANCES).stream()
-                        .map(ResourceLocation::tryParse)
+                        .map(Identifier::tryParse)
                         .filter(java.util.Objects::nonNull)
                         .distinct()
                         .toList();
@@ -50,7 +50,7 @@ public final class CustomersVillagerAppearanceSettings {
         output.putStrings(
                 TAG_ENABLED_APPEARANCES,
                 enabledAppearances.stream()
-                        .map(ResourceLocation::toString)
+                        .map(Identifier::toString)
                         .toList()
         );
     }

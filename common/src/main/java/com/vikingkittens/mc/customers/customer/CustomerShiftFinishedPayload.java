@@ -7,7 +7,7 @@ import java.util.UUID;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.vikingkittens.mc.customers.Customers;
 
@@ -24,7 +24,7 @@ public record CustomerShiftFinishedPayload(
         int numItemsCraftedAutomated
 ) implements CustomPacketPayload {
     public static final Type<CustomerShiftFinishedPayload> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(Customers.MODID, "customer_shift_finished")
+            Identifier.fromNamespaceAndPath(Customers.MODID, "customer_shift_finished")
     );
 
     public static final StreamCodec<FriendlyByteBuf, CustomerShiftFinishedPayload> STREAM_CODEC =

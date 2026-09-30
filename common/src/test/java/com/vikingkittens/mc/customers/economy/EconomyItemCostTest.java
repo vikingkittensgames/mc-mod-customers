@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -65,8 +65,8 @@ class EconomyItemCostTest {
                 eq("{}: {}"),
                 eq(EconomyItemCostProviderDefault.WARNING_HEADING),
                 eq(List.of(
-                        ResourceLocation.parse("minecraft:apple"),
-                        ResourceLocation.parse("minecraft:carrot")
+                        Identifier.parse("minecraft:apple"),
+                        Identifier.parse("minecraft:carrot")
                 ))
         );
     }
@@ -74,8 +74,8 @@ class EconomyItemCostTest {
     @Test
     void manualProviderUsesACeilingForConfiguredBatchRatios() {
         EconomyItemCostDefinition definition = new EconomyItemCostDefinition(
-                new EconomyItemMatcher(ResourceLocation.parse("minecraft:apple"), null, 5),
-                ResourceLocation.parse("minecraft:gold_nugget"),
+                new EconomyItemMatcher(Identifier.parse("minecraft:apple"), null, 5),
+                Identifier.parse("minecraft:gold_nugget"),
                 2
         );
         EconomyItemCostProviderManual provider = new EconomyItemCostProviderManual(List.of(definition));
@@ -172,7 +172,7 @@ class EconomyItemCostTest {
         when(lowerPack.packId()).thenReturn("lower pack");
         when(higherPack.packId()).thenReturn("higher pack");
         when(resourceManager.listPacks()).thenAnswer(invocation -> Stream.of(lowerPack, higherPack));
-        ResourceLocation resourceId = ResourceLocation.parse("example:customers/economy/items/food.json");
+        Identifier resourceId = Identifier.parse("example:customers/economy/items/food.json");
         Resource lowerResource = resource(lowerPack, """
                 {"values":[{"item":"minecraft:apple","costItem":"minecraft:gold_ingot"}]}
                 """);
@@ -205,7 +205,7 @@ class EconomyItemCostTest {
         PackResources datapack = mock(PackResources.class);
         when(datapack.packId()).thenReturn("test datapack");
         when(resourceManager.listPacks()).thenAnswer(invocation -> Stream.of(datapack));
-        ResourceLocation resourceId = ResourceLocation.parse("example:customers/economy/items/food.json");
+        Identifier resourceId = Identifier.parse("example:customers/economy/items/food.json");
         Resource resource = resource(datapack, """
                 {"values":[{"item":"minecraft:apple","costItem":"minecraft:diamond"}]}
                 """);
@@ -232,13 +232,13 @@ class EconomyItemCostTest {
     void currencyUsesTheLastExactItemAndCountMatch() {
         EconomyCurrency currency = new EconomyCurrency(List.of(
                 new EconomyItemCostDefinition(
-                        new EconomyItemMatcher(ResourceLocation.parse("minecraft:emerald"), null, 5),
-                        ResourceLocation.parse("minecraft:gold_ingot"),
+                        new EconomyItemMatcher(Identifier.parse("minecraft:emerald"), null, 5),
+                        Identifier.parse("minecraft:gold_ingot"),
                         1
                 ),
                 new EconomyItemCostDefinition(
-                        new EconomyItemMatcher(ResourceLocation.parse("minecraft:emerald"), null, 5),
-                        ResourceLocation.parse("minecraft:diamond"),
+                        new EconomyItemMatcher(Identifier.parse("minecraft:emerald"), null, 5),
+                        Identifier.parse("minecraft:diamond"),
                         1
                 )
         ));
@@ -253,13 +253,13 @@ class EconomyItemCostTest {
     void currencyUsesTheLargestSourceBatchWhenSeveralConversionsAreWhole() {
         EconomyCurrency currency = new EconomyCurrency(List.of(
                 new EconomyItemCostDefinition(
-                        new EconomyItemMatcher(ResourceLocation.parse("minecraft:emerald"), null, 5),
-                        ResourceLocation.parse("minecraft:gold_ingot"),
+                        new EconomyItemMatcher(Identifier.parse("minecraft:emerald"), null, 5),
+                        Identifier.parse("minecraft:gold_ingot"),
                         1
                 ),
                 new EconomyItemCostDefinition(
-                        new EconomyItemMatcher(ResourceLocation.parse("minecraft:emerald"), null, 1),
-                        ResourceLocation.parse("minecraft:gold_nugget"),
+                        new EconomyItemMatcher(Identifier.parse("minecraft:emerald"), null, 1),
+                        Identifier.parse("minecraft:gold_nugget"),
                         3
                 )
         ));
@@ -274,13 +274,13 @@ class EconomyItemCostTest {
     void currencyPrefersAWholeResultOverALargerSourceBatch() {
         EconomyCurrency currency = new EconomyCurrency(List.of(
                 new EconomyItemCostDefinition(
-                        new EconomyItemMatcher(ResourceLocation.parse("minecraft:emerald"), null, 5),
-                        ResourceLocation.parse("minecraft:gold_ingot"),
+                        new EconomyItemMatcher(Identifier.parse("minecraft:emerald"), null, 5),
+                        Identifier.parse("minecraft:gold_ingot"),
                         1
                 ),
                 new EconomyItemCostDefinition(
-                        new EconomyItemMatcher(ResourceLocation.parse("minecraft:emerald"), null, 1),
-                        ResourceLocation.parse("minecraft:gold_nugget"),
+                        new EconomyItemMatcher(Identifier.parse("minecraft:emerald"), null, 1),
+                        Identifier.parse("minecraft:gold_nugget"),
                         3
                 )
         ));
@@ -295,13 +295,13 @@ class EconomyItemCostTest {
     void currencyPrefersTheResultClosestToAWholeNumber() {
         EconomyCurrency currency = new EconomyCurrency(List.of(
                 new EconomyItemCostDefinition(
-                        new EconomyItemMatcher(ResourceLocation.parse("minecraft:emerald"), null, 5),
-                        ResourceLocation.parse("minecraft:gold_ingot"),
+                        new EconomyItemMatcher(Identifier.parse("minecraft:emerald"), null, 5),
+                        Identifier.parse("minecraft:gold_ingot"),
                         2
                 ),
                 new EconomyItemCostDefinition(
-                        new EconomyItemMatcher(ResourceLocation.parse("minecraft:emerald"), null, 3),
-                        ResourceLocation.parse("minecraft:diamond"),
+                        new EconomyItemMatcher(Identifier.parse("minecraft:emerald"), null, 3),
+                        Identifier.parse("minecraft:diamond"),
                         1
                 )
         ));
@@ -316,13 +316,13 @@ class EconomyItemCostTest {
     void currencyUsesTheLargerSourceBatchWhenDistancesAreEqual() {
         EconomyCurrency currency = new EconomyCurrency(List.of(
                 new EconomyItemCostDefinition(
-                        new EconomyItemMatcher(ResourceLocation.parse("minecraft:emerald"), null, 10),
-                        ResourceLocation.parse("minecraft:gold_ingot"),
+                        new EconomyItemMatcher(Identifier.parse("minecraft:emerald"), null, 10),
+                        Identifier.parse("minecraft:gold_ingot"),
                         2
                 ),
                 new EconomyItemCostDefinition(
-                        new EconomyItemMatcher(ResourceLocation.parse("minecraft:emerald"), null, 5),
-                        ResourceLocation.parse("minecraft:diamond"),
+                        new EconomyItemMatcher(Identifier.parse("minecraft:emerald"), null, 5),
+                        Identifier.parse("minecraft:diamond"),
                         1
                 )
         ));
@@ -337,8 +337,8 @@ class EconomyItemCostTest {
     void currencyRoundsFractionalResultsDown() {
         EconomyCurrency currency = new EconomyCurrency(List.of(
                 new EconomyItemCostDefinition(
-                        new EconomyItemMatcher(ResourceLocation.parse("minecraft:emerald"), null, 5),
-                        ResourceLocation.parse("minecraft:gold_ingot"),
+                        new EconomyItemMatcher(Identifier.parse("minecraft:emerald"), null, 5),
+                        Identifier.parse("minecraft:gold_ingot"),
                         1
                 )
         ));
@@ -353,8 +353,8 @@ class EconomyItemCostTest {
     void currencyRoundsFractionalResultsUp() {
         EconomyCurrency currency = new EconomyCurrency(List.of(
                 new EconomyItemCostDefinition(
-                        new EconomyItemMatcher(ResourceLocation.parse("minecraft:emerald"), null, 5),
-                        ResourceLocation.parse("minecraft:gold_ingot"),
+                        new EconomyItemMatcher(Identifier.parse("minecraft:emerald"), null, 5),
+                        Identifier.parse("minecraft:gold_ingot"),
                         1
                 )
         ));
@@ -369,8 +369,8 @@ class EconomyItemCostTest {
     void currencyKeepsARoundedNonemptyCostAtOneItem() {
         EconomyCurrency currency = new EconomyCurrency(List.of(
                 new EconomyItemCostDefinition(
-                        new EconomyItemMatcher(ResourceLocation.parse("minecraft:emerald"), null, 5),
-                        ResourceLocation.parse("minecraft:gold_ingot"),
+                        new EconomyItemMatcher(Identifier.parse("minecraft:emerald"), null, 5),
+                        Identifier.parse("minecraft:gold_ingot"),
                         1
                 )
         ));
@@ -385,8 +385,8 @@ class EconomyItemCostTest {
     void currencyLeavesItemsWithoutAMatchingSourceUnchanged() {
         EconomyCurrency currency = new EconomyCurrency(List.of(
                 new EconomyItemCostDefinition(
-                        new EconomyItemMatcher(ResourceLocation.parse("minecraft:emerald"), null, 5),
-                        ResourceLocation.parse("minecraft:gold_ingot"),
+                        new EconomyItemMatcher(Identifier.parse("minecraft:emerald"), null, 5),
+                        Identifier.parse("minecraft:gold_ingot"),
                         1
                 )
         ));

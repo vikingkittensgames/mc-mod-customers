@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
@@ -19,8 +19,8 @@ import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtil
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CustomerSpawnerBlockEntityNbtMigrationTest {
-    private static final ResourceLocation TEST_APPEARANCE =
-            ResourceLocation.fromNamespaceAndPath("customers", "test_appearance");
+    private static final Identifier TEST_APPEARANCE =
+            Identifier.fromNamespaceAndPath("customers", "test_appearance");
 
     @BeforeAll
     static void bootstrapMinecraft() {
@@ -68,7 +68,7 @@ class CustomerSpawnerBlockEntityNbtMigrationTest {
         );
         settings.getPersistedInventory().deserializeNBT(
                 RegistryAccess.EMPTY,
-                tag.getCompound("inventory")
+                tag.getCompound("inventory").orElseThrow()
         );
         CustomerSpawnerBlockEntity.readLegacyLevelSettings(
                 PersistenceCUtils.reader(tag, RegistryAccess.EMPTY),

@@ -6,7 +6,7 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearance;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearanceProvider;
@@ -21,19 +21,19 @@ public final class SkinPackCustomersVillagerAppearanceProvider
 
     @Override
     public @Nullable CustomersVillagerAppearance get(
-            ResourceLocation appearanceId,
+            Identifier appearanceId,
             RegistryAccess registryAccess
     ) {
         Registry<SkinPackCustomersVillagerDefinition> skinPacks =
-                registryAccess.registry(
+                registryAccess.lookup(
                         SkinCustomersVillagerRegistries.SKIN_PACKS
                 ).orElse(null);
         if (skinPacks == null) {
             return null;
         }
         SkinPackCustomersVillagerDefinition skinPack =
-                skinPacks.get(appearanceId);
-        if (skinPack == null || registryAccess.registry(
+                skinPacks.getValue(appearanceId);
+        if (skinPack == null || registryAccess.lookup(
                 SkinCustomersVillagerRegistries.SKINS
         ).isEmpty()) {
             return null;
@@ -45,10 +45,10 @@ public final class SkinPackCustomersVillagerAppearanceProvider
     }
 
     @Override
-    public Stream<ResourceLocation> getAvailableIds(
+    public Stream<Identifier> getAvailableIds(
             RegistryAccess registryAccess
     ) {
-        return registryAccess.registry(
+        return registryAccess.lookup(
                         SkinCustomersVillagerRegistries.SKIN_PACKS
                 )
                 .stream()

@@ -18,6 +18,8 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.compatability.CustomersServices;
+import com.vikingkittens.mc.customers.compatability.RegistrationCUtils;
 import com.vikingkittens.mc.customers.customer.data.CustomerOverlayBlockVariant;
 import com.vikingkittens.mc.customers.customer.data.CustomerOverlayBlockVariants;
 
@@ -34,8 +36,12 @@ public final class CustomerPaymentBox {
     public static final RegistrySupplier<BlockEntityType<CustomerPaymentBoxBlockEntity>> BLOCK_ENTITY =
             BLOCK_ENTITY_TYPES.register(
             CustomerPaymentBoxBlockEntity.NAME,
-            () -> BlockEntityType.Builder.of(CustomerPaymentBox::createBlockEntity,
-                    BLOCKS.values().stream().map(RegistrySupplier::get).toArray(CustomerPaymentBoxBlock[]::new)).build(null)
+            () -> CustomersServices.registration().createBlockEntityType(
+                    CustomerPaymentBox::createBlockEntity,
+                    BLOCKS.values().stream()
+                            .map(RegistrySupplier::get)
+                            .toArray(CustomerPaymentBoxBlock[]::new)
+            )
     );
 
     private CustomerPaymentBox() {
@@ -58,10 +64,11 @@ public final class CustomerPaymentBox {
         for (CustomerOverlayBlockVariant variant : CustomerOverlayBlockVariants.ALL) {
             blocks.put(
                     variant,
-                    BLOCK_REGISTRY.register(
+                    RegistrationCUtils.registerBlock(
+                            BLOCK_REGISTRY,
                             getBlockName(variant),
-                            () -> new CustomerPaymentBoxBlock(
-                                    createProperties(variant)
+                            key -> new CustomerPaymentBoxBlock(
+                                    createProperties(variant).setId(key)
                             )
                     )
             );
@@ -84,9 +91,15 @@ public final class CustomerPaymentBox {
                 BLOCKS.entrySet()) {
             items.put(
                     entry.getKey(),
-                    ITEM_REGISTRY.register(
+                    RegistrationCUtils.registerItem(
+                            ITEM_REGISTRY,
                             getBlockName(entry.getKey()),
-                            () -> new BlockItem(entry.getValue().get(), new Item.Properties())
+                            key -> new BlockItem(
+                                    entry.getValue().get(),
+                                    new Item.Properties()
+                                            .setId(key)
+                                            .useBlockDescriptionPrefix()
+                            )
                     )
             );
         }

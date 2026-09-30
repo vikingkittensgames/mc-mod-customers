@@ -12,6 +12,8 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.compatability.CustomersServices;
+import com.vikingkittens.mc.customers.compatability.RegistrationCUtils;
 
 /***
  * Customer Spawner main feature class that covers registering the pieces
@@ -37,10 +39,12 @@ public class CustomerSpawner {
     }
 
     // -------------------- Blocks --------------------
-    public static final RegistrySupplier<CustomerSpawnerBlock> CUSTOMER_SPAWNER_BLOCK = BLOCKS.register(
+    public static final RegistrySupplier<CustomerSpawnerBlock> CUSTOMER_SPAWNER_BLOCK =
+            RegistrationCUtils.registerBlock(
+                    BLOCKS,
                     CustomerSpawnerBlock.NAME,
-                    () -> new CustomerSpawnerBlock(
-                            BlockBehaviour.Properties.of()
+                    key -> new CustomerSpawnerBlock(
+                            BlockBehaviour.Properties.of().setId(key)
                     )
             );
 
@@ -48,15 +52,20 @@ public class CustomerSpawner {
     public static final RegistrySupplier<BlockEntityType<CustomerSpawnerBlockEntity>> CUSTOMER_SPAWNER_ENTITY =
             BLOCK_ENTITY_TYPES.register(
             CustomerSpawnerBlockEntity.NAME,
-            () -> BlockEntityType.Builder.of(CustomerSpawnerBlockEntity::new, CUSTOMER_SPAWNER_BLOCK.get()).build(null)
+            () -> CustomersServices.registration().createBlockEntityType(
+                    CustomerSpawnerBlockEntity::new,
+                    CUSTOMER_SPAWNER_BLOCK.get()
+            )
     );
 
     // -------------------- Items --------------------
-    public static final RegistrySupplier<BlockItem> CUSTOMER_SPAWNER_ITEM = ITEMS.register(
+    public static final RegistrySupplier<BlockItem> CUSTOMER_SPAWNER_ITEM =
+            RegistrationCUtils.registerItem(
+                    ITEMS,
                     CustomerSpawnerBlock.NAME,
-                    () -> new BlockItem(
+                    key -> new BlockItem(
                             CUSTOMER_SPAWNER_BLOCK.get(),
-                            new Item.Properties()
+                            new Item.Properties().setId(key)
                     )
             );
     public static final RegistrySupplier<MenuType<CustomerSpawnerBlockMenu>> CUSTOMER_SPAWNER_MENU = MENUS.register(

@@ -14,7 +14,7 @@
     "icon": {
       "id": "customers:advancement_icon",
       "count": 1,
-      "components": { "minecraft:custom_model_data": 51 }
+      "components": { "minecraft:custom_model_data": { "floats": [51] } }
     },
     "title": { "translate": "advancements.customers.builder.customer.customer_spawner_changed_multiple_levels.title" }
   },

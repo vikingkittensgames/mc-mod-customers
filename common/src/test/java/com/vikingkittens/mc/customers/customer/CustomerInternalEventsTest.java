@@ -11,7 +11,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -41,7 +41,7 @@ class CustomerInternalEventsTest {
                 CustomerSpawnerMode.LUNCH,
                 UUID.randomUUID(),
                 UUID.randomUUID(),
-                ResourceLocation.parse("customers:customer"),
+                Identifier.parse("customers:customer"),
                 servedItem,
                 costItem,
                 false
@@ -62,7 +62,7 @@ class CustomerInternalEventsTest {
         ServerLevel level = mock(ServerLevel.class);
         UUID playerId = UUID.randomUUID();
         UUID customerId = UUID.randomUUID();
-        ResourceLocation profession = ResourceLocation.parse("customers:customer");
+        Identifier profession = Identifier.parse("customers:customer");
         ItemStack servedItem = new ItemStack(Items.APPLE, 3);
         ItemStack costItem = new ItemStack(Items.EMERALD, 2);
         CustomerInternalEvents.CustomerServed event = new CustomerInternalEvents.CustomerServed(

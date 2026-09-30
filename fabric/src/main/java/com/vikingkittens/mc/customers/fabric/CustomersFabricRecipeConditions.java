@@ -3,8 +3,8 @@ package com.vikingkittens.mc.customers.fabric;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.RegistryOps;
 
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceCondition;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditionType;
@@ -27,7 +27,7 @@ public final class CustomersFabricRecipeConditions {
                         .apply(builder, RecipeEnabledCondition::new)
         );
         private static final ResourceConditionType<RecipeEnabledCondition> TYPE = ResourceConditionType.create(
-                ResourceLocation.fromNamespaceAndPath(Customers.MODID, "recipe_enabled"), CODEC
+                Identifier.fromNamespaceAndPath(Customers.MODID, "recipe_enabled"), CODEC
         );
 
         @Override
@@ -36,7 +36,7 @@ public final class CustomersFabricRecipeConditions {
         }
 
         @Override
-        public boolean test(HolderLookup.Provider registryLookup) {
+        public boolean test(RegistryOps.RegistryInfoLookup registryLookup) {
             return CustomersRecipeConditions.isEnabled(CustomersServices.config(), recipe);
         }
     }

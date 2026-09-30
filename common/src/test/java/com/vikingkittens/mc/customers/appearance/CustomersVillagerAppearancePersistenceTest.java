@@ -5,7 +5,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
@@ -17,8 +17,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class CustomersVillagerAppearancePersistenceTest {
-    private static final ResourceLocation TEST_APPEARANCE =
-            ResourceLocation.parse("example:test");
+    private static final Identifier TEST_APPEARANCE =
+            Identifier.parse("example:test");
 
     @BeforeAll
     static void bootstrapMinecraft() {

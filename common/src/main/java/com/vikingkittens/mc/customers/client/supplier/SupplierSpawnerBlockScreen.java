@@ -6,43 +6,46 @@ import java.util.List;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.Checkbox;
-import net.minecraft.client.gui.components.MultiLineLabel;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.InputWithModifiers;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.client.compatability.GuiGraphicsCUtils;
 import com.vikingkittens.mc.customers.supplier.SupplierSpawnerBlockMenu;
 
 public class SupplierSpawnerBlockScreen
         extends AbstractContainerScreen<SupplierSpawnerBlockMenu> {
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(
+    private static final Identifier TEXTURE =
+            Identifier.fromNamespaceAndPath(
                     Customers.MODID,
                     "textures/gui/supplier_spawner_ui.png"
             );
-    private static final ResourceLocation AUTO_COST_TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(
+    private static final Identifier AUTO_COST_TEXTURE =
+            Identifier.fromNamespaceAndPath(
                     Customers.MODID,
                     "textures/gui/supplier_spawner_ui_auto.png"
             );
     private static final int TEXTURE_WIDTH = 288;
     private static final int TEXTURE_HEIGHT = 256;
     private static final int APPEARANCE_WIDGET_WIDTH = 99;
-    private static final int APPEARANCE_TEXT_COLOR = 0x000000;
+    private static final int APPEARANCE_TEXT_COLOR = 0xFF000000;
     private static final int MANUAL_COST_TOGGLE_X = 156;
     private static final int MANUAL_COST_Y = 126;
     private static final int MANUAL_COST_TOGGLE_SIZE = 12;
-    private static final ResourceLocation MANUAL_COST =
-            ResourceLocation.fromNamespaceAndPath(Customers.MODID, "textures/gui/cost.png");
-    private static final ResourceLocation AUTOMATIC_COST =
-            ResourceLocation.fromNamespaceAndPath(Customers.MODID, "textures/gui/costauto.png");
+    private static final Identifier MANUAL_COST =
+            Identifier.fromNamespaceAndPath(Customers.MODID, "textures/gui/cost.png");
+    private static final Identifier AUTOMATIC_COST =
+            Identifier.fromNamespaceAndPath(Customers.MODID, "textures/gui/costauto.png");
     private final List<Checkbox> appearanceCheckboxes =
             new ArrayList<>();
-    private final List<MultiLineLabel> appearanceLabels =
+    private final List<Component> appearanceLabels =
             new ArrayList<>();
     private boolean synchronizingAppearanceCheckboxes;
     private ManualCostButton manualCostButton;
@@ -69,9 +72,6 @@ public class SupplierSpawnerBlockScreen
         ));
 
         int y = 29;
-        int appearanceTextWidth = APPEARANCE_WIDGET_WIDTH
-                - Checkbox.getBoxSize(font)
-                - 4;
         for (int index = 0;
                 index < menu.getAppearanceIds().size();
                 index++) {
@@ -99,11 +99,7 @@ public class SupplierSpawnerBlockScreen
             checkbox.setWidth(APPEARANCE_WIDGET_WIDTH);
             checkbox.setMessage(appearanceName);
             appearanceCheckboxes.add(checkbox);
-            appearanceLabels.add(MultiLineLabel.create(
-                    font,
-                    appearanceName,
-                    appearanceTextWidth
-            ));
+            appearanceLabels.add(appearanceName);
             y += 20;
         }
     }
@@ -118,7 +114,7 @@ public class SupplierSpawnerBlockScreen
             Checkbox checkbox = appearanceCheckboxes.get(index);
             if (checkbox.selected()
                     != menu.isAppearanceEnabled(index)) {
-                checkbox.onPress();
+                checkbox.onPress(new MouseButtonEvent(0, 0, new MouseButtonInfo(0, 0)));
             }
         }
         synchronizingAppearanceCheckboxes = false;
@@ -131,7 +127,8 @@ public class SupplierSpawnerBlockScreen
             int mouseX,
             int mouseY
     ) {
-        graphics.blit(
+        GuiGraphicsCUtils.blit(
+                graphics,
                 menu.usesAutomaticCost() ? AUTO_COST_TEXTURE : TEXTURE,
                 leftPos,
                 topPos,
@@ -158,7 +155,7 @@ public class SupplierSpawnerBlockScreen
                 ),
                 177,
                 17,
-                0x404040,
+                0xFF404040,
                 false
         );
     }
@@ -185,21 +182,25 @@ public class SupplierSpawnerBlockScreen
                 index < appearanceCheckboxes.size();
                 index++) {
             Checkbox checkbox = appearanceCheckboxes.get(index);
-            MultiLineLabel label = appearanceLabels.get(index);
-            int labelHeight =
-                    label.getLineCount() * font.lineHeight;
+            Component label = appearanceLabels.get(index);
+            List<net.minecraft.util.FormattedCharSequence> lines = font.split(
+                    label,
+                    APPEARANCE_WIDGET_WIDTH - Checkbox.getBoxSize(font) - 4
+            );
+            int labelHeight = lines.size() * font.lineHeight;
             int labelY = checkbox.getY()
                     + Checkbox.getBoxSize(font) / 2
                     - labelHeight / 2;
-            label.renderLeftAlignedNoShadow(
-                    graphics,
-                    checkbox.getX()
-                            + Checkbox.getBoxSize(font)
-                            + 4,
-                    labelY,
-                    font.lineHeight,
-                    APPEARANCE_TEXT_COLOR
-            );
+            for (int line = 0; line < lines.size(); line++) {
+                graphics.drawString(
+                        font,
+                        lines.get(line),
+                        checkbox.getX() + Checkbox.getBoxSize(font) + 4,
+                        labelY + line * font.lineHeight,
+                        APPEARANCE_TEXT_COLOR,
+                        false
+                );
+            }
         }
     }
 
@@ -230,7 +231,7 @@ public class SupplierSpawnerBlockScreen
                 int y = topPos + 18 + row * 18;
                 ItemStack cost = menu.getAutomaticCost(row, pair);
                 if (!cost.isEmpty() && mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16) {
-                    graphics.renderTooltip(font, cost, mouseX, mouseY);
+                    graphics.setTooltipForNextFrame(font, cost, mouseX, mouseY);
                     return;
                 }
             }
@@ -250,13 +251,14 @@ public class SupplierSpawnerBlockScreen
         }
 
         @Override
-        public void onPress() {
+        public void onPress(InputWithModifiers input) {
             send(menu.autoCostButtonId());
         }
 
         @Override
-        protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-            graphics.blit(
+        protected void renderContents(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+            GuiGraphicsCUtils.blit(
+                    graphics,
                     menu.isAutoCost() ? AUTOMATIC_COST : MANUAL_COST,
                     getX(),
                     getY(),

@@ -2,12 +2,8 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "I": {
-      "item": "minecraft:iron_ingot"
-    },
-    "V": {
-      "item": "minecraft:copper_ingot"
-    }
+    "I": "minecraft:iron_ingot",
+    "V": "minecraft:copper_ingot"
   },
   "pattern": [
     "IVV"

@@ -6,7 +6,7 @@
   },
   "display": {
     "announce_to_chat": false,
-    "background": "customers:textures/gui/advancements/backgrounds/emerald.png",
+    "background": "customers:gui/advancements/backgrounds/emerald",
     "description": {
       "translate": "advancements.customers.root.description"
     },

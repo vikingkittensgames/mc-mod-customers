@@ -2,7 +2,7 @@ package com.vikingkittens.mc.customers.common;
 
 import dev.architectury.registry.level.entity.EntityAttributeRegistry;
 
-import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.npc.villager.Villager;
 
 import com.vikingkittens.mc.customers.customer.Customer;
 import com.vikingkittens.mc.customers.supplier.Supplier;

@@ -5,7 +5,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
@@ -160,7 +160,7 @@ class CustomerOverlayBlockVariantsTest {
         assertEquals(ingredient, variant.ingredient().get().asItem());
         assertEquals(textureBlock, variant.textureBlock().get());
         assertEquals(
-                ResourceLocation.withDefaultNamespace(texturePath),
+                Identifier.withDefaultNamespace(texturePath),
                 variant.baseTexture()
         );
     }

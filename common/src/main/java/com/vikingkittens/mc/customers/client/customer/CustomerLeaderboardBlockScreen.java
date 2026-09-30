@@ -12,20 +12,23 @@ import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.PlayerFaceRenderer;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.InputWithModifiers;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.client.common.PlayerProfileUtils;
+import com.vikingkittens.mc.customers.client.compatability.GuiGraphicsCUtils;
 import com.vikingkittens.mc.customers.customer.CustomerLeaderboardOpenPayload;
 import com.vikingkittens.mc.customers.customer.CustomerLeaderboardScores;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
 public class CustomerLeaderboardBlockScreen extends Screen {
     private static final int TEXTURE_SIZE = 256;
-    private static final int BLACK_TEXT = 0x000000;
+    private static final int BLACK_TEXT = 0xFF000000;
     private static final int OPAQUE_BLACK = 0xFF000000;
     private static final int CONTENT_HEIGHT = 172;
     private static final int CONTENT_WIDTH = 214;
@@ -41,18 +44,18 @@ public class CustomerLeaderboardBlockScreen extends Screen {
     private static final int TITLE_X = (TEXTURE_SIZE - TITLE_WIDTH) / 2;
     private static final int TITLE_Y = 40;
     private static final int ARROW_Y = 36;
-    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(
+    private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(
             Customers.MODID,
             "textures/gui/leaderboard.png"
     );
-    private static final ResourceLocation ARROW_LEFT = texture("arrow_left");
-    private static final ResourceLocation ARROW_LEFT_PRESSED = texture("arrow_left_pressed");
-    private static final ResourceLocation ARROW_RIGHT = texture("arrow_right");
-    private static final ResourceLocation ARROW_RIGHT_PRESSED = texture("arrow_right_pressed");
-    private static final ResourceLocation HALF_STAR = texture("halfstar_small");
-    private static final ResourceLocation NO_STAR = texture("nostar_small");
-    private static final ResourceLocation STAR = texture("star_small");
-    private static final ResourceLocation CHECKMARK = texture("checkmark_small");
+    private static final Identifier ARROW_LEFT = texture("arrow_left");
+    private static final Identifier ARROW_LEFT_PRESSED = texture("arrow_left_pressed");
+    private static final Identifier ARROW_RIGHT = texture("arrow_right");
+    private static final Identifier ARROW_RIGHT_PRESSED = texture("arrow_right_pressed");
+    private static final Identifier HALF_STAR = texture("halfstar_small");
+    private static final Identifier NO_STAR = texture("nostar_small");
+    private static final Identifier STAR = texture("star_small");
+    private static final Identifier CHECKMARK = texture("checkmark_small");
 
     private final List<ScoreGroup> groups;
     private int currentGroupIndex;
@@ -63,11 +66,11 @@ public class CustomerLeaderboardBlockScreen extends Screen {
         groups = getScoreGroups(payload.scores());
     }
 
-    private static ResourceLocation texture(String name) {
-        return ResourceLocation.fromNamespaceAndPath(Customers.MODID, "textures/gui/" + name + ".png");
+    private static Identifier texture(String name) {
+        return Identifier.fromNamespaceAndPath(Customers.MODID, "textures/gui/" + name + ".png");
     }
 
-    private static ResourceLocation modeTexture(CustomerSpawnerMode mode) {
+    private static Identifier modeTexture(CustomerSpawnerMode mode) {
         return texture("mode_" + mode.getSerializedName());
     }
 
@@ -94,7 +97,18 @@ public class CustomerLeaderboardBlockScreen extends Screen {
         renderBackground(graphics, mouseX, mouseY, partialTick);
         int left = (width - TEXTURE_SIZE) / 2;
         int top = (height - TEXTURE_SIZE) / 2;
-        graphics.blit(TEXTURE, left, top, 0, 0, TEXTURE_SIZE, TEXTURE_SIZE);
+        graphics.blit(
+                RenderPipelines.GUI_TEXTURED,
+                TEXTURE,
+                left,
+                top,
+                0.0F,
+                0.0F,
+                TEXTURE_SIZE,
+                TEXTURE_SIZE,
+                TEXTURE_SIZE,
+                TEXTURE_SIZE
+        );
         renderGroupTitle(graphics, left, top);
         renderScores(graphics, left, top);
         super.render(graphics, mouseX, mouseY, partialTick);
@@ -146,7 +160,8 @@ public class CustomerLeaderboardBlockScreen extends Screen {
                 )
                 : group.spawnerMode().getTitle();
         int titleX = left + TITLE_X + (TITLE_WIDTH - font.width(title)) / 2;
-        graphics.blit(
+        GuiGraphicsCUtils.blit(
+                graphics,
                 modeTexture(group.spawnerMode()),
                 titleX - ICON_SIZE,
                 top + TITLE_Y - (ICON_SIZE - (font.lineHeight - 1)) / 2,
@@ -211,7 +226,8 @@ public class CustomerLeaderboardBlockScreen extends Screen {
                 centeredHeadY,
                 PLAYER_HEAD_SIZE,
                 false,
-                false
+                false,
+                -1
         );
         graphics.drawString(
                 font,
@@ -233,7 +249,8 @@ public class CustomerLeaderboardBlockScreen extends Screen {
                 false
         );
         for (int index = 0; index < STAR_COUNT; index++) {
-            graphics.blit(
+            GuiGraphicsCUtils.blit(
+                    graphics,
                     getStarTexture(score.value(), index),
                     starsX + index * ICON_SIZE,
                     getRowElementY(y, ICON_SIZE),
@@ -246,7 +263,8 @@ public class CustomerLeaderboardBlockScreen extends Screen {
             );
         }
         if (score.levelPassed()) {
-            graphics.blit(
+            GuiGraphicsCUtils.blit(
+                    graphics,
                     CHECKMARK,
                     starsX + STAR_COUNT * ICON_SIZE + 2,
                     getRowElementY(y, ICON_SIZE),
@@ -283,7 +301,7 @@ public class CustomerLeaderboardBlockScreen extends Screen {
         return ROW_HEIGHT + playerScoreCount * (ROW_HEIGHT + ROW_GAP) + LEVEL_SECTION_GAP;
     }
 
-    private static ResourceLocation getStarTexture(float percentage, int index) {
+    private static Identifier getStarTexture(float percentage, int index) {
         return switch (CustomerShiftFinishedScreen.getStarState(percentage, index)) {
             case FULL -> STAR;
             case HALF -> HALF_STAR;
@@ -351,15 +369,15 @@ public class CustomerLeaderboardBlockScreen extends Screen {
     private record ScoreGroupKey(BlockPos spawnerPosition, CustomerSpawnerMode spawnerMode) {}
 
     private static final class ArrowButton extends AbstractButton {
-        private final ResourceLocation texture;
-        private final ResourceLocation pressedTexture;
+        private final Identifier texture;
+        private final Identifier pressedTexture;
         private final Runnable action;
 
         private ArrowButton(
                 int x,
                 int y,
-                ResourceLocation texture,
-                ResourceLocation pressedTexture,
+                Identifier texture,
+                Identifier pressedTexture,
                 Runnable action
         ) {
             super(x, y, 12, 12, Component.empty());
@@ -369,14 +387,25 @@ public class CustomerLeaderboardBlockScreen extends Screen {
         }
 
         @Override
-        public void onPress() {
+        public void onPress(InputWithModifiers input) {
             action.run();
         }
 
         @Override
-        protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-            ResourceLocation buttonTexture = isHoveredOrFocused() ? pressedTexture : texture;
-            graphics.blit(buttonTexture, getX(), getY(), 0, 0, 12, 12, 12, 12);
+        protected void renderContents(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+            Identifier buttonTexture = isHoveredOrFocused() ? pressedTexture : texture;
+            graphics.blit(
+                    RenderPipelines.GUI_TEXTURED,
+                    buttonTexture,
+                    getX(),
+                    getY(),
+                    0.0F,
+                    0.0F,
+                    12,
+                    12,
+                    12,
+                    12
+            );
         }
 
         @Override

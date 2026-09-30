@@ -10,15 +10,20 @@ import org.junit.jupiter.api.Test;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.ValueInput;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PersistenceCUtilsTest {
@@ -119,5 +124,35 @@ class PersistenceCUtilsTest {
         assertTrue(ItemStack.isSameItemSameComponents(bread, restored.get(0)));
         assertTrue(restored.get(1).isEmpty());
         assertTrue(ItemStack.isSameItemSameComponents(carrot, restored.get(2)));
+    }
+
+    @Test
+    void readsMinecraft1_21_1SparseItemStacksFromValueInput() {
+        CompoundTag bread = new CompoundTag();
+        bread.putInt("Slot", 2);
+        bread.putString("id", "minecraft:bread");
+        bread.putInt("count", 4);
+
+        ListTag items = new ListTag();
+        items.add(bread);
+        CompoundTag inventory = new CompoundTag();
+        inventory.putInt("Size", 5);
+        inventory.put("Items", items);
+        CompoundTag tag = new CompoundTag();
+        tag.put("inventory", inventory);
+        ValueInput input = TagValueInput.create(
+                ProblemReporter.DISCARDING,
+                RegistryAccess.EMPTY,
+                tag
+        );
+
+        List<ItemStack> restored = PersistenceCUtils.reader(input)
+                .getItemStacks("inventory");
+
+        assertEquals(5, restored.size());
+        assertTrue(restored.get(0).isEmpty());
+        assertSame(Items.BREAD, restored.get(2).getItem());
+        assertEquals(4, restored.get(2).getCount());
+        assertTrue(restored.get(4).isEmpty());
     }
 }

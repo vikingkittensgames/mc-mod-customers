@@ -2,6 +2,7 @@ package com.vikingkittens.mc.customers.compatability;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -16,7 +17,7 @@ public final class EntityCUtils {
             EntityType<T> entityType,
             Level level
     ) {
-        return entityType.create(level);
+        return entityType.create(level, EntitySpawnReason.COMMAND);
     }
     public static void snapTo(
             Entity entity,
@@ -24,7 +25,7 @@ public final class EntityCUtils {
             float yRotation,
             float xRotation
     ) {
-        entity.moveTo(
+        entity.snapTo(
                 position.x,
                 position.y,
                 position.z,
@@ -38,13 +39,13 @@ public final class EntityCUtils {
             float yRotation,
             float xRotation
     ) {
-        entity.moveTo(position, yRotation, xRotation);
+        entity.snapTo(position, yRotation, xRotation);
     }
     public static boolean startRiding(
             Entity passenger,
             Entity vehicle,
             boolean force
     ) {
-        return passenger.startRiding(vehicle, force);
+        return passenger.startRiding(vehicle, force, true);
     }
 }

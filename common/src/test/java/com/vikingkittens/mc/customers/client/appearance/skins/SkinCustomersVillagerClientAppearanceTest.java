@@ -4,7 +4,7 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearance;
 import com.vikingkittens.mc.customers.appearance.skins.SkinCustomersVillagerDefinition;
@@ -39,7 +39,7 @@ class SkinCustomersVillagerClientAppearanceTest {
     void preservesClientRendererSettings() {
         SkinCustomersVillagerDefinition skin =
                 new SkinCustomersVillagerDefinition(
-                        ResourceLocation.parse("example:alex"),
+                        Identifier.parse("example:alex"),
                         SkinCustomersVillagerModel.SLIM,
                         false,
                         1.1F,

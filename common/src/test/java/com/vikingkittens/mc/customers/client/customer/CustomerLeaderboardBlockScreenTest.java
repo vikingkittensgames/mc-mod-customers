@@ -15,12 +15,15 @@ import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.mock;
 
 class CustomerLeaderboardBlockScreenTest {
     @Test
     void doesNotPauseTheGame() {
-        CustomerLeaderboardBlockScreen screen = new CustomerLeaderboardBlockScreen(
-                new CustomerLeaderboardOpenPayload(BlockPos.ZERO, Map.of())
+        CustomerLeaderboardBlockScreen screen = mock(
+                CustomerLeaderboardBlockScreen.class,
+                CALLS_REAL_METHODS
         );
 
         assertFalse(screen.isPauseScreen());

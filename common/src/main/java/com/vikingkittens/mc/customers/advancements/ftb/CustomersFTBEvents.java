@@ -52,7 +52,7 @@ public final class CustomersFTBEvents {
         Set<UUID> playerIds = new HashSet<>(event.playerItemsCrafted().keySet());
         playerIds.addAll(event.playerItemsServed().keySet());
 
-        ServerQuestFile.getInstance().ifPresent(file -> {
+        ServerQuestFile.ifExists(file -> {
             Set<UUID> progressedTeams = new HashSet<>();
             for (UUID playerId : playerIds) {
                 ServerPlayer player = event.level().getServer().getPlayerList().getPlayer(playerId);
@@ -72,7 +72,7 @@ public final class CustomersFTBEvents {
 
     @InternalEventHandler
     public static void onLeaderboardChanged(CustomerInternalEvents.LeaderboardChanged event) {
-        ServerQuestFile.getInstance().ifPresent(file -> {
+        ServerQuestFile.ifExists(file -> {
             Map<TeamData, Set<UUID>> affectedPlayersByTeam = new HashMap<>();
             for (UUID playerId : event.affectedPlayerIds()) {
                 ServerPlayer player = event.level().getServer().getPlayerList().getPlayer(playerId);
@@ -131,7 +131,7 @@ public final class CustomersFTBEvents {
             ServerPlayer player,
             BiConsumer<CustomersFTBTasks.CustomersTask, TeamData> recorder
     ) {
-        ServerQuestFile.getInstance().ifPresent(file ->
+        ServerQuestFile.ifExists(file ->
                 file.getTeamData(player).ifPresent(teamData -> recordProgress(file, teamData, recorder))
         );
     }

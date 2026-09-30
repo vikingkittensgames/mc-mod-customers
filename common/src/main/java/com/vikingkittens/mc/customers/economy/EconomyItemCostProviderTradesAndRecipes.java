@@ -2,21 +2,26 @@ package com.vikingkittens.mc.customers.economy;
 
 import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.entity.npc.Villager;
-import net.minecraft.world.entity.npc.VillagerProfession;
-import net.minecraft.world.entity.npc.VillagerTrades;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.npc.villager.Villager;
+import net.minecraft.world.entity.npc.villager.VillagerProfession;
+import net.minecraft.world.entity.npc.villager.VillagerTrades;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.display.SlotDisplayContext;
 import net.minecraft.world.item.trading.MerchantOffer;
 
 public final class EconomyItemCostProviderTradesAndRecipes implements EconomyItemCostProvider {
@@ -36,8 +41,9 @@ public final class EconomyItemCostProviderTradesAndRecipes implements EconomyIte
 
     public void rebuild(MinecraftServer server) {
         Map<Item, Price> rebuilt = new HashMap<>();
-        Villager villager = new Villager(net.minecraft.world.entity.EntityType.VILLAGER, server.overworld());
-        scanVillagerTrades(villager, rebuilt);
+        ServerLevel level = server.overworld();
+        Villager villager = new Villager(net.minecraft.world.entity.EntityType.VILLAGER, level);
+        scanVillagerTrades(level, villager, rebuilt);
         for (int pass = 0; pass < MAX_PROPAGATION_PASSES; pass++) {
             Map<Item, Price> candidates = new HashMap<>();
             for (RecipeHolder<?> holder : server.getRecipeManager().getRecipes()) {
@@ -52,19 +58,25 @@ public final class EconomyItemCostProviderTradesAndRecipes implements EconomyIte
         prices = Map.copyOf(rebuilt);
     }
 
-    private static void scanVillagerTrades(Villager villager, Map<Item, Price> prices) {
-        for (Map.Entry<VillagerProfession, Int2ObjectMap<VillagerTrades.ItemListing[]>> profession
+    private static void scanVillagerTrades(
+            ServerLevel level,
+            Villager villager,
+            Map<Item, Price> prices
+    ) {
+        for (Map.Entry<ResourceKey<VillagerProfession>, Int2ObjectMap<VillagerTrades.ItemListing[]>> profession
                 : VillagerTrades.TRADES.entrySet()) {
             for (VillagerTrades.ItemListing[] listings : profession.getValue().values()) {
-                scanListings(listings, villager, prices);
+                scanListings(level, listings, villager, prices);
             }
         }
-        for (VillagerTrades.ItemListing[] listings : VillagerTrades.WANDERING_TRADER_TRADES.values()) {
-            scanListings(listings, villager, prices);
+        for (Pair<VillagerTrades.ItemListing[], Integer> tradeGroup
+                : VillagerTrades.WANDERING_TRADER_TRADES) {
+            scanListings(level, tradeGroup.getLeft(), villager, prices);
         }
     }
 
     private static void scanListings(
+            ServerLevel level,
             VillagerTrades.ItemListing[] listings,
             Villager villager,
             Map<Item, Price> prices
@@ -74,7 +86,7 @@ public final class EconomyItemCostProviderTradesAndRecipes implements EconomyIte
         }
         for (VillagerTrades.ItemListing listing : listings) {
             try {
-                MerchantOffer offer = listing.getOffer(villager, villager.getRandom());
+                MerchantOffer offer = listing.getOffer(level, villager, villager.getRandom());
                 if (offer != null) {
                     addOffer(offer, prices);
                 }
@@ -100,19 +112,26 @@ public final class EconomyItemCostProviderTradesAndRecipes implements EconomyIte
             Map<Item, Price> prices,
             Map<Item, Price> candidates
     ) {
-        ItemStack result = recipe.getResultItem(server.registryAccess());
-        if (result.isEmpty() || result.is(Items.AIR) || recipe.getIngredients().isEmpty()) {
+        ItemStack result = recipe.display().stream()
+                .map(display -> display.result().resolveForFirstStack(
+                        SlotDisplayContext.fromLevel(server.overworld())
+                ))
+                .filter(stack -> !stack.isEmpty())
+                .findFirst()
+                .orElse(ItemStack.EMPTY);
+        List<Ingredient> ingredients = recipe.placementInfo().ingredients();
+        if (result.isEmpty() || result.is(Items.AIR) || ingredients.isEmpty()) {
             return;
         }
         Price ingredientTotal = Price.ZERO;
         boolean allIngredientsKnown = true;
         int ingredientUnits = 0;
-        for (Ingredient ingredient : recipe.getIngredients()) {
-            ItemStack[] alternatives = ingredient.getItems();
-            if (alternatives.length == 0) {
+        for (Ingredient ingredient : ingredients) {
+            List<ItemStack> alternatives = ingredient.items().map(ItemStack::new).toList();
+            if (alternatives.isEmpty()) {
                 continue;
             }
-            ingredientUnits += Math.max(1, alternatives[0].getCount());
+            ingredientUnits += Math.max(1, alternatives.getFirst().getCount());
             Price cheapest = null;
             for (ItemStack alternative : alternatives) {
                 Price alternativePrice = prices.get(alternative.getItem());
@@ -139,8 +158,8 @@ public final class EconomyItemCostProviderTradesAndRecipes implements EconomyIte
             return;
         }
         Price perIngredientUnit = resultPrice.multiply(Math.max(1, result.getCount())).divide(ingredientUnits);
-        for (Ingredient ingredient : recipe.getIngredients()) {
-            for (ItemStack alternative : ingredient.getItems()) {
+        for (Ingredient ingredient : ingredients) {
+            for (ItemStack alternative : ingredient.items().map(ItemStack::new).toList()) {
                 if (!prices.containsKey(alternative.getItem())) {
                     addLowest(candidates, alternative.getItem(), perIngredientUnit);
                 }

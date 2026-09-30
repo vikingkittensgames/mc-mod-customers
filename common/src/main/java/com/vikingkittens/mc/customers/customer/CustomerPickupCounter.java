@@ -18,6 +18,8 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.compatability.CustomersServices;
+import com.vikingkittens.mc.customers.compatability.RegistrationCUtils;
 import com.vikingkittens.mc.customers.customer.data.CustomerOverlayBlockVariant;
 import com.vikingkittens.mc.customers.customer.data.CustomerOverlayBlockVariants;
 
@@ -34,8 +36,12 @@ public final class CustomerPickupCounter {
     public static final RegistrySupplier<BlockEntityType<CustomerPickupCounterBlockEntity>> BLOCK_ENTITY =
             BLOCK_ENTITY_TYPES.register(
             CustomerPickupCounterBlockEntity.NAME,
-            () -> BlockEntityType.Builder.of(CustomerPickupCounter::createBlockEntity,
-                    BLOCKS.values().stream().map(RegistrySupplier::get).toArray(CustomerPickupCounterBlock[]::new)).build(null)
+            () -> CustomersServices.registration().createBlockEntityType(
+                    CustomerPickupCounter::createBlockEntity,
+                    BLOCKS.values().stream()
+                            .map(RegistrySupplier::get)
+                            .toArray(CustomerPickupCounterBlock[]::new)
+            )
     );
 
     private CustomerPickupCounter() {
@@ -58,10 +64,11 @@ public final class CustomerPickupCounter {
         for (CustomerOverlayBlockVariant variant : CustomerOverlayBlockVariants.ALL) {
             blocks.put(
                     variant,
-                    BLOCK_REGISTRY.register(
+                    RegistrationCUtils.registerBlock(
+                            BLOCK_REGISTRY,
                             getBlockName(variant),
-                            () -> new CustomerPickupCounterBlock(
-                                    createProperties(variant)
+                            key -> new CustomerPickupCounterBlock(
+                                    createProperties(variant).setId(key)
                             )
                     )
             );
@@ -84,9 +91,15 @@ public final class CustomerPickupCounter {
                 BLOCKS.entrySet()) {
             items.put(
                     entry.getKey(),
-                    ITEM_REGISTRY.register(
+                    RegistrationCUtils.registerItem(
+                            ITEM_REGISTRY,
                             getBlockName(entry.getKey()),
-                            () -> new BlockItem(entry.getValue().get(), new Item.Properties())
+                            key -> new BlockItem(
+                                    entry.getValue().get(),
+                                    new Item.Properties()
+                                            .setId(key)
+                                            .useBlockDescriptionPrefix()
+                            )
                     )
             );
         }

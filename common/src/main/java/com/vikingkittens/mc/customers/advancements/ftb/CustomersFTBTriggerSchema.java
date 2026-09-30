@@ -7,24 +7,26 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import dev.ftb.mods.ftblibrary.config.ConfigGroup;
-import dev.ftb.mods.ftblibrary.config.NameMap;
+import dev.ftb.mods.ftblibrary.client.config.EditableConfigGroup;
+import dev.ftb.mods.ftblibrary.util.NameMap;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
-import net.minecraft.advancements.critereon.ItemPredicate;
-import net.minecraft.advancements.critereon.MinMaxBounds;
+import net.minecraft.advancements.criterion.ItemPredicate;
+import net.minecraft.advancements.criterion.MinMaxBounds;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.item.Item;
@@ -78,7 +80,7 @@ final class CustomersFTBTriggerSchema {
     }
 
     static <T> void fillConfigGroup(
-            ConfigGroup config,
+            EditableConfigGroup config,
             CustomersTriggerSchema<T> schema,
             Supplier<T> trigger,
             Consumer<T> update
@@ -139,7 +141,7 @@ final class CustomersFTBTriggerSchema {
     }
 
     private static <T> void addBoolean(
-            ConfigGroup config,
+            EditableConfigGroup config,
             CustomersTriggerSchema<T> schema,
             CustomersTriggerSchema.Property<T> property,
             Supplier<T> trigger,
@@ -156,7 +158,7 @@ final class CustomersFTBTriggerSchema {
     }
 
     private static <T> void addEnum(
-            ConfigGroup config,
+            EditableConfigGroup config,
             CustomersTriggerSchema<T> schema,
             CustomersTriggerSchema.Property<T> property,
             Supplier<T> trigger,
@@ -179,7 +181,7 @@ final class CustomersFTBTriggerSchema {
     }
 
     private static <T> void addIntRange(
-            ConfigGroup config,
+            EditableConfigGroup config,
             CustomersTriggerSchema<T> schema,
             CustomersTriggerSchema.Property<T> property,
             Supplier<T> trigger,
@@ -223,7 +225,7 @@ final class CustomersFTBTriggerSchema {
     }
 
     private static <T> void addDoubleRange(
-            ConfigGroup config,
+            EditableConfigGroup config,
             CustomersTriggerSchema<T> schema,
             CustomersTriggerSchema.Property<T> property,
             Supplier<T> trigger,
@@ -267,7 +269,7 @@ final class CustomersFTBTriggerSchema {
     }
 
     private static <T> void addItemPredicate(
-            ConfigGroup config,
+            EditableConfigGroup config,
             CustomersTriggerSchema<T> schema,
             CustomersTriggerSchema.Property<T> property,
             Supplier<T> trigger,
@@ -294,7 +296,7 @@ final class CustomersFTBTriggerSchema {
     }
 
     private static <T> void addResourceLocation(
-            ConfigGroup config,
+            EditableConfigGroup config,
             CustomersTriggerSchema<T> schema,
             CustomersTriggerSchema.Property<T> property,
             Supplier<T> trigger,
@@ -306,14 +308,14 @@ final class CustomersFTBTriggerSchema {
                         set(schema, trigger, update, property, Optional.empty());
                         return;
                     }
-                    Optional.ofNullable(ResourceLocation.tryParse(changed))
+                    Optional.ofNullable(Identifier.tryParse(changed))
                             .ifPresent(value -> set(schema, trigger, update, property, Optional.of(value)));
                 }, "")
                 .setNameKey(translationKey(property));
     }
 
     private static <T> void addLocation(
-            ConfigGroup config,
+            EditableConfigGroup config,
             CustomersTriggerSchema<T> schema,
             CustomersTriggerSchema.Property<T> property,
             Supplier<T> trigger,
@@ -328,7 +330,7 @@ final class CustomersFTBTriggerSchema {
                         propertyName + "_dimension",
                         editor.dimension(),
                         editor::setDimension,
-                        Level.OVERWORLD.location().toString()
+                        Level.OVERWORLD.identifier().toString()
                 )
                 .setNameKey(nameKey + ".dimension");
         config.addInt(
@@ -462,15 +464,23 @@ final class CustomersFTBTriggerSchema {
     }
 
     static Optional<Optional<ItemPredicate>> itemPredicate(ItemStack item, String tagReference) {
+        return itemPredicate(BuiltInRegistries.ITEM, item, tagReference);
+    }
+
+    static Optional<Optional<ItemPredicate>> itemPredicate(
+            HolderGetter<Item> items,
+            ItemStack item,
+            String tagReference
+    ) {
         if (!tagReference.isBlank()) {
             String idValue = tagReference.startsWith("#") ? tagReference.substring(1) : tagReference;
-            ResourceLocation id = ResourceLocation.tryParse(idValue);
+            Identifier id = Identifier.tryParse(idValue);
             if (id == null) {
                 return Optional.empty();
             }
             return Optional.of(Optional.of(
                     ItemPredicate.Builder.item()
-                            .of(TagKey.create(Registries.ITEM, id))
+                            .of(items, TagKey.create(Registries.ITEM, id))
                             .build()
             ));
         }
@@ -478,7 +488,7 @@ final class CustomersFTBTriggerSchema {
             return Optional.of(Optional.empty());
         }
         return Optional.of(Optional.of(
-                ItemPredicate.Builder.item().of(item.getItem()).build()
+                ItemPredicate.Builder.item().of(items, item.getItem()).build()
         ));
     }
 
@@ -509,7 +519,7 @@ final class CustomersFTBTriggerSchema {
         if (!enabled) {
             return Optional.of(Optional.empty());
         }
-        ResourceLocation dimensionId = ResourceLocation.tryParse(dimension);
+        Identifier dimensionId = Identifier.tryParse(dimension);
         if (dimensionId == null) {
             return Optional.empty();
         }
@@ -542,8 +552,8 @@ final class CustomersFTBTriggerSchema {
             this.trigger = trigger;
             this.update = update;
             enabled = location.isPresent();
-            dimension = location.map(value -> value.dimension().location().toString())
-                    .orElse(Level.OVERWORLD.location().toString());
+            dimension = location.map(value -> value.dimension().identifier().toString())
+                    .orElse(Level.OVERWORLD.identifier().toString());
             x = location.map(value -> value.position().getX()).orElse(0);
             y = location.map(value -> value.position().getY()).orElse(0);
             z = location.map(value -> value.position().getZ()).orElse(0);

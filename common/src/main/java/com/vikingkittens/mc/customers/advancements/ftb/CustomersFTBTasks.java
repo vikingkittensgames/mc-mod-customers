@@ -3,9 +3,9 @@ package com.vikingkittens.mc.customers.advancements.ftb;
 import java.util.Set;
 import java.util.UUID;
 
-import dev.ftb.mods.ftblibrary.config.ConfigGroup;
-import dev.ftb.mods.ftblibrary.config.NameMap;
+import dev.ftb.mods.ftblibrary.client.config.EditableConfigGroup;
 import dev.ftb.mods.ftblibrary.icon.Icon;
+import dev.ftb.mods.ftblibrary.util.NameMap;
 import dev.ftb.mods.ftbquests.quest.Quest;
 import dev.ftb.mods.ftbquests.quest.TeamData;
 import dev.ftb.mods.ftbquests.quest.task.Task;
@@ -16,7 +16,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerCounterPlaced;
@@ -37,10 +37,10 @@ public final class CustomersFTBTasks {
     private static final int REQUIRED_EVENTS_CONFIG_ORDER = 100;
 
     public static final TaskType CUSTOMERS_TASK = TaskTypes.register(
-            ResourceLocation.fromNamespaceAndPath(Customers.MODID, CUSTOMERS_TASK_NAME),
+            Identifier.fromNamespaceAndPath(Customers.MODID, CUSTOMERS_TASK_NAME),
             CustomersTask::new,
             () -> Icon.getIcon("minecraft:item/emerald")
-    ).setDisplayName(Component.translatable(CUSTOMERS_TASK_NAME_KEY));
+    );
 
     private CustomersFTBTasks() {}
 
@@ -324,8 +324,8 @@ public final class CustomersFTBTasks {
         @Override
         public void readData(CompoundTag tag, HolderLookup.Provider provider) {
             super.readData(tag, provider);
-            taskKind = CustomersTaskKind.NAME_MAP.get(tag.getString("customers_task"));
-            requiredEvents = Math.max(1, tag.getInt("count"));
+            taskKind = CustomersTaskKind.NAME_MAP.get(tag.getString("customers_task").orElse(""));
+            requiredEvents = Math.max(1, tag.getInt("count").orElse(1));
             switch (taskKind) {
                 case ITEM_SERVED -> itemServedTrigger = CustomersFTBTriggerSchema.readData(
                         tag,
@@ -453,7 +453,7 @@ public final class CustomersFTBTasks {
         }
 
         @Override
-        public void fillConfigGroup(ConfigGroup config) {
+        public void fillConfigGroup(EditableConfigGroup config) {
             super.fillConfigGroup(config);
             config.addInt("count", requiredEvents, value -> requiredEvents = value, 1, 1, Integer.MAX_VALUE)
                     .setNameKey("ftbquests.task.customers.customers_task.count")

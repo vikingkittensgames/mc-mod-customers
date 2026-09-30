@@ -3,14 +3,14 @@ package com.vikingkittens.mc.customers.economy;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 record EconomyItemMatcher(
-        @Nullable ResourceLocation itemId,
-        @Nullable ResourceLocation tagId,
+        @Nullable Identifier itemId,
+        @Nullable Identifier tagId,
         int count
 ) {
     boolean matches(ItemStack stack) {

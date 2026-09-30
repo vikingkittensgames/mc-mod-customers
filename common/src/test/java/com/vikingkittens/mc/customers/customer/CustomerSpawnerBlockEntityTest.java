@@ -14,10 +14,12 @@ import org.junit.jupiter.api.Test;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.Item;
@@ -27,6 +29,9 @@ import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
@@ -184,6 +189,45 @@ class CustomerSpawnerBlockEntityTest {
         tag.putInt(CustomerSpawnerBlockEntity.TAG_DATA_VERSION, 2);
 
         assertDoesNotThrow(() -> entity.readSpawnerData(PersistenceCUtils.reader(tag)));
+    }
+
+    @Test
+    void persistsEachConfiguredLevelThroughValueOutput() {
+        BlockEntityType<?> type = mock(BlockEntityType.class);
+        BlockState state = mock(BlockState.class);
+        when(type.isValid(state)).thenReturn(true);
+        CustomerSpawnerBlockEntity saved = new CustomerSpawnerBlockEntity(
+                type,
+                BlockPos.ZERO,
+                state
+        );
+        saved.getLevelSettings(0).getInventory().setItem(0, new ItemStack(Items.APPLE));
+        saved.getLevelSettings(0).getInventory().setItem(2, new ItemStack(Items.BAKED_POTATO));
+        saved.getLevelSettings(1).getInventory().setItem(0, new ItemStack(Items.APPLE));
+        saved.getLevelSettings(1).getInventory().setItem(2, new ItemStack(Items.POTATO));
+        saved.getLevelSettings(1).getInventory().setItem(4, new ItemStack(Items.COOKED_SALMON));
+        TagValueOutput output = TagValueOutput.createWithoutContext(ProblemReporter.DISCARDING);
+
+        saved.writeSpawnerData(PersistenceCUtils.writer(output));
+
+        ValueInput input = TagValueInput.create(
+                ProblemReporter.DISCARDING,
+                RegistryAccess.EMPTY,
+                output.buildResult()
+        );
+        CustomerSpawnerBlockEntity loaded = new CustomerSpawnerBlockEntity(
+                type,
+                BlockPos.ZERO,
+                state
+        );
+        loaded.readSpawnerData(PersistenceCUtils.reader(input));
+
+        assertSame(Items.APPLE, loaded.getLevelSettings(0).getInventory().getItem(0).getItem());
+        assertSame(Items.BAKED_POTATO, loaded.getLevelSettings(0).getInventory().getItem(2).getItem());
+        assertTrue(loaded.getLevelSettings(0).getInventory().getItem(4).isEmpty());
+        assertSame(Items.APPLE, loaded.getLevelSettings(1).getInventory().getItem(0).getItem());
+        assertSame(Items.POTATO, loaded.getLevelSettings(1).getInventory().getItem(2).getItem());
+        assertSame(Items.COOKED_SALMON, loaded.getLevelSettings(1).getInventory().getItem(4).getItem());
     }
 
     @Test

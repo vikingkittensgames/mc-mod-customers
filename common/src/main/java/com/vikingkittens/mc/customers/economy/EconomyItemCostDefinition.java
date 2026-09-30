@@ -1,9 +1,9 @@
 package com.vikingkittens.mc.customers.economy;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 record EconomyItemCostDefinition(
         EconomyItemMatcher matcher,
-        ResourceLocation costItemId,
+        Identifier costItemId,
         int costCount
 ) {}

@@ -1,0 +1,43 @@
+{
+  "model": {
+    "type": "minecraft:range_dispatch",
+    "property": "minecraft:custom_model_data",
+    "entries": [
+      { "threshold": 2, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_served" } },
+      { "threshold": 3, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_chicken_leg" } },
+      { "threshold": 4, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_chicken_legs" } },
+      { "threshold": 5, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_chicken" } },
+      { "threshold": 6, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_small_dinner" } },
+      { "threshold": 7, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_large_dinner" } },
+      { "threshold": 10, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_day" } },
+      { "threshold": 11, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_night" } },
+      { "threshold": 12, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_breakfast" } },
+      { "threshold": 13, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_lunch" } },
+      { "threshold": 14, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_dinner" } },
+      { "threshold": 20, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_customer" } },
+      { "threshold": 21, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_customer_casual" } },
+      { "threshold": 22, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_customer_normal" } },
+      { "threshold": 23, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_customer_impatient" } },
+      { "threshold": 24, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_customer_casual_100" } },
+      { "threshold": 25, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_customer_normal_100" } },
+      { "threshold": 26, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_customer_impatient_100" } },
+      { "threshold": 27, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_customer_mask" } },
+      { "threshold": 28, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_dog" } },
+      { "threshold": 29, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_dog_100" } },
+      { "threshold": 30, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_star" } },
+      { "threshold": 31, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_star1" } },
+      { "threshold": 32, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_star2" } },
+      { "threshold": 33, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_star3" } },
+      { "threshold": 34, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_star4" } },
+      { "threshold": 35, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_star5" } },
+      { "threshold": 50, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_config" } },
+      { "threshold": 51, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_config_plus" } },
+      { "threshold": 52, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_table" } },
+      { "threshold": 53, "model": { "type": "minecraft:model", "model": "customers:item/advancement_icon_sack" } }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "customers:item/advancement_icon"
+    }
+  }
+}

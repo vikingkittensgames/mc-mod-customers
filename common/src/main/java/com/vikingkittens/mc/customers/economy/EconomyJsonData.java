@@ -19,7 +19,7 @@ import com.google.gson.JsonParser;
 import org.slf4j.Logger;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.item.ItemStack;
@@ -168,9 +168,9 @@ final class EconomyJsonData {
         if (hasItem == hasTag) {
             throw invalid(source, index, "entry must have exactly one of item or tag");
         }
-        ResourceLocation itemId = hasItem ? parseId(object, "item", source, index) : null;
-        ResourceLocation tagId = hasTag ? parseId(object, "tag", source, index) : null;
-        ResourceLocation costItemId = parseId(object, "costItem", source, index);
+        Identifier itemId = hasItem ? parseId(object, "item", source, index) : null;
+        Identifier tagId = hasTag ? parseId(object, "tag", source, index) : null;
+        Identifier costItemId = parseId(object, "costItem", source, index);
         int itemCount = positiveCount(object, "itemCount", source, index);
         int costCount = positiveCount(object, "costCount", source, index);
         if (itemId != null && !BuiltInRegistries.ITEM.containsKey(itemId)) {
@@ -186,16 +186,16 @@ final class EconomyJsonData {
         );
     }
 
-    private static ResourceLocation parseId(JsonObject object, String name, String source, int index) {
+    private static Identifier parseId(JsonObject object, String name, String source, int index) {
         if (!object.has(name) || !object.get(name).isJsonPrimitive()) {
             throw invalid(source, index, name + " must be an item or tag ID string");
         }
-        return ResourceLocation.tryParse(object.get(name).getAsString()) == null
+        return Identifier.tryParse(object.get(name).getAsString()) == null
                 ? throwInvalidId(source, index, name)
-                : ResourceLocation.parse(object.get(name).getAsString());
+                : Identifier.parse(object.get(name).getAsString());
     }
 
-    private static ResourceLocation throwInvalidId(String source, int index, String name) {
+    private static Identifier throwInvalidId(String source, int index, String name) {
         throw invalid(source, index, name + " is not a valid resource ID");
     }
 
@@ -214,15 +214,15 @@ final class EconomyJsonData {
         return new IllegalArgumentException(source + " entry " + index + ": " + message);
     }
 
-    static ResourceLocation itemId(ItemStack stack) {
+    static Identifier itemId(ItemStack stack) {
         return BuiltInRegistries.ITEM.getKey(stack.getItem());
     }
 
-    static ItemStack costStack(ResourceLocation itemId, int count) {
-        return new ItemStack(BuiltInRegistries.ITEM.get(itemId), count);
+    static ItemStack costStack(Identifier itemId, int count) {
+        return new ItemStack(BuiltInRegistries.ITEM.getValue(itemId), count);
     }
 
     private record EconomyFile(boolean replace, List<EconomyItemCostDefinition> values) {}
 
-    private record EconomyResource(ResourceLocation id, Resource resource) {}
+    private record EconomyResource(Identifier id, Resource resource) {}
 }

@@ -5,9 +5,12 @@ import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
 
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.entity.npc.VillagerProfession;
+import net.minecraft.world.entity.npc.villager.VillagerProfession;
 
 import com.vikingkittens.mc.customers.Customers;
 
@@ -35,7 +38,10 @@ public class Customer {
             ENTITY_TYPES.register(CustomerVillagerEntity.NAME,
                     () -> EntityType.Builder.of(CustomerVillagerEntity::new, MobCategory.CREATURE)
                     .sized(0.6F, 1.95F)
-                    .build(CustomerVillagerEntity.NAME)
+                    .build(ResourceKey.create(
+                            Registries.ENTITY_TYPE,
+                            Identifier.fromNamespaceAndPath(Customers.MODID, CustomerVillagerEntity.NAME)
+                    ))
             );
     public static final RegistrySupplier<EntityType<CustomerSeatEntity>> CUSTOMER_SEAT = CustomerSeat.ENTITY_TYPE;
 
@@ -43,7 +49,7 @@ public class Customer {
     // -------------------- Professions --------------------
     public static final RegistrySupplier<VillagerProfession> CUSTOMER_PROFESSION =
             PROFESSIONS.register("customer", () -> new VillagerProfession(
-                    "customer",
+                    Component.literal("customer"),
                     holder -> false,
                     holder -> false,
                     ImmutableSet.of(),
@@ -53,7 +59,7 @@ public class Customer {
             );
     public static final RegistrySupplier<VillagerProfession> CUSTOMER_CASUAL_PROFESSION =
             PROFESSIONS.register("customer_casual", () -> new VillagerProfession(
-                    "customer_casual",
+                    Component.literal("customer_casual"),
                     holder -> false,
                     holder -> false,
                     ImmutableSet.of(),
@@ -63,7 +69,7 @@ public class Customer {
             );
     public static final RegistrySupplier<VillagerProfession> CUSTOMER_IMPATIENT_PROFESSION =
             PROFESSIONS.register("customer_impatient", () -> new VillagerProfession(
-                    "customer_impatient",
+                    Component.literal("customer_impatient"),
                     holder -> false,
                     holder -> false,
                     ImmutableSet.of(),
