@@ -397,6 +397,14 @@ class CustomerGoalLifecycleTest {
                 secondTargetPosition,
                 fixture.customerId
         )).thenReturn(thirdLineCustomerId);
+        when(fixture.spawner.getCounterPositions(
+                eq(fixture.counterState),
+                anyInt(),
+                any()
+        )).thenReturn(List.of(
+                fixture.counterPosition,
+                secondCounterPosition
+        ));
 
         try (
                 MockedStatic<CustomerCounter> counter =
@@ -404,16 +412,6 @@ class CustomerGoalLifecycleTest {
                 MockedStatic<CustomerSeatEntity> seat =
                         mockStatic(CustomerSeatEntity.class)
         ) {
-            counter.when(() -> CustomerCounter.findCounterPositions(
-                    eq(fixture.level),
-                    eq(fixture.spawnerPosition),
-                    eq(fixture.counterState),
-                    anyInt(),
-                    any()
-            )).thenReturn(List.of(
-                    fixture.counterPosition,
-                    secondCounterPosition
-            ));
             counter.when(() -> CustomerCounter.findValidSurroundingPositions(
                     fixture.level,
                     List.of(
@@ -534,6 +532,11 @@ class CustomerGoalLifecycleTest {
             when(random.nextInt(anyInt())).thenReturn(0);
 
             when(spawner.getBlockPos()).thenReturn(spawnerPosition);
+            when(spawner.getCounterPositions(
+                    eq(counterState),
+                    anyInt(),
+                    any()
+            )).thenReturn(List.of(counterPosition));
             when(spawner.getReservedTargetCounterPositions())
                     .thenReturn(Map.of());
             when(spawner.getReservedTargetCounterPositionFollowingCustomerId(
@@ -577,13 +580,6 @@ class CustomerGoalLifecycleTest {
         private MockedStatic<CustomerCounter> mockCounterSearch() {
             MockedStatic<CustomerCounter> counter =
                     mockStatic(CustomerCounter.class);
-            counter.when(() -> CustomerCounter.findCounterPositions(
-                    eq(level),
-                    eq(spawnerPosition),
-                    eq(counterState),
-                    anyInt(),
-                    any()
-            )).thenReturn(List.of(counterPosition));
             counter.when(() -> CustomerCounter.findValidSurroundingPositions(
                     level,
                     List.of(counterPosition),

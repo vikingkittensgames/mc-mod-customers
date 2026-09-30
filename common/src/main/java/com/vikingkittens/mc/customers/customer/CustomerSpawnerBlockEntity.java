@@ -214,6 +214,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     private long spawnCheckTicks = 0;
     private final Set<UUID> customerIds = new HashSet<>();
     private final Map<BlockPos, List<UUID>> reservedTargetCounterPositions = new HashMap<>();
+    private final CustomerCounterCache counterCache = new CustomerCounterCache();
     private int reservationCleanupLoadTicks;
     private ServerBossEvent progressBar;
     private CustomerLeaderboardBlockEntity activeLevelLeaderboard;
@@ -839,6 +840,14 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 reservations.put(position, List.copyOf(customerIds))
         );
         return Map.copyOf(reservations);
+    }
+
+    public List<BlockPos> getCounterPositions(BlockState counterState, int maxDistance, Block spawnerBlock) {
+        return counterCache.getPositions(level, worldPosition, counterState, maxDistance, spawnerBlock);
+    }
+
+    void invalidateCounterPositions() {
+        counterCache.invalidate();
     }
 
     private boolean isActiveCustomer(UUID customerId) {
@@ -1718,12 +1727,10 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                     if (entity.countActiveCustomers() < maxCustomers) {
                         BlockState counterBlockState = entity.level.getBlockState(entity.getBlockPos().above());
                         if (!counterBlockState.isAir()) {
-                            List<BlockPos> counterPositions = CustomerCounter.findCounterPositions(
-                                    entity.level,
-                                    entity.getBlockPos(),
+                            List<BlockPos> counterPositions = entity.getCounterPositions(
                                     counterBlockState,
                                     CustomersServices.config().maxCounterDistance(),
-                                    CustomerSpawner.CUSTOMER_SPAWNER_BLOCK::get
+                                    CustomerSpawner.CUSTOMER_SPAWNER_BLOCK.get()
                             );
                             if (!counterPositions.isEmpty()) {
                                 entity.spawnCustomer();
