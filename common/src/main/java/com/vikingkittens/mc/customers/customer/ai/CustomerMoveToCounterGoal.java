@@ -89,12 +89,10 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
         if (spawner != null) {
             targetPos = customer.getCounterTargetBlockPos();
 
-            List<BlockPos> counterPositions = CustomerCounter.findCounterPositions(
-                    customer.level(),
-                    customer.getSpawnerPos(),
+            List<BlockPos> counterPositions = spawner.getCounterPositions(
                     customer.getCounterBlockState(),
                     maxCounterDistance.getAsInt(),
-                    spawnerBlock
+                    spawnerBlock.get()
             );
             List<CustomerCounter.SurroundingPosition> validPositions = CustomerCounter.findValidSurroundingPositions(
                     customer.level(),
