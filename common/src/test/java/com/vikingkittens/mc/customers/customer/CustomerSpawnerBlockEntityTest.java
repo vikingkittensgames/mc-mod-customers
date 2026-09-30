@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -50,6 +51,43 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class CustomerSpawnerBlockEntityTest {
+    @AfterEach
+    void clearLeaderboardCache() {
+        CustomerLeaderboardCache.clear();
+    }
+
+    @Test
+    void refreshesTheActiveLeaderboardOnlyWhenTheCacheChanges() {
+        BlockEntityType<?> type = mock(BlockEntityType.class);
+        BlockState state = mock(BlockState.class);
+        when(type.isValid(state)).thenReturn(true);
+        CustomerSpawnerBlockEntity spawner =
+                new CustomerSpawnerBlockEntity(type, BlockPos.ZERO, state);
+        ServerLevel level = mock(ServerLevel.class);
+        spawner.setLevel(level);
+        CustomerLeaderboardBlockEntity farther =
+                mock(CustomerLeaderboardBlockEntity.class);
+        CustomerLeaderboardBlockEntity closer =
+                mock(CustomerLeaderboardBlockEntity.class);
+
+        CustomerLeaderboardCache.update(
+                level,
+                new BlockPos(8, 0, 0),
+                farther
+        );
+
+        assertSame(farther, spawner.getActiveLevelLeaderboard(64));
+        assertSame(farther, spawner.getActiveLevelLeaderboard(64));
+
+        CustomerLeaderboardCache.update(
+                level,
+                new BlockPos(3, 0, 0),
+                closer
+        );
+
+        assertSame(closer, spawner.getActiveLevelLeaderboard(64));
+    }
+
     @Test
     void emitsShiftFinishedEventFromScoreboardData() {
         BlockEntityType<?> type = mock(BlockEntityType.class);
