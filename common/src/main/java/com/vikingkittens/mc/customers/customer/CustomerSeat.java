@@ -17,7 +17,6 @@ public final class CustomerSeat {
             ENTITY_TYPES.register(CustomerSeatEntity.NAME,
                     () -> EntityType.Builder.of(CustomerSeatEntity::new, MobCategory.MISC)
                             .sized(0.25F, 0.25F)
-                            .noSave()
                             .clientTrackingRange(10)
                             .updateInterval(20)
                             .build(CustomerSeatEntity.NAME));

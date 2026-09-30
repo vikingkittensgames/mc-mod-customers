@@ -1,24 +1,22 @@
 package com.vikingkittens.mc.customers.supplier.ai;
 
-import com.vikingkittens.mc.customers.common.SearchUtils;
-import com.vikingkittens.mc.customers.compatability.ComponentCUtils;
-import com.vikingkittens.mc.customers.compatability.PlayerCUtils;
-
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.trading.MerchantOffer;
+import java.util.List;
 
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.trading.MerchantOffer;
 
 import com.vikingkittens.mc.customers.common.MobUtils;
+import com.vikingkittens.mc.customers.common.SearchUtils;
 import com.vikingkittens.mc.customers.common.ai.MobMoveToGoal;
+import com.vikingkittens.mc.customers.compatability.ComponentCUtils;
 import com.vikingkittens.mc.customers.compatability.LevelCUtils;
+import com.vikingkittens.mc.customers.compatability.PlayerCUtils;
 import com.vikingkittens.mc.customers.supplier.SupplierState;
 import com.vikingkittens.mc.customers.supplier.SupplierVillagerEntity;
-
-import java.util.List;
 
 public class SupplierMoveToSpawnGoal extends MobMoveToGoal {
     private static final Logger LOGGER = LogUtils.getLogger();

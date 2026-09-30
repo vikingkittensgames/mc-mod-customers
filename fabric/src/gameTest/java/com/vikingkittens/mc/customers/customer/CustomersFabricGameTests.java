@@ -43,6 +43,12 @@ public final class CustomersFabricGameTests implements FabricGameTest {
     }
 
     @GameTest(template = EMPTY_STRUCTURE)
+    public void customersCanSit(GameTestHelper helper) {
+        CustomersGameTestAssertions.assertCustomersCanSit(helper);
+        helper.succeed();
+    }
+
+    @GameTest(template = EMPTY_STRUCTURE)
     public void commitsOnlyCompletedFabricTransactions(GameTestHelper helper) {
         RecordingInsertionTarget target = new RecordingInsertionTarget();
         CustomerPickupCounterFabricStorage storage =

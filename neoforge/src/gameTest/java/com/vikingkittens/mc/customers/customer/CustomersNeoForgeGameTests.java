@@ -34,4 +34,10 @@ public final class CustomersNeoForgeGameTests {
         CustomersGameTestAssertions.assertTradeRemainders(helper);
         helper.succeed();
     }
+
+    @GameTest(templateNamespace = "minecraft", template = "woodland_mansion/wall_window")
+    public static void customersCanSit(GameTestHelper helper) {
+        CustomersGameTestAssertions.assertCustomersCanSit(helper);
+        helper.succeed();
+    }
 }
