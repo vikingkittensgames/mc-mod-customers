@@ -15,10 +15,10 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: Setup JDK 21
+      - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
+          java-version: '17'
           distribution: 'temurin'
 
       - name: Setup Gradle
@@ -39,9 +39,3 @@ jobs:
           path: forge/build/libs/*.jar
           if-no-files-found: error
 
-      - name: Upload NeoForge JAR
-        uses: actions/upload-artifact@v4
-        with:
-          name: customers-neoforge
-          path: neoforge/build/libs/*.jar
-          if-no-files-found: error

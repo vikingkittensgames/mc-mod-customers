@@ -27,6 +27,7 @@ import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 import com.vikingkittens.mc.customers.common.MobUtils;
 import com.vikingkittens.mc.customers.common.events.InternalEvent;
 import com.vikingkittens.mc.customers.common.events.InternalEvents;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
 import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
 
@@ -50,7 +51,7 @@ import static org.mockito.Mockito.when;
 
 class SupplierVillagerEntityTest {
     private static final ResourceLocation TEST_APPEARANCE =
-            ResourceLocation.parse("example:test");
+            ResourceLocationCUtils.parse("example:test");
 
     @BeforeAll
     static void bootstrapMinecraft() {

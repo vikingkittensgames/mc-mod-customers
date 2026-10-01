@@ -17,10 +17,11 @@ import net.minecraftforge.items.IItemHandler;
 
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.compatability.ForgeItemInsertionTarget;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 
 public final class CustomerPickupCounterForgeEvents {
     static final ResourceLocation ITEM_HANDLER_ID =
-            ResourceLocation.fromNamespaceAndPath(Customers.MODID, "pickup_counter_items");
+            ResourceLocationCUtils.create(Customers.MODID, "pickup_counter_items");
 
     private CustomerPickupCounterForgeEvents() {}
 

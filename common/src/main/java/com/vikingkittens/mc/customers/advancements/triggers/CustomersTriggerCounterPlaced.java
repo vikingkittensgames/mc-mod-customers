@@ -5,7 +5,6 @@ import java.util.Optional;
 
 import com.mojang.serialization.Codec;
 import net.minecraft.advancements.critereon.ContextAwarePredicate;
-import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -15,16 +14,16 @@ import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
 public final class CustomersTriggerCounterPlaced
-        extends SimpleCriterionTrigger<CustomersTriggerCounterPlaced.Instance> {
+        extends CustomersCriterionTrigger<CustomersTriggerCounterPlaced.Instance> {
     public static final CustomersTriggerSchema<Instance> SCHEMA = Instance.SCHEMA;
 
-    @Override
-    public Codec<Instance> codec() {
-        return Instance.CODEC;
+    public CustomersTriggerCounterPlaced() {
+        super("counter_placed", SCHEMA);
     }
 
+
     public void trigger(ServerPlayer player, CustomerInternalEvents.CounterBlockPlaced event) {
-        trigger(player, instance -> instance.matchesEvent(event));
+        triggerValue(player, instance -> instance.matchesEvent(event));
     }
 
     public record Instance(
@@ -33,7 +32,7 @@ public final class CustomersTriggerCounterPlaced
             Optional<CustomerSpawnerMode> spawnerMode,
             Optional<CustomersLocationPredicate> counterLocation,
             Optional<ResourceLocation> counterBlock
-    ) implements SimpleInstance {
+    ) {
         public static final Instance ANY = new Instance(
                 Optional.empty(),
                 Optional.empty(),
@@ -47,7 +46,7 @@ public final class CustomersTriggerCounterPlaced
                         .property(
                                 "player",
                                 "player",
-                                ContextAwarePredicate.CODEC,
+                                CustomersTriggerCodecs.CONTEXT_AWARE_PREDICATE,
                                 CustomersTriggerSchema.Editor.HIDDEN,
                                 false
                         )

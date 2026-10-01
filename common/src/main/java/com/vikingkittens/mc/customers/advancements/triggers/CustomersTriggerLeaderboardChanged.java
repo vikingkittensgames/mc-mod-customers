@@ -7,7 +7,6 @@ import java.util.UUID;
 import com.mojang.serialization.Codec;
 import net.minecraft.advancements.critereon.ContextAwarePredicate;
 import net.minecraft.advancements.critereon.MinMaxBounds;
-import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringRepresentable;
 
@@ -15,16 +14,16 @@ import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
 public final class CustomersTriggerLeaderboardChanged
-        extends SimpleCriterionTrigger<CustomersTriggerLeaderboardChanged.Instance> {
+        extends CustomersCriterionTrigger<CustomersTriggerLeaderboardChanged.Instance> {
     public static final CustomersTriggerSchema<Instance> SCHEMA = Instance.SCHEMA;
 
-    @Override
-    public Codec<Instance> codec() {
-        return Instance.CODEC;
+    public CustomersTriggerLeaderboardChanged() {
+        super("leaderboard_changed", SCHEMA);
     }
 
+
     public void trigger(ServerPlayer player, CustomerInternalEvents.LeaderboardChanged event) {
-        trigger(player, instance -> instance.matchesEvent(event, player.getUUID()));
+        triggerValue(player, instance -> instance.matchesEvent(event, player.getUUID()));
     }
 
     public record Instance(
@@ -38,7 +37,7 @@ public final class CustomersTriggerLeaderboardChanged
             Optional<Boolean> isLeader,
             Optional<Boolean> wasLeader,
             Optional<Boolean> leaderChanged
-    ) implements SimpleInstance {
+    ) {
         public static final Instance ANY = new Instance(
                 Optional.empty(),
                 Optional.empty(),
@@ -57,7 +56,7 @@ public final class CustomersTriggerLeaderboardChanged
                         .property(
                                 "player",
                                 "player",
-                                ContextAwarePredicate.CODEC,
+                                CustomersTriggerCodecs.CONTEXT_AWARE_PREDICATE,
                                 CustomersTriggerSchema.Editor.HIDDEN,
                                 false
                         )
@@ -86,21 +85,21 @@ public final class CustomersTriggerLeaderboardChanged
                         .property(
                                 "activeLevel",
                                 "level",
-                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerCodecs.INT_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
                                 true
                         )
                         .property(
                                 "previousScore",
                                 "previous_score",
-                                MinMaxBounds.Doubles.CODEC,
+                                CustomersTriggerCodecs.DOUBLE_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_DOUBLE_RANGE,
                                 true
                         )
                         .property(
                                 "newScore",
                                 "new_score",
-                                MinMaxBounds.Doubles.CODEC,
+                                CustomersTriggerCodecs.DOUBLE_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_DOUBLE_RANGE,
                                 true
                         )

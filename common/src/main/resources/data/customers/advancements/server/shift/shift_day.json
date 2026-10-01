@@ -1,0 +1,24 @@
+{
+  "parent": "customers:server/shift/root",
+  "criteria": {
+    "shift_day": {
+      "trigger": "customers:item_served",
+      "conditions": {
+        "spawner_mode": "day"
+      }
+    }
+  },
+  "display": {
+    "description": { "translate": "advancements.customers.server.shift.shift_day.description" },
+    "icon": {
+      "item": "customers:advancement_icon",
+      "nbt": "{CustomModelData:10}"
+    },
+    "title": { "translate": "advancements.customers.server.shift.shift_day.title" }
+  },
+  "requirements": [
+    [
+      "shift_day"
+    ]
+  ]
+}

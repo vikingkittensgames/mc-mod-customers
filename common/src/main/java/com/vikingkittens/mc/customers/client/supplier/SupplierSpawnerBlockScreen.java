@@ -15,17 +15,18 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 import com.vikingkittens.mc.customers.supplier.SupplierSpawnerBlockMenu;
 
 public class SupplierSpawnerBlockScreen
         extends AbstractContainerScreen<SupplierSpawnerBlockMenu> {
     private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(
+            ResourceLocationCUtils.create(
                     Customers.MODID,
                     "textures/gui/supplier_spawner_ui.png"
             );
     private static final ResourceLocation AUTO_COST_TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(
+            ResourceLocationCUtils.create(
                     Customers.MODID,
                     "textures/gui/supplier_spawner_ui_auto.png"
             );
@@ -37,9 +38,9 @@ public class SupplierSpawnerBlockScreen
     private static final int MANUAL_COST_Y = 126;
     private static final int MANUAL_COST_TOGGLE_SIZE = 12;
     private static final ResourceLocation MANUAL_COST =
-            ResourceLocation.fromNamespaceAndPath(Customers.MODID, "textures/gui/cost.png");
+            ResourceLocationCUtils.create(Customers.MODID, "textures/gui/cost.png");
     private static final ResourceLocation AUTOMATIC_COST =
-            ResourceLocation.fromNamespaceAndPath(Customers.MODID, "textures/gui/costauto.png");
+            ResourceLocationCUtils.create(Customers.MODID, "textures/gui/costauto.png");
     private final List<Checkbox> appearanceCheckboxes =
             new ArrayList<>();
     private final List<MultiLineLabel> appearanceLabels =
@@ -69,33 +70,30 @@ public class SupplierSpawnerBlockScreen
         ));
 
         int y = 29;
-        int appearanceTextWidth = APPEARANCE_WIDGET_WIDTH
-                - Checkbox.getBoxSize(font)
-                - 4;
+        int appearanceTextWidth = APPEARANCE_WIDGET_WIDTH - 20;
         for (int index = 0;
                 index < menu.getAppearanceIds().size();
                 index++) {
             int appearanceIndex = index;
             Component appearanceName =
                     menu.getAppearanceName(index);
-            Checkbox checkbox = addRenderableWidget(
-                    Checkbox.builder(Component.empty(), font)
-                            .pos(leftPos + 177, topPos + y)
-                            .selected(
-                                    menu.isAppearanceEnabled(index)
-                            )
-                            .onValueChange((
-                                    changedCheckbox,
-                                    selected
-                            ) -> {
-                                if (!synchronizingAppearanceCheckboxes) {
-                                    send(menu.appearanceButtonId(
-                                            appearanceIndex
-                                    ));
-                                }
-                            })
-                            .build()
-            );
+            Checkbox checkbox = addRenderableWidget(new Checkbox(
+                    leftPos + 177,
+                    topPos + y,
+                    20,
+                    20,
+                    Component.empty(),
+                    menu.isAppearanceEnabled(index),
+                    false
+            ) {
+                @Override
+                public void onPress() {
+                    super.onPress();
+                    if (!synchronizingAppearanceCheckboxes) {
+                        send(menu.appearanceButtonId(appearanceIndex));
+                    }
+                }
+            });
             checkbox.setWidth(APPEARANCE_WIDGET_WIDTH);
             checkbox.setMessage(appearanceName);
             appearanceCheckboxes.add(checkbox);
@@ -170,7 +168,7 @@ public class SupplierSpawnerBlockScreen
             int mouseY,
             float partialTick
     ) {
-        renderBackground(graphics, mouseX, mouseY, partialTick);
+        renderBackground(graphics);
         super.render(graphics, mouseX, mouseY, partialTick);
         renderAutomaticCosts(graphics);
         renderAppearanceLabels(graphics);
@@ -189,12 +187,12 @@ public class SupplierSpawnerBlockScreen
             int labelHeight =
                     label.getLineCount() * font.lineHeight;
             int labelY = checkbox.getY()
-                    + Checkbox.getBoxSize(font) / 2
+                    + 10
                     - labelHeight / 2;
             label.renderLeftAlignedNoShadow(
                     graphics,
                     checkbox.getX()
-                            + Checkbox.getBoxSize(font)
+                            + 24
                             + 4,
                     labelY,
                     font.lineHeight,

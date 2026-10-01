@@ -17,17 +17,18 @@ import net.minecraft.world.item.ItemStack;
 
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.client.common.IconsScaleControl;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlockEntity;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlockMenu;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerLevelSettings;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
 public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<CustomerSpawnerBlockMenu> {
-    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(
+    private static final ResourceLocation TEXTURE = ResourceLocationCUtils.create(
             Customers.MODID,
             "textures/gui/customer_spawner_ui.png"
     );
-    private static final ResourceLocation AUTO_COST_TEXTURE = ResourceLocation.fromNamespaceAndPath(
+    private static final ResourceLocation AUTO_COST_TEXTURE = ResourceLocationCUtils.create(
             Customers.MODID,
             "textures/gui/customer_spawner_ui_auto.png"
     );
@@ -376,7 +377,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
             int mouseY,
             float partialTick
     ) {
-        renderBackground(graphics, mouseX, mouseY, partialTick);
+        renderBackground(graphics);
         super.render(graphics, mouseX, mouseY, partialTick);
         renderAutomaticCosts(graphics);
         renderAppearanceLabels(graphics);
@@ -413,7 +414,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollY) {
         if (petPanelOpen && isInPetPanelList(mouseX, mouseY)) {
             petScrollOffset = Mth.clamp(
                     petScrollOffset - (int)Math.signum(scrollY) * PET_PANEL_SCROLL_AMOUNT,
@@ -422,7 +423,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
             );
             return true;
         }
-        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        return super.mouseScrolled(mouseX, mouseY, scrollY);
     }
 
     private void renderAvoidBlockTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
@@ -650,7 +651,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
     }
 
     private static ResourceLocation texture(String name) {
-        return ResourceLocation.fromNamespaceAndPath(
+        return ResourceLocationCUtils.create(
                 Customers.MODID,
                 "textures/gui/" + name + ".png"
         );

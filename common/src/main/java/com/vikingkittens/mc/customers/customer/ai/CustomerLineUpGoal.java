@@ -9,6 +9,7 @@ import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.phys.Vec3;
 
 import com.vikingkittens.mc.customers.common.PositionUtils;
 import com.vikingkittens.mc.customers.common.ai.MobMoveToGoal;
@@ -90,7 +91,7 @@ public class CustomerLineUpGoal extends MobMoveToGoal {
         if (customer.getState() == CustomerState.IN_LINE) {
             EntityCUtils.snapTo(
                     mob,
-                    targetPos.getBottomCenter(),
+                    Vec3.atBottomCenterOf(targetPos),
                     mob.getYRot(),
                     mob.getXRot()
             );

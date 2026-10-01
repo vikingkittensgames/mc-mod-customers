@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -13,6 +14,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.phys.Vec3;
 
 import com.vikingkittens.mc.customers.common.ai.MobMoveToGoal;
 import com.vikingkittens.mc.customers.compatability.CustomersServices;
@@ -94,11 +96,13 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
                     maxCounterDistance.getAsInt(),
                     spawnerBlock.get()
             );
-            List<CustomerCounter.SurroundingPosition> validPositions = CustomerCounter.findValidSurroundingPositions(
-                    customer.level(),
-                    counterPositions,
-                    customer,
-                    customer.getAvoidBlockState()
+            ObjectArrayList<CustomerCounter.SurroundingPosition> validPositions = new ObjectArrayList<>(
+                    CustomerCounter.findValidSurroundingPositions(
+                            customer.level(),
+                            counterPositions,
+                            customer,
+                            customer.getAvoidBlockState()
+                    )
             );
 
             if (!validPositions.isEmpty()) {
@@ -137,7 +141,7 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
                             untargetedPositions.add(sp);
                             if (otherCustomersTargetPositions.stream().noneMatch(
                                     pos -> pos.distToCenterSqr(
-                                            sp.getPosition().getBottomCenter()
+                                            Vec3.atBottomCenterOf(sp.getPosition())
                                     ) < 3 * 3
                             )) {
                                 untargetedNotTooClosePositions.add(sp);
@@ -174,7 +178,7 @@ public class CustomerMoveToCounterGoal extends MobMoveToGoal {
         if (customer.getState() == CustomerState.MOVING_TO_COUNTER) {
             EntityCUtils.snapTo(
                     mob,
-                    targetPos.getBottomCenter(),
+                    Vec3.atBottomCenterOf(targetPos),
                     mob.getYRot(),
                     mob.getXRot()
             );

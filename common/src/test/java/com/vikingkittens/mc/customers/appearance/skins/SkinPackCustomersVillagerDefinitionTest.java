@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test;
 import com.mojang.serialization.JsonOps;
 import net.minecraft.resources.ResourceLocation;
 
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class SkinPackCustomersVillagerDefinitionTest {
@@ -24,9 +26,9 @@ class SkinPackCustomersVillagerDefinitionTest {
                           ]
                         }
                         """)
-        ).getOrThrow();
+        ).result().orElseThrow();
 
         assertEquals("Example Skins", definition.getName().getString());
-        assertEquals(List.of(ResourceLocation.parse("example:steve"), ResourceLocation.parse("example:alex")), definition.skins());
+        assertEquals(List.of(ResourceLocationCUtils.parse("example:steve"), ResourceLocationCUtils.parse("example:alex")), definition.skins());
     }
 }

@@ -6,7 +6,6 @@ import java.util.Optional;
 import com.mojang.serialization.Codec;
 import net.minecraft.advancements.critereon.ContextAwarePredicate;
 import net.minecraft.advancements.critereon.MinMaxBounds;
-import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringRepresentable;
 
@@ -14,16 +13,16 @@ import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
 public final class CustomersTriggerCustomerSpawnerChanged
-        extends SimpleCriterionTrigger<CustomersTriggerCustomerSpawnerChanged.Instance> {
+        extends CustomersCriterionTrigger<CustomersTriggerCustomerSpawnerChanged.Instance> {
     public static final CustomersTriggerSchema<Instance> SCHEMA = Instance.SCHEMA;
 
-    @Override
-    public Codec<Instance> codec() {
-        return Instance.CODEC;
+    public CustomersTriggerCustomerSpawnerChanged() {
+        super("customer_spawner_changed", SCHEMA);
     }
 
+
     public void trigger(ServerPlayer player, CustomerInternalEvents.CustomerSpawnerConfigChanged event) {
-        trigger(player, instance -> instance.matchesEvent(event));
+        triggerValue(player, instance -> instance.matchesEvent(event));
     }
 
     public record Instance(
@@ -39,7 +38,7 @@ public final class CustomersTriggerCustomerSpawnerChanged
             Optional<MinMaxBounds.Ints> numSellItems,
             Optional<MinMaxBounds.Ints> numCostItems,
             Optional<MinMaxBounds.Ints> numAppearances
-    ) implements SimpleInstance {
+    ) {
         public static final Instance ANY = new Instance(
                 Optional.empty(),
                 Optional.empty(),
@@ -60,7 +59,7 @@ public final class CustomersTriggerCustomerSpawnerChanged
                         .property(
                                 "player",
                                 "player",
-                                ContextAwarePredicate.CODEC,
+                                CustomersTriggerCodecs.CONTEXT_AWARE_PREDICATE,
                                 CustomersTriggerSchema.Editor.HIDDEN,
                                 false
                         )
@@ -82,28 +81,28 @@ public final class CustomersTriggerCustomerSpawnerChanged
                         .property(
                                 "activeLevel",
                                 "level",
-                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerCodecs.INT_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
                                 true
                         )
                         .property(
                                 "requiredStars",
                                 "required_stars",
-                                MinMaxBounds.Doubles.CODEC,
+                                CustomersTriggerCodecs.DOUBLE_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_DOUBLE_RANGE,
                                 true
                         )
                         .property(
                                 "maxCustomers",
                                 "max_customers",
-                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerCodecs.INT_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
                                 true
                         )
                         .property(
                                 "petPercentage",
                                 "pet_percentage",
-                                MinMaxBounds.Doubles.CODEC,
+                                CustomersTriggerCodecs.DOUBLE_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_DOUBLE_RANGE,
                                 true
                         )
@@ -124,21 +123,21 @@ public final class CustomersTriggerCustomerSpawnerChanged
                         .property(
                                 "numSellItems",
                                 "num_sell_items",
-                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerCodecs.INT_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
                                 true
                         )
                         .property(
                                 "numCostItems",
                                 "num_cost_items",
-                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerCodecs.INT_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
                                 true
                         )
                         .property(
                                 "numAppearances",
                                 "num_appearances",
-                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerCodecs.INT_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
                                 true
                         )

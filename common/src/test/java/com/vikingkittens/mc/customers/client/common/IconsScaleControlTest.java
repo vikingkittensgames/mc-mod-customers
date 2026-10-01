@@ -6,11 +6,13 @@ import org.junit.jupiter.api.Test;
 
 import net.minecraft.resources.ResourceLocation;
 
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class IconsScaleControlTest {
     private static final ResourceLocation ICON =
-            ResourceLocation.fromNamespaceAndPath("customers", "test");
+            ResourceLocationCUtils.create("customers", "test");
 
     @Test
     void selectsHalfStarValuesFromTheClickedIconHalf() {

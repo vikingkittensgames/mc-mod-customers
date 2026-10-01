@@ -19,6 +19,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
@@ -44,14 +45,14 @@ class CustomersTriggerCounterPlacedTest {
                 Optional.of(new CustomersLocationPredicate(Level.OVERWORLD, SPAWNER_POSITION)),
                 Optional.of(CustomerSpawnerMode.LUNCH),
                 Optional.of(new CustomersLocationPredicate(Level.OVERWORLD, COUNTER_POSITION)),
-                Optional.of(ResourceLocation.parse("minecraft:oak_planks"))
+                Optional.of(ResourceLocationCUtils.parse("minecraft:oak_planks"))
         );
 
         assertTrue(instance.matchesEvent(event()));
         assertFalse(CustomersTriggerCounterPlaced.SCHEMA.with(
                         instance,
                         CustomersTriggerCounterPlaced.SCHEMA.property("counter_block").orElseThrow(),
-                        Optional.of(ResourceLocation.parse("minecraft:bricks"))
+                        Optional.of(ResourceLocationCUtils.parse("minecraft:bricks"))
                 )
                 .matchesEvent(event()));
     }
@@ -87,7 +88,7 @@ class CustomersTriggerCounterPlacedTest {
                         ),
                         JsonParser.parseString(json)
                 )
-                .getOrThrow();
+                .result().orElseThrow();
 
         assertTrue(instance.matchesEvent(event()));
     }

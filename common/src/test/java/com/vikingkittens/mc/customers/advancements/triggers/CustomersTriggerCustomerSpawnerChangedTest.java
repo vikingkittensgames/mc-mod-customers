@@ -117,7 +117,7 @@ class CustomersTriggerCustomerSpawnerChangedTest {
                                 ),
                                 JsonParser.parseString(json)
                         )
-                        .getOrThrow();
+                        .result().orElseThrow();
 
         assertTrue(instance.matchesEvent(event()));
     }

@@ -18,19 +18,20 @@ import net.minecraft.client.renderer.entity.layers.VillagerProfessionLayer;
 import net.minecraft.resources.ResourceLocation;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 
 public class CustomerVillagerEntityRenderer extends
         MobRenderer<CustomerVillagerEntity, CustomerVillagerEntityRenderer.Model> {
     public static final ModelLayerLocation MODEL_LAYER = new ModelLayerLocation(
-            ResourceLocation.fromNamespaceAndPath(
+            ResourceLocationCUtils.create(
                     Customers.MODID,
                     "customer_villager"
             ),
             "main"
     );
     private static final ResourceLocation VILLAGER_BASE_SKIN =
-            ResourceLocation.withDefaultNamespace("textures/entity/villager/villager.png");
+            ResourceLocationCUtils.parse("textures/entity/villager/villager.png");
 
     public CustomerVillagerEntityRenderer(EntityRendererProvider.Context context) {
         super(context, new Model(context.bakeLayer(MODEL_LAYER)), 0.5F);
@@ -58,14 +59,8 @@ public class CustomerVillagerEntityRenderer extends
             PoseStack poseStack,
             float partialTick
     ) {
-        float scale = 0.9375F * entity.getAgeScale();
+        float scale = 0.9375F;
         poseStack.scale(scale, scale, scale);
-    }
-
-    @Override
-    protected float getShadowRadius(CustomerVillagerEntity entity) {
-        float shadowRadius = super.getShadowRadius(entity);
-        return entity.isBaby() ? shadowRadius * 0.5F : shadowRadius;
     }
 
     public static class Model extends VillagerModel<CustomerVillagerEntity> {

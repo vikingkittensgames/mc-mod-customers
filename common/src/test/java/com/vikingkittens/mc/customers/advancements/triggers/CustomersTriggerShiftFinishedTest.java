@@ -82,7 +82,7 @@ class CustomersTriggerShiftFinishedTest {
         CustomersTriggerShiftFinished.Instance instance =
                 CustomersTriggerShiftFinished.Instance.CODEC
                         .parse(registryOps(), JsonParser.parseString(json))
-                        .getOrThrow();
+                        .result().orElseThrow();
 
         assertTrue(instance.matches(
                 event(CustomerSpawnerMode.LUNCH, 1, 0.15F),
@@ -167,7 +167,7 @@ class CustomersTriggerShiftFinishedTest {
 
         CustomersTriggerShiftFinished.Instance instance = CustomersTriggerShiftFinished.Instance.CODEC
                 .parse(registryOps(), JsonParser.parseString(json))
-                .getOrThrow();
+                .result().orElseThrow();
 
         assertTrue(instance.matches(event(CustomerSpawnerMode.LUNCH, 3), 5));
         assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3), 4));
@@ -191,7 +191,7 @@ class CustomersTriggerShiftFinishedTest {
 
         JsonObject encoded = CustomersTriggerShiftFinished.Instance.CODEC
                 .encodeStart(registryOps(), instance)
-                .getOrThrow()
+                .result().orElseThrow()
                 .getAsJsonObject();
 
         assertEquals(10, encoded.get("total_customers").getAsInt());

@@ -15,6 +15,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
+import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -130,7 +131,7 @@ class CustomerPaymentBoxBlockEntityTest {
             int count,
             ItemStack actual
     ) {
-        assertTrue(ItemStack.isSameItemSameComponents(
+        assertTrue(ItemStackCUtils.isSameItemAndTags(
                 new ItemStack(item),
                 actual
         ));

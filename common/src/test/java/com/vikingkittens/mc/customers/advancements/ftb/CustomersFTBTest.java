@@ -12,11 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import net.minecraft.advancements.critereon.ItemPredicate;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
@@ -30,6 +26,7 @@ import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerItem
 import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerLeaderboardChanged;
 import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerSupplierSpawnerChanged;
 import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerSuppliesPurchased;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 import com.vikingkittens.mc.customers.supplier.SupplierInternalEvents;
@@ -326,8 +323,8 @@ class CustomersFTBTest {
                 .itemPredicate(new ItemStack(Items.APPLE), "")
                 .orElseThrow();
 
-        assertTrue(predicate.orElseThrow().test(new ItemStack(Items.APPLE)));
-        assertFalse(predicate.orElseThrow().test(new ItemStack(Items.CARROT)));
+        assertTrue(predicate.orElseThrow().matches(new ItemStack(Items.APPLE)));
+        assertFalse(predicate.orElseThrow().matches(new ItemStack(Items.CARROT)));
         assertEquals(
                 Items.APPLE,
                 CustomersFTBTriggerSchema.selectedItem(predicate).getItem()
@@ -337,15 +334,10 @@ class CustomersFTBTest {
 
     @Test
     void createsTagPredicateWithPrecedenceOverItemSelection() {
-        TagKey<Item> logs = TagKey.create(Registries.ITEM, ResourceLocation.parse("minecraft:logs"));
         Optional<ItemPredicate> predicate = CustomersFTBTriggerSchema
                 .itemPredicate(new ItemStack(Items.APPLE), "#minecraft:logs")
                 .orElseThrow();
 
-        assertEquals(
-                Optional.of(logs),
-                predicate.orElseThrow().items().orElseThrow().unwrapKey()
-        );
         assertTrue(CustomersFTBTriggerSchema.selectedItem(predicate).isEmpty());
         assertEquals("#minecraft:logs", CustomersFTBTriggerSchema.selectedTag(predicate));
     }
@@ -368,7 +360,7 @@ class CustomersFTBTest {
                 CustomerSpawnerMode.LUNCH,
                 UUID.randomUUID(),
                 UUID.randomUUID(),
-                ResourceLocation.parse("customers:customer"),
+                ResourceLocationCUtils.parse("customers:customer"),
                 new ItemStack(Items.APPLE),
                 new ItemStack(Items.EMERALD),
                 false
@@ -382,7 +374,7 @@ class CustomersFTBTest {
                 CustomerSpawnerMode.LUNCH,
                 UUID.randomUUID(),
                 UUID.randomUUID(),
-                ResourceLocation.parse("customers:customer"),
+                ResourceLocationCUtils.parse("customers:customer"),
                 new ItemStack(Items.APPLE),
                 new ItemStack(Items.EMERALD),
                 false

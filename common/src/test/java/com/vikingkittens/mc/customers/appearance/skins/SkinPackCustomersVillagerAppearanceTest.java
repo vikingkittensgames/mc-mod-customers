@@ -9,12 +9,14 @@ import org.junit.jupiter.api.Test;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 class SkinPackCustomersVillagerAppearanceTest {
-    private static final ResourceLocation STEVE = ResourceLocation.parse("example:steve");
-    private static final ResourceLocation ALEX = ResourceLocation.parse("example:alex");
+    private static final ResourceLocation STEVE = ResourceLocationCUtils.parse("example:steve");
+    private static final ResourceLocation ALEX = ResourceLocationCUtils.parse("example:alex");
 
     @Test
     void selectsPackSkinDeterministicallyFromVariationSeed() {
@@ -29,7 +31,7 @@ class SkinPackCustomersVillagerAppearanceTest {
 
     @Test
     void createsSoundEventsUsingReferencedSoundIds() {
-        ResourceLocation ambient = ResourceLocation.parse("example:steve_ambient");
+        ResourceLocation ambient = ResourceLocationCUtils.parse("example:steve_ambient");
         SkinCustomersVillagerDefinition definition = new SkinCustomersVillagerDefinition(
                 STEVE,
                 SkinCustomersVillagerModel.WIDE,

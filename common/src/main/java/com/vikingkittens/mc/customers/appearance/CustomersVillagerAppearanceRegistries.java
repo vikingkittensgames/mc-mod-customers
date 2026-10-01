@@ -6,11 +6,12 @@ import dev.architectury.registry.registries.RegistrarManager;
 import net.minecraft.resources.ResourceLocation;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 
 public final class CustomersVillagerAppearanceRegistries {
     private static final Registrar<CustomersVillagerAppearance> APPEARANCES = RegistrarManager.get(Customers.MODID)
             .<CustomersVillagerAppearance>builder(
-                    ResourceLocation.fromNamespaceAndPath(Customers.MODID, "villager_appearance"))
+                    ResourceLocationCUtils.create(Customers.MODID, "villager_appearance"))
             .syncToClients()
             .build();
 

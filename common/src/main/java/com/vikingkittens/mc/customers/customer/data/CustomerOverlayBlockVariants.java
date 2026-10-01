@@ -8,6 +8,8 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
+
 public final class CustomerOverlayBlockVariants {
     public static final List<CustomerOverlayBlockVariant> ALL = List.of(
             variant("iron", Items.IRON_INGOT, Blocks.IRON_BLOCK, "iron_block"),
@@ -105,7 +107,7 @@ public final class CustomerOverlayBlockVariants {
                 name,
                 () -> ingredient,
                 () -> textureBlock,
-                ResourceLocation.withDefaultNamespace(
+                ResourceLocationCUtils.parse(
                         "block/" + textureName
                 )
         );

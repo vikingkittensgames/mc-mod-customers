@@ -30,7 +30,14 @@ public final class ContainerUtils {
             ItemStack existing = container.getItem(slot);
             if (!existing.isEmpty() && ItemStackCUtils.isSameItemAndTags(existing, stack) &&
                     container.canPlaceItem(slot, stack)) {
-                int inserted = Math.min(remaining, Math.max(0, container.getMaxStackSize(existing) - existing.getCount()));
+                int inserted = Math.min(
+                        remaining,
+                        Math.max(
+                                0,
+                                Math.min(container.getMaxStackSize(), existing.getMaxStackSize())
+                                        - existing.getCount()
+                        )
+                );
                 if (inserted > 0) {
                     ItemStack combined = existing.copy();
                     combined.grow(inserted);
@@ -41,7 +48,10 @@ public final class ContainerUtils {
         }
         for (int slot = 0; slot < container.getContainerSize() && remaining > 0; slot++) {
             if (container.getItem(slot).isEmpty() && container.canPlaceItem(slot, stack)) {
-                int inserted = Math.min(remaining, container.getMaxStackSize(stack));
+                int inserted = Math.min(
+                        remaining,
+                        Math.min(container.getMaxStackSize(), stack.getMaxStackSize())
+                );
                 container.setItem(slot, stack.copyWithCount(inserted));
                 remaining -= inserted;
             }
@@ -57,9 +67,13 @@ public final class ContainerUtils {
             }
             ItemStack existing = container.getItem(slot);
             if (existing.isEmpty()) {
-                capacity += container.getMaxStackSize(stack);
+                capacity += Math.min(container.getMaxStackSize(), stack.getMaxStackSize());
             } else if (ItemStackCUtils.isSameItemAndTags(existing, stack)) {
-                capacity += Math.max(0, container.getMaxStackSize(existing) - existing.getCount());
+                capacity += Math.max(
+                        0,
+                        Math.min(container.getMaxStackSize(), existing.getMaxStackSize())
+                                - existing.getCount()
+                );
             }
             if (capacity >= stack.getCount()) {
                 return capacity;

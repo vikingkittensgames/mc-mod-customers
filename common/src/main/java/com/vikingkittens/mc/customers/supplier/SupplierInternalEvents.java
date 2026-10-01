@@ -12,6 +12,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 
 import com.vikingkittens.mc.customers.common.events.InternalEvent;
+import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
 
 public final class SupplierInternalEvents {
     private SupplierInternalEvents() {}
@@ -148,7 +149,7 @@ public final class SupplierInternalEvents {
         }
 
         private static boolean sameStack(ItemStack first, ItemStack second) {
-            return first.getCount() == second.getCount() && ItemStack.isSameItemSameComponents(first, second);
+            return first.getCount() == second.getCount() && ItemStackCUtils.isSameItemAndTags(first, second);
         }
     }
 }

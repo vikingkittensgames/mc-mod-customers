@@ -41,8 +41,8 @@ class SupplierInternalEventsTest {
         assertEquals(1, event.numSellItems());
         assertEquals(1, event.numCostItems());
         assertEquals(2, event.numAppearances());
-        assertEquals(3, event.offers().getFirst().item().getCount());
-        assertEquals(2, event.offers().getFirst().cost().getCount());
+        assertEquals(3, event.offers().get(0).item().getCount());
+        assertEquals(2, event.offers().get(0).cost().getCount());
         assertTrue(event.hasSameConfiguration(equivalent));
     }
 

@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import dev.architectury.networking.NetworkManager;
-
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.ChatFormatting;
@@ -19,6 +17,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.state.BlockState;
 
+import com.vikingkittens.mc.customers.common.CustomersNetworking;
 import com.vikingkittens.mc.customers.common.SearchUtils;
 import com.vikingkittens.mc.customers.compatability.CustomersServices;
 import com.vikingkittens.mc.customers.compatability.PlayerCUtils;
@@ -70,7 +69,7 @@ public class CustomerCommands {
         }
 
         if (includeCounters) {
-            NetworkManager.sendToPlayer(
+            CustomersNetworking.sendToPlayer(
                     player,
                     new CustomerCounterMarkersPayload(
                             List.copyOf(markers.values()),

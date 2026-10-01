@@ -67,7 +67,7 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
         this.blockEntity = blockEntity;
         this.container = blockEntity == null ? container : new LevelContainer(blockEntity);
         checkContainerSize(this.container, CONTAINER_SIZE);
-        registryAccess = playerInventory.player.registryAccess();
+        registryAccess = playerInventory.player.level().registryAccess();
         appearanceIds = CustomersVillagerAppearances
                 .getAvailableAppearanceIds(registryAccess);
         petTypes = CustomerPet.getAvailablePetTypes(playerInventory.player.level());

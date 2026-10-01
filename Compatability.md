@@ -616,27 +616,34 @@ Each group should include focused tests, migration of applicable call sites, and
 
 ## Minecraft 1.20.1 implementation
 
-The 1.20.1 Forge port keeps the shared compatibility class names and places version-specific behavior in those classes whenever method signatures allow it.
+The 1.20.1 Fabric and Forge port keeps the shared compatibility class names
+and places version-specific behavior in those classes whenever method
+signatures allow it. `architectury.md` contains the full build, loader,
+resource, and production-run details.
 
 | Compatibility area | Minecraft 1.21.1 | Minecraft 1.20.1 |
 | --- | --- | --- |
 | Item offer cost | `ItemCost` with component predicates | `ItemStack` cost copied from the configured item |
 | Item comparison | `ItemStack.isSameItemSameComponents` | `ItemStack.isSameItemSameTags` |
 | Entity synchronized data | `defineSynchedData(SynchedEntityData.Builder)` | `defineSynchedData()` and `entityData.define(...)` |
-| Custom registry keys | `ResourceKey.createRegistryKey(...)` | Use the same source method and let Forge `reobfJar` remap it for the production JAR |
+| Custom registry keys | `ResourceKey.createRegistryKey(...)` | Use the same source method and let Loom `remapJar` produce each loader's production JAR |
 | Block entity persistence | `CompoundTag` plus `HolderLookup.Provider` | `CompoundTag` without a provider |
 | Item-stack persistence | provider-aware `ItemStack.save/parse` | `ItemStack.save` and `ItemStack.of`; provider parameters are retained only for source compatibility |
 | Interaction result | `ItemInteractionResult` for `useItemOn` | `InteractionResult` for block use; unsupported items return `PASS` |
-| Project interface methods that expose Minecraft state | Project-owned method names are safe | Use project-owned names such as `isVillagerInWater()` and call vanilla state methods only inside their implementation so `reobfJar` does not remap an interface contract as a Minecraft override |
-| Payload networking | `CustomPacketPayload` and `StreamCodec` | Forge `SimpleChannel` and `FriendlyByteBuf` |
+| Project interface methods that expose Minecraft state | Project-owned method names are safe | Use project-owned names such as `isVillagerInWater()` and call vanilla state methods only inside their implementation so remapping does not treat the interface contract as a Minecraft override |
+| Payload networking | `CustomPacketPayload` and `StreamCodec` | Project-owned payloads serialized through `FriendlyByteBuf` and delivered by Architectury `NetworkManager` |
 | Boss-bar rendering | Boss-bar sprites rendered with `GuiGraphics.blitSprite` | `textures/gui/bars.png` atlas rendered with `GuiGraphics.blit` UV offsets |
 | Recipe generation | `RecipeOutput` | recipe consumer callbacks |
 
-`ItemStackCUtils` owns item comparison, crafting, and offer-cost construction. Network and persistence adapters own loader/version-specific serialization.
+`ItemStackCUtils` owns item comparison, crafting, and offer-cost construction.
+Persistence adapters own version-specific serialization. Networking remains
+common through Architectury.
 
-The MCA Appearance is supported only for Minecraft 1.21.1 and newer. The Minecraft 1.20.1 Forge port does not include MCA integration or its dependency.
+The MCA Appearance is supported only for Minecraft 1.21.1 and newer. The
+Minecraft 1.20.1 Fabric and Forge port does not include MCA integration or
+its dependency.
 
-Additional 1.20.1 Forge details:
+Additional 1.20.1 details:
 
 | Area | 1.20.1 implementation |
 | --- | --- |
@@ -644,11 +651,14 @@ Additional 1.20.1 Forge details:
 | Block codecs | Blocks use the normal `Block(Properties)` constructor without 1.21 codec hooks. |
 | Block entities | Use `load(CompoundTag)` and `saveAdditional(CompoundTag)`; update tags use `getUpdateTag()` without a provider. |
 | Containers | Implement the 1.20 `Container` methods directly or through `PersistedContainer`. |
-| Recipe conditions | Forge 1.20.1 uses `ICondition#getID` and `ICondition#test(IContext)`. |
+| Recipe conditions | Forge uses `ICondition#getID` and `ICondition#test(IContext)`; Fabric uses `ResourceConditions`. |
 | Loot generation | Loot providers and block loot providers use constructors without registry providers. |
 | GUI sprites | `GuiGraphics.blit` with explicit texture dimensions replaces 1.21 sprite blitting. |
 | Player faces | `PlayerFaceRenderer` accepts a skin `ResourceLocation`; `PlayerInfo#getSkinLocation` supplies online textures. |
 | Checkboxes | Construct `Checkbox` directly and override `onPress` for menu synchronization. |
 | Render layers | 1.20 layer helpers use explicit RGBA values and an older argument layout. |
 
-The 1.20.1 test helpers load `BuiltInRegistries` under the bootstrap guard before calling `Bootstrap.bootStrap()`. This avoids circular registry initialization ordering in headless tests. Forge's final networking initialization can still throw an `ExceptionInInitializerError` because its event-bus path expects a no-argument `NetworkEvent` constructor; the test-only helper isolates that error after the vanilla registries are ready. Production code does not use this shim.
+The 1.20.1 test helpers load `BuiltInRegistries` under the bootstrap guard
+before calling `Bootstrap.bootStrap()`. This avoids circular registry
+initialization ordering in headless tests. Production networking uses
+Architectury and does not require the old Forge networking bootstrap shim.

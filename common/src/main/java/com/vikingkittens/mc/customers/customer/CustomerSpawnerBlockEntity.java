@@ -8,13 +8,11 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import dev.architectury.networking.NetworkManager;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -31,7 +29,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.trading.ItemCost;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
@@ -43,6 +40,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 import com.vikingkittens.mc.customers.common.ContainerUtils;
+import com.vikingkittens.mc.customers.common.CustomersNetworking;
 import com.vikingkittens.mc.customers.common.SearchUtils;
 import com.vikingkittens.mc.customers.common.events.InternalEvents;
 import com.vikingkittens.mc.customers.compatability.ComponentCUtils;
@@ -138,7 +136,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             }
             offers.add(new MerchantOffer(
                     ItemStackCUtils.createItemCost(itemStack, count),
-                    Optional.empty(),
+                    ItemStack.EMPTY,
                     paymentStack,
                     1,
                     rowCosts.get(row).getCount(),
@@ -194,7 +192,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         }
         offers.add(new MerchantOffer(
                 ItemStackCUtils.createItemCost(petFood, 1),
-                Optional.empty(),
+                ItemStack.EMPTY,
                 paymentStack.copy(),
                 1,
                 0,
@@ -517,7 +515,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 return levelIndex;
             }
         }
-        return configuredLevelIndexes.isEmpty() ? 0 : configuredLevelIndexes.getLast();
+        return configuredLevelIndexes.isEmpty() ? 0 : configuredLevelIndexes.get(configuredLevelIndexes.size() - 1);
     }
 
     public boolean shouldConfirmBreak() {
@@ -543,10 +541,10 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
 
-        writeSpawnerData(PersistenceCUtils.writer(tag, registries));
+        writeSpawnerData(PersistenceCUtils.writer(tag));
     }
     void writeSpawnerData(DataWriter output) {
         output.putInt(TAG_DATA_VERSION, CURRENT_DATA_VERSION);
@@ -569,15 +567,15 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        DataReader input = PersistenceCUtils.reader(tag, registries);
+    public void load(CompoundTag tag) {
+        super.load(tag);
+        DataReader input = PersistenceCUtils.reader(tag);
         boolean hasLegacyInventory = tag.contains("inventory");
         boolean usesLegacyLevelData =
                 input.getInt(TAG_DATA_VERSION).orElse(0) < CURRENT_DATA_VERSION || hasLegacyInventory;
         if (hasLegacyInventory) {
             try {
-                getLevelSettings(0).getPersistedInventory().deserializeNBT(registries, tag.getCompound("inventory"));
+                getLevelSettings(0).getPersistedInventory().deserializeNBT(tag.getCompound("inventory"));
             } catch (Throwable t) {
                 LOGGER.error("Failed to load inventory because of error", t);
             }
@@ -1354,7 +1352,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         for (UUID playerId : playerIds) {
             ServerPlayer player = playersById.get(playerId);
             if (player != null) {
-                NetworkManager.sendToPlayer(
+                CustomersNetworking.sendToPlayer(
                         player,
                         new CustomerSpawnerSnapshotPayload(
                                 getBlockPos(),
@@ -1384,7 +1382,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     private void sendSnapshotRemoval(ServerPlayer player) {
-        NetworkManager.sendToPlayer(
+        CustomersNetworking.sendToPlayer(
                 player,
                 new CustomerSpawnerSnapshotPayload(
                         getBlockPos(),
@@ -1474,7 +1472,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             try {
                 Player player = level.getPlayerByUUID(playerId);
                 if (player instanceof ServerPlayer serverPlayer) {
-                    NetworkManager.sendToPlayer(serverPlayer, payload);
+                    CustomersNetworking.sendToPlayer(serverPlayer, payload);
                 }
             } catch (Throwable throwable) {
                 LOGGER.warn("Unable to send completed customer shift results to player {}", playerId, throwable);

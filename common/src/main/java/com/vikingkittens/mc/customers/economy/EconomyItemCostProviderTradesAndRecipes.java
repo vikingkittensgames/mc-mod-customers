@@ -16,7 +16,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.trading.MerchantOffer;
 
 public final class EconomyItemCostProviderTradesAndRecipes implements EconomyItemCostProvider {
@@ -40,8 +39,8 @@ public final class EconomyItemCostProviderTradesAndRecipes implements EconomyIte
         scanVillagerTrades(villager, rebuilt);
         for (int pass = 0; pass < MAX_PROPAGATION_PASSES; pass++) {
             Map<Item, Price> candidates = new HashMap<>();
-            for (RecipeHolder<?> holder : server.getRecipeManager().getRecipes()) {
-                propagate(holder.value(), server, rebuilt, candidates);
+            for (Recipe<?> recipe : server.getRecipeManager().getRecipes()) {
+                propagate(recipe, server, rebuilt, candidates);
             }
             candidates.keySet().removeAll(rebuilt.keySet());
             if (candidates.isEmpty()) {

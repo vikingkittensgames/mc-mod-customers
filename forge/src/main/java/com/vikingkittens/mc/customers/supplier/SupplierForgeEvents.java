@@ -1,12 +1,10 @@
 package com.vikingkittens.mc.customers.supplier;
 
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.item.CreativeModeTabs;
 
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
-import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -20,13 +18,8 @@ public final class SupplierForgeEvents {
 
     public static void register(IEventBus modEventBus) {
         modEventBus.addListener(SupplierForgeEvents::addCreative);
-        modEventBus.addListener(SupplierForgeEvents::registerAttributes);
         MinecraftForge.EVENT_BUS.addListener(SupplierForgeEvents::onEntityLeaveLevel);
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, SupplierForgeEvents::onSupplierSpawnerBreak);
-    }
-
-    static void registerAttributes(EntityAttributeCreationEvent event) {
-        event.put(Supplier.SUPPLIER_VILLAGER.get(), Villager.createAttributes().build());
     }
 
     static void onEntityLeaveLevel(EntityLeaveLevelEvent event) {

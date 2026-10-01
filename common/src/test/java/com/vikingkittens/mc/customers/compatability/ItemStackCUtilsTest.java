@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.alchemy.Potions;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
@@ -21,8 +21,8 @@ class ItemStackCUtilsTest {
 
     @Test
     void comparesItemsAndTheirComponents() {
-        ItemStack water = PotionContents.createItemStack(Items.POTION, Potions.WATER);
-        ItemStack awkward = PotionContents.createItemStack(Items.POTION, Potions.AWKWARD);
+        ItemStack water = potion(Potions.WATER);
+        ItemStack awkward = potion(Potions.AWKWARD);
 
         assertTrue(ItemStackCUtils.isSameItemAndTags(water, water.copy()));
         assertFalse(ItemStackCUtils.isSameItemAndTags(water, awkward));
@@ -30,10 +30,20 @@ class ItemStackCUtilsTest {
 
     @Test
     void matchesComponentAwareOfferCosts() {
-        ItemStack water = PotionContents.createItemStack(Items.POTION, Potions.WATER);
-        ItemStack awkward = PotionContents.createItemStack(Items.POTION, Potions.AWKWARD);
+        ItemStack water = potion(Potions.WATER);
+        ItemStack awkward = potion(Potions.AWKWARD);
+        ItemStack twoWaterPotions = water.copy();
+        twoWaterPotions.setCount(2);
+        ItemStack oneWaterPotion = water.copy();
 
-        assertTrue(ItemStackCUtils.matchesCost(ItemStackCUtils.createItemCost(water, 2), water.copyWithCount(2)));
+        assertTrue(ItemStackCUtils.matchesCost(ItemStackCUtils.createItemCost(water, 2), twoWaterPotions));
+        assertTrue(ItemStackCUtils.matchesCost(ItemStackCUtils.createItemCost(water, 2), oneWaterPotion));
         assertFalse(ItemStackCUtils.matchesCost(ItemStackCUtils.createItemCost(water, 2), awkward));
+    }
+
+    private static ItemStack potion(net.minecraft.world.item.alchemy.Potion potion) {
+        ItemStack stack = new ItemStack(Items.POTION);
+        PotionUtils.setPotion(stack, potion);
+        return stack;
     }
 }

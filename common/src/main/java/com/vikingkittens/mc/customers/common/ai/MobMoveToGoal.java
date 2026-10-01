@@ -66,7 +66,7 @@ public class MobMoveToGoal extends MoveToBlockGoal {
 
     protected boolean isDone() {
         return targetPos != null
-                && getMoveToTarget().getBottomCenter()
+                && Vec3.atBottomCenterOf(getMoveToTarget())
                 .closerThan(mob.position(), acceptedDistance());
     }
 

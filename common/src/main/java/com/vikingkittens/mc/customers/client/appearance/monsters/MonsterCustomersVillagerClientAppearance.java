@@ -10,6 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import com.vikingkittens.mc.customers.appearance.CustomersVillager;
 import com.vikingkittens.mc.customers.appearance.monsters.MonsterCustomersVillagerVariation;
 import com.vikingkittens.mc.customers.client.appearance.CustomersVillagerClientAppearance;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 
 public final class MonsterCustomersVillagerClientAppearance
@@ -70,7 +71,7 @@ public final class MonsterCustomersVillagerClientAppearance
                         ),
                         true
                 ),
-                ResourceLocation.withDefaultNamespace(
+                ResourceLocationCUtils.parse(
                         "textures/entity/zombie/drowned_outer_layer.png"
                 )
         );
@@ -90,7 +91,7 @@ public final class MonsterCustomersVillagerClientAppearance
                 new HumanoidModel<CustomerVillagerEntity>(
                         context.bakeLayer(ModelLayers.STRAY_OUTER_LAYER)
                 ),
-                ResourceLocation.withDefaultNamespace(
+                ResourceLocationCUtils.parse(
                         "textures/entity/skeleton/stray_overlay.png"
                 )
         );
@@ -131,7 +132,7 @@ public final class MonsterCustomersVillagerClientAppearance
                 modelLayer,
                 innerArmor,
                 outerArmor,
-                ResourceLocation.withDefaultNamespace(texture),
+                ResourceLocationCUtils.parse(texture),
                 zombieArms,
                 scale
         );

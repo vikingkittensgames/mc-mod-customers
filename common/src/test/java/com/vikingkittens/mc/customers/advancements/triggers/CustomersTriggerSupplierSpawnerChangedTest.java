@@ -96,7 +96,7 @@ class CustomersTriggerSupplierSpawnerChangedTest {
                                 ),
                                 JsonParser.parseString(json)
                         )
-                        .getOrThrow();
+                        .result().orElseThrow();
 
         assertTrue(instance.matchesEvent(event()));
     }

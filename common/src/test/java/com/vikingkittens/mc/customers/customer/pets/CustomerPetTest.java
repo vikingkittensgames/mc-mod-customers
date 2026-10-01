@@ -8,9 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.util.profiling.InactiveProfiler;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -26,6 +24,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 import com.vikingkittens.mc.customers.customer.pets.mixin.CustomerPetMobAccessor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -65,14 +64,14 @@ class CustomerPetTest {
                 List.of(nonAnimalType, animalType),
                 List.of(Items.WHEAT, Items.CARROT, Items.APPLE),
                 entityType -> entityType == animalType
-                        ? ResourceLocation.withDefaultNamespace("test_pet")
-                        : ResourceLocation.withDefaultNamespace("not_a_pet"),
+                        ? ResourceLocationCUtils.parse("test_pet")
+                        : ResourceLocationCUtils.parse("not_a_pet"),
                 item -> 0
         );
 
         assertEquals(1, pets.size());
-        assertEquals("minecraft:test_pet", pets.getFirst().entityId);
-        assertEquals(List.of(Items.CARROT, Items.APPLE), pets.getFirst().foods.stream().map(ItemStack::getItem).toList());
+        assertEquals("minecraft:test_pet", pets.get(0).entityId);
+        assertEquals(List.of(Items.CARROT, Items.APPLE), pets.get(0).foods.stream().map(ItemStack::getItem).toList());
     }
 
     @Test
@@ -85,7 +84,7 @@ class CustomerPetTest {
                 level,
                 List.of(animalType),
                 List.of(Items.CARROT),
-                entityType -> ResourceLocation.withDefaultNamespace("test_pet"),
+                entityType -> ResourceLocationCUtils.parse("test_pet"),
                 item -> 0
         );
 
@@ -125,11 +124,11 @@ class CustomerPetTest {
                 level,
                 List.of(animalType),
                 List.of(Items.APPLE, Items.CARROT),
-                entityType -> ResourceLocation.withDefaultNamespace("test_pet"),
+                entityType -> ResourceLocationCUtils.parse("test_pet"),
                 item -> item == Items.CARROT ? 10 : 20
         );
 
-        assertSame(Items.CARROT, pets.getFirst().foods.getFirst().getItem());
+        assertSame(Items.CARROT, pets.get(0).foods.get(0).getItem());
     }
 
     @Test
@@ -137,25 +136,21 @@ class CustomerPetTest {
         Level level = mock(Level.class);
         EntityType<Animal> animalType = mock(EntityType.class);
         Animal animal = mock(Animal.class, withSettings().extraInterfaces(FlyingAnimal.class));
-        Item parrotFoodItem = mock(Item.class);
-        ItemStack parrotFoodStack = mock(ItemStack.class);
         when(animalType.create(level)).thenReturn(animal);
         when(animalType.getDescription()).thenReturn(Component.literal("Test Flying Pet"));
-        when(parrotFoodItem.getDefaultInstance()).thenReturn(parrotFoodStack);
-        when(parrotFoodStack.is(ItemTags.PARROT_FOOD)).thenReturn(true);
-        when(parrotFoodStack.copy()).thenReturn(parrotFoodStack);
 
         List<CustomerPet.Pet> pets = CustomerPet.discoverPets(
                 level,
                 List.of(animalType),
-                List.of(parrotFoodItem),
-                entityType -> ResourceLocation.withDefaultNamespace("test_flying_pet"),
+                List.of(Items.WHEAT_SEEDS),
+                entityType -> ResourceLocationCUtils.parse("test_flying_pet"),
                 item -> 0
         );
 
         assertTrue(animal instanceof FlyingAnimal);
         assertEquals(1, pets.size());
-        assertEquals(List.of(parrotFoodStack), pets.getFirst().foods);
+        assertEquals(1, pets.get(0).foods.size());
+        assertSame(Items.WHEAT_SEEDS, pets.get(0).foods.get(0).getItem());
     }
 
     @Test

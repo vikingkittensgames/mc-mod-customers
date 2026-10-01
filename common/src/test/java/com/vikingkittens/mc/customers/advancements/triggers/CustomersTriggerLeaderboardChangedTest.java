@@ -115,7 +115,7 @@ class CustomersTriggerLeaderboardChangedTest {
                                 ),
                                 JsonParser.parseString(json)
                         )
-                        .getOrThrow();
+                        .result().orElseThrow();
 
         assertTrue(instance.matchesEvent(event(), NEW_LEADER));
     }

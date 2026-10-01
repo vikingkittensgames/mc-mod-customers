@@ -10,11 +10,11 @@ import org.junit.jupiter.api.Test;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.trading.ItemCost;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.trading.MerchantOffers;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
+import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -74,11 +74,11 @@ class CustomerSpawnerSnapshotCreationTest {
         assertEquals(2, customerSnapshot.offerCostItems().size());
         assertEquals(2, customerSnapshot.offerCostItems().get(0).getCount());
         assertEquals(4, customerSnapshot.offerCostItems().get(1).getCount());
-        assertTrue(ItemStack.isSameItemSameComponents(
+        assertTrue(ItemStackCUtils.isSameItemAndTags(
                 appleOffer.getCostA(),
                 customerSnapshot.offerCostItems().get(0)
         ));
-        assertTrue(ItemStack.isSameItemSameComponents(
+        assertTrue(ItemStackCUtils.isSameItemAndTags(
                 breadOffer.getCostA(),
                 customerSnapshot.offerCostItems().get(1)
         ));
@@ -98,8 +98,8 @@ class CustomerSpawnerSnapshotCreationTest {
             int count
     ) {
         return new MerchantOffer(
-                new ItemCost(item, count),
-                Optional.empty(),
+                new ItemStack(item, count),
+                ItemStack.EMPTY,
                 new ItemStack(Items.EMERALD),
                 1,
                 1,

@@ -1,15 +1,41 @@
 package com.vikingkittens.mc.customers.config;
 
+import com.google.gson.JsonObject;
 import org.junit.jupiter.api.Test;
 
 import com.vikingkittens.mc.customers.compatability.IConfigHelper;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class RecipeEnabledConditionTest {
+    @Test
+    void serializesRecipeSelection() {
+        RecipeEnabledCondition condition =
+                new RecipeEnabledCondition(
+                        RecipeEnabledCondition.CUSTOMER_SPAWNER_BLOCK
+                );
+        JsonObject json = new JsonObject();
+
+        RecipeEnabledCondition.SERIALIZER.write(json, condition);
+
+        assertEquals(
+                RecipeEnabledCondition.CUSTOMER_SPAWNER_BLOCK,
+                json.get("recipe").getAsString()
+        );
+        assertEquals(
+                condition,
+                RecipeEnabledCondition.SERIALIZER.read(json)
+        );
+        assertEquals(
+                RecipeEnabledCondition.ID,
+                RecipeEnabledCondition.SERIALIZER.getID()
+        );
+    }
+
     @Test
     void usesCustomerSpawnerRecipeSetting() {
         IConfigHelper config = mock(IConfigHelper.class);

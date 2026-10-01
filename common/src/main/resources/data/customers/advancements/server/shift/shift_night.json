@@ -1,0 +1,24 @@
+{
+  "parent": "customers:server/shift/root",
+  "criteria": {
+    "shift_night": {
+      "trigger": "customers:item_served",
+      "conditions": {
+        "spawner_mode": "night"
+      }
+    }
+  },
+  "display": {
+    "description": { "translate": "advancements.customers.server.shift.shift_night.description" },
+    "icon": {
+      "item": "customers:advancement_icon",
+      "nbt": "{CustomModelData:11}"
+    },
+    "title": { "translate": "advancements.customers.server.shift.shift_night.title" }
+  },
+  "requirements": [
+    [
+      "shift_night"
+    ]
+  ]
+}

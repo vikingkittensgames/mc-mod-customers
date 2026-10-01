@@ -4,8 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import dev.architectury.networking.NetworkManager;
-
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -33,7 +31,7 @@ public final class BlockBreakConfirmation {
 
         ConfirmationToken confirmation = ConfirmationToken.create(player.getUUID(), Util.getMillis(), EXPIRATION_MILLIS);
         PENDING_BREAKS.put(confirmation.token(), new PendingBreak(player.getUUID(), confirmation.token(), pos, blockEntity));
-        NetworkManager.sendToPlayer(player,
+        CustomersNetworking.sendToPlayer(player,
                 new BlockBreakConfirmationPromptPayload(player.getUUID(), confirmation.token(), titleKey, messageKey));
         return true;
     }

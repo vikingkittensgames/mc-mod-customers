@@ -1,0 +1,24 @@
+{
+  "parent": "customers:server/customer/root",
+  "criteria": {
+    "customer_casual_served_100": {
+      "trigger": "customers:customer_served",
+      "conditions": {
+        "total_casual_customers_served": { "min": 100 }
+      }
+    }
+  },
+  "display": {
+    "description": { "translate": "advancements.customers.server.customer.customer_casual_served_100.description" },
+    "icon": {
+      "item": "customers:advancement_icon",
+      "nbt": "{CustomModelData:24}"
+    },
+    "title": { "translate": "advancements.customers.server.customer.customer_casual_served_100.title" }
+  },
+  "requirements": [
+    [
+      "customer_casual_served_100"
+    ]
+  ]
+}

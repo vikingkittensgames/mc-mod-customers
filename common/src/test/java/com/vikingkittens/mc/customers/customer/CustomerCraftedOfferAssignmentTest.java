@@ -3,20 +3,17 @@ package com.vikingkittens.mc.customers.customer;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.alchemy.Potions;
-import net.minecraft.world.item.trading.ItemCost;
 import net.minecraft.world.item.trading.MerchantOffer;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
@@ -206,19 +203,17 @@ class CustomerCraftedOfferAssignmentTest {
     /** Uses the offer's component predicate when matching crafted items. */
     @Test
     void matchesCraftedItemsUsingOfferComponents() {
-        ItemStack water =
-                PotionContents.createItemStack(Items.POTION, Potions.WATER);
-        ItemStack awkward =
-                PotionContents.createItemStack(Items.POTION, Potions.AWKWARD);
-        ItemCost waterCost = new ItemCost(Items.POTION).withComponents(
-                builder -> builder.expect(
-                        DataComponents.POTION_CONTENTS,
-                        water.get(DataComponents.POTION_CONTENTS)
-                )
+        ItemStack water = PotionUtils.setPotion(
+                new ItemStack(Items.POTION),
+                Potions.WATER
+        );
+        ItemStack awkward = PotionUtils.setPotion(
+                new ItemStack(Items.POTION),
+                Potions.AWKWARD
         );
         MerchantOffer offer = new MerchantOffer(
-                waterCost,
-                Optional.empty(),
+                water,
+                ItemStack.EMPTY,
                 new ItemStack(Items.EMERALD),
                 1,
                 1,
@@ -245,8 +240,8 @@ class CustomerCraftedOfferAssignmentTest {
     /** Creates a single-use customer offer for assignment tests. */
     private static MerchantOffer offer(Item item, int count) {
         return new MerchantOffer(
-                new ItemCost(item, count),
-                Optional.empty(),
+                new ItemStack(item, count),
+                ItemStack.EMPTY,
                 new ItemStack(Items.EMERALD),
                 1,
                 1,

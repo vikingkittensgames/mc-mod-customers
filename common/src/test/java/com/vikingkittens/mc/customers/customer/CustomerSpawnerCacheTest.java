@@ -56,13 +56,13 @@ class CustomerSpawnerCacheTest {
 
         CustomerSpawnerCache.update(level, FIRST_SPAWNER);
         assertTrue(CustomerSpawnerCache.getValuesNearPosition(level, FIRST_SPAWNER, 1)
-                .getFirst()
+                .get(0)
                 .counterBlockState()
                 .is(Blocks.OAK_PLANKS));
 
         CustomerSpawnerCache.update(level, FIRST_SPAWNER);
         assertTrue(CustomerSpawnerCache.getValuesNearPosition(level, FIRST_SPAWNER, 1)
-                .getFirst()
+                .get(0)
                 .counterBlockState()
                 .is(Blocks.BRICKS));
     }
@@ -156,13 +156,13 @@ class CustomerSpawnerCacheTest {
                 ignored -> {}
         );
         assertTrue(CustomerSpawnerCache.getValuesNearPosition(level, FIRST_SPAWNER, 1)
-                .getFirst()
+                .get(0)
                 .counterBlockState()
                 .is(Blocks.BRICKS));
 
         CustomerSpawnerCache.onBlockBroken(level, FIRST_SPAWNER.above(), Blocks.BRICKS.defaultBlockState(), 64);
         assertTrue(CustomerSpawnerCache.getValuesNearPosition(level, FIRST_SPAWNER, 1)
-                .getFirst()
+                .get(0)
                 .counterBlockState()
                 .isAir());
     }
@@ -309,7 +309,7 @@ class CustomerSpawnerCacheTest {
         spawner.setRemoved();
 
         assertEquals(1, loaded.size());
-        assertSame(FIRST_SPAWNER, loaded.getFirst().spawnerPosition());
+        assertSame(FIRST_SPAWNER, loaded.get(0).spawnerPosition());
         assertTrue(CustomerSpawnerCache.getValuesNearPosition(level, FIRST_SPAWNER, 1).isEmpty());
     }
 

@@ -37,7 +37,6 @@ import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.Path;
-import net.minecraft.world.level.portal.DimensionTransition;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillager;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearance;
@@ -52,6 +51,7 @@ import com.vikingkittens.mc.customers.compatability.CustomersServices;
 import com.vikingkittens.mc.customers.compatability.EntityCUtils;
 import com.vikingkittens.mc.customers.compatability.InteractionCUtils;
 import com.vikingkittens.mc.customers.compatability.LevelCUtils;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 import com.vikingkittens.mc.customers.compatability.VillagerCUtils;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
 import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
@@ -85,7 +85,7 @@ public class SupplierVillagerEntity extends Villager implements CustomersVillage
     public static final String NAME = "supplier_villager";
 
     @Override
-    public Entity changeDimension(DimensionTransition transition) {
+    public Entity changeDimension(ServerLevel destination) {
         discard();
         return null;
     }
@@ -132,7 +132,13 @@ public class SupplierVillagerEntity extends Villager implements CustomersVillage
 
                     supplier.setState(SupplierState.INITIALIZING);
 
-                    supplier.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(spawnerPos), MobSpawnType.COMMAND, null);
+                    supplier.finalizeSpawn(
+                            serverLevel,
+                            serverLevel.getCurrentDifficultyAt(spawnerPos),
+                            MobSpawnType.COMMAND,
+                            null,
+                            null
+                    );
 
                     serverLevel.addFreshEntity(supplier);
 
@@ -203,13 +209,13 @@ public class SupplierVillagerEntity extends Villager implements CustomersVillage
     }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.Builder builder) {
-        super.defineSynchedData(builder);
-        builder.define(
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        entityData.define(
                 DATA_APPEARANCE,
                 CustomersVillagerAppearances.DEFAULT.toString()
         );
-        builder.define(DATA_VARIATION_SEED, 0.0F);
+        entityData.define(DATA_VARIATION_SEED, 0.0F);
     }
 
     @Override
@@ -234,7 +240,7 @@ public class SupplierVillagerEntity extends Villager implements CustomersVillage
 
     @Override
     public ResourceLocation getAppearanceId() {
-        return ResourceLocation.parse(entityData.get(DATA_APPEARANCE));
+        return ResourceLocationCUtils.parse(entityData.get(DATA_APPEARANCE));
     }
 
     @Override

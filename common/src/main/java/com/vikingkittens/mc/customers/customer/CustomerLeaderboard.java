@@ -24,7 +24,7 @@ public final class CustomerLeaderboard {
     public static final RegistrySupplier<CustomerLeaderboardBlock> BLOCK = BLOCKS.register(
             CustomerLeaderboardBlock.NAME,
             () -> new CustomerLeaderboardBlock(
-                    BlockBehaviour.Properties.ofFullCopy(Blocks.OAK_PLANKS).noOcclusion()
+                    BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS).noOcclusion()
             )
     );
     public static final RegistrySupplier<BlockItem> ITEM = ITEMS.register(

@@ -3,6 +3,7 @@ package com.vikingkittens.mc.customers.advancements.ftb;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -52,14 +53,14 @@ public final class CustomersFTBEvents {
         Set<UUID> playerIds = new HashSet<>(event.playerItemsCrafted().keySet());
         playerIds.addAll(event.playerItemsServed().keySet());
 
-        ServerQuestFile.getInstance().ifPresent(file -> {
+        Optional.ofNullable(ServerQuestFile.INSTANCE).ifPresent(file -> {
             Set<UUID> progressedTeams = new HashSet<>();
             for (UUID playerId : playerIds) {
                 ServerPlayer player = event.level().getServer().getPlayerList().getPlayer(playerId);
                 if (player == null) {
                     continue;
                 }
-                file.getTeamData(player)
+                getTeamData(file, player)
                         .filter(teamData -> progressedTeams.add(teamData.getTeamId()))
                         .ifPresent(teamData -> recordProgress(
                                 file,
@@ -72,14 +73,14 @@ public final class CustomersFTBEvents {
 
     @InternalEventHandler
     public static void onLeaderboardChanged(CustomerInternalEvents.LeaderboardChanged event) {
-        ServerQuestFile.getInstance().ifPresent(file -> {
+        Optional.ofNullable(ServerQuestFile.INSTANCE).ifPresent(file -> {
             Map<TeamData, Set<UUID>> affectedPlayersByTeam = new HashMap<>();
             for (UUID playerId : event.affectedPlayerIds()) {
                 ServerPlayer player = event.level().getServer().getPlayerList().getPlayer(playerId);
                 if (player == null) {
                     continue;
                 }
-                file.getTeamData(player)
+                getTeamData(file, player)
                         .ifPresent(teamData -> affectedPlayersByTeam
                                 .computeIfAbsent(teamData, ignored -> new HashSet<>())
                                 .add(playerId));
@@ -131,9 +132,16 @@ public final class CustomersFTBEvents {
             ServerPlayer player,
             BiConsumer<CustomersFTBTasks.CustomersTask, TeamData> recorder
     ) {
-        ServerQuestFile.getInstance().ifPresent(file ->
-                file.getTeamData(player).ifPresent(teamData -> recordProgress(file, teamData, recorder))
+        Optional.ofNullable(ServerQuestFile.INSTANCE).ifPresent(file ->
+                getTeamData(file, player).ifPresent(teamData -> recordProgress(file, teamData, recorder))
         );
+    }
+
+    private static Optional<TeamData> getTeamData(
+            ServerQuestFile file,
+            ServerPlayer player
+    ) {
+        return Optional.of(file.getOrCreateTeamData(player));
     }
 
     private static void recordProgress(

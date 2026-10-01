@@ -13,6 +13,7 @@ import net.minecraft.world.item.Items;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 import com.vikingkittens.mc.customers.compatability.persistence.PersistedContainer;
 import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
 
@@ -20,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CustomerSpawnerBlockEntityNbtMigrationTest {
     private static final ResourceLocation TEST_APPEARANCE =
-            ResourceLocation.fromNamespaceAndPath("customers", "test_appearance");
+            ResourceLocationCUtils.create("customers", "test_appearance");
 
     @BeforeAll
     static void bootstrapMinecraft() {

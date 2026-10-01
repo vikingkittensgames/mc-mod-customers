@@ -9,6 +9,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -48,7 +49,7 @@ class CustomersVillagerAppearanceSettingsTest {
         CustomersVillagerAppearanceSettings settings =
                 new CustomersVillagerAppearanceSettings();
         ResourceLocation optionalAppearance =
-                ResourceLocation.parse("optional_mod:mca");
+                ResourceLocationCUtils.parse("optional_mod:mca");
         settings.setEnabledAppearances(List.of(
                 optionalAppearance,
                 CustomersVillagerAppearances.DEFAULT,

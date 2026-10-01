@@ -20,10 +20,11 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 
 public final class CustomerPaymentBoxForgeEvents {
     static final ResourceLocation ITEM_HANDLER_ID =
-            ResourceLocation.fromNamespaceAndPath(Customers.MODID, "payment_box_items");
+            ResourceLocationCUtils.create(Customers.MODID, "payment_box_items");
 
     private CustomerPaymentBoxForgeEvents() {}
 

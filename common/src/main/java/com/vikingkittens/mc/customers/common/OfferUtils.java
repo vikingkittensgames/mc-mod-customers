@@ -56,7 +56,7 @@ public final class OfferUtils {
                     offerIndex++) {
                 MerchantOffer offer = offers.get(offerIndex);
                 if (remainingDemand[offerIndex] == 0
-                        || !ItemStackCUtils.matchesCost(offer.getItemCostA(), stack)) {
+                        || !ItemStackCUtils.matchesCost(offer.getCostA(), stack)) {
                     continue;
                 }
                 int assigned = Math.min(

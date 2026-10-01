@@ -1,0 +1,24 @@
+{
+  "parent": "customers:builder/supplier_spawner",
+  "criteria": {
+    "supplier_spawner_changed": {
+      "trigger": "customers:supplier_spawner_changed",
+      "conditions": {
+        "num_sell_items": { "min": 1 }
+      }
+    }
+  },
+  "display": {
+    "description": { "translate": "advancements.customers.builder.supplier.supplier_spawner_changed.description" },
+    "icon": {
+      "item": "customers:advancement_icon",
+      "nbt": "{CustomModelData:50}"
+    },
+    "title": { "translate": "advancements.customers.builder.supplier.supplier_spawner_changed.title" }
+  },
+  "requirements": [
+    [
+      "supplier_spawner_changed"
+    ]
+  ]
+}

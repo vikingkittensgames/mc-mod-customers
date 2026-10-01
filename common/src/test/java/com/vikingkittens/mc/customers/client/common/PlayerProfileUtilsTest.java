@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 
 import net.minecraft.resources.ResourceLocation;
 
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class PlayerProfileUtilsTest {
@@ -17,7 +19,7 @@ class PlayerProfileUtilsTest {
     @Test
     void usesTheMatchingFakePlayerSkinTexture() {
         assertEquals(
-                ResourceLocation.fromNamespaceAndPath(
+                ResourceLocationCUtils.create(
                         "customers",
                         "textures/customers/skins/makena.png"
                 ),

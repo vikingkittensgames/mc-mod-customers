@@ -1,0 +1,33 @@
+{
+  "parent": "customers:root",
+  "criteria": {
+    "has_crafting_table": {
+      "conditions": {
+        "items": [
+          {
+            "items": ["minecraft:crafting_table"]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancements.customers.builder.description"
+    },
+    "icon": {
+      "item": "minecraft:crafting_table"
+    },
+    "show_toast": false,
+    "title": {
+      "translate": "advancements.customers.builder.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_crafting_table"
+    ]
+  ]
+}

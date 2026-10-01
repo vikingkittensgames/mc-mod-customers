@@ -85,7 +85,7 @@ class PersistedContainerTest {
     void loadsExistingItemStackHandlerDataWithoutReportingAChange() {
         CompoundTag itemPrefix = new CompoundTag();
         itemPrefix.putInt("Slot", 2);
-        CompoundTag item = (CompoundTag) new ItemStack(Items.EMERALD, 7).save(RegistryAccess.EMPTY, itemPrefix);
+        CompoundTag item = new ItemStack(Items.EMERALD, 7).save(itemPrefix);
         ListTag items = new ListTag();
         items.add(item);
         CompoundTag serialized = new CompoundTag();

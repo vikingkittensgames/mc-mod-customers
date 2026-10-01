@@ -37,7 +37,7 @@ public final class CustomersAdvancementEvents {
             int totalItemsServed = player.getStats().getValue(itemServedStat);
             int totalPetItemsServed = player.getStats().getValue(petItemServedStat);
 
-            CustomersTriggers.ITEM_SERVED.get().trigger(
+            CustomersTriggers.ITEM_SERVED.trigger(
                     player,
                     event,
                     totalItemsServed,
@@ -73,7 +73,7 @@ public final class CustomersAdvancementEvents {
             int totalCustomersCasualServed = player.getStats().getValue(customerCasualServedStat);
             int totalCustomersNormalServed = player.getStats().getValue(customerNormalServedStat);
             int totalCustomersImpatientServed = player.getStats().getValue(customerImpatientServedStat);
-            CustomersTriggers.CUSTOMER_SERVED.get().trigger(
+            CustomersTriggers.CUSTOMER_SERVED.trigger(
                     player,
                     event,
                     totalCustomersServed,
@@ -96,7 +96,7 @@ public final class CustomersAdvancementEvents {
                 player.awardStat(shiftFinishedStat, 1);
                 int totalShiftsFinished = player.getStats().getValue(shiftFinishedStat);
 
-                CustomersTriggers.SHIFT_FINISHED.get().trigger(player, event, totalShiftsFinished);
+                CustomersTriggers.SHIFT_FINISHED.trigger(player, event, totalShiftsFinished);
             }
         }
     }
@@ -106,7 +106,7 @@ public final class CustomersAdvancementEvents {
         for (UUID playerId : event.affectedPlayerIds()) {
             ServerPlayer player = event.level().getServer().getPlayerList().getPlayer(playerId);
             if (player != null) {
-                CustomersTriggers.LEADERBOARD_CHANGED.get().trigger(player, event);
+                CustomersTriggers.LEADERBOARD_CHANGED.trigger(player, event);
             }
         }
     }
@@ -123,7 +123,7 @@ public final class CustomersAdvancementEvents {
             player.awardStat(suppliesPurchasedStat, 1);
             int totalSuppliesPurchased = player.getStats().getValue(suppliesPurchasedStat);
 
-            CustomersTriggers.SUPPLIES_PURCHASED.get().trigger(
+            CustomersTriggers.SUPPLIES_PURCHASED.trigger(
                     player,
                     event,
                     totalSuppliesPurchased
@@ -135,7 +135,7 @@ public final class CustomersAdvancementEvents {
     public static void onCustomerSpawnerChanged(CustomerInternalEvents.CustomerSpawnerConfigChanged event) {
         ServerPlayer player = event.level().getServer().getPlayerList().getPlayer(event.playerId());
         if (player != null) {
-            CustomersTriggers.CUSTOMER_SPAWNER_CHANGED.get().trigger(player, event);
+            CustomersTriggers.CUSTOMER_SPAWNER_CHANGED.trigger(player, event);
         }
     }
 
@@ -143,7 +143,7 @@ public final class CustomersAdvancementEvents {
     public static void onCounterBlockPlaced(CustomerInternalEvents.CounterBlockPlaced event) {
         ServerPlayer player = event.level().getServer().getPlayerList().getPlayer(event.playerId());
         if (player != null) {
-            CustomersTriggers.COUNTER_PLACED.get().trigger(player, event);
+            CustomersTriggers.COUNTER_PLACED.trigger(player, event);
         }
     }
 
@@ -151,7 +151,7 @@ public final class CustomersAdvancementEvents {
     public static void onSupplierSpawnerChanged(SupplierInternalEvents.SupplierSpawnerConfigChanged event) {
         ServerPlayer player = event.level().getServer().getPlayerList().getPlayer(event.playerId());
         if (player != null) {
-            CustomersTriggers.SUPPLIER_SPAWNER_CHANGED.get().trigger(player, event);
+            CustomersTriggers.SUPPLIER_SPAWNER_CHANGED.trigger(player, event);
         }
     }
 }

@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.client.renderer.entity.layers.WitchItemLayer;
 import net.minecraft.resources.ResourceLocation;
 
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 
 final class MonsterCustomersVillagerWitchRenderer
@@ -16,7 +17,7 @@ final class MonsterCustomersVillagerWitchRenderer
                 CustomerVillagerEntity,
                 WitchModel<CustomerVillagerEntity>> {
     private static final ResourceLocation TEXTURE =
-            ResourceLocation.withDefaultNamespace(
+            ResourceLocationCUtils.parse(
                     "textures/entity/witch.png"
             );
 

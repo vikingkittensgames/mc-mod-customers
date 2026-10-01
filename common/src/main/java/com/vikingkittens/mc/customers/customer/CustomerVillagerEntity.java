@@ -51,7 +51,6 @@ import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.portal.DimensionTransition;
 import net.minecraft.world.phys.Vec3;
 
 import com.vikingkittens.mc.customers.Customers;
@@ -70,6 +69,7 @@ import com.vikingkittens.mc.customers.compatability.InteractionCUtils;
 import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
 import com.vikingkittens.mc.customers.compatability.LevelCUtils;
 import com.vikingkittens.mc.customers.compatability.PlayerCUtils;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 import com.vikingkittens.mc.customers.compatability.VillagerCUtils;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
 import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
@@ -107,7 +107,7 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
     }
 
     @Override
-    public Entity changeDimension(DimensionTransition transition) {
+    public Entity changeDimension(ServerLevel destination) {
         discard();
         return null;
     }
@@ -135,13 +135,6 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
         return sortPaymentBoxesByDistance(origin, paymentBoxes);
     }
 
-    @Override
-    public Vec3 getVehicleAttachmentPoint(Entity vehicle) {
-        if (vehicle instanceof CustomerSeatEntity) {
-            return CustomerSeatLogic.getCustomerVehicleAttachmentPoint();
-        }
-        return super.getVehicleAttachmentPoint(vehicle);
-    }
     private static final Logger LOGGER = LogUtils.getLogger();
 
     private static final String TAG_STATE = "CustomerState";
@@ -232,7 +225,13 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
 
                     customer.setState(CustomerState.INITIALIZING);
 
-                    customer.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(spawnerPos), MobSpawnType.COMMAND, null);
+                    customer.finalizeSpawn(
+                            serverLevel,
+                            serverLevel.getCurrentDifficultyAt(spawnerPos),
+                            MobSpawnType.COMMAND,
+                            null,
+                            null
+                    );
 
                     serverLevel.addFreshEntity(customer);
 
@@ -525,7 +524,7 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
         for (MerchantOffer offer : offers) {
             ItemStack cost = offer.getCostA();
             if (!offer.isOutOfStock()
-                    && ItemStackCUtils.matchesCost(offer.getItemCostA(), stack)) {
+                    && ItemStackCUtils.matchesCost(offer.getCostA(), stack)) {
                 wantedCount += cost.getCount();
             }
         }
@@ -607,16 +606,16 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
     }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.Builder builder) {
-        super.defineSynchedData(builder);
-        builder.define(DATA_CUSTOMER_STATE, -1);
-        builder.define(
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        entityData.define(DATA_CUSTOMER_STATE, -1);
+        entityData.define(
                 DATA_APPEARANCE,
                 CustomersVillagerAppearances.DEFAULT.toString()
         );
-        builder.define(DATA_VARIATION_SEED, 0.0F);
-        builder.define(DATA_APPEARANCE_SPAWNER_MODE, -1);
-        builder.define(DATA_APPEARANCE_SPECIAL, false);
+        entityData.define(DATA_VARIATION_SEED, 0.0F);
+        entityData.define(DATA_APPEARANCE_SPAWNER_MODE, -1);
+        entityData.define(DATA_APPEARANCE_SPECIAL, false);
     }
 
     @Override
@@ -660,7 +659,7 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
 
     @Override
     public ResourceLocation getAppearanceId() {
-        return ResourceLocation.parse(entityData.get(DATA_APPEARANCE));
+        return ResourceLocationCUtils.parse(entityData.get(DATA_APPEARANCE));
     }
 
     @Override
@@ -959,10 +958,7 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
     @Override
     public void readAdditionalSaveData(CompoundTag compound) {
         super.readAdditionalSaveData(compound);
-        readCustomerData(PersistenceCUtils.reader(
-                compound,
-                registryAccess()
-        ));
+        readCustomerData(PersistenceCUtils.reader(compound));
     }
     void readCustomerData(DataReader input) {
         readAppearanceData(input);
@@ -1007,10 +1003,7 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
     @Override
     public void addAdditionalSaveData(CompoundTag compound) {
         super.addAdditionalSaveData(compound);
-        writeCustomerData(PersistenceCUtils.writer(
-                compound,
-                registryAccess()
-        ));
+        writeCustomerData(PersistenceCUtils.writer(compound));
     }
     void writeCustomerData(DataWriter output) {
         CustomersVillagerAppearancePersistence.write(output, this);

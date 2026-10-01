@@ -28,6 +28,7 @@ import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.client.common.PlayerProfileUtils;
 import com.vikingkittens.mc.customers.client.compatability.GuiGraphicsCUtils;
 import com.vikingkittens.mc.customers.client.compatability.TextureC;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 import com.vikingkittens.mc.customers.customer.CustomerShiftFinishedPayload;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
@@ -47,13 +48,13 @@ public class CustomerShiftFinishedScreen extends Screen {
     private static final int TEST_DUPLICATE_PLAYERS = 1;
 
     private static final SoundEvent BLING_SOUND = SoundEvent.createVariableRangeEvent(
-            ResourceLocation.fromNamespaceAndPath(Customers.MODID, "bling")
+            ResourceLocationCUtils.create(Customers.MODID, "bling")
     );
     private static final SoundEvent BONK_SOUND = SoundEvent.createVariableRangeEvent(
-            ResourceLocation.fromNamespaceAndPath(Customers.MODID, "bonk")
+            ResourceLocationCUtils.create(Customers.MODID, "bonk")
     );
     private static final SoundEvent TADA_SOUND = SoundEvent.createVariableRangeEvent(
-            ResourceLocation.fromNamespaceAndPath(Customers.MODID, "tada")
+            ResourceLocationCUtils.create(Customers.MODID, "tada")
     );
 
     private static final TextureC RECEIPT_TEXTURE = texture("reciept.png");
@@ -100,7 +101,7 @@ public class CustomerShiftFinishedScreen extends Screen {
     }
 
     @Override
-    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void renderBackground(GuiGraphics graphics) {
     }
 
     @Override

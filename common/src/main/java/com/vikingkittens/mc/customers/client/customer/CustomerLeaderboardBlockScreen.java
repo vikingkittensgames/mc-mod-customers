@@ -19,6 +19,7 @@ import net.minecraft.util.Mth;
 
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.client.common.PlayerProfileUtils;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 import com.vikingkittens.mc.customers.customer.CustomerLeaderboardOpenPayload;
 import com.vikingkittens.mc.customers.customer.CustomerLeaderboardScores;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
@@ -41,7 +42,7 @@ public class CustomerLeaderboardBlockScreen extends Screen {
     private static final int TITLE_X = (TEXTURE_SIZE - TITLE_WIDTH) / 2;
     private static final int TITLE_Y = 40;
     private static final int ARROW_Y = 36;
-    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(
+    private static final ResourceLocation TEXTURE = ResourceLocationCUtils.create(
             Customers.MODID,
             "textures/gui/leaderboard.png"
     );
@@ -64,7 +65,7 @@ public class CustomerLeaderboardBlockScreen extends Screen {
     }
 
     private static ResourceLocation texture(String name) {
-        return ResourceLocation.fromNamespaceAndPath(Customers.MODID, "textures/gui/" + name + ".png");
+        return ResourceLocationCUtils.create(Customers.MODID, "textures/gui/" + name + ".png");
     }
 
     private static ResourceLocation modeTexture(CustomerSpawnerMode mode) {
@@ -91,7 +92,7 @@ public class CustomerLeaderboardBlockScreen extends Screen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(graphics, mouseX, mouseY, partialTick);
+        renderBackground(graphics);
         int left = (width - TEXTURE_SIZE) / 2;
         int top = (height - TEXTURE_SIZE) / 2;
         graphics.blit(TEXTURE, left, top, 0, 0, TEXTURE_SIZE, TEXTURE_SIZE);
@@ -101,7 +102,7 @@ public class CustomerLeaderboardBlockScreen extends Screen {
     }
 
     @Override
-    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void renderBackground(GuiGraphics graphics) {
     }
 
     @Override
@@ -110,7 +111,7 @@ public class CustomerLeaderboardBlockScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollY) {
         int left = (width - TEXTURE_SIZE) / 2;
         int top = (height - TEXTURE_SIZE) / 2;
         if (mouseX >= left + CONTENT_X && mouseX < left + CONTENT_X + CONTENT_WIDTH
@@ -122,7 +123,7 @@ public class CustomerLeaderboardBlockScreen extends Screen {
             );
             return true;
         }
-        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        return super.mouseScrolled(mouseX, mouseY, scrollY);
     }
 
     private void cycleGroup(int direction) {

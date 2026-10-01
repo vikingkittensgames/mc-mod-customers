@@ -3,7 +3,6 @@ package com.vikingkittens.mc.customers.customer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.level.block.state.BlockState;
@@ -11,7 +10,6 @@ import net.minecraft.world.level.chunk.LevelChunk;
 
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
-import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
@@ -28,7 +26,6 @@ public final class CustomerForgeEvents {
 
     public static void register(IEventBus modEventBus) {
         modEventBus.addListener(CustomerForgeEvents::addCreative);
-        modEventBus.addListener(CustomerForgeEvents::registerAttributes);
         MinecraftForge.EVENT_BUS.addListener(CustomerForgeEvents::onEntityLeaveLevel);
         MinecraftForge.EVENT_BUS.addListener(CustomerForgeEvents::onPickupCounterInteract);
         MinecraftForge.EVENT_BUS.addListener(CustomerForgeEvents::onCustomerInteract);
@@ -38,10 +35,6 @@ public final class CustomerForgeEvents {
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, CustomerForgeEvents::onBlockBroken);
         MinecraftForge.EVENT_BUS.addListener(CustomerForgeEvents::onChunkLoad);
         MinecraftForge.EVENT_BUS.addListener(CustomerForgeEvents::onChunkUnload);
-    }
-
-    static void registerAttributes(EntityAttributeCreationEvent event) {
-        event.put(Customer.CUSTOMER_VILLAGER.get(), Villager.createAttributes().build());
     }
 
     static void onEntityLeaveLevel(EntityLeaveLevelEvent event) {

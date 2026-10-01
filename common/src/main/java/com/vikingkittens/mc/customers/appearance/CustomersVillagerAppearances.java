@@ -14,10 +14,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 
 public final class CustomersVillagerAppearances {
     public static final ResourceLocation DEFAULT =
-            ResourceLocation.fromNamespaceAndPath(Customers.MODID, "default");
+            ResourceLocationCUtils.create(Customers.MODID, "default");
     public static final List<ResourceLocation> INITIAL_ENABLED =
             List.of(DEFAULT);
 

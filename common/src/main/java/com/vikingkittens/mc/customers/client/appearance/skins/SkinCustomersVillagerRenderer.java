@@ -36,12 +36,10 @@ final class SkinCustomersVillagerRenderer<T extends Mob & CustomersVillager> ext
 
     @Override
     protected void scale(T entity, PoseStack poseStack, float partialTick) {
-        float scale = SkinCustomersVillagerClientAppearance.getSkin(entity).scale();
+        SkinCustomersVillagerDefinition skin =
+                SkinCustomersVillagerClientAppearance.getSkin(entity);
+        shadowRadius = skin.shadowRadius();
+        float scale = skin.scale();
         poseStack.scale(scale, scale, scale);
-    }
-
-    @Override
-    protected float getShadowRadius(T entity) {
-        return SkinCustomersVillagerClientAppearance.getSkin(entity).shadowRadius();
     }
 }

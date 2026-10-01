@@ -5,11 +5,10 @@ import java.util.Map;
 import java.util.UUID;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.common.CustomersNetworkPayload;
 
 public record CustomerShiftFinishedPayload(
         CustomerSpawnerMode spawnerMode,
@@ -22,13 +21,8 @@ public record CustomerShiftFinishedPayload(
         Map<UUID, Integer> numItemsCraftedByPlayer,
         int numItemsServedAutomated,
         int numItemsCraftedAutomated
-) implements CustomPacketPayload {
-    public static final Type<CustomerShiftFinishedPayload> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(Customers.MODID, "customer_shift_finished")
-    );
-
-    public static final StreamCodec<FriendlyByteBuf, CustomerShiftFinishedPayload> STREAM_CODEC =
-            StreamCodec.of(CustomerShiftFinishedPayload::write, CustomerShiftFinishedPayload::read);
+) implements CustomersNetworkPayload {
+    public static final ResourceLocation ID = new ResourceLocation(Customers.MODID, "customer_shift_finished");
 
     public CustomerShiftFinishedPayload {
         numItemsServedByPlayer = Map.copyOf(numItemsServedByPlayer);
@@ -59,28 +53,29 @@ public record CustomerShiftFinishedPayload(
                 .sum();
     }
 
-    private static void write(FriendlyByteBuf buffer, CustomerShiftFinishedPayload payload) {
-        buffer.writeEnum(payload.spawnerMode());
-        buffer.writeFloat(payload.percentComplete());
-        buffer.writeBoolean(payload.levelPassed());
-        buffer.writeVarInt(payload.totalCustomers());
-        buffer.writeVarInt(payload.numCustomersServed());
-        buffer.writeVarInt(payload.numCustomersGaveUp());
+    @Override
+    public void write(FriendlyByteBuf buffer) {
+        buffer.writeEnum(spawnerMode());
+        buffer.writeFloat(percentComplete());
+        buffer.writeBoolean(levelPassed());
+        buffer.writeVarInt(totalCustomers());
+        buffer.writeVarInt(numCustomersServed());
+        buffer.writeVarInt(numCustomersGaveUp());
         buffer.writeMap(
-                payload.numItemsServedByPlayer(),
+                numItemsServedByPlayer(),
                 (target, playerId) -> target.writeUUID(playerId),
                 (target, itemCount) -> target.writeVarInt(itemCount)
         );
         buffer.writeMap(
-                payload.numItemsCraftedByPlayer(),
+                numItemsCraftedByPlayer(),
                 (target, playerId) -> target.writeUUID(playerId),
                 (target, itemCount) -> target.writeVarInt(itemCount)
         );
-        buffer.writeVarInt(payload.numItemsServedAutomated());
-        buffer.writeVarInt(payload.numItemsCraftedAutomated());
+        buffer.writeVarInt(numItemsServedAutomated());
+        buffer.writeVarInt(numItemsCraftedAutomated());
     }
 
-    private static CustomerShiftFinishedPayload read(FriendlyByteBuf buffer) {
+    public static CustomerShiftFinishedPayload read(FriendlyByteBuf buffer) {
         return new CustomerShiftFinishedPayload(
                 buffer.readEnum(CustomerSpawnerMode.class),
                 buffer.readFloat(),
@@ -104,7 +99,7 @@ public record CustomerShiftFinishedPayload(
     }
 
     @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
+    public ResourceLocation id() {
+        return ID;
     }
 }

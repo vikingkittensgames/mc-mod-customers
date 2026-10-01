@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -19,7 +18,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.trading.ItemCost;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
@@ -75,7 +73,7 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
                                 cost,
                                 cost.getCount()
                         ),
-                        Optional.empty(),
+                        ItemStack.EMPTY,
                         result.copy(),
                         10,
                         0,
@@ -114,11 +112,11 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
 
         try {
-            tag.put("inventory", this.inventory.serializeNBT(registries));
+            tag.put("inventory", this.inventory.serializeNBT());
         } catch (Throwable t) {
             LOGGER.error("Failed to save inventory", t);
         }
@@ -134,12 +132,12 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    public void load(CompoundTag tag) {
+        super.load(tag);
 
         if (tag.contains("inventory")) {
             try {
-                inventory.deserializeNBT(registries, tag.getCompound("inventory"));
+                inventory.deserializeNBT(tag.getCompound("inventory"));
             } catch (Throwable t) {
                 LOGGER.error("Failed to load inventory because of error", t);
             }

@@ -6,6 +6,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 
 public final class CustomerBlockTags {
     public static final TagKey<Block> CAN_NOT_AVOID = create("can_not_avoid");
@@ -16,7 +17,7 @@ public final class CustomerBlockTags {
     private static TagKey<Block> create(String name) {
         return TagKey.create(
                 Registries.BLOCK,
-                ResourceLocation.fromNamespaceAndPath(Customers.MODID, name)
+                ResourceLocationCUtils.create(Customers.MODID, name)
         );
     }
 }

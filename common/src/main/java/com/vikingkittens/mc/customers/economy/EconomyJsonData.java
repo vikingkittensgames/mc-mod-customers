@@ -24,6 +24,8 @@ import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.item.ItemStack;
 
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
+
 final class EconomyJsonData {
     private EconomyJsonData() {}
 
@@ -192,7 +194,7 @@ final class EconomyJsonData {
         }
         return ResourceLocation.tryParse(object.get(name).getAsString()) == null
                 ? throwInvalidId(source, index, name)
-                : ResourceLocation.parse(object.get(name).getAsString());
+                : ResourceLocationCUtils.parse(object.get(name).getAsString());
     }
 
     private static ResourceLocation throwInvalidId(String source, int index, String name) {

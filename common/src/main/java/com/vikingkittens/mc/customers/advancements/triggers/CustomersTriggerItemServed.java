@@ -7,7 +7,6 @@ import com.mojang.serialization.Codec;
 import net.minecraft.advancements.critereon.ContextAwarePredicate;
 import net.minecraft.advancements.critereon.ItemPredicate;
 import net.minecraft.advancements.critereon.MinMaxBounds;
-import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringRepresentable;
@@ -16,13 +15,13 @@ import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
 public final class CustomersTriggerItemServed
-        extends SimpleCriterionTrigger<CustomersTriggerItemServed.Instance> {
+        extends CustomersCriterionTrigger<CustomersTriggerItemServed.Instance> {
     public static final CustomersTriggerSchema<Instance> SCHEMA = Instance.SCHEMA;
 
-    @Override
-    public Codec<Instance> codec() {
-        return Instance.CODEC;
+    public CustomersTriggerItemServed() {
+        super("item_served", SCHEMA);
     }
+
 
     public void trigger(
             ServerPlayer player,
@@ -30,7 +29,7 @@ public final class CustomersTriggerItemServed
             int totalItemsServed,
             int totalPetItemsServed
     ) {
-        trigger(player, instance -> instance.matches(event, totalItemsServed, totalPetItemsServed));
+        triggerValue(player, instance -> instance.matches(event, totalItemsServed, totalPetItemsServed));
     }
 
     public record Instance(
@@ -45,7 +44,7 @@ public final class CustomersTriggerItemServed
             Optional<Boolean> isPetItem,
             Optional<MinMaxBounds.Ints> totalItemsServed,
             Optional<MinMaxBounds.Ints> totalPetItemsServed
-    ) implements SimpleInstance {
+    ) {
         public Instance(
                 Optional<ContextAwarePredicate> player,
                 Optional<CustomerSpawnerMode> spawnerMode,
@@ -91,7 +90,7 @@ public final class CustomersTriggerItemServed
                         .property(
                                 "player",
                                 "player",
-                                ContextAwarePredicate.CODEC,
+                                CustomersTriggerCodecs.CONTEXT_AWARE_PREDICATE,
                                 CustomersTriggerSchema.Editor.HIDDEN,
                                 false
                         )
@@ -120,28 +119,28 @@ public final class CustomersTriggerItemServed
                         .property(
                                 "servedItem",
                                 "served_item",
-                                ItemPredicate.CODEC,
+                                CustomersTriggerCodecs.ITEM_PREDICATE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_ITEM_PREDICATE,
                                 true
                         )
                         .property(
                                 "servedCount",
                                 "served_count",
-                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerCodecs.INT_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
                                 true
                         )
                         .property(
                                 "costItem",
                                 "cost_item",
-                                ItemPredicate.CODEC,
+                                CustomersTriggerCodecs.ITEM_PREDICATE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_ITEM_PREDICATE,
                                 true
                         )
                         .property(
                                 "costCount",
                                 "cost_count",
-                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerCodecs.INT_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
                                 true
                         )
@@ -155,14 +154,14 @@ public final class CustomersTriggerItemServed
                         .property(
                                 "totalItemsServed",
                                 "total_items_served",
-                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerCodecs.INT_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
                                 false
                         )
                         .property(
                                 "totalPetItemsServed",
                                 "total_pet_items_served",
-                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerCodecs.INT_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
                                 false
                         )
@@ -188,9 +187,9 @@ public final class CustomersTriggerItemServed
                             .orElse(true)
                     && spawnerMode.map(value -> value == event.spawnerMode()).orElse(true)
                     && customerProfession.map(value -> value.equals(event.customerProfession())).orElse(true)
-                    && servedItem.map(value -> value.test(event.servedItem())).orElse(true)
+                    && servedItem.map(value -> value.matches(event.servedItem())).orElse(true)
                     && servedCount.map(value -> value.matches(event.servedItem().getCount())).orElse(true)
-                    && costItem.map(value -> value.test(event.costItem())).orElse(true)
+                    && costItem.map(value -> value.matches(event.costItem())).orElse(true)
                     && costCount.map(value -> value.matches(event.costItem().getCount())).orElse(true)
                     && isPetItem.map(value -> value == event.isPetItem()).orElse(true);
         }

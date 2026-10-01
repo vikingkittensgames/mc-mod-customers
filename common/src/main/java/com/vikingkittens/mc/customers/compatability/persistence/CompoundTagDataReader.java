@@ -3,12 +3,10 @@ package com.vikingkittens.mc.customers.compatability.persistence;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -18,22 +16,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * Adapts Minecraft 1.21.1 compound tags to the shared persistence reader.
+ * Adapts Minecraft 1.20.1 compound tags to the shared persistence reader.
  */
 final class CompoundTagDataReader implements DataReader {
     private final CompoundTag tag;
-    private final HolderLookup.Provider registries;
-
     CompoundTagDataReader(CompoundTag tag) {
-        this(tag, null);
-    }
-
-    CompoundTagDataReader(
-            CompoundTag tag,
-            HolderLookup.Provider registries
-    ) {
         this.tag = tag;
-        this.registries = registries;
     }
 
     @Override
@@ -77,7 +65,9 @@ final class CompoundTagDataReader implements DataReader {
 
     @Override
     public Optional<BlockPos> getBlockPos(String key) {
-        return NbtUtils.readBlockPos(tag, key);
+        return tag.contains(key, Tag.TAG_COMPOUND)
+                ? Optional.of(NbtUtils.readBlockPos(tag.getCompound(key)))
+                : Optional.empty();
     }
 
     @Override
@@ -126,10 +116,7 @@ final class CompoundTagDataReader implements DataReader {
             CompoundTag itemTag = itemTags.getCompound(index);
             int slot = itemTag.getInt("Slot");
             if (slot >= 0 && slot < size) {
-                ItemStack.parse(
-                        Objects.requireNonNull(registries),
-                        itemTag
-                ).ifPresent(stack -> stacks.set(slot, stack));
+                stacks.set(slot, ItemStack.of(itemTag));
             }
         }
         return List.copyOf(stacks);
@@ -137,10 +124,7 @@ final class CompoundTagDataReader implements DataReader {
 
     @Override
     public DataReader childOrEmpty(String key) {
-        return new CompoundTagDataReader(
-                tag.getCompound(key),
-                registries
-        );
+        return new CompoundTagDataReader(tag.getCompound(key));
     }
 
     @Override
@@ -151,10 +135,7 @@ final class CompoundTagDataReader implements DataReader {
         ListTag childTags = tag.getList(key, Tag.TAG_COMPOUND);
         List<DataReader> children = new ArrayList<>(childTags.size());
         for (int index = 0; index < childTags.size(); index++) {
-            children.add(new CompoundTagDataReader(
-                    childTags.getCompound(index),
-                    registries
-            ));
+            children.add(new CompoundTagDataReader(childTags.getCompound(index)));
         }
         return List.copyOf(children);
     }

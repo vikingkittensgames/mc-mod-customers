@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
@@ -16,15 +17,11 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.TamableAnimal;
-import net.minecraft.world.entity.ai.attributes.AttributeInstance;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.GoalSelector;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
@@ -33,6 +30,7 @@ import net.minecraft.world.entity.animal.FlyingAnimal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 
 import com.vikingkittens.mc.customers.Customers;
@@ -40,6 +38,7 @@ import com.vikingkittens.mc.customers.compatability.CustomersServices;
 import com.vikingkittens.mc.customers.compatability.EntityCUtils;
 import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
 import com.vikingkittens.mc.customers.compatability.LevelCUtils;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 import com.vikingkittens.mc.customers.customer.CustomerVillagerEntity;
 import com.vikingkittens.mc.customers.customer.pets.ai.CustomerPetFollowCustomerGoal;
 import com.vikingkittens.mc.customers.customer.pets.ai.CustomerPetSitNextToCustomerGoal;
@@ -49,11 +48,19 @@ import com.vikingkittens.mc.customers.customer.pets.mixin.CustomerPetMobAccessor
 public final class CustomerPet {
     public static final TagKey<EntityType<?>> CAN_NOT_BE_PET = TagKey.create(
             Registries.ENTITY_TYPE,
-            ResourceLocation.fromNamespaceAndPath(Customers.MODID, "can_not_be_pet")
+            ResourceLocationCUtils.create(Customers.MODID, "can_not_be_pet")
     );
     private static final byte ANIMAL_HEARTS_EVENT = 18;
     private static final float CUSTOMER_HEIGHT = 1.95F;
     private static final float MAX_PET_HEIGHT = CUSTOMER_HEIGHT * 0.5F;
+    private static final Set<Item> PARROT_FOODS = Set.of(
+            Items.WHEAT_SEEDS,
+            Items.MELON_SEEDS,
+            Items.PUMPKIN_SEEDS,
+            Items.BEETROOT_SEEDS,
+            Items.TORCHFLOWER_SEEDS,
+            Items.PITCHER_POD
+    );
 
     private static List<Pet> pets;
 
@@ -219,7 +226,7 @@ public final class CustomerPet {
         if (foods.isEmpty() && animal instanceof FlyingAnimal) {
             for (Item item : items) {
                 ItemStack stack = item.getDefaultInstance();
-                if (!stack.isEmpty() && stack.is(ItemTags.PARROT_FOOD)) {
+                if (!stack.isEmpty() && PARROT_FOODS.contains(item)) {
                     foods.add(stack.copy());
                 }
             }
@@ -237,16 +244,7 @@ public final class CustomerPet {
         if (pet.getBbHeight() <= MAX_PET_HEIGHT) {
             return;
         }
-        if (pet instanceof AgeableMob ageablePet) {
-            ageablePet.setBaby(true);
-            return;
-        }
-
-        AttributeInstance scale = pet.getAttribute(Attributes.SCALE);
-        if (scale != null) {
-            scale.setBaseValue(MAX_PET_HEIGHT / pet.getBbHeight());
-            pet.refreshDimensions();
-        }
+        pet.setBaby(true);
     }
 
     private static boolean preparePet(Animal pet, UUID customerId) {
@@ -260,6 +258,7 @@ public final class CustomerPet {
                     serverLevel,
                     serverLevel.getCurrentDifficultyAt(pet.blockPosition()),
                     MobSpawnType.EVENT,
+                    null,
                     null
             );
             configurePetSize(pet);
@@ -273,7 +272,7 @@ public final class CustomerPet {
         pet.getBrain().removeAllBehaviors();
         pet.getBrain().clearMemories();
         if (pet instanceof TamableAnimal tamablePet) {
-            tamablePet.setTame(true, false);
+            tamablePet.setTame(true);
             tamablePet.setOwnerUUID(customerId);
             tamablePet.setOrderedToSit(false);
         }
@@ -311,7 +310,7 @@ public final class CustomerPet {
                     .filter(food -> selectedFood != null && ItemStackCUtils.isSameItemAndTags(food, selectedFood))
                     .findFirst()
                     .map(ItemStack::copy)
-                    .orElseGet(() -> foods.getFirst().copy());
+                    .orElseGet(() -> foods.get(0).copy());
         }
 
         @Override public List<ItemStack> foods() { return foods.stream().map(ItemStack::copy).toList(); }

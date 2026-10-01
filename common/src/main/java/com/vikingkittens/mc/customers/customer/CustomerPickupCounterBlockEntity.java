@@ -87,7 +87,7 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
 
         @Override
         public ItemStack insert(ItemStack stack, boolean simulate) {
-            return insertAll(List.of(stack), simulate).getFirst();
+            return insertAll(List.of(stack), simulate).get(0);
         }
 
         @Override
@@ -307,7 +307,7 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
                 remainders.add(stack.copy());
                 continue;
             }
-            acceptedStacks.add(candidateStacks.getLast());
+            acceptedStacks.add(candidateStacks.get(candidateStacks.size() - 1));
             existingStacks.add(acceptedStack);
             ItemStack remainder = stack.copy();
             remainder.shrink(allocation.acceptedCount());
@@ -390,12 +390,9 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(
-            CompoundTag tag,
-            HolderLookup.Provider registries
-    ) {
-        super.saveAdditional(tag, registries);
-        tag.put(TAG_INVENTORY, inventory.serializeNBT(registries));
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
+        tag.put(TAG_INVENTORY, inventory.serializeNBT());
         writeStackMetadata(
                 PersistenceCUtils.writer(tag),
                 inventory,
@@ -403,17 +400,18 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
         );
     }
 
-    @Override
-    protected void loadAdditional(
+    protected void saveAdditional(
             CompoundTag tag,
-            HolderLookup.Provider registries
+            HolderLookup.Provider ignored
     ) {
-        super.loadAdditional(tag, registries);
+        saveAdditional(tag);
+    }
+
+    @Override
+    public void load(CompoundTag tag) {
+        super.load(tag);
         if (tag.contains(TAG_INVENTORY)) {
-            inventory.deserializeNBT(
-                    registries,
-                    tag.getCompound(TAG_INVENTORY)
-            );
+            inventory.deserializeNBT(tag.getCompound(TAG_INVENTORY));
         }
         readStackMetadata(
                 PersistenceCUtils.reader(tag),
@@ -422,9 +420,20 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
         );
     }
 
+    public void loadAdditional(
+            CompoundTag tag,
+            HolderLookup.Provider ignored
+    ) {
+        load(tag);
+    }
+
     @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        return saveWithoutMetadata(registries);
+    public CompoundTag getUpdateTag() {
+        return saveWithoutMetadata();
+    }
+
+    public CompoundTag getUpdateTag(HolderLookup.Provider ignored) {
+        return getUpdateTag();
     }
 
     @Override
@@ -1169,7 +1178,7 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
                     slot++) {
                 ItemStack stored =
                         counter.inventory.getItem(slot);
-                if (ItemStackCUtils.matchesCost(offer.getItemCostA(), stored)) {
+                if (ItemStackCUtils.matchesCost(offer.getCostA(), stored)) {
                     available += stored.getCount();
                 }
             }
@@ -1186,7 +1195,7 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
                     && remaining > 0) {
                 ItemStack stored =
                         counter.inventory.getItem(slot);
-                if (!ItemStackCUtils.matchesCost(offer.getItemCostA(), stored)) {
+                if (!ItemStackCUtils.matchesCost(offer.getCostA(), stored)) {
                     slot++;
                     continue;
                 }
@@ -1259,7 +1268,7 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
         return takeMatchingStoredStack(
                 counters,
                 offer.getCostA(),
-                stored -> ItemStackCUtils.matchesCost(offer.getItemCostA(), stored)
+                stored -> ItemStackCUtils.matchesCost(offer.getCostA(), stored)
         );
     }
 

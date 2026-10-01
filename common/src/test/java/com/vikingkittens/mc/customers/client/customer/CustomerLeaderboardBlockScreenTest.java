@@ -73,7 +73,7 @@ class CustomerLeaderboardBlockScreenTest {
         assertEquals(breakfastPosition, groups.get(0).spawnerPosition());
         assertEquals(CustomerSpawnerMode.BREAKFAST, groups.get(0).spawnerMode());
         assertEquals(List.of(1, 2), groups.get(0).levels());
-        assertTrue(groups.get(0).scoresForLevel(1).getFirst().levelPassed());
+        assertTrue(groups.get(0).scoresForLevel(1).get(0).levelPassed());
         assertEquals(dinnerPosition, groups.get(1).spawnerPosition());
         assertEquals(CustomerSpawnerMode.DINNER, groups.get(1).spawnerMode());
     }
@@ -102,7 +102,7 @@ class CustomerLeaderboardBlockScreenTest {
 
         assertEquals(
                 List.of(second, first),
-                groups.getFirst().scoresForLevel(1).stream()
+                groups.get(0).scoresForLevel(1).stream()
                         .map(CustomerLeaderboardBlockScreen.ScoreEntry::playerId)
                         .toList()
         );
@@ -140,11 +140,11 @@ class CustomerLeaderboardBlockScreenTest {
 
         assertFalse(CustomerLeaderboardBlockScreen.shouldShowSpawnerPosition(
                 oneBreakfastGroup,
-                oneBreakfastGroup.getFirst()
+                oneBreakfastGroup.get(0)
         ));
         assertTrue(CustomerLeaderboardBlockScreen.shouldShowSpawnerPosition(
                 twoDinnerGroups,
-                twoDinnerGroups.getFirst()
+                twoDinnerGroups.get(0)
         ));
     }
 }

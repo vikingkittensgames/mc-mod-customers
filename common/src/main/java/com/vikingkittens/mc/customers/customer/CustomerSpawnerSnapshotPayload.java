@@ -5,39 +5,24 @@ import java.util.Optional;
 import java.util.UUID;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.common.CustomersNetworkPayload;
 
 public record CustomerSpawnerSnapshotPayload(
         BlockPos spawnerPos,
         Optional<CustomerSpawnerSnapshot> snapshot
-) implements CustomPacketPayload {
-    public static final Type<CustomerSpawnerSnapshotPayload> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(
-                    Customers.MODID,
-                    "customer_spawner_snapshot"
-            )
-    );
-    public static final StreamCodec<
-            RegistryFriendlyByteBuf,
-            CustomerSpawnerSnapshotPayload
-    > STREAM_CODEC = StreamCodec.of(
-            CustomerSpawnerSnapshotPayload::write,
-            CustomerSpawnerSnapshotPayload::read
-    );
+) implements CustomersNetworkPayload {
+    public static final ResourceLocation ID = new ResourceLocation(Customers.MODID, "customer_spawner_snapshot");
 
-    private static void write(
-            RegistryFriendlyByteBuf buffer,
-            CustomerSpawnerSnapshotPayload payload
-    ) {
-        buffer.writeBlockPos(payload.spawnerPos());
-        buffer.writeBoolean(payload.snapshot().isPresent());
-        payload.snapshot().ifPresent(snapshot -> {
+    @Override
+    public void write(FriendlyByteBuf buffer) {
+        buffer.writeBlockPos(spawnerPos());
+        buffer.writeBoolean(snapshot().isPresent());
+        snapshot().ifPresent(snapshot -> {
             buffer.writeEnum(snapshot.spawnerMode());
             buffer.writeBoolean(snapshot.bossEventId().isPresent());
             snapshot.bossEventId().ifPresent(buffer::writeUUID);
@@ -50,21 +35,21 @@ public record CustomerSpawnerSnapshotPayload(
     }
 
     private static void writeCustomer(
-            RegistryFriendlyByteBuf buffer,
+            FriendlyByteBuf buffer,
             CustomerSpawnerSnapshot.Customer customer
     ) {
         buffer.writeUUID(customer.customerId());
         buffer.writeEnum(customer.type());
         buffer.writeVarInt(customer.offerCostItems().size());
         for (ItemStack offerCostItem : customer.offerCostItems()) {
-            ItemStack.STREAM_CODEC.encode(buffer, offerCostItem);
+            buffer.writeItem(offerCostItem);
         }
         buffer.writeLong(customer.ticksSinceTrade());
         buffer.writeLong(customer.giveUpTicks());
     }
 
-    private static CustomerSpawnerSnapshotPayload read(
-            RegistryFriendlyByteBuf buffer
+    public static CustomerSpawnerSnapshotPayload read(
+            FriendlyByteBuf buffer
     ) {
         BlockPos spawnerPos = buffer.readBlockPos();
         if (!buffer.readBoolean()) {
@@ -96,7 +81,7 @@ public record CustomerSpawnerSnapshotPayload(
     }
 
     private static CustomerSpawnerSnapshot.Customer readCustomer(
-            RegistryFriendlyByteBuf buffer
+            FriendlyByteBuf buffer
     ) {
         UUID customerId = buffer.readUUID();
         CustomerSpawnerSnapshot.Customer.Type type =
@@ -104,7 +89,7 @@ public record CustomerSpawnerSnapshotPayload(
         int offerCount = buffer.readVarInt();
         List<ItemStack> offerCostItems = new java.util.ArrayList<>(offerCount);
         for (int index = 0; index < offerCount; index++) {
-            offerCostItems.add(ItemStack.STREAM_CODEC.decode(buffer));
+            offerCostItems.add(buffer.readItem());
         }
         long ticksSinceTrade = buffer.readLong();
         long giveUpTicks = buffer.readLong();
@@ -118,7 +103,7 @@ public record CustomerSpawnerSnapshotPayload(
     }
 
     @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
+    public ResourceLocation id() {
+        return ID;
     }
 }

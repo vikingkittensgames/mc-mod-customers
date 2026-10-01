@@ -9,6 +9,9 @@ displayName="${mod_name}"
 authors="Viking Kittens"
 description='''Customers adds configurable customer and supplier villagers.'''
 
+[[mixins]]
+config="customers.common.mixins.json"
+
 [[dependencies.${mod_id}]]
 modId="forge"
 mandatory=true
@@ -24,8 +27,15 @@ ordering="NONE"
 side="BOTH"
 
 [[dependencies.${mod_id}]]
-modId="mca"
+modId="architectury"
+mandatory=true
+versionRange="${architectury_version_range}"
+ordering="AFTER"
+side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="ftbquests"
 mandatory=false
-versionRange="${mca_version_range}"
+versionRange="${ftb_quests_version_range}"
 ordering="AFTER"
 side="BOTH"

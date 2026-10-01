@@ -38,7 +38,7 @@ public final class CustomerPickupCounterFabricStorage
         }
         int requestedCount = (int) Math.min(
                 maxAmount,
-                resource.getItem().getDefaultMaxStackSize()
+                resource.getItem().getMaxStackSize()
         );
         Reservation reservation = reservation(transaction);
         List<net.minecraft.world.item.ItemStack> requestedStacks =
@@ -46,7 +46,8 @@ public final class CustomerPickupCounterFabricStorage
         requestedStacks.add(resource.toStack(requestedCount));
         List<net.minecraft.world.item.ItemStack> remainders =
                 target.insertAll(requestedStacks, true);
-        net.minecraft.world.item.ItemStack remainder = remainders.getLast();
+        net.minecraft.world.item.ItemStack remainder =
+                remainders.get(remainders.size() - 1);
         int insertedCount = requestedCount - remainder.getCount();
         if (insertedCount == 0) {
             return 0;

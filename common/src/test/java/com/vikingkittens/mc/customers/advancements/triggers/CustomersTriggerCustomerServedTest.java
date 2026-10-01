@@ -18,6 +18,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
@@ -65,7 +66,7 @@ class CustomersTriggerCustomerServedTest {
                 new CustomersTriggerCustomerServed.Instance(
                         Optional.empty(),
                         Optional.of(CustomerSpawnerMode.LUNCH),
-                        Optional.of(ResourceLocation.parse("customers:customer_impatient")),
+                        Optional.of(ResourceLocationCUtils.parse("customers:customer_impatient")),
                         Optional.empty(),
                         Optional.of(MinMaxBounds.Ints.atLeast(3)),
                         Optional.empty(),
@@ -238,7 +239,7 @@ class CustomersTriggerCustomerServedTest {
                                 ),
                                 JsonParser.parseString(json)
                         )
-                        .getOrThrow();
+                        .result().orElseThrow();
 
         assertTrue(instance.matches(
                 event(CustomerSpawnerMode.LUNCH, 3, 2, true),
@@ -282,7 +283,7 @@ class CustomersTriggerCustomerServedTest {
                 mode,
                 UUID.randomUUID(),
                 UUID.randomUUID(),
-                ResourceLocation.parse("customers:customer_impatient"),
+                ResourceLocationCUtils.parse("customers:customer_impatient"),
                 new ItemStack(Items.APPLE, servedCount),
                 new ItemStack(Items.EMERALD, costCount),
                 isPetItem

@@ -6,26 +6,25 @@ import com.mojang.serialization.Codec;
 import net.minecraft.advancements.critereon.ContextAwarePredicate;
 import net.minecraft.advancements.critereon.ItemPredicate;
 import net.minecraft.advancements.critereon.MinMaxBounds;
-import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
 import net.minecraft.server.level.ServerPlayer;
 
 import com.vikingkittens.mc.customers.supplier.SupplierInternalEvents;
 
 public final class CustomersTriggerSuppliesPurchased
-        extends SimpleCriterionTrigger<CustomersTriggerSuppliesPurchased.Instance> {
+        extends CustomersCriterionTrigger<CustomersTriggerSuppliesPurchased.Instance> {
     public static final CustomersTriggerSchema<Instance> SCHEMA = Instance.SCHEMA;
 
-    @Override
-    public Codec<Instance> codec() {
-        return Instance.CODEC;
+    public CustomersTriggerSuppliesPurchased() {
+        super("supplies_purchased", SCHEMA);
     }
+
 
     public void trigger(
             ServerPlayer player,
             SupplierInternalEvents.SuppliesPurchased event,
             int totalSuppliesPurchased
     ) {
-        trigger(player, instance -> instance.matches(event, totalSuppliesPurchased));
+        triggerValue(player, instance -> instance.matches(event, totalSuppliesPurchased));
     }
 
     public record Instance(
@@ -36,7 +35,7 @@ public final class CustomersTriggerSuppliesPurchased
             Optional<ItemPredicate> costItem,
             Optional<MinMaxBounds.Ints> costCount,
             Optional<MinMaxBounds.Ints> totalSuppliesPurchased
-    ) implements SimpleInstance {
+    ) {
         public Instance(
                 Optional<ContextAwarePredicate> player,
                 Optional<ItemPredicate> supplyItem,
@@ -70,7 +69,7 @@ public final class CustomersTriggerSuppliesPurchased
                         .property(
                                 "player",
                                 "player",
-                                ContextAwarePredicate.CODEC,
+                                CustomersTriggerCodecs.CONTEXT_AWARE_PREDICATE,
                                 CustomersTriggerSchema.Editor.HIDDEN,
                                 false
                         )
@@ -84,35 +83,35 @@ public final class CustomersTriggerSuppliesPurchased
                         .property(
                                 "supplyItem",
                                 "supply_item",
-                                ItemPredicate.CODEC,
+                                CustomersTriggerCodecs.ITEM_PREDICATE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_ITEM_PREDICATE,
                                 true
                         )
                         .property(
                                 "supplyCount",
                                 "supply_count",
-                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerCodecs.INT_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
                                 true
                         )
                         .property(
                                 "costItem",
                                 "cost_item",
-                                ItemPredicate.CODEC,
+                                CustomersTriggerCodecs.ITEM_PREDICATE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_ITEM_PREDICATE,
                                 true
                         )
                         .property(
                                 "costCount",
                                 "cost_count",
-                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerCodecs.INT_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
                                 true
                         )
                         .property(
                                 "totalSuppliesPurchased",
                                 "total_supplies_purchased",
-                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerCodecs.INT_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
                                 false
                         )
@@ -132,9 +131,9 @@ public final class CustomersTriggerSuppliesPurchased
             return spawnerLocation
                             .map(value -> value.matches(event.level(), event.spawnerPosition()))
                             .orElse(true)
-                    && supplyItem.map(value -> value.test(event.supplyItem())).orElse(true)
+                    && supplyItem.map(value -> value.matches(event.supplyItem())).orElse(true)
                     && supplyCount.map(value -> value.matches(event.supplyItem().getCount())).orElse(true)
-                    && costItem.map(value -> value.test(event.costItem())).orElse(true)
+                    && costItem.map(value -> value.matches(event.costItem())).orElse(true)
                     && costCount.map(value -> value.matches(event.costItem().getCount())).orElse(true);
         }
     }

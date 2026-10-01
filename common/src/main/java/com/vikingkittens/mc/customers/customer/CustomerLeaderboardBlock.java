@@ -2,13 +2,11 @@ package com.vikingkittens.mc.customers.customer;
 
 import org.jetbrains.annotations.Nullable;
 
-import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -32,7 +30,6 @@ public class CustomerLeaderboardBlock extends BaseEntityBlock {
     public static final String NAME = "customer_leaderboard";
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
 
-    private static final MapCodec<CustomerLeaderboardBlock> CODEC = simpleCodec(CustomerLeaderboardBlock::new);
     private static final VoxelShape NORTH_SHAPE = Block.box(2.0D, 0.0D, 0.0D, 14.0D, 16.0D, 2.0D);
     private static final VoxelShape SOUTH_SHAPE = Block.box(2.0D, 0.0D, 14.0D, 14.0D, 16.0D, 16.0D);
     private static final VoxelShape WEST_SHAPE = Block.box(0.0D, 0.0D, 2.0D, 2.0D, 16.0D, 14.0D);
@@ -54,17 +51,12 @@ public class CustomerLeaderboardBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
-    }
-
-    @Override
-    protected RenderShape getRenderShape(BlockState state) {
+    public RenderShape getRenderShape(BlockState state) {
         return RenderShape.MODEL;
     }
 
     @Override
-    protected VoxelShape getShape(
+    public VoxelShape getShape(
             BlockState state,
             net.minecraft.world.level.BlockGetter level,
             BlockPos pos,
@@ -98,24 +90,12 @@ public class CustomerLeaderboardBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(
-            ItemStack stack,
+    public InteractionResult use(
             BlockState state,
             Level level,
             BlockPos pos,
             Player player,
             InteractionHand hand,
-            BlockHitResult hitResult
-    ) {
-        return openLeaderboard(level, pos, player) ? ItemInteractionResult.SUCCESS : ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
-    }
-
-    @Override
-    protected InteractionResult useWithoutItem(
-            BlockState state,
-            Level level,
-            BlockPos pos,
-            Player player,
             BlockHitResult hitResult
     ) {
         return openLeaderboard(level, pos, player) ? InteractionResult.SUCCESS : InteractionResult.PASS;
@@ -134,12 +114,12 @@ public class CustomerLeaderboardBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected BlockState rotate(BlockState state, Rotation rotation) {
+    public BlockState rotate(BlockState state, Rotation rotation) {
         return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
     }
 
     @Override
-    protected BlockState mirror(BlockState state, Mirror mirror) {
+    public BlockState mirror(BlockState state, Mirror mirror) {
         return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 

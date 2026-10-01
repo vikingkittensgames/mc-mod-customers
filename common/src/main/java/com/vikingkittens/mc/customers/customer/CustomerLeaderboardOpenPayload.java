@@ -5,32 +5,28 @@ import java.util.Map;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.common.CustomersNetworkPayload;
 
 public record CustomerLeaderboardOpenPayload(
         BlockPos leaderboardPos,
         Map<CustomerLeaderboardScores.Key, Score> scores
-) implements CustomPacketPayload {
+) implements CustomersNetworkPayload {
     public record Score(float value, boolean levelPassed) {}
 
-    public static final Type<CustomerLeaderboardOpenPayload> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(Customers.MODID, "customer_leaderboard_open")
-    );
-    public static final StreamCodec<FriendlyByteBuf, CustomerLeaderboardOpenPayload> STREAM_CODEC =
-            StreamCodec.of(CustomerLeaderboardOpenPayload::write, CustomerLeaderboardOpenPayload::read);
+    public static final ResourceLocation ID = new ResourceLocation(Customers.MODID, "customer_leaderboard_open");
 
     public CustomerLeaderboardOpenPayload {
         scores = Map.copyOf(scores);
     }
 
-    private static void write(FriendlyByteBuf buffer, CustomerLeaderboardOpenPayload payload) {
-        buffer.writeBlockPos(payload.leaderboardPos());
+    @Override
+    public void write(FriendlyByteBuf buffer) {
+        buffer.writeBlockPos(leaderboardPos());
         buffer.writeMap(
-                payload.scores(),
+                scores(),
                 (target, key) -> {
                     target.writeBlockPos(key.spawnerPosition());
                     target.writeEnum(key.spawnerMode());
@@ -44,7 +40,7 @@ public record CustomerLeaderboardOpenPayload(
         );
     }
 
-    private static CustomerLeaderboardOpenPayload read(FriendlyByteBuf buffer) {
+    public static CustomerLeaderboardOpenPayload read(FriendlyByteBuf buffer) {
         return new CustomerLeaderboardOpenPayload(
                 buffer.readBlockPos(),
                 buffer.readMap(
@@ -61,7 +57,7 @@ public record CustomerLeaderboardOpenPayload(
     }
 
     @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
+    public ResourceLocation id() {
+        return ID;
     }
 }

@@ -107,7 +107,7 @@ class CustomersTriggerSuppliesPurchasedTest {
                         ),
                         JsonParser.parseString(json)
                 )
-                .getOrThrow();
+                .result().orElseThrow();
 
         assertTrue(instance.matches(event(3, 2), 100));
         assertFalse(instance.matches(event(3, 1), 100));

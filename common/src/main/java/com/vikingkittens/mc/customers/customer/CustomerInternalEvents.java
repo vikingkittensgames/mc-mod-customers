@@ -19,6 +19,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 
 import com.vikingkittens.mc.customers.common.events.InternalEvent;
+import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
 
 public final class CustomerInternalEvents {
     private CustomerInternalEvents() {}
@@ -437,7 +438,7 @@ public final class CustomerInternalEvents {
         }
 
         private static boolean sameStack(ItemStack first, ItemStack second) {
-            return first.getCount() == second.getCount() && ItemStack.isSameItemSameComponents(first, second);
+            return first.getCount() == second.getCount() && ItemStackCUtils.isSameItemAndTags(first, second);
         }
     }
 

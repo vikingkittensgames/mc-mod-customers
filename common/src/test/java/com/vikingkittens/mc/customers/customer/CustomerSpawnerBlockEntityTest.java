@@ -14,8 +14,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
-import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -423,9 +421,9 @@ class CustomerSpawnerBlockEntityTest {
 
         assertEquals(1, offers.size());
         assertTrue(
-                offers.get(0).getItemCostA().item().value()
+                offers.get(0).getCostA().getItem()
                                 == paymentItem
-                        || offers.get(0).getItemCostA().item().value()
+                        || offers.get(0).getCostA().getItem()
                                 == maximumItem
         );
     }
@@ -445,8 +443,8 @@ class CustomerSpawnerBlockEntityTest {
                 maximumItem
         ).get(0);
 
-        assertSame(wantedItem, offer.getItemCostA().item().value());
-        assertEquals(1, offer.getItemCostA().count());
+        assertSame(wantedItem, offer.getCostA().getItem());
+        assertEquals(1, offer.getCostA().getCount());
         assertSame(paymentItem, offer.getResult().getItem());
         assertEquals(1, offer.getResult().getCount());
     }
@@ -469,7 +467,7 @@ class CustomerSpawnerBlockEntityTest {
                 maximumItem
         ).get(0);
 
-        assertEquals(3, offer.getItemCostA().count());
+        assertEquals(3, offer.getCostA().getCount());
         assertEquals(1, offer.getResult().getCount());
     }
 
@@ -523,7 +521,7 @@ class CustomerSpawnerBlockEntityTest {
         assertEquals(1, offers.size());
         assertSame(
                 secondItem,
-                offers.get(0).getItemCostA().item().value()
+                offers.get(0).getCostA().getItem()
         );
     }
 
@@ -742,7 +740,7 @@ class CustomerSpawnerBlockEntityTest {
         MerchantOffers offers = new MerchantOffers();
         offers.add(new MerchantOffer(
                 ItemStackCUtils.createItemCost(new ItemStack(Items.BREAD), 1),
-                Optional.empty(),
+                ItemStack.EMPTY,
                 new ItemStack(Items.EMERALD, 3),
                 1,
                 0,
@@ -757,13 +755,13 @@ class CustomerSpawnerBlockEntityTest {
 
         assertEquals(2, offers.size());
         MerchantOffer petOffer = offers.get(1);
-        assertSame(Items.COD, petOffer.getItemCostA().item().value());
-        assertEquals(1, petOffer.getItemCostA().count());
+        assertSame(Items.COD, petOffer.getCostA().getItem());
+        assertEquals(1, petOffer.getCostA().getCount());
         assertSame(Items.DIAMOND, petOffer.getResult().getItem());
         assertEquals(3, petOffer.getResult().getCount());
 
         MerchantOffers defaultPaymentOffers = new MerchantOffers();
-        defaultPaymentOffers.add(offers.getFirst());
+        defaultPaymentOffers.add(offers.get(0));
         assertTrue(CustomerSpawnerBlockEntity.addPetFoodOffer(
                 defaultPaymentOffers,
                 new ItemStack(Items.COD),
@@ -778,7 +776,7 @@ class CustomerSpawnerBlockEntityTest {
         MerchantOffers offers = new MerchantOffers();
         offers.add(new MerchantOffer(
                 ItemStackCUtils.createItemCost(new ItemStack(Items.BREAD), 1),
-                Optional.empty(),
+                ItemStack.EMPTY,
                 Items.EMERALD.getDefaultInstance(),
                 1,
                 0,
@@ -962,14 +960,19 @@ class CustomerSpawnerBlockEntityTest {
         );
     }
 
-    @SuppressWarnings("unchecked")
+    private static int nextTestItem;
+
     private static Item createItem() {
-        Item item = mock(Item.class);
-        Holder.Reference<Item> holder = mock(Holder.Reference.class);
-        when(item.asItem()).thenReturn(item);
-        when(item.components()).thenReturn(DataComponentMap.EMPTY);
-        when(item.builtInRegistryHolder()).thenReturn(holder);
-        when(holder.value()).thenReturn(item);
-        return item;
+        Item[] items = {
+                Items.APPLE,
+                Items.BREAD,
+                Items.CARROT,
+                Items.COOKIE,
+                Items.EGG,
+                Items.POTATO,
+                Items.PUMPKIN_PIE,
+                Items.WHEAT
+        };
+        return items[nextTestItem++ % items.length];
     }
 }

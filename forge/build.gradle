@@ -1,41 +1,26 @@
 plugins {
     id 'customers-loader'
-    id 'net.minecraftforge.gradle' version '[6.0.24,6.2)'
-    id 'idea'
+    id 'dev.architectury.loom'
+    id 'com.github.johnrengelman.shadow'
     id 'com.diffplug.spotless'
 }
 
-minecraft {
-    mappings channel: 'official', version: minecraft_version
-    copyIdeResources = true
-    reobf = true
+def commonProject = project(':common')
+def forgeRunDirectory = "../run-forge-${minecraft_version}"
+def productionRunDirectory = rootProject.file("run-prod-forge-${minecraft_version}")
+def productionJavaLauncher = javaToolchains.launcherFor {
+    languageVersion = JavaLanguageVersion.of(java_version)
+}
 
-    runs {
-        client {
-            workingDirectory rootProject.file("run-forge-${minecraft_version}")
-            ideaModule "${rootProject.name}.${project.name}.main"
-            taskName 'runClient'
-            mods {
-                customers {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        server {
-            workingDirectory rootProject.file("run-forge-${minecraft_version}")
-            ideaModule "${rootProject.name}.${project.name}.main"
-            taskName 'runServer'
-            args '--nogui'
-            mods {
-                customers {
-                    source sourceSets.main
-                }
-            }
-        }
-
+configurations {
+    productionClientMods {
+        canBeConsumed = false
+        canBeResolved = true
     }
 }
+
+sourceSets.test.compileClasspath += sourceSets.main.compileClasspath
+sourceSets.test.runtimeClasspath += sourceSets.main.runtimeClasspath
 
 sourceSets.main.resources {
     exclude('**/*.bbmodel')
@@ -51,7 +36,6 @@ spotless {
                 '',
                 'com.mojang|net.minecraft',
                 'net.minecraftforge',
-                'net.neoforged',
                 'com.vikingkittens',
                 '\\#'
         )
@@ -64,39 +48,78 @@ tasks.named('check') {
     dependsOn tasks.named('spotlessCheck')
 }
 
+loom {
+    silentMojangMappingsLicense()
+
+    forge {
+        mixinConfig 'customers.common.mixins.json'
+    }
+
+    mods {
+        main {
+            sourceSet sourceSets.main
+            sourceSet commonProject.sourceSets.main
+        }
+    }
+
+    runs {
+        client {
+            client()
+            name = 'Forge Client'
+            runDir = forgeRunDirectory
+        }
+
+        server {
+            server()
+            name = 'Forge Server'
+            runDir = forgeRunDirectory
+            programArg '--nogui'
+        }
+    }
+}
+
 dependencies {
-    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-    compileOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    mappings loom.layered {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-${parchment_minecraft_version}:${parchment_mappings_version}@zip")
+    }
+    forge "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+
+    modCompileOnly "dev.architectury:architectury-forge:${architectury_version}"
+    modLocalRuntime "dev.architectury:architectury-forge:${architectury_version}"
+    productionClientMods("dev.architectury:architectury-forge:${architectury_version}") {
+        transitive = false
+    }
+
+    modCompileOnly "dev.ftb.mods:ftb-quests-forge:${ftb_quests_version}"
+    modLocalRuntime "dev.ftb.mods:ftb-quests-forge:${ftb_quests_version}"
+
+    common(project(path: ':common', configuration: 'namedElements')) {
+        transitive = false
+    }
+    shadowBundle(project(path: ':common', configuration: 'namedElements')) {
+        transitive = false
+    }
 
     testImplementation project(':testsupport')
     testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
     testImplementation "org.mockito:mockito-core:5.12.0"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
-
-    implementation('net.sf.jopt-simple:jopt-simple:5.0.4') {
-        version {
-            strictly '5.0.4'
-        }
-    }
-}
-
-sourceSets.each {
-    def outputDirectory = layout.buildDirectory.dir("sourceSets/${it.name}")
-    it.output.resourcesDir = outputDirectory
-    it.java.destinationDirectory = outputDirectory
 }
 
 def generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
     def replaceProperties = [
-            minecraft_version         : minecraft_version,
-            minecraft_version_range   : minecraft_version_range,
-            forge_version             : forge_version,
-            forge_loader_version_range: forge_loader_version_range,
-            mca_version_range         : mca_version_range,
-            mod_id                    : mod_id,
-            mod_name                  : mod_name,
-            mod_license               : mod_license,
-            mod_version               : mod_version
+            architectury_version_range : architectury_version_range,
+            forge_loader_version_range : forge_loader_version_range,
+            forge_version              : forge_version,
+            ftb_quests_version_range   : ftb_quests_version_range,
+            minecraft_version          : minecraft_version,
+            minecraft_version_range    : minecraft_version_range,
+            mod_id                     : mod_id,
+            mod_license                : mod_license,
+            mod_name                   : mod_name,
+            mod_version                : mod_version
     ]
     inputs.properties replaceProperties
     expand replaceProperties
@@ -106,6 +129,41 @@ def generateModMetadata = tasks.register('generateModMetadata', ProcessResources
 
 sourceSets.main.resources.srcDir generateModMetadata
 
-tasks.named('jar').configure {
-    finalizedBy('reobfJar')
+tasks.named('shadowJar', Jar) {
+    configurations = [project.configurations.shadowBundle]
+    archiveClassifier = 'dev-shadow'
+}
+
+tasks.named('remapJar') {
+    dependsOn(tasks.named('shadowJar'))
+    inputFile = tasks.named('shadowJar').flatMap { it.archiveFile }
+}
+
+tasks.register('prepareProdClient', Copy) {
+    group = 'customers runs'
+    description = 'Builds and copies production Forge mods into the production run directory.'
+    dependsOn(tasks.named('build'))
+    into(new File(productionRunDirectory, 'mods'))
+    from(tasks.named('remapJar').flatMap { it.archiveFile }) {
+        rename { 'customers-under-test.jar' }
+    }
+    from(configurations.productionClientMods) {
+        rename(/architectury-forge-.+\.jar/, 'architectury-api-under-test.jar')
+    }
+}
+
+tasks.register('runProdClient', Exec) {
+    group = 'customers runs'
+    description = 'Runs the packaged Customers Forge mod in a production client.'
+    dependsOn(rootProject.tasks.named('installPortableMc'), tasks.named('prepareProdClient'))
+
+    doFirst {
+        commandLine(
+                rootProject.productionClientLauncher.get(),
+                '--main-dir', rootProject.productionClientMainDirectory.asFile.absolutePath,
+                'start', "forge::${minecraft_version}-${forge_version}",
+                '--mc-dir', productionRunDirectory.absolutePath,
+                '--username', providers.gradleProperty('production_username').getOrElse('Dev'),
+                '--jvm', productionJavaLauncher.get().executablePath.asFile.absolutePath)
+    }
 }

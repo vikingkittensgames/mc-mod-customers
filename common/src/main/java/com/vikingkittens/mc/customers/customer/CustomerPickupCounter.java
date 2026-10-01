@@ -74,7 +74,7 @@ public final class CustomerPickupCounter {
         if (source instanceof RotatedPillarBlock) {
             source = Blocks.OAK_PLANKS;
         }
-        return BlockBehaviour.Properties.ofFullCopy(source)
+        return BlockBehaviour.Properties.copy(source)
                 .noOcclusion();
     }
 

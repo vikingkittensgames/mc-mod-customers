@@ -17,6 +17,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
+import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -41,7 +43,7 @@ class CustomerInternalEventsTest {
                 CustomerSpawnerMode.LUNCH,
                 UUID.randomUUID(),
                 UUID.randomUUID(),
-                ResourceLocation.parse("customers:customer"),
+                ResourceLocationCUtils.parse("customers:customer"),
                 servedItem,
                 costItem,
                 false
@@ -62,7 +64,7 @@ class CustomerInternalEventsTest {
         ServerLevel level = mock(ServerLevel.class);
         UUID playerId = UUID.randomUUID();
         UUID customerId = UUID.randomUUID();
-        ResourceLocation profession = ResourceLocation.parse("customers:customer");
+        ResourceLocation profession = ResourceLocationCUtils.parse("customers:customer");
         ItemStack servedItem = new ItemStack(Items.APPLE, 3);
         ItemStack costItem = new ItemStack(Items.EMERALD, 2);
         CustomerInternalEvents.CustomerServed event = new CustomerInternalEvents.CustomerServed(
@@ -83,9 +85,9 @@ class CustomerInternalEventsTest {
         assertEquals(playerId, event.playerId());
         assertEquals(customerId, event.customerId());
         assertEquals(profession, event.customerProfession());
-        assertTrue(ItemStack.isSameItemSameComponents(servedItem, event.servedItem()));
+        assertTrue(ItemStackCUtils.isSameItemAndTags(servedItem, event.servedItem()));
         assertEquals(servedItem.getCount(), event.servedItem().getCount());
-        assertTrue(ItemStack.isSameItemSameComponents(costItem, event.costItem()));
+        assertTrue(ItemStackCUtils.isSameItemAndTags(costItem, event.costItem()));
         assertEquals(costItem.getCount(), event.costItem().getCount());
         assertFalse(event.isPetItem());
     }
@@ -176,11 +178,11 @@ class CustomerInternalEventsTest {
         assertEquals(1, event.numSellItems());
         assertEquals(1, event.numCostItems());
         assertEquals(2, event.numAppearances());
-        assertEquals(3, event.rowSellItems().getFirst().getFirst().getCount());
-        assertEquals(2, event.rowCostItems().getFirst().getCount());
+        assertEquals(3, event.rowSellItems().get(0).get(0).getCount());
+        assertEquals(2, event.rowCostItems().get(0).getCount());
         assertTrue(event.hasSameConfiguration(equivalent));
 
-        equivalent.rowSellItems().getFirst().getFirst().setCount(64);
+        equivalent.rowSellItems().get(0).get(0).setCount(64);
         assertTrue(event.hasSameConfiguration(equivalent));
     }
 

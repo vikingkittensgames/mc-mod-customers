@@ -1,0 +1,24 @@
+{
+  "parent": "customers:server/shift/root",
+  "criteria": {
+    "shift_stars1": {
+      "trigger": "customers:shift_finished",
+      "conditions": {
+        "percentage": { "min": 0.15 }
+      }
+    }
+  },
+  "display": {
+    "description": { "translate": "advancements.customers.server.shift.shift_stars1.description" },
+    "icon": {
+      "item": "customers:advancement_icon",
+      "nbt": "{CustomModelData:31}"
+    },
+    "title": { "translate": "advancements.customers.server.shift.shift_stars1.title" }
+  },
+  "requirements": [
+    [
+      "shift_stars1"
+    ]
+  ]
+}

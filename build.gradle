@@ -105,22 +105,22 @@ ext.productionClientLauncher = providers.gradleProperty('portablemc_executable')
         .orElse(portableMcExecutable.asFile.absolutePath)
 ext.productionClientMainDirectory = layout.projectDirectory.dir('.gradle/portablemc-runtime')
 
-tasks.register('runClientNeoForge') {
+tasks.register('runClientForge') {
     group = 'customers runs'
-    description = 'Runs the Customers NeoForge client.'
-    dependsOn(':neoforge:runClient')
+    description = 'Runs the Customers Forge client.'
+    dependsOn(':forge:runClient')
 }
 
-tasks.register('runProdClientNeoForge') {
+tasks.register('runProdClientForge') {
     group = 'customers runs'
-    description = 'Builds and runs the Customers NeoForge production client.'
-    dependsOn(':neoforge:runProdClient')
+    description = 'Builds and runs the Customers Forge production client.'
+    dependsOn(':forge:runProdClient')
 }
 
-tasks.register('runServerNeoForge') {
+tasks.register('runServerForge') {
     group = 'customers runs'
-    description = 'Runs the Customers NeoForge server.'
-    dependsOn(':neoforge:runServer')
+    description = 'Runs the Customers Forge server.'
+    dependsOn(':forge:runServer')
 }
 
 tasks.register('runClientFabric') {
@@ -147,20 +147,20 @@ tasks.register('buildFabric') {
     dependsOn(':fabric:build')
 }
 
-tasks.register('buildNeoForge') {
+tasks.register('buildForge') {
     group = 'build'
-    description = 'Builds the Customers NeoForge JAR.'
-    dependsOn(':neoforge:build')
+    description = 'Builds the Customers Forge JAR.'
+    dependsOn(':forge:build')
 }
 
 tasks.register('buildAllLoaders') {
     group = 'build'
-    description = 'Builds the Customers Fabric and NeoForge JARs.'
-    dependsOn('buildFabric', 'buildNeoForge')
+    description = 'Builds the Customers Fabric and Forge JARs.'
+    dependsOn('buildFabric', 'buildForge')
 }
 
 tasks.register('testAllLoaders') {
     group = 'verification'
-    description = 'Runs common, Fabric, and NeoForge tests.'
-    dependsOn(':common:test', ':fabric:test', ':neoforge:test')
+    description = 'Runs common, Fabric, and Forge tests.'
+    dependsOn(':common:test', ':fabric:test', ':forge:test')
 }

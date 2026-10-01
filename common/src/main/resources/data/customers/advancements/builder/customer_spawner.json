@@ -1,0 +1,27 @@
+{
+  "parent": "customers:builder/root",
+  "criteria": {
+    "crafted_customer_spawner": {
+      "conditions": {
+        "recipe_id": "customers:customer_spawner_block"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.customers.builder.customer.description"
+    },
+    "icon": {
+      "item": "customers:customer_spawner_block"
+    },
+    "title": {
+      "translate": "advancements.customers.builder.customer.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_customer_spawner"
+    ]
+  ]
+}

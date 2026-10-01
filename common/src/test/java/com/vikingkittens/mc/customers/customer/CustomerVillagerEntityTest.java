@@ -18,6 +18,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
 import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
 
@@ -170,7 +171,7 @@ class CustomerVillagerEntityTest {
         );
         DataReader input = mock(DataReader.class);
         ResourceLocation appearance =
-                ResourceLocation.parse("customers:monsters");
+                ResourceLocationCUtils.parse("customers:monsters");
         doNothing().when(customer).setAppearanceId(appearance);
         doNothing().when(customer).setVariationSeed(0.75F);
         doNothing().when(customer).setSpawnerMode(CustomerSpawnerMode.NIGHT);

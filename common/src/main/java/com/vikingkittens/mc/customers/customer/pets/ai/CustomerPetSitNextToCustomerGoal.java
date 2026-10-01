@@ -15,6 +15,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.phys.Vec3;
 
 import com.vikingkittens.mc.customers.common.PositionUtils;
 import com.vikingkittens.mc.customers.common.ai.MobMoveToGoal;
@@ -66,7 +67,7 @@ public final class CustomerPetSitNextToCustomerGoal extends MobMoveToGoal {
     @Override
     protected void onDone() {
         if (targetPos != null && findBuyingCustomer()) {
-            EntityCUtils.snapTo(pet, targetPos.getBottomCenter(), pet.getYRot(), pet.getXRot());
+            EntityCUtils.snapTo(pet, Vec3.atBottomCenterOf(targetPos), pet.getYRot(), pet.getXRot());
             pet.getLookControl().setLookAt(customer, 10.0F, pet.getMaxHeadXRot());
             if (pet instanceof TamableAnimal tamablePet) {
                 tamablePet.setOrderedToSit(true);
@@ -102,7 +103,7 @@ public final class CustomerPetSitNextToCustomerGoal extends MobMoveToGoal {
             return null;
         }
 
-        int closestY = candidates.getFirst().position().getY();
+        int closestY = candidates.get(0).position().getY();
         Direction customerFacing = customer.getDirection();
         return candidates.stream()
                 .filter(candidate -> candidate.position().getY() == closestY)

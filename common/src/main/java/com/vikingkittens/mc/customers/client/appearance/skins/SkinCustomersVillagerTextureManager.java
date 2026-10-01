@@ -15,6 +15,7 @@ import net.minecraft.server.packs.resources.ResourceManager;
 
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.appearance.skins.SkinCustomersVillagerDefinition;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 
 final class SkinCustomersVillagerTextureManager {
     private static final Set<ResourceLocation> REGISTERED = new HashSet<>();
@@ -25,7 +26,7 @@ final class SkinCustomersVillagerTextureManager {
         ResourceLocation source = skin.getTextureLocation();
         if (!skin.legacy()) return source;
 
-        ResourceLocation generated = ResourceLocation.fromNamespaceAndPath(
+        ResourceLocation generated = ResourceLocationCUtils.create(
                 Customers.MODID,
                 "generated/legacy_skins/" + source.getNamespace() + "/" + source.getPath()
         );

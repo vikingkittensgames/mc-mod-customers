@@ -8,6 +8,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -39,7 +40,7 @@ class GuiGraphicsCUtilsTest {
         );
 
         verify(graphics).blit(
-                ResourceLocation.fromNamespaceAndPath(
+                ResourceLocationCUtils.create(
                         texture.namespace(),
                         texture.path()
                 ),

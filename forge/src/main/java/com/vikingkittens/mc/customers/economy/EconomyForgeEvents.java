@@ -22,7 +22,9 @@ public final class EconomyForgeEvents {
         Economy.serverStarted(event.getServer());
     }
 
-    private static void serverTick(TickEvent.ServerTickEvent.Post event) {
-        Economy.serverTick(event.getServer());
+    private static void serverTick(TickEvent.ServerTickEvent event) {
+        if (event.phase == TickEvent.Phase.END) {
+            Economy.serverTick(event.getServer());
+        }
     }
 }

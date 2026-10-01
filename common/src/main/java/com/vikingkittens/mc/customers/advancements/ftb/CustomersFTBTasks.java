@@ -12,9 +12,8 @@ import dev.ftb.mods.ftbquests.quest.task.Task;
 import dev.ftb.mods.ftbquests.quest.task.TaskType;
 import dev.ftb.mods.ftbquests.quest.task.TaskTypes;
 
-import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
@@ -28,6 +27,7 @@ import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerShif
 import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerSupplierSpawnerChanged;
 import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerSuppliesPurchased;
 import com.vikingkittens.mc.customers.common.events.InternalEvent;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
 import com.vikingkittens.mc.customers.supplier.SupplierInternalEvents;
 
@@ -37,7 +37,7 @@ public final class CustomersFTBTasks {
     private static final int REQUIRED_EVENTS_CONFIG_ORDER = 100;
 
     public static final TaskType CUSTOMERS_TASK = TaskTypes.register(
-            ResourceLocation.fromNamespaceAndPath(Customers.MODID, CUSTOMERS_TASK_NAME),
+            ResourceLocationCUtils.create(Customers.MODID, CUSTOMERS_TASK_NAME),
             CustomersTask::new,
             () -> Icon.getIcon("minecraft:item/emerald")
     ).setDisplayName(Component.translatable(CUSTOMERS_TASK_NAME_KEY));
@@ -265,56 +265,48 @@ public final class CustomersFTBTasks {
         }
 
         @Override
-        public void writeData(CompoundTag tag, HolderLookup.Provider provider) {
-            super.writeData(tag, provider);
+        public void writeData(CompoundTag tag) {
+            super.writeData(tag);
             tag.putString("customers_task", taskKind.serializedName());
             tag.putInt("count", requiredEvents);
             switch (taskKind) {
                 case ITEM_SERVED -> CustomersFTBTriggerSchema.writeData(
                         tag,
-                        provider,
                         CustomersTriggerItemServed.SCHEMA,
                         itemServedTrigger
                 );
                 case CUSTOMER_SERVED -> CustomersFTBTriggerSchema.writeData(
                         tag,
-                        provider,
                         CustomersTriggerCustomerServed.SCHEMA,
                         customerServedTrigger
                 );
                 case SHIFT_FINISHED -> CustomersFTBTriggerSchema.writeData(
                         tag,
-                        provider,
                         CustomersTriggerShiftFinished.SCHEMA,
                         shiftFinishedTrigger
                 );
                 case LEADERBOARD_CHANGED -> CustomersFTBTriggerSchema.writeData(
                         tag,
-                        provider,
                         CustomersTriggerLeaderboardChanged.SCHEMA,
                         leaderboardChangedTrigger
                 );
                 case CUSTOMER_SPAWNER_CHANGED -> CustomersFTBTriggerSchema.writeData(
                         tag,
-                        provider,
                         CustomersTriggerCustomerSpawnerChanged.SCHEMA,
                         customerSpawnerChangedTrigger
                 );
                 case SUPPLIER_SPAWNER_CHANGED -> CustomersFTBTriggerSchema.writeData(
                         tag,
-                        provider,
                         CustomersTriggerSupplierSpawnerChanged.SCHEMA,
                         supplierSpawnerChangedTrigger
                 );
                 case SUPPLIES_PURCHASED -> CustomersFTBTriggerSchema.writeData(
                         tag,
-                        provider,
                         CustomersTriggerSuppliesPurchased.SCHEMA,
                         suppliesPurchasedTrigger
                 );
                 case COUNTER_PLACED -> CustomersFTBTriggerSchema.writeData(
                         tag,
-                        provider,
                         CustomersTriggerCounterPlaced.SCHEMA,
                         counterPlacedTrigger
                 );
@@ -322,56 +314,48 @@ public final class CustomersFTBTasks {
         }
 
         @Override
-        public void readData(CompoundTag tag, HolderLookup.Provider provider) {
-            super.readData(tag, provider);
+        public void readData(CompoundTag tag) {
+            super.readData(tag);
             taskKind = CustomersTaskKind.NAME_MAP.get(tag.getString("customers_task"));
             requiredEvents = Math.max(1, tag.getInt("count"));
             switch (taskKind) {
                 case ITEM_SERVED -> itemServedTrigger = CustomersFTBTriggerSchema.readData(
                         tag,
-                        provider,
                         CustomersTriggerItemServed.SCHEMA,
                         CustomersTriggerItemServed.Instance.ANY
                 );
                 case CUSTOMER_SERVED -> customerServedTrigger = CustomersFTBTriggerSchema.readData(
                         tag,
-                        provider,
                         CustomersTriggerCustomerServed.SCHEMA,
                         CustomersTriggerCustomerServed.Instance.ANY
                 );
                 case SHIFT_FINISHED -> shiftFinishedTrigger = CustomersFTBTriggerSchema.readData(
                         tag,
-                        provider,
                         CustomersTriggerShiftFinished.SCHEMA,
                         CustomersTriggerShiftFinished.Instance.ANY
                 );
                 case LEADERBOARD_CHANGED -> leaderboardChangedTrigger = CustomersFTBTriggerSchema.readData(
                         tag,
-                        provider,
                         CustomersTriggerLeaderboardChanged.SCHEMA,
                         CustomersTriggerLeaderboardChanged.Instance.ANY
                 );
                 case CUSTOMER_SPAWNER_CHANGED -> customerSpawnerChangedTrigger = CustomersFTBTriggerSchema.readData(
                         tag,
-                        provider,
                         CustomersTriggerCustomerSpawnerChanged.SCHEMA,
                         CustomersTriggerCustomerSpawnerChanged.Instance.ANY
                 );
                 case SUPPLIER_SPAWNER_CHANGED -> supplierSpawnerChangedTrigger = CustomersFTBTriggerSchema.readData(
                         tag,
-                        provider,
                         CustomersTriggerSupplierSpawnerChanged.SCHEMA,
                         CustomersTriggerSupplierSpawnerChanged.Instance.ANY
                 );
                 case SUPPLIES_PURCHASED -> suppliesPurchasedTrigger = CustomersFTBTriggerSchema.readData(
                         tag,
-                        provider,
                         CustomersTriggerSuppliesPurchased.SCHEMA,
                         CustomersTriggerSuppliesPurchased.Instance.ANY
                 );
                 case COUNTER_PLACED -> counterPlacedTrigger = CustomersFTBTriggerSchema.readData(
                         tag,
-                        provider,
                         CustomersTriggerCounterPlaced.SCHEMA,
                         CustomersTriggerCounterPlaced.Instance.ANY
                 );
@@ -379,7 +363,7 @@ public final class CustomersFTBTasks {
         }
 
         @Override
-        public void writeNetData(RegistryFriendlyByteBuf buffer) {
+        public void writeNetData(FriendlyByteBuf buffer) {
             super.writeNetData(buffer);
             CustomersTaskKind.NAME_MAP.write(buffer, taskKind);
             buffer.writeVarInt(requiredEvents);
@@ -428,7 +412,7 @@ public final class CustomersFTBTasks {
         }
 
         @Override
-        public void readNetData(RegistryFriendlyByteBuf buffer) {
+        public void readNetData(FriendlyByteBuf buffer) {
             super.readNetData(buffer);
             taskKind = CustomersTaskKind.NAME_MAP.read(buffer);
             requiredEvents = Math.max(1, buffer.readVarInt());

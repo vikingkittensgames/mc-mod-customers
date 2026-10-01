@@ -10,12 +10,17 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import com.google.gson.JsonObject;
+
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
+import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.MapLike;
 import com.mojang.serialization.RecordBuilder;
+import net.minecraft.advancements.critereon.ContextAwarePredicate;
+import net.minecraft.advancements.critereon.SerializationContext;
 import net.minecraft.network.chat.Component;
 
 /**
@@ -69,6 +74,42 @@ public final class CustomersTriggerSchema<T> {
         }
         values[property.componentIndex()] = value;
         return construct(values, property.serializedName());
+    }
+
+    T decodeAdvancement(JsonObject json, ContextAwarePredicate player) {
+        T decoded = codec.parse(JsonOps.INSTANCE, json).getOrThrow(false, message -> {
+            throw new IllegalArgumentException(message);
+        });
+        Property<T> playerProperty = property("player")
+                .orElseThrow(() -> new IllegalStateException("Trigger schema is missing the player property"));
+        Optional<ContextAwarePredicate> playerValue = json.has("player") && !json.get("player").isJsonNull()
+                ? Optional.of(player)
+                : Optional.empty();
+        return with(decoded, playerProperty, playerValue);
+    }
+
+    ContextAwarePredicate playerPredicate(T instance) {
+        Property<T> playerProperty = property("player")
+                .orElseThrow(() -> new IllegalStateException("Trigger schema is missing the player property"));
+        @SuppressWarnings("unchecked")
+        Optional<ContextAwarePredicate> player = (Optional<ContextAwarePredicate>) value(instance, playerProperty);
+        return player.orElse(ContextAwarePredicate.ANY);
+    }
+
+    JsonObject serializeAdvancement(T instance, SerializationContext context) {
+        JsonObject json = codec.encodeStart(JsonOps.INSTANCE, instance).getOrThrow(false, message -> {
+            throw new IllegalArgumentException(message);
+        }).getAsJsonObject();
+        Property<T> playerProperty = property("player")
+                .orElseThrow(() -> new IllegalStateException("Trigger schema is missing the player property"));
+        @SuppressWarnings("unchecked")
+        Optional<ContextAwarePredicate> player = (Optional<ContextAwarePredicate>) value(instance, playerProperty);
+        if (player.isPresent()) {
+            json.add("player", player.orElseThrow().toJson(context));
+        } else {
+            json.remove("player");
+        }
+        return json;
     }
 
     private Codec<T> createCodec() {

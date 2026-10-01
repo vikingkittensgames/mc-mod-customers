@@ -7,7 +7,6 @@ import com.mojang.serialization.Codec;
 import net.minecraft.advancements.critereon.ContextAwarePredicate;
 import net.minecraft.advancements.critereon.ItemPredicate;
 import net.minecraft.advancements.critereon.MinMaxBounds;
-import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringRepresentable;
@@ -16,13 +15,13 @@ import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
 public final class CustomersTriggerCustomerServed
-        extends SimpleCriterionTrigger<CustomersTriggerCustomerServed.Instance> {
+        extends CustomersCriterionTrigger<CustomersTriggerCustomerServed.Instance> {
     public static final CustomersTriggerSchema<Instance> SCHEMA = Instance.SCHEMA;
 
-    @Override
-    public Codec<Instance> codec() {
-        return Instance.CODEC;
+    public CustomersTriggerCustomerServed() {
+        super("customer_served", SCHEMA);
     }
+
 
     public void trigger(
             ServerPlayer player,
@@ -32,7 +31,7 @@ public final class CustomersTriggerCustomerServed
             int totalCustomersNormalServed,
             int totalCustomersImpatientServed
     ) {
-        trigger(player, instance -> instance.matches(
+        triggerValue(player, instance -> instance.matches(
                 event,
                 totalCustomersServed,
                 totalCustomersCasualServed,
@@ -55,7 +54,7 @@ public final class CustomersTriggerCustomerServed
             Optional<MinMaxBounds.Ints> totalCustomersCasualServed,
             Optional<MinMaxBounds.Ints> totalCustomersNormalServed,
             Optional<MinMaxBounds.Ints> totalCustomersImpatientServed
-    ) implements SimpleInstance {
+    ) {
         public Instance(
                 Optional<ContextAwarePredicate> player,
                 Optional<CustomerSpawnerMode> spawnerMode,
@@ -107,7 +106,7 @@ public final class CustomersTriggerCustomerServed
                         .property(
                                 "player",
                                 "player",
-                                ContextAwarePredicate.CODEC,
+                                CustomersTriggerCodecs.CONTEXT_AWARE_PREDICATE,
                                 CustomersTriggerSchema.Editor.HIDDEN,
                                 false
                         )
@@ -136,28 +135,28 @@ public final class CustomersTriggerCustomerServed
                         .property(
                                 "servedItem",
                                 "served_item",
-                                ItemPredicate.CODEC,
+                                CustomersTriggerCodecs.ITEM_PREDICATE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_ITEM_PREDICATE,
                                 true
                         )
                         .property(
                                 "servedCount",
                                 "served_count",
-                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerCodecs.INT_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
                                 true
                         )
                         .property(
                                 "costItem",
                                 "cost_item",
-                                ItemPredicate.CODEC,
+                                CustomersTriggerCodecs.ITEM_PREDICATE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_ITEM_PREDICATE,
                                 true
                         )
                         .property(
                                 "costCount",
                                 "cost_count",
-                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerCodecs.INT_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
                                 true
                         )
@@ -171,28 +170,28 @@ public final class CustomersTriggerCustomerServed
                         .property(
                                 "totalCustomersServed",
                                 "total_customers_served",
-                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerCodecs.INT_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
                                 false
                         )
                         .property(
                                 "totalCustomersCasualServed",
                                 "total_casual_customers_served",
-                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerCodecs.INT_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
                                 false
                         )
                         .property(
                                 "totalCustomersNormalServed",
                                 "total_normal_customers_served",
-                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerCodecs.INT_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
                                 false
                         )
                         .property(
                                 "totalCustomersImpatientServed",
                                 "total_impatient_customers_served",
-                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerCodecs.INT_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
                                 false
                         )
@@ -226,9 +225,9 @@ public final class CustomersTriggerCustomerServed
                             .orElse(true)
                     && spawnerMode.map(value -> value == event.spawnerMode()).orElse(true)
                     && customerProfession.map(value -> value.equals(event.customerProfession())).orElse(true)
-                    && servedItem.map(value -> value.test(event.servedItem())).orElse(true)
+                    && servedItem.map(value -> value.matches(event.servedItem())).orElse(true)
                     && servedCount.map(value -> value.matches(event.servedItem().getCount())).orElse(true)
-                    && costItem.map(value -> value.test(event.costItem())).orElse(true)
+                    && costItem.map(value -> value.matches(event.costItem())).orElse(true)
                     && costCount.map(value -> value.matches(event.costItem().getCount())).orElse(true)
                     && isPetItem.map(value -> value == event.isPetItem()).orElse(true);
         }

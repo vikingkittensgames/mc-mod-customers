@@ -11,11 +11,12 @@ import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.appearance.CustomersVillager;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearance;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerType;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 
 public final class MonsterCustomersVillagerAppearance
         implements CustomersVillagerAppearance {
     public static final ResourceLocation ID =
-            ResourceLocation.fromNamespaceAndPath(
+            ResourceLocationCUtils.create(
                     Customers.MODID,
                     "monsters"
             );

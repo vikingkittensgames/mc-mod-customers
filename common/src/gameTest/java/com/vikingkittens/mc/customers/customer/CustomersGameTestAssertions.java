@@ -6,7 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -44,12 +44,12 @@ public final class CustomersGameTestAssertions {
     }
 
     public static void assertTradeRemainders(GameTestHelper helper) {
-        ItemStack water = PotionContents.createItemStack(Items.POTION, Potions.WATER);
+        ItemStack water = PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.WATER);
         assertItem(helper, Items.GLASS_BOTTLE, CustomerVillagerEntity.getTradeRemainderStack(water));
         assertItem(helper, Items.BUCKET, CustomerVillagerEntity.getTradeRemainderStack(new ItemStack(Items.MILK_BUCKET)));
         ItemStack bowls = CustomerVillagerEntity.getTradeRemainderStack(new ItemStack(Items.MUSHROOM_STEW, 3));
         assertItem(helper, Items.BOWL, bowls);
-        helper.assertValueEqual(3, bowls.getCount(), "mushroom stew remainder count");
+        helper.assertTrue(bowls.getCount() == 3, "mushroom stew remainder count");
     }
 
     public static void assertCustomersCanSit(GameTestHelper helper) {
@@ -76,18 +76,18 @@ public final class CustomersGameTestAssertions {
                 startedSitting,
                 "Customer did not mount " + seatBlock
         );
-        helper.assertValueEqual(
-                CustomerSeat.ENTITY_TYPE.get(),
-                customer.getVehicle().getType(),
+        helper.assertTrue(
+                customer.getVehicle() != null
+                        && customer.getVehicle().getType() == CustomerSeat.ENTITY_TYPE.get(),
                 "customer seat vehicle"
         );
     }
 
     private static void assertId(GameTestHelper helper, String expected, ResourceLocation actual) {
-        helper.assertValueEqual(ResourceLocation.parse(expected), actual, expected);
+        helper.assertTrue(new ResourceLocation(expected).equals(actual), expected);
     }
 
     private static void assertItem(GameTestHelper helper, Item expected, ItemStack actual) {
-        helper.assertValueEqual(expected, actual.getItem(), expected.toString());
+        helper.assertTrue(expected == actual.getItem(), expected.toString());
     }
 }

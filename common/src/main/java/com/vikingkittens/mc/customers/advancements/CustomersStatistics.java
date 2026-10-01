@@ -7,6 +7,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 
 public final class CustomersStatistics {
     private static final DeferredRegister<ResourceLocation> STATISTICS =
@@ -36,6 +37,6 @@ public final class CustomersStatistics {
     }
 
     private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Customers.MODID, path);
+        return ResourceLocationCUtils.create(Customers.MODID, path);
     }
 }

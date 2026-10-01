@@ -16,6 +16,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
+import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -97,7 +98,7 @@ class PersistenceCUtilsTest {
                         .getItemStacks("stacks");
 
         assertEquals(1, restored.size());
-        assertTrue(ItemStack.isSameItemSameComponents(
+        assertTrue(ItemStackCUtils.isSameItemAndTags(
                 bread,
                 restored.get(0)
         ));
@@ -116,8 +117,8 @@ class PersistenceCUtilsTest {
                 .getItemStacks("stacks");
 
         assertEquals(3, restored.size());
-        assertTrue(ItemStack.isSameItemSameComponents(bread, restored.get(0)));
+        assertTrue(ItemStackCUtils.isSameItemAndTags(bread, restored.get(0)));
         assertTrue(restored.get(1).isEmpty());
-        assertTrue(ItemStack.isSameItemSameComponents(carrot, restored.get(2)));
+        assertTrue(ItemStackCUtils.isSameItemAndTags(carrot, restored.get(2)));
     }
 }

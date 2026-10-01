@@ -26,8 +26,8 @@ class CustomerLeaderboardOpenPayloadTest {
         );
         FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
 
-        CustomerLeaderboardOpenPayload.STREAM_CODEC.encode(buffer, original);
+        original.write(buffer);
 
-        assertEquals(original, CustomerLeaderboardOpenPayload.STREAM_CODEC.decode(buffer));
+        assertEquals(original, CustomerLeaderboardOpenPayload.read(buffer));
     }
 }

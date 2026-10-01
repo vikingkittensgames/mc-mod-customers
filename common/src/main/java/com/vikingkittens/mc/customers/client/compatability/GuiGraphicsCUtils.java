@@ -5,6 +5,8 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
+
 /**
  * Provides version-compatible GUI texture and transform operations.
  */
@@ -86,7 +88,7 @@ public final class GuiGraphicsCUtils {
     }
 
     private static ResourceLocation toResourceLocation(TextureC texture) {
-        return ResourceLocation.fromNamespaceAndPath(
+        return ResourceLocationCUtils.create(
                 texture.namespace(),
                 texture.path()
         );

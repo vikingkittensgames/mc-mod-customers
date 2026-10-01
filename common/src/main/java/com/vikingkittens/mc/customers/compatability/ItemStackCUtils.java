@@ -2,10 +2,8 @@ package com.vikingkittens.mc.customers.compatability;
 
 import dev.architectury.hooks.item.ItemStackHooks;
 
-import net.minecraft.core.component.DataComponentPredicate;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.trading.ItemCost;
 
 /**
  * Provides version-compatible item stack lifecycle operations.
@@ -25,11 +23,12 @@ public final class ItemStackCUtils {
     }
 
     public static boolean isSameItemAndTags(ItemStack first, ItemStack second) {
-        return ItemStack.isSameItemSameComponents(first, second);
+        return ItemStack.isSameItemSameTags(first, second);
     }
 
-    public static boolean matchesCost(ItemCost cost, ItemStack stack) {
-        return cost.test(stack);
+    public static boolean matchesCost(ItemStack cost, ItemStack stack) {
+        return !cost.isEmpty()
+                && isSameItemAndTags(cost, stack);
     }
     /**
      * Creates an offer cost retaining the supplied stack's data components.
@@ -38,11 +37,9 @@ public final class ItemStackCUtils {
      * @param count required item count
      * @return component-aware offer cost
      */
-    public static ItemCost createItemCost(ItemStack stack, int count) {
-        return new ItemCost(
-                stack.getItem().builtInRegistryHolder(),
-                count,
-                DataComponentPredicate.allOf(stack.getComponents())
-        );
+    public static ItemStack createItemCost(ItemStack stack, int count) {
+        ItemStack cost = stack.copy();
+        cost.setCount(count);
+        return cost;
     }
 }

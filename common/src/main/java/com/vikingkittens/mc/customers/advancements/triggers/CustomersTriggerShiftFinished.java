@@ -6,7 +6,6 @@ import java.util.Optional;
 import com.mojang.serialization.Codec;
 import net.minecraft.advancements.critereon.ContextAwarePredicate;
 import net.minecraft.advancements.critereon.MinMaxBounds;
-import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringRepresentable;
 
@@ -14,20 +13,20 @@ import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
 public final class CustomersTriggerShiftFinished
-        extends SimpleCriterionTrigger<CustomersTriggerShiftFinished.Instance> {
+        extends CustomersCriterionTrigger<CustomersTriggerShiftFinished.Instance> {
     public static final CustomersTriggerSchema<Instance> SCHEMA = Instance.SCHEMA;
 
-    @Override
-    public Codec<Instance> codec() {
-        return Instance.CODEC;
+    public CustomersTriggerShiftFinished() {
+        super("shift_finished", SCHEMA);
     }
+
 
     public void trigger(
             ServerPlayer player,
             CustomerInternalEvents.ShiftFinished event,
             int totalShiftsFinished
     ) {
-        trigger(player, instance -> instance.matches(event, totalShiftsFinished));
+        triggerValue(player, instance -> instance.matches(event, totalShiftsFinished));
     }
 
     public record Instance(
@@ -44,7 +43,7 @@ public final class CustomersTriggerShiftFinished
             Optional<MinMaxBounds.Ints> numCrafters,
             Optional<MinMaxBounds.Ints> numServers,
             Optional<MinMaxBounds.Ints> totalShiftsFinished
-    ) implements SimpleInstance {
+    ) {
         public Instance(
                 Optional<ContextAwarePredicate> player,
                 Optional<CustomerSpawnerMode> spawnerMode,
@@ -96,7 +95,7 @@ public final class CustomersTriggerShiftFinished
                         .property(
                                 "player",
                                 "player",
-                                ContextAwarePredicate.CODEC,
+                                CustomersTriggerCodecs.CONTEXT_AWARE_PREDICATE,
                                 CustomersTriggerSchema.Editor.HIDDEN,
                                 false
                         )
@@ -118,70 +117,70 @@ public final class CustomersTriggerShiftFinished
                         .property(
                                 "activeLevel",
                                 "level",
-                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerCodecs.INT_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
                                 true
                         )
                         .property(
                                 "percentage",
                                 "percentage",
-                                MinMaxBounds.Doubles.CODEC,
+                                CustomersTriggerCodecs.DOUBLE_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_DOUBLE_RANGE,
                                 true
                         )
                         .property(
                                 "totalCustomers",
                                 "total_customers",
-                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerCodecs.INT_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
                                 true
                         )
                         .property(
                                 "numCustomersServed",
                                 "num_customers_served",
-                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerCodecs.INT_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
                                 true
                         )
                         .property(
                                 "numCustomersGaveUp",
                                 "num_customers_gave_up",
-                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerCodecs.INT_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
                                 true
                         )
                         .property(
                                 "totalItemsWanted",
                                 "total_items_wanted",
-                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerCodecs.INT_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
                                 true
                         )
                         .property(
                                 "numPlayers",
                                 "num_players",
-                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerCodecs.INT_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
                                 true
                         )
                         .property(
                                 "numCrafters",
                                 "num_crafters",
-                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerCodecs.INT_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
                                 true
                         )
                         .property(
                                 "numServers",
                                 "num_servers",
-                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerCodecs.INT_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
                                 true
                         )
                         .property(
                                 "totalShiftsFinished",
                                 "total_shifts_finished",
-                                MinMaxBounds.Ints.CODEC,
+                                CustomersTriggerCodecs.INT_RANGE,
                                 CustomersTriggerSchema.Editor.OPTIONAL_INT_RANGE,
                                 false
                         )

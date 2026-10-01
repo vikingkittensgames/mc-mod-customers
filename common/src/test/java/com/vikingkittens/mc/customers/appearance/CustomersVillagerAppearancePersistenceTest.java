@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import net.minecraft.resources.ResourceLocation;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
 import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
 
@@ -18,7 +19,7 @@ import static org.mockito.Mockito.when;
 
 class CustomersVillagerAppearancePersistenceTest {
     private static final ResourceLocation TEST_APPEARANCE =
-            ResourceLocation.parse("example:test");
+            ResourceLocationCUtils.parse("example:test");
 
     @BeforeAll
     static void bootstrapMinecraft() {

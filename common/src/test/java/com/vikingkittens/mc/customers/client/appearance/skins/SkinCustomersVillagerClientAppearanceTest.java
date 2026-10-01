@@ -10,6 +10,7 @@ import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearance;
 import com.vikingkittens.mc.customers.appearance.skins.SkinCustomersVillagerDefinition;
 import com.vikingkittens.mc.customers.appearance.skins.SkinCustomersVillagerModel;
 import com.vikingkittens.mc.customers.appearance.skins.SkinPackCustomersVillagerAppearance;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -39,7 +40,7 @@ class SkinCustomersVillagerClientAppearanceTest {
     void preservesClientRendererSettings() {
         SkinCustomersVillagerDefinition skin =
                 new SkinCustomersVillagerDefinition(
-                        ResourceLocation.parse("example:alex"),
+                        ResourceLocationCUtils.parse("example:alex"),
                         SkinCustomersVillagerModel.SLIM,
                         false,
                         1.1F,

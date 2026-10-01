@@ -4,11 +4,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
@@ -17,23 +15,14 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * Adapts the shared persistence writer to Minecraft 1.21.1 compound tags.
+ * Adapts the shared persistence writer to Minecraft 1.20.1 compound tags.
  */
 final class CompoundTagDataWriter implements DataWriter {
     private final CompoundTag tag;
-    private final HolderLookup.Provider registries;
     private final Map<String, ListTag> childLists = new HashMap<>();
 
     CompoundTagDataWriter(CompoundTag tag) {
-        this(tag, null);
-    }
-
-    CompoundTagDataWriter(
-            CompoundTag tag,
-            HolderLookup.Provider registries
-    ) {
         this.tag = tag;
-        this.registries = registries;
     }
 
     @Override
@@ -97,10 +86,7 @@ final class CompoundTagDataWriter implements DataWriter {
             if (!stack.isEmpty()) {
                 CompoundTag itemTag = new CompoundTag();
                 itemTag.putInt("Slot", slot);
-                itemTags.add(stack.save(
-                        Objects.requireNonNull(registries),
-                        itemTag
-                ));
+                itemTags.add(stack.save(itemTag));
             }
         }
         CompoundTag inventoryTag = new CompoundTag();
@@ -113,7 +99,7 @@ final class CompoundTagDataWriter implements DataWriter {
     public DataWriter child(String key) {
         CompoundTag childTag = new CompoundTag();
         tag.put(key, childTag);
-        return new CompoundTagDataWriter(childTag, registries);
+        return new CompoundTagDataWriter(childTag);
     }
 
     @Override
@@ -125,6 +111,6 @@ final class CompoundTagDataWriter implements DataWriter {
         });
         CompoundTag childTag = new CompoundTag();
         childList.add(childTag);
-        return new CompoundTagDataWriter(childTag, registries);
+        return new CompoundTagDataWriter(childTag);
     }
 }

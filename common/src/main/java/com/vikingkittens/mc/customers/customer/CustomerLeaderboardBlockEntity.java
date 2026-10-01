@@ -6,10 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import dev.architectury.networking.NetworkManager;
-
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -20,6 +17,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
 import com.vikingkittens.mc.customers.client.common.PlayerProfileUtils;
+import com.vikingkittens.mc.customers.common.CustomersNetworking;
 import com.vikingkittens.mc.customers.compatability.CustomersServices;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
 import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
@@ -120,19 +118,19 @@ public class CustomerLeaderboardBlockEntity extends BlockEntity {
             }
             payloadScores.put(key, new CustomerLeaderboardOpenPayload.Score(score, levelPassed));
         });
-        NetworkManager.sendToPlayer(player, new CustomerLeaderboardOpenPayload(worldPosition, payloadScores));
+        CustomersNetworking.sendToPlayer(player, new CustomerLeaderboardOpenPayload(worldPosition, payloadScores));
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        scores.write(PersistenceCUtils.writer(tag, registries));
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
+        scores.write(PersistenceCUtils.writer(tag));
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        scores.read(PersistenceCUtils.reader(tag, registries));
+    public void load(CompoundTag tag) {
+        super.load(tag);
+        scores.read(PersistenceCUtils.reader(tag));
     }
 
     private void addFakeScores() {

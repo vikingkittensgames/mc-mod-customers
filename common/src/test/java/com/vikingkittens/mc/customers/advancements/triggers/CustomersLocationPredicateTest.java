@@ -49,7 +49,7 @@ class CustomersLocationPredicateTest {
 
         CustomersLocationPredicate predicate = CustomersLocationPredicate.CODEC
                 .parse(JsonOps.INSTANCE, json)
-                .getOrThrow();
+                .result().orElseThrow();
 
         assertEquals(Level.OVERWORLD, predicate.dimension());
         assertEquals(SHOP_POSITION, predicate.position());

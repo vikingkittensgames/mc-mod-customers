@@ -1,0 +1,27 @@
+{
+  "fabric:load_conditions": [
+    {
+      "condition": "customers:recipe_enabled",
+      "recipe": "supplier_spawner_block"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "blocks",
+  "pattern": [
+    "EEE",
+    "EBE",
+    "EEE"
+  ],
+  "key": {
+    "E": {
+      "item": "minecraft:emerald"
+    },
+    "B": {
+      "item": "minecraft:barrel"
+    }
+  },
+  "result": {
+    "item": "customers:supplier_spawner_block",
+    "count": 1
+  }
+}

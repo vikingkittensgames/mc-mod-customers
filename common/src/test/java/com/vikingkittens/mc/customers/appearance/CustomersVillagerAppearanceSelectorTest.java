@@ -10,6 +10,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -54,7 +55,7 @@ class CustomersVillagerAppearanceSelectorTest {
     void retainsTheIdOfADynamicallyResolvedAppearance() {
         CustomersVillager villager = mock(CustomersVillager.class);
         ResourceLocation skinPackId =
-                ResourceLocation.parse("customers:mc_skins");
+                ResourceLocationCUtils.parse("customers:mc_skins");
         CustomersVillagerAppearance skinPack =
                 appearance("MC Skins", true);
 

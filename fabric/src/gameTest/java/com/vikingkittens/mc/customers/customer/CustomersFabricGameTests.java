@@ -4,12 +4,8 @@ import java.util.List;
 
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionContents;
-import net.minecraft.world.item.alchemy.Potions;
 
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
@@ -77,7 +73,7 @@ public final class CustomersFabricGameTests implements FabricGameTest {
 
         @Override
         public ItemStack insert(ItemStack stack, boolean simulate) {
-            return insertAll(List.of(stack), simulate).getFirst();
+            return insertAll(List.of(stack), simulate).get(0);
         }
 
         @Override

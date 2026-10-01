@@ -8,6 +8,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 
 public final class CustomersEconomyEvents {
     private CustomersEconomyEvents() {}
@@ -16,7 +17,7 @@ public final class CustomersEconomyEvents {
         ReloadListenerRegistry.register(
                 PackType.SERVER_DATA,
                 new EconomyDataReloadListener(),
-                ResourceLocation.fromNamespaceAndPath(Customers.MODID, "economy")
+                ResourceLocationCUtils.create(Customers.MODID, "economy")
         );
         LifecycleEvent.SERVER_STARTED.register(Economy::serverStarted);
         TickEvent.SERVER_POST.register(Economy::serverTick);

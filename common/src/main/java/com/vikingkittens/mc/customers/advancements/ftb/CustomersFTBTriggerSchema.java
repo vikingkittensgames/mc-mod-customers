@@ -7,6 +7,9 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import dev.ftb.mods.ftblibrary.config.ConfigGroup;
 import dev.ftb.mods.ftblibrary.config.NameMap;
 import org.slf4j.Logger;
@@ -15,14 +18,12 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.advancements.critereon.ItemPredicate;
 import net.minecraft.advancements.critereon.MinMaxBounds;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.HolderSet;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -33,6 +34,7 @@ import net.minecraft.world.level.Level;
 
 import com.vikingkittens.mc.customers.advancements.triggers.CustomersLocationPredicate;
 import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerSchema;
+import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
 
 final class CustomersFTBTriggerSchema {
     private static final String TRIGGER_DATA_KEY = "trigger";
@@ -43,19 +45,17 @@ final class CustomersFTBTriggerSchema {
 
     static <T> void writeData(
             CompoundTag tag,
-            HolderLookup.Provider provider,
             CustomersTriggerSchema<T> schema,
             T trigger
     ) {
         schema.codec()
-                .encodeStart(provider.createSerializationContext(NbtOps.INSTANCE), trigger)
+                .encodeStart(NbtOps.INSTANCE, trigger)
                 .resultOrPartial(message -> LOGGER.error("Unable to encode FTB trigger task: {}", message))
                 .ifPresent(value -> tag.put(TRIGGER_DATA_KEY, value));
     }
 
     static <T> T readData(
             CompoundTag tag,
-            HolderLookup.Provider provider,
             CustomersTriggerSchema<T> schema,
             T defaultTrigger
     ) {
@@ -64,17 +64,30 @@ final class CustomersFTBTriggerSchema {
             return defaultTrigger;
         }
         return schema.codec()
-                .parse(provider.createSerializationContext(NbtOps.INSTANCE), triggerTag)
+                .parse(NbtOps.INSTANCE, triggerTag)
                 .resultOrPartial(message -> LOGGER.error("Unable to decode FTB trigger task: {}", message))
                 .orElse(defaultTrigger);
     }
 
-    static <T> void writeNetData(RegistryFriendlyByteBuf buffer, CustomersTriggerSchema<T> schema, T trigger) {
-        ByteBufCodecs.fromCodecWithRegistries(schema.codec()).encode(buffer, trigger);
+    static <T> void writeNetData(FriendlyByteBuf buffer, CustomersTriggerSchema<T> schema, T trigger) {
+        CompoundTag encoded = schema.codec()
+                .encodeStart(NbtOps.INSTANCE, trigger)
+                .resultOrPartial(message -> LOGGER.error("Unable to encode FTB trigger task packet: {}", message))
+                .filter(CompoundTag.class::isInstance)
+                .map(CompoundTag.class::cast)
+                .orElseThrow(() -> new IllegalStateException("Unable to encode FTB trigger task packet"));
+        buffer.writeNbt(encoded);
     }
 
-    static <T> T readNetData(RegistryFriendlyByteBuf buffer, CustomersTriggerSchema<T> schema) {
-        return ByteBufCodecs.fromCodecWithRegistries(schema.codec()).decode(buffer);
+    static <T> T readNetData(FriendlyByteBuf buffer, CustomersTriggerSchema<T> schema) {
+        CompoundTag encoded = buffer.readNbt();
+        if (encoded == null) {
+            throw new IllegalStateException("Missing FTB trigger task packet data");
+        }
+        return schema.codec()
+                .parse(NbtOps.INSTANCE, encoded)
+                .resultOrPartial(message -> LOGGER.error("Unable to decode FTB trigger task packet: {}", message))
+                .orElseThrow(() -> new IllegalStateException("Unable to decode FTB trigger task packet"));
     }
 
     static <T> void fillConfigGroup(
@@ -186,8 +199,8 @@ final class CustomersFTBTriggerSchema {
             Consumer<T> update
     ) {
         Optional<MinMaxBounds.Ints> range = value(schema, trigger.get(), property);
-        int minimum = range.flatMap(MinMaxBounds.Ints::min).orElse(0);
-        int maximum = range.flatMap(MinMaxBounds.Ints::max).orElse(0);
+        int minimum = range.map(MinMaxBounds.Ints::getMin).orElse(0);
+        int maximum = range.map(MinMaxBounds.Ints::getMax).orElse(0);
         config.addInt(
                         property.serializedName() + "_min",
                         minimum,
@@ -230,8 +243,8 @@ final class CustomersFTBTriggerSchema {
             Consumer<T> update
     ) {
         Optional<MinMaxBounds.Doubles> range = value(schema, trigger.get(), property);
-        double minimum = range.flatMap(MinMaxBounds.Doubles::min).orElse(0.0D);
-        double maximum = range.flatMap(MinMaxBounds.Doubles::max).orElse(0.0D);
+        double minimum = range.map(MinMaxBounds.Doubles::getMin).orElse(0.0D);
+        double maximum = range.map(MinMaxBounds.Doubles::getMax).orElse(0.0D);
         config.addDouble(
                         property.serializedName() + "_min",
                         minimum,
@@ -408,7 +421,7 @@ final class CustomersFTBTriggerSchema {
             CustomersTriggerSchema.Property<T> property
     ) {
         Optional<MinMaxBounds.Ints> range = value(schema, trigger, property);
-        return range.flatMap(MinMaxBounds.Ints::min).orElse(0);
+        return range.map(MinMaxBounds.Ints::getMin).orElse(0);
     }
 
     private static <T> int rangeMax(
@@ -417,7 +430,7 @@ final class CustomersFTBTriggerSchema {
             CustomersTriggerSchema.Property<T> property
     ) {
         Optional<MinMaxBounds.Ints> range = value(schema, trigger, property);
-        return range.flatMap(MinMaxBounds.Ints::max).orElse(0);
+        return range.map(MinMaxBounds.Ints::getMax).orElse(0);
     }
 
     private static <T> double doubleRangeMin(
@@ -426,7 +439,7 @@ final class CustomersFTBTriggerSchema {
             CustomersTriggerSchema.Property<T> property
     ) {
         Optional<MinMaxBounds.Doubles> range = value(schema, trigger, property);
-        return range.flatMap(MinMaxBounds.Doubles::min).orElse(0.0D);
+        return range.map(MinMaxBounds.Doubles::getMin).orElse(0.0D);
     }
 
     private static <T> double doubleRangeMax(
@@ -435,7 +448,7 @@ final class CustomersFTBTriggerSchema {
             CustomersTriggerSchema.Property<T> property
     ) {
         Optional<MinMaxBounds.Doubles> range = value(schema, trigger, property);
-        return range.flatMap(MinMaxBounds.Doubles::max).orElse(0.0D);
+        return range.map(MinMaxBounds.Doubles::getMax).orElse(0.0D);
     }
 
     @SuppressWarnings("unchecked")
@@ -483,20 +496,33 @@ final class CustomersFTBTriggerSchema {
     }
 
     static ItemStack selectedItem(Optional<ItemPredicate> predicate) {
-        if (predicate.isEmpty() || predicate.get().items().isEmpty()) {
+        if (predicate.isEmpty()) {
             return ItemStack.EMPTY;
         }
-        HolderSet<Item> items = predicate.get().items().orElseThrow();
-        return items.unwrapKey().isEmpty() && items.size() == 1
-                ? new ItemStack(items.get(0).value())
-                : ItemStack.EMPTY;
+        JsonElement encoded = predicate.orElseThrow().serializeToJson();
+        if (!encoded.isJsonObject()) {
+            return ItemStack.EMPTY;
+        }
+        JsonArray items = encoded.getAsJsonObject().getAsJsonArray("items");
+        if (items == null || items.size() != 1) {
+            return ItemStack.EMPTY;
+        }
+        ResourceLocation itemId = ResourceLocation.tryParse(items.get(0).getAsString());
+        return itemId == null
+                ? ItemStack.EMPTY
+                : BuiltInRegistries.ITEM.getOptional(itemId).map(ItemStack::new).orElse(ItemStack.EMPTY);
     }
 
     static String selectedTag(Optional<ItemPredicate> predicate) {
-        return predicate.flatMap(ItemPredicate::items)
-                .flatMap(HolderSet::unwrapKey)
-                .map(tag -> "#" + tag.location())
-                .orElse("");
+        if (predicate.isEmpty()) {
+            return "";
+        }
+        JsonElement encoded = predicate.orElseThrow().serializeToJson();
+        if (!encoded.isJsonObject()) {
+            return "";
+        }
+        JsonObject object = encoded.getAsJsonObject();
+        return object.has("tag") ? "#" + object.get("tag").getAsString() : "";
     }
 
     static Optional<Optional<CustomersLocationPredicate>> location(
@@ -626,7 +652,7 @@ final class CustomersFTBTriggerSchema {
         }
 
         private void setItem(ItemStack changed) {
-            if (ItemStack.isSameItemSameComponents(initialItem, changed)) {
+            if (ItemStackCUtils.isSameItemAndTags(initialItem, changed)) {
                 return;
             }
             item = changed.copy();

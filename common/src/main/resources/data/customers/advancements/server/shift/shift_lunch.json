@@ -1,0 +1,24 @@
+{
+  "parent": "customers:server/shift/root",
+  "criteria": {
+    "shift_lunch": {
+      "trigger": "customers:item_served",
+      "conditions": {
+        "spawner_mode": "lunch"
+      }
+    }
+  },
+  "display": {
+    "description": { "translate": "advancements.customers.server.shift.shift_lunch.description" },
+    "icon": {
+      "item": "customers:advancement_icon",
+      "nbt": "{CustomModelData:13}"
+    },
+    "title": { "translate": "advancements.customers.server.shift.shift_lunch.title" }
+  },
+  "requirements": [
+    [
+      "shift_lunch"
+    ]
+  ]
+}

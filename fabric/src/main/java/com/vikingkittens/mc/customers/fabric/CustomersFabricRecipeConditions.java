@@ -1,43 +1,30 @@
 package com.vikingkittens.mc.customers.fabric;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.ResourceLocation;
 
-import net.fabricmc.fabric.api.resource.conditions.v1.ResourceCondition;
-import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditionType;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
 
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.compatability.CustomersServices;
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 import com.vikingkittens.mc.customers.config.CustomersRecipeConditions;
 
 public final class CustomersFabricRecipeConditions {
+    private static final ResourceLocation RECIPE_ENABLED =
+            ResourceLocationCUtils.create(
+                    Customers.MODID,
+                    "recipe_enabled"
+            );
+
     private CustomersFabricRecipeConditions() {}
 
     public static void initialize() {
-        ResourceConditions.register(RecipeEnabledCondition.TYPE);
-    }
-
-    private record RecipeEnabledCondition(String recipe) implements ResourceCondition {
-        private static final MapCodec<RecipeEnabledCondition> CODEC = RecordCodecBuilder.mapCodec(
-                builder -> builder.group(Codec.STRING.fieldOf("recipe").forGetter(RecipeEnabledCondition::recipe))
-                        .apply(builder, RecipeEnabledCondition::new)
+        ResourceConditions.register(
+                RECIPE_ENABLED,
+                condition -> CustomersRecipeConditions.isEnabled(
+                        CustomersServices.config(),
+                        condition.get("recipe").getAsString()
+                )
         );
-        private static final ResourceConditionType<RecipeEnabledCondition> TYPE = ResourceConditionType.create(
-                ResourceLocation.fromNamespaceAndPath(Customers.MODID, "recipe_enabled"), CODEC
-        );
-
-        @Override
-        public ResourceConditionType<?> getType() {
-            return TYPE;
-        }
-
-        @Override
-        public boolean test(HolderLookup.Provider registryLookup) {
-            return CustomersRecipeConditions.isEnabled(CustomersServices.config(), recipe);
-        }
     }
 }

@@ -83,7 +83,7 @@ public class CustomerThankGoal extends MobTimedGoal {
             ));
         }
         if (!customer.isPassenger() && (ticksSinceJump == 0 || ticksSinceJump > 20)) {
-            customer.jumpFromGround();
+            customer.getJumpControl().jump();
             ticksSinceJump = 0;
         }
         ticksSinceJump++;

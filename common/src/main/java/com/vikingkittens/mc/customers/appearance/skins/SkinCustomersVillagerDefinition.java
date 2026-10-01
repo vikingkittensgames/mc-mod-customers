@@ -7,6 +7,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.resources.ResourceLocation;
 
+import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
+
 public record SkinCustomersVillagerDefinition(
         ResourceLocation texture,
         SkinCustomersVillagerModel model,
@@ -39,6 +41,6 @@ public record SkinCustomersVillagerDefinition(
     }
 
     public ResourceLocation getTextureLocation() {
-        return ResourceLocation.fromNamespaceAndPath(texture.getNamespace(), "textures/customers/skins/" + texture.getPath() + ".png");
+        return ResourceLocationCUtils.create(texture.getNamespace(), "textures/customers/skins/" + texture.getPath() + ".png");
     }
 }

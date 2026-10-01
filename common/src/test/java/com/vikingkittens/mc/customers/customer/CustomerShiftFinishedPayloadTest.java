@@ -32,8 +32,8 @@ class CustomerShiftFinishedPayloadTest {
         );
         FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
 
-        CustomerShiftFinishedPayload.STREAM_CODEC.encode(buffer, original);
-        CustomerShiftFinishedPayload decoded = CustomerShiftFinishedPayload.STREAM_CODEC.decode(buffer);
+        original.write(buffer);
+        CustomerShiftFinishedPayload decoded = CustomerShiftFinishedPayload.read(buffer);
 
         assertEquals(original, decoded);
     }

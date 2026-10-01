@@ -217,7 +217,7 @@ public final class CustomerSpawnerLevelSettings {
             petFoodInput.getString("petTypeId").ifPresent(petTypeId -> {
                 List<ItemStack> food = petFoodInput.getItemStacks("food");
                 if (!food.isEmpty()) {
-                    petFoods.put(petTypeId, food.getFirst());
+                    petFoods.put(petTypeId, food.get(0));
                 }
             });
         }

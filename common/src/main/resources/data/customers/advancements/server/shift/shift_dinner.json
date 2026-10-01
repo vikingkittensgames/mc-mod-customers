@@ -1,0 +1,24 @@
+{
+  "parent": "customers:server/shift/root",
+  "criteria": {
+    "shift_dinner": {
+      "trigger": "customers:item_served",
+      "conditions": {
+        "spawner_mode": "dinner"
+      }
+    }
+  },
+  "display": {
+    "description": { "translate": "advancements.customers.server.shift.shift_dinner.description" },
+    "icon": {
+      "item": "customers:advancement_icon",
+      "nbt": "{CustomModelData:14}"
+    },
+    "title": { "translate": "advancements.customers.server.shift.shift_dinner.title" }
+  },
+  "requirements": [
+    [
+      "shift_dinner"
+    ]
+  ]
+}

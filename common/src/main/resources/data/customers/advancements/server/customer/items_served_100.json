@@ -1,0 +1,25 @@
+{
+  "parent": "customers:server/customer/items_served_50",
+  "criteria": {
+    "items_served_100": {
+      "trigger": "customers:item_served",
+      "conditions": {
+        "total_items_served": { "min": 100 }
+      }
+    }
+  },
+  "display": {
+    "description": { "translate": "advancements.customers.server.customer.items_served_100.description" },
+    "frame": "goal",
+    "icon": {
+      "item": "customers:advancement_icon",
+      "nbt": "{CustomModelData:5}"
+    },
+    "title": { "translate": "advancements.customers.server.customer.items_served_100.title" }
+  },
+  "requirements": [
+    [
+      "items_served_100"
+    ]
+  ]
+}
