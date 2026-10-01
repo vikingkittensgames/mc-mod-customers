@@ -7,6 +7,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
+import com.vikingkittens.mc.customers.advancements.ftb.CustomersFTB;
 import com.vikingkittens.mc.customers.compatability.CustomersServices;
 import com.vikingkittens.mc.customers.compatability.ForgeConfigHelper;
 import com.vikingkittens.mc.customers.compatability.ForgeRegistrationHelper;
@@ -24,6 +25,7 @@ public final class CustomersForge {
 
         registerArchitecturyEventBus(modEventBus);
         Customers.initialize();
+        CustomersFTB.initialize();
         RecipeConditions.register(modEventBus);
         ((ForgeRegistrationHelper) CustomersServices.registration()).bind(modEventBus);
         CustomerPaymentBoxForgeEvents.register(modEventBus);

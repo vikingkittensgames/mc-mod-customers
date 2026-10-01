@@ -146,7 +146,7 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
             return InteractionResult.SUCCESS;
         }
 
-        return InteractionResult.PASS;
+        return useWithoutItem(state, level, pos, player, hitResult);
     }
 
     @Override

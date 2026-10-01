@@ -119,7 +119,7 @@ public class SupplierSpawnerBlock extends BaseEntityBlock {
             return InteractionResult.SUCCESS;
         }
 
-        return InteractionResult.PASS;
+        return useWithoutItem(state, level, pos, player, hitResult);
     }
 
     @Override

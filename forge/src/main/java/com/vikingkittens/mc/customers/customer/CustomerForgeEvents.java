@@ -98,11 +98,21 @@ public final class CustomerForgeEvents {
                     event.getPlacedBlock(),
                     player
             );
+            CustomerLeaderboardCache.onBlockPlaced(
+                    level,
+                    event.getPos(),
+                    event.getPlacedBlock()
+            );
         }
     }
     public static void onBlockBroken(BlockEvent.BreakEvent event) {
         if (event.getLevel() instanceof ServerLevel level) {
             CustomerSpawnerCache.onBlockBroken(
+                    level,
+                    event.getPos(),
+                    event.getState()
+            );
+            CustomerLeaderboardCache.onBlockBroken(
                     level,
                     event.getPos(),
                     event.getState()
@@ -114,6 +124,7 @@ public final class CustomerForgeEvents {
         if (event.getLevel() instanceof ServerLevel level &&
                 event.getChunk() instanceof LevelChunk chunk) {
             CustomerSpawnerCache.onChunkLoaded(level, chunk);
+            CustomerLeaderboardCache.onChunkLoaded(level, chunk);
         }
     }
 
@@ -121,6 +132,7 @@ public final class CustomerForgeEvents {
         if (event.getLevel() instanceof ServerLevel level &&
                 event.getChunk() instanceof LevelChunk chunk) {
             CustomerSpawnerCache.onChunkUnloaded(level, chunk);
+            CustomerLeaderboardCache.onChunkUnloaded(level, chunk);
         }
     }
 

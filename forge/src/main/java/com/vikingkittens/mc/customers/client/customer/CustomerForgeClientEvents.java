@@ -10,6 +10,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.client.advancements.ftb.CustomersFTBClient;
 import com.vikingkittens.mc.customers.client.appearance.CustomersVillagerAppearanceEntityRenderer;
 import com.vikingkittens.mc.customers.client.supplier.SupplierSpawnerBlockScreen;
 import com.vikingkittens.mc.customers.customer.Customer;
@@ -28,9 +29,15 @@ public final class CustomerForgeClientEvents {
     @SubscribeEvent
     public static void clientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(() -> {
+            initializeClientNetworking();
+            CustomersFTBClient.initialize();
             MenuScreens.register(CustomerSpawner.CUSTOMER_SPAWNER_MENU.get(), CustomerSpawnerBlockScreen::new);
             MenuScreens.register(SupplierSpawner.SUPPLIER_SPAWNER_MENU.get(), SupplierSpawnerBlockScreen::new);
         });
+    }
+
+    static void initializeClientNetworking() {
+        CustomersClientNetworking.initialize();
     }
 
     @SubscribeEvent
