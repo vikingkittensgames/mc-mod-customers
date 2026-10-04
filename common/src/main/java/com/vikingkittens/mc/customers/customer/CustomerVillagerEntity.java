@@ -167,6 +167,10 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
                     CustomerVillagerEntity.class,
                     EntityDataSerializers.FLOAT
             );
+    private static final EntityDataAccessor<CompoundTag> DATA_ADDITIONAL_PROPERTIES = SynchedEntityData.defineId(
+            CustomerVillagerEntity.class,
+            EntityDataSerializers.COMPOUND_TAG
+    );
     private static final EntityDataAccessor<Integer> DATA_APPEARANCE_SPAWNER_MODE =
             SynchedEntityData.defineId(
                     CustomerVillagerEntity.class,
@@ -615,6 +619,7 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
                 CustomersVillagerAppearances.DEFAULT.toString()
         );
         builder.define(DATA_VARIATION_SEED, 0.0F);
+        builder.define(DATA_ADDITIONAL_PROPERTIES, new CompoundTag());
         builder.define(DATA_APPEARANCE_SPAWNER_MODE, -1);
         builder.define(DATA_APPEARANCE_SPECIAL, false);
     }
@@ -622,6 +627,16 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
     @Override
     public RegistryAccess getCustomersRegistryAccess() {
         return level().registryAccess();
+    }
+
+    @Override
+    public Level getCustomersLevel() {
+        return level();
+    }
+
+    @Override
+    public @Nullable BlockPos getCustomersSpawnerPosition() {
+        return spawnerPos;
     }
 
     @Override
@@ -676,6 +691,19 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
     @Override
     public void setVariationSeed(float variationSeed) {
         entityData.set(DATA_VARIATION_SEED, variationSeed);
+    }
+
+    @Override
+    public Map<String, String> getAdditionalProperties() {
+        return CustomersVillagerAppearancePersistence.fromSynchedData(entityData.get(DATA_ADDITIONAL_PROPERTIES));
+    }
+
+    @Override
+    public void setAdditionalProperties(Map<String, String> additionalProperties) {
+        entityData.set(
+                DATA_ADDITIONAL_PROPERTIES,
+                CustomersVillagerAppearancePersistence.toSynchedData(Map.copyOf(additionalProperties))
+        );
     }
 
     @Override
@@ -782,6 +810,7 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
     ) {
         setAppearanceId(appearanceId);
         setVariationSeed(variationSeed);
+        setAdditionalProperties(Map.of());
         setSpawnerMode(spawnerMode);
         setSpecial(special);
     }

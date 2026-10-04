@@ -81,6 +81,10 @@ public class SupplierVillagerEntity extends Villager implements CustomersVillage
                     SupplierVillagerEntity.class,
                     EntityDataSerializers.FLOAT
             );
+    private static final EntityDataAccessor<CompoundTag> DATA_ADDITIONAL_PROPERTIES = SynchedEntityData.defineId(
+            SupplierVillagerEntity.class,
+            EntityDataSerializers.COMPOUND_TAG
+    );
 
     public static final String NAME = "supplier_villager";
 
@@ -210,11 +214,22 @@ public class SupplierVillagerEntity extends Villager implements CustomersVillage
                 CustomersVillagerAppearances.DEFAULT.toString()
         );
         builder.define(DATA_VARIATION_SEED, 0.0F);
+        builder.define(DATA_ADDITIONAL_PROPERTIES, new CompoundTag());
     }
 
     @Override
     public RegistryAccess getCustomersRegistryAccess() {
         return level().registryAccess();
+    }
+
+    @Override
+    public Level getCustomersLevel() {
+        return level();
+    }
+
+    @Override
+    public @Nullable BlockPos getCustomersSpawnerPosition() {
+        return spawnerPos;
     }
 
     @Override
@@ -250,6 +265,19 @@ public class SupplierVillagerEntity extends Villager implements CustomersVillage
     @Override
     public void setVariationSeed(float variationSeed) {
         entityData.set(DATA_VARIATION_SEED, variationSeed);
+    }
+
+    @Override
+    public Map<String, String> getAdditionalProperties() {
+        return CustomersVillagerAppearancePersistence.fromSynchedData(entityData.get(DATA_ADDITIONAL_PROPERTIES));
+    }
+
+    @Override
+    public void setAdditionalProperties(Map<String, String> additionalProperties) {
+        entityData.set(
+                DATA_ADDITIONAL_PROPERTIES,
+                CustomersVillagerAppearancePersistence.toSynchedData(Map.copyOf(additionalProperties))
+        );
     }
 
     @Override
@@ -354,6 +382,7 @@ public class SupplierVillagerEntity extends Villager implements CustomersVillage
     ) {
         setAppearanceId(appearanceId);
         setVariationSeed(variationSeed);
+        setAdditionalProperties(Map.of());
     }
 
     public SupplierState getState() {

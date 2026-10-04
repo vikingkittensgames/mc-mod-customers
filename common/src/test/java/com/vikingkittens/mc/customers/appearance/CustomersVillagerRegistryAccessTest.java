@@ -10,6 +10,10 @@ class CustomersVillagerRegistryAccessTest {
     void usesAStableCustomMethodNameThatSurvivesProductionRemapping() {
         assertDoesNotThrow(() ->
                 CustomersVillager.class.getDeclaredMethod("getCustomersRegistryAccess"));
+        assertDoesNotThrow(() ->
+                CustomersVillager.class.getDeclaredMethod("getCustomersLevel"));
+        assertDoesNotThrow(() ->
+                CustomersVillager.class.getDeclaredMethod("getCustomersSpawnerPosition"));
         assertThrows(NoSuchMethodException.class, () ->
                 CustomersVillager.class.getDeclaredMethod("registryAccess"));
     }
