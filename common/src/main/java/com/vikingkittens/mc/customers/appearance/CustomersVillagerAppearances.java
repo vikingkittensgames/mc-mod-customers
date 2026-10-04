@@ -3,6 +3,7 @@ package com.vikingkittens.mc.customers.appearance;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.function.IntUnaryOperator;
 import java.util.stream.Stream;
 
@@ -59,6 +60,27 @@ public final class CustomersVillagerAppearances {
                         randomIndex
                 );
         return selectedId == null ? DEFAULT : selectedId;
+    }
+
+    public static ResourceLocation selectAndApply(
+            List<ResourceLocation> enabledAppearanceIds,
+            CustomersVillager villager,
+            IntUnaryOperator randomIndex
+    ) {
+        ResourceLocation selectedId = select(enabledAppearanceIds, villager, randomIndex);
+        applySelected(selectedId, get(selectedId, villager.getCustomersRegistryAccess()), villager);
+        return selectedId;
+    }
+
+    static void applySelected(
+            ResourceLocation selectedId,
+            @Nullable CustomersVillagerAppearance appearance,
+            CustomersVillager villager
+    ) {
+        villager.setAppearanceId(selectedId);
+        villager.setAdditionalProperties(
+                appearance == null ? Map.of() : Map.copyOf(appearance.getAdditionalProperties(villager))
+        );
     }
 
     public static @Nullable CustomersVillagerAppearance get(

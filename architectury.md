@@ -23,7 +23,7 @@ Minecraft-version branch.
 
 Replace ModDevGradle and ForgeGradle with Architectury Loom in `common` and
 the loader modules supported by the branch. The initial branch targets are
-Forge only for 1.20.1, then NeoForge and Fabric for 1.21.1 and newer.
+Forge and Fabric for 1.20.1, then NeoForge and Fabric for 1.21.1 and newer.
 
 Use:
 
@@ -50,7 +50,7 @@ modImplementation "dev.architectury:architectury:${architectury_version}"
 Use the matching platform artifact in each branch's supported loader:
 
 ```groovy
-// Fabric: 1.21.1 and newer
+// Fabric: all supported branches
 modImplementation "dev.architectury:architectury-fabric:${architectury_version}"
 modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
 modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
@@ -63,8 +63,8 @@ modImplementation "dev.architectury:architectury-neoforge:${architectury_version
 ```
 
 Fabric Loader and Fabric API are separate dependencies from Architectury API.
-Keep their versions in `gradle.properties` on 1.21.1-and-newer branches and
-select versions matching the Minecraft branch.
+Keep their versions in `gradle.properties` on every Fabric branch and select
+versions matching the Minecraft branch.
 
 Do not add Architectury API to `include`, `shadow`, `shadowBundle`, or another
 embedded-library configuration. Only transformed Customers common classes and
@@ -73,9 +73,8 @@ resources should be assembled into loader JARs.
 All supported-loader metadata must declare its matching Architectury API
 artifact as required with the configured `architectury_version_range`. Fabric
 metadata must additionally declare compatible `fabricloader`, `fabric-api`,
-Java, and Minecraft versions. The 1.21.1 NeoForge declaration is currently
-optional and must become required. Forge metadata needs this declaration only
-on the 1.20.1 branch.
+Java, and Minecraft versions. NeoForge metadata must declare Architectury API
+as required. Forge metadata needs this declaration only on the 1.20.1 branch.
 
 ### Modules
 
@@ -84,7 +83,7 @@ Retain the current module layout:
 | Module | Responsibility after migration |
 | --- | --- |
 | `common` | Gameplay, registrations, Architectury events, networking, shared client initialization, resources, and unit tests |
-| `fabric` | 1.21.1-and-newer Fabric entrypoints and metadata, configuration backend, unsupported events, transfer integration, recipe conditions, and compatible optional integrations |
+| `fabric` | Fabric entrypoints and metadata, configuration backend, unsupported events, transfer integration, recipe conditions, and compatible optional integrations |
 | `forge` | 1.20.1-only Forge entrypoint, metadata, configuration registration, unsupported events, capabilities, recipe conditions, and loader-specific integrations |
 | `neoforge` | 1.21.1-and-newer NeoForge entrypoint, metadata, configuration registration, unsupported events, capabilities, recipe conditions, and FTB Quests |
 | `testsupport` | Shared test bootstrap and utilities that are not included in production JARs |
@@ -121,7 +120,7 @@ Keep the loader-qualified root tasks:
 | Root task | Delegates to |
 | --- | --- |
 | 1.20.1: `runClientForge`, `runServerForge`, `buildForge` | Forge module tasks |
-| 1.21.1+: `runClientFabric`, `runServerFabric`, `buildFabric` | Fabric module tasks |
+| All supported versions: `runClientFabric`, `runServerFabric`, `buildFabric` | Fabric module tasks |
 | 1.21.1+: `runClientNeoForge`, `runServerNeoForge`, `buildNeoForge` | NeoForge module tasks |
 
 Architectury Loom provides the loader-specific client and server tasks. The
@@ -223,7 +222,7 @@ Each Customers branch should have:
 
 | Customers branch | Compile target | Architectury API | Initial loaders | Runtime range policy |
 | --- | --- | --- | --- | --- |
-| `architectury-1.20.1` | 1.20.1 | 9.2.x | Forge only | 1.20.1 only |
+| `architectury-1.20.1` | 1.20.1 | 9.2.x | Fabric and Forge | 1.20.1 only |
 | `architectury-1.21.1` | 1.21.1 | 13.0.x | Fabric and NeoForge | Start with 1.21.1; add 1.21 only after testing |
 | `architectury-1.21.11` | 1.21.11 | 19.0.x | Fabric and NeoForge | Start with 1.21.11 only |
 | `architectury-26.1` | latest 26.1 patch | 20.1.x | Fabric and NeoForge initially | Test 26.1, 26.1.1, and 26.1.2 before publishing one range |
@@ -231,13 +230,12 @@ Each Customers branch should have:
 | `architectury-26.3` | 26.3 | 22.0.x | Fabric and NeoForge initially | 26.3 only |
 
 Architectury API 9.2 supports Minecraft 1.20 and 1.20.1 on Fabric and Forge,
-but does not provide a normal NeoForge 1.20.1 target. Customers will support
-Forge only on its 1.20.1 branch.
+but does not provide a normal NeoForge 1.20.1 target. Customers supports
+Fabric and Forge on its 1.20.1 branch.
 
-Fabric and NeoForge should be first-class targets on every 1.21.1-and-newer
-branch, with matching Architectury API, Fabric Loader, and Fabric API
-artifacts. Forge remains confined to 1.20.1; do not treat the Forge-like
-loaders as interchangeable platforms.
+Fabric is a first-class target on every supported branch. NeoForge is a
+first-class target on every 1.21.1-and-newer branch. Forge remains confined
+to 1.20.1; do not treat the Forge-like loaders as interchangeable platforms.
 
 ### Additional 1.20 and 1.21 families
 
@@ -246,7 +244,7 @@ boundaries:
 
 | Minecraft family | Architectury API line | Branch recommendation |
 | --- | --- | --- |
-| 1.20 and 1.20.1 | 9.2.x | Forge-only 1.20.1 branch; do not add 1.20 without a separate compatibility decision |
+| 1.20 and 1.20.1 | 9.2.x | Fabric-and-Forge 1.20.1 branch; do not add 1.20 without a separate compatibility decision |
 | 1.20.2 | 10.1.x | Separate branch |
 | 1.20.3 and 1.20.4 | 11.1.x | One branch only after both are tested |
 | 1.20.5 | 12.0.x | Separate branch |
@@ -272,6 +270,144 @@ When two versions share a branch, compile against the earliest version unless
 a later patch is required by the loader toolchain. Test the exact production
 JAR on every declared Minecraft version; recompiling separately is safer when
 method descriptors or class locations differ.
+
+## Minecraft 1.20.1 Port Details
+
+This section records the differences and decisions verified while porting the
+completed 1.21.1 Architectury implementation to 1.20.1. It is authoritative
+for the `architectury-1.20.1` branch and must be kept on the other version
+branches so each branch documents the complete supported-version strategy.
+
+### Build baseline
+
+| Setting | 1.20.1 value |
+| --- | --- |
+| Java | `17` |
+| Architectury Loom | `1.13.469` |
+| Architectury API | `9.2.14` |
+| Forge | `47.4.0` |
+| Forge loader range | `[47,)` |
+| Fabric Loader | `0.18.6` |
+| Fabric API | `0.92.6+1.20.1` |
+| Parchment | `1.20.1:2023.09.03` |
+| FTB Quests | `2001.4.22` |
+| Minecraft runtime range | `[1.20.1]` |
+| Resource and data pack format | `15` |
+
+The branch uses Architectury Loom for `common`, Fabric, and Forge. Development
+clients use Loom's mapped runtime. Production clients build through
+`shadowJar` and `remapJar`, copy only the remapped Customers JAR and required
+runtime dependencies into loader-specific directories, and launch with Java
+17 through PortableMC.
+
+Production launch identifiers and directories are:
+
+| Loader | PortableMC identifier | Working directory |
+| --- | --- | --- |
+| Forge | `forge::1.20.1-47.4.0` | `run-prod-forge-1.20.1` |
+| Fabric | `fabric:1.20.1:0.18.6` | `run-prod-fabric-1.20.1` |
+
+The empty Forge game-version field is required when PortableMC receives the
+complete Forge loader version. Both production launch tasks were verified to
+reach the title screen with remapped Customers artifacts.
+
+### Architectury and loader integration
+
+Use Architectury API for registration, entity attributes, lifecycle events,
+commands, networking, screen and renderer registration, and other behavior
+where Architectury 9 exposes an equivalent abstraction.
+
+Forge must call
+`EventBuses.registerModEventBus(Customers.MODID, modEventBus)` before common
+initialization. Architectury's Forge registrar cannot resolve the Customers
+registry bus until that explicit association exists. Do not separately
+register customer or supplier attributes through Forge:
+`EntityAttributeRegistry` already forwards the common registrations into
+Forge's `EntityAttributeCreationEvent`.
+
+Keep loader adapters only for APIs without an Architectury 9 equivalent,
+including configuration, recipe conditions, item insertion, selected
+interaction and world events, and Forge data-pack registry registration.
+
+### Minecraft API differences
+
+Minecraft 1.20.1 and Java 17 require these source adaptations:
+
+| Area | 1.21.1 | 1.20.1 |
+| --- | --- | --- |
+| Resource locations | Static `ResourceLocation` factories | Public `ResourceLocation` constructors |
+| Java list endpoints | `getFirst()` and `getLast()` | `get(0)` and `get(size() - 1)` |
+| Offer cost | `ItemCost` with component predicates | Copied `ItemStack` |
+| Item comparison | `ItemStack.isSameItemSameComponents` | `ItemStack.isSameItemSameTags` |
+| Synchronized entity data | Builder passed to `defineSynchedData` | No-argument override and `entityData.define` |
+| Block interaction | Split `useWithoutItem` and `useItemOn` hooks | `Block#use` returning `InteractionResult` |
+| Block construction | Codec-enabled block implementations | Normal `Block(Properties)` construction |
+| Block-break mixin target | `Block.playerWillDestroy(...)` returns `BlockState` | `Block.playerWillDestroy(...)` returns `void` |
+| Block-entity persistence | Provider-aware `CompoundTag` methods | `CompoundTag` methods without registry providers |
+| Entity dimensions | Newer dimension callback signature | 1.20.1 dimension callback signature |
+| GUI textures | Sprite-oriented drawing APIs | `GuiGraphics.blit` with explicit texture dimensions |
+| Boss bars | Sprite resources | Regions of `textures/gui/bars.png` |
+| Player skins | Newer skin objects | `PlayerInfo#getSkinLocation` |
+| Checkboxes | Builder API | Constructor plus `onPress` override |
+| Potion GameTest setup | `PotionContents.createItemStack` | `PotionUtils.setPotion` |
+| GameTest value assertions | `GameTestHelper.assertValueEqual` | `GameTestHelper.assertTrue` with explicit comparisons |
+| Recipe generation | `RecipeOutput` | `Consumer<FinishedRecipe>` callbacks |
+| Loot generation | Registry-provider-aware constructors | Constructors without registry providers |
+
+Project-owned interface method names must not accidentally match mapped
+Minecraft override names. Keep names such as `isVillagerInWater()` and call
+the vanilla method only inside the implementation.
+
+Advancement triggers use the 1.20.1 `SimpleCriterionTrigger` and JSON
+serialization APIs rather than the codec-based 1.21.1 trigger APIs. FTB
+Quests 2001.4.22 uses its older task, configuration, and packet interfaces;
+the Customers task implementation remains common, with thin Fabric and Forge
+initialization hooks.
+
+### Networking
+
+Minecraft 1.20.1 payloads implement the project-owned
+`CustomersNetworkPayload` contract and read and write `FriendlyByteBuf`.
+Registration and delivery use Architectury `NetworkManager` on both loaders.
+Do not restore the old Forge `SimpleChannel` implementation; doing so would
+duplicate cross-loader networking and reintroduce production remapping risks.
+
+### Persistence
+
+Retain the established 1.21.1 Customers-owned persistence schema. In
+particular, spawner inventories and level settings continue using the sparse
+`Size`/`Items`/`Slot` representation and the same field-by-field customer and
+supplier data layout.
+
+The 1.20.1 `CompoundTagDataReader` and `CompoundTagDataWriter` are raw NBT
+adapters for that schema. Item stacks use `ItemStack.save(CompoundTag)` and
+`ItemStack.of(CompoundTag)`. Do not replace this data with loader container
+serialization or a version-specific item-storage format. This preserves save
+compatibility with the 1.21.1 implementation while changing only the raw
+Minecraft class used to read and write individual values.
+
+### Static resources
+
+Minecraft 1.20.1 uses pack format 15 and the plural data directories
+`advancements`, `loot_tables`, `recipes`, `tags/blocks`, and
+`tags/entity_types`.
+
+Recipe results use `"item"` rather than the newer `"id"` field. Advancement
+display icons use `"item"` and encode custom model data in the icon's SNBT
+`"nbt"` field. Item predicates use an `"items"` array.
+
+Loader-specific recipe conditions remain in loader resources:
+
+- Forge uses an `ICondition`/`IConditionSerializer` and a top-level
+  `"conditions"` array.
+- Fabric registers a `ResourceConditions` predicate and uses Fabric load
+  conditions.
+
+The MCA appearance is not included because the required MCA renderer and
+entity APIs are not available through the selected 1.20.1 dependencies.
+
+This section replaces the deleted
+`Minecraft-1.21.1-to-1.20.1.md` pre-Architectury migration document.
 
 ## Minecraft 1.21.11 Port Details
 
@@ -450,6 +586,29 @@ sounds, statistics, and advancement triggers entirely into `common`.
 
 Use `RegistrarBuilder.syncToClients()` for the custom appearance registry if
 its behavior matches the current loader implementations.
+
+Third-party contextual appearances use the same registry and remain safe for
+dedicated servers. `CustomersVillager` exposes the logical `Level`, the
+originating spawner `BlockPos`, and an immutable map of appearance-specific
+string properties. An appearance may override
+`getAdditionalProperties(CustomersVillager)` to resolve server-side context
+once when it is selected. Customers stores those properties in its own entity
+save data and synchronized entity data, then exposes them to client renderers
+through `CustomersVillager.getAdditionalProperties()`.
+
+Keep the registered appearance ID stable. Persist narrower choices such as a
+nearby colony style, culture ID, upstream villager definition, model, or
+texture variant as additional properties rather than generating hidden or
+dynamic appearance IDs. Property keys must be namespaced by the add-on, values
+must remain strings, and returned maps must not contain null keys or values.
+
+Contextual appearance selection belongs on the logical server. Client
+renderers must use only the synchronized properties and must not repeat world,
+colony, or village searches while rendering. Separate NeoForge-only appearance
+add-ons may delegate rendering to another mod through an unspawned proxy entity
+when that mod's renderer requires its own entity type. Such proxies must be
+weakly cached, never added to a level, never ticked or saved, and must mirror
+the real Customers entity's render state each frame.
 
 Architectury registration does not automatically cover every loader lifecycle
 for codec-backed data-pack registries. Keep a narrowly scoped platform bridge

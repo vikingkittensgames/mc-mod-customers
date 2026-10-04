@@ -3,6 +3,7 @@ package com.vikingkittens.mc.customers.customer;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -173,6 +174,7 @@ class CustomerVillagerEntityTest {
                 ResourceLocation.parse("customers:monsters");
         doNothing().when(customer).setAppearanceId(appearance);
         doNothing().when(customer).setVariationSeed(0.75F);
+        doNothing().when(customer).setAdditionalProperties(Map.of());
         doNothing().when(customer).setSpawnerMode(CustomerSpawnerMode.NIGHT);
         doNothing().when(customer).setSpecial(true);
         when(input.getString("CustomersAppearance"))
@@ -188,6 +190,7 @@ class CustomerVillagerEntityTest {
 
         verify(customer).setAppearanceId(appearance);
         verify(customer).setVariationSeed(0.75F);
+        verify(customer).setAdditionalProperties(Map.of());
         verify(customer).setSpawnerMode(CustomerSpawnerMode.NIGHT);
         verify(customer).setSpecial(true);
     }

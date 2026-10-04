@@ -1,5 +1,7 @@
 package com.vikingkittens.mc.customers.appearance;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -11,6 +13,7 @@ import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
 import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -84,6 +87,68 @@ class CustomersVillagerAppearancePersistenceTest {
         verify(output).putFloat(
                 CustomersVillagerAppearancePersistence.TAG_VARIATION_SEED,
                 0.625F
+        );
+    }
+
+    @Test
+    void readsAdditionalProperties() {
+        DataReader input = mock(DataReader.class);
+        DataReader property = mock(DataReader.class);
+        CustomersVillager villager = mock(CustomersVillager.class);
+        when(input.getChildren(CustomersVillagerAppearancePersistence.TAG_ADDITIONAL_PROPERTIES))
+                .thenReturn(List.of(property));
+        when(property.getString(CustomersVillagerAppearancePersistence.TAG_PROPERTY_KEY))
+                .thenReturn(Optional.of("culture"));
+        when(property.getString(CustomersVillagerAppearancePersistence.TAG_PROPERTY_VALUE))
+                .thenReturn(Optional.of("millenaire:norman"));
+
+        CustomersVillagerAppearancePersistence.read(input, villager);
+
+        verify(villager).setAdditionalProperties(Map.of("culture", "millenaire:norman"));
+    }
+
+    @Test
+    void missingAdditionalPropertiesClearPreviouslyHeldValues() {
+        DataReader input = mock(DataReader.class);
+        CustomersVillager villager = mock(CustomersVillager.class);
+        when(input.getChildren(CustomersVillagerAppearancePersistence.TAG_ADDITIONAL_PROPERTIES))
+                .thenReturn(List.of());
+
+        CustomersVillagerAppearancePersistence.read(input, villager);
+
+        verify(villager).setAdditionalProperties(Map.of());
+    }
+
+    @Test
+    void writesAdditionalProperties() {
+        DataWriter output = mock(DataWriter.class);
+        DataWriter property = mock(DataWriter.class);
+        CustomersVillager villager = mock(CustomersVillager.class);
+        when(villager.getAppearanceId()).thenReturn(TEST_APPEARANCE);
+        when(villager.getAdditionalProperties()).thenReturn(Map.of("style", "nordic"));
+        when(output.addChild(CustomersVillagerAppearancePersistence.TAG_ADDITIONAL_PROPERTIES))
+                .thenReturn(property);
+
+        CustomersVillagerAppearancePersistence.write(output, villager);
+
+        verify(property).putString(CustomersVillagerAppearancePersistence.TAG_PROPERTY_KEY, "style");
+        verify(property).putString(CustomersVillagerAppearancePersistence.TAG_PROPERTY_VALUE, "nordic");
+    }
+
+    @Test
+    void convertsAdditionalPropertiesToAndFromSynchedData() {
+        Map<String, String> properties = Map.of(
+                "culture",
+                "millenaire:norman",
+                "villager_type",
+                "millenaire:norman_farmer"
+        );
+
+        assertEquals(
+                properties,
+                CustomersVillagerAppearancePersistence.fromSynchedData(
+                        CustomersVillagerAppearancePersistence.toSynchedData(properties)
+                )
         );
     }
 }

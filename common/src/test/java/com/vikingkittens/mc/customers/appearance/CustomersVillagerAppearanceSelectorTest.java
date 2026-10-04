@@ -1,6 +1,7 @@
 package com.vikingkittens.mc.customers.appearance;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.IntUnaryOperator;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -14,6 +15,7 @@ import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class CustomersVillagerAppearanceSelectorTest {
@@ -67,6 +69,29 @@ class CustomersVillagerAppearanceSelectorTest {
                 );
 
         assertEquals(skinPackId, selected);
+    }
+
+    @Test
+    void appliesPropertiesProvidedByTheSelectedAppearance() {
+        CustomersVillager villager = mock(CustomersVillager.class);
+        ResourceLocation appearanceId = ResourceLocation.parse("example:contextual");
+        Map<String, String> properties = Map.of("culture", "millenaire:norman");
+        CustomersVillagerAppearance appearance = new CustomersVillagerAppearance() {
+            @Override
+            public Component getName() {
+                return Component.literal("Contextual");
+            }
+
+            @Override
+            public Map<String, String> getAdditionalProperties(CustomersVillager customer) {
+                return properties;
+            }
+        };
+
+        CustomersVillagerAppearances.applySelected(appearanceId, appearance, villager);
+
+        verify(villager).setAppearanceId(appearanceId);
+        verify(villager).setAdditionalProperties(properties);
     }
 
     private static CustomersVillagerAppearance appearance(String name, boolean applicable) {
