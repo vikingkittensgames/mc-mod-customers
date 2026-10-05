@@ -1,7 +1,7 @@
 package com.vikingkittens.mc.customers.client.appearance.mca;
 
+import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.world.phys.Vec3;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillager;
@@ -18,7 +18,7 @@ public final class McaCustomersVillagerClientAppearance
     }
 
     @Override
-    public MobRenderer<?, ?> getRenderer(
+    public EntityRenderer<?> getRenderer(
             CustomersVillager villager
     ) {
         return renderer;

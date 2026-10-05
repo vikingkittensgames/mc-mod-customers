@@ -81,6 +81,12 @@ public final class CustomersVillagerAppearances {
         villager.setAdditionalProperties(
                 appearance == null ? Map.of() : Map.copyOf(appearance.getAdditionalProperties(villager))
         );
+        if (appearance != null) {
+            Component villagerName = appearance.getVillagerName(villager);
+            if (villagerName != null) {
+                villager.setVillagerName(villagerName);
+            }
+        }
     }
 
     public static @Nullable CustomersVillagerAppearance get(

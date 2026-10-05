@@ -1,10 +1,13 @@
 package com.vikingkittens.mc.customers.client.customer;
 
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.Vec3;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 import com.vikingkittens.mc.customers.client.appearance.CustomersVillagerRenderProxy;
@@ -152,5 +155,13 @@ class CustomerWantedItemsRendererTest {
                 CustomerWantedItemsRenderer.getVerticalOffset(true, 0.2F, 9),
                 0.0001F
         );
+    }
+
+    @Test
+    void usesAnAppearanceAnchorOrFallsBackToEntityHeight() {
+        Vec3 animatedHead = new Vec3(0.25D, 1.5D, -0.125D);
+
+        assertEquals(animatedHead, CustomerWantedItemsRenderer.getAnchor(Optional.of(animatedHead), 2.0F));
+        assertEquals(new Vec3(0.0D, 2.0D, 0.0D), CustomerWantedItemsRenderer.getAnchor(Optional.empty(), 2.0F));
     }
 }

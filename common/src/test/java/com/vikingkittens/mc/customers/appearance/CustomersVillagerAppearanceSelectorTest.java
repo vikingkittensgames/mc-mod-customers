@@ -15,6 +15,7 @@ import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -92,6 +93,40 @@ class CustomersVillagerAppearanceSelectorTest {
 
         verify(villager).setAppearanceId(appearanceId);
         verify(villager).setAdditionalProperties(properties);
+    }
+
+    @Test
+    void appliesTheNameProvidedByTheSelectedAppearance() {
+        CustomersVillager villager = mock(CustomersVillager.class);
+        Component name = Component.translatable("name.example.shopkeeper");
+        CustomersVillagerAppearance appearance = new CustomersVillagerAppearance() {
+            @Override
+            public Component getName() {
+                return Component.literal("Named");
+            }
+
+            @Override
+            public Component getVillagerName(CustomersVillager customer) {
+                return name;
+            }
+        };
+
+        CustomersVillagerAppearances.applySelected(ResourceLocation.parse("example:named"), appearance, villager);
+
+        verify(villager).setVillagerName(name);
+    }
+
+    @Test
+    void leavesTheVillagerNameAvailableToOtherModsWhenTheAppearanceDoesNotProvideOne() {
+        CustomersVillager villager = mock(CustomersVillager.class);
+
+        CustomersVillagerAppearances.applySelected(
+                ResourceLocation.parse("example:unnamed"),
+                appearance("Unnamed", true),
+                villager
+        );
+
+        verify(villager, never()).setVillagerName(org.mockito.ArgumentMatchers.any());
     }
 
     private static CustomersVillagerAppearance appearance(String name, boolean applicable) {

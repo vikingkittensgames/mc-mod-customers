@@ -577,6 +577,23 @@ initialize the common server and client registrations, while each loader
 supplies its matching FTB Quests runtime artifact. Forge does not initialize
 the integration because FTB Quests 2101.1.x has no Forge runtime artifact.
 
+Gecko skin definitions and the public client appearance contract do not expose GeckoLib classes. The optional
+renderer adapter is version-specific because GeckoLib 4 renders entity instances while GeckoLib 5 uses Minecraft's
+render-state architecture. Minecraft 1.20.1 and 1.21.1 use GeckoLib 4 asset paths under `geo` and `animations`;
+Minecraft 1.21.11 uses GeckoLib 5 paths under `geckolib/models` and `geckolib/animations`. Keep model selection,
+animation-state decisions, pivot math, and overhead-anchor semantics identical across branches.
+
+Short Gecko skin resource IDs are expanded by the version-specific adapter into the Customers asset layout. Complete
+IDs ending in `.geo.json`, `.animation.json`, or `.png` are preserved so skins can reference another mod's installed
+assets. Do not rewrite complete paths between GeckoLib generations; they describe a specific upstream jar and may
+need branch-specific data if that mod reorganizes its resources. Use Architectury `Platform.isModLoaded` through the
+shared skin-availability path for generic `required_mods` filtering.
+
+Skin `names` use Minecraft's standard JSON text-component representation. Access its codec only through
+`ComponentCUtils.codec()` because Minecraft 1.21.1 and 1.21.11 expose `ComponentSerialization.CODEC`, while Minecraft
+1.20.1 requires a codec adapter around the older `Component.Serializer`. Appearance-provided names are assigned as
+normal entity custom names so Minecraft handles synchronization, persistence, and client-side translation.
+
 The following changes should not be hidden behind static compatibility methods because Java requires version-specific override signatures, superclass types, generics, or event subscriptions:
 
 - `causeFallDamage(float, ...)` versus `causeFallDamage(double, ...)`

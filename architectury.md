@@ -884,6 +884,32 @@ Do not advertise an integration on Fabric merely because the other mod has a
 Fabric artifact. Confirm that the API classes and behavior Customers uses are
 available on that loader and Minecraft version.
 
+The Skins appearance optionally supports GeckoLib models. Keep skin definitions, selection, animation decisions,
+coordinate conversion, and public appearance APIs in `common` without GeckoLib types. Only conditionally initialized
+client renderer, model, and proxy classes may reference GeckoLib. Use loader-specific GeckoLib artifacts as
+compile/development dependencies without shading them.
+
+| Minecraft | GeckoLib | Asset layout |
+| --- | --- | --- |
+| 1.20.1 | 4.8.4-compatible GeckoLib 4 | `assets/{namespace}/geo` and `assets/{namespace}/animations` |
+| 1.21.1 | GeckoLib 4.8.4 through GeckoLib 4 | `assets/{namespace}/geo` and `assets/{namespace}/animations` |
+| 1.21.11 | GeckoLib 5.4.x | `assets/{namespace}/geckolib/models` and `assets/{namespace}/geckolib/animations` |
+
+GeckoLib 4 and 5 have incompatible renderer APIs. Preserve the common JSON contract and use a version-specific client
+adapter rather than reflection or Gecko version checks in functionality code. See `appearance-gecko.md` and
+`gecko-decisions.md` for the contract and implementation choices.
+
+Skin resource IDs without extensions use the version-specific Customers model and animation roots. Preserve complete
+`.geo.json`, `.animation.json`, and `.png` resource locations exactly so a skin can use assets from another installed
+mod. Filter generic `required_mods` through Architectury `Platform.isModLoaded`; do not add loader-specific mod-list
+checks.
+
+Appearance-provided villager names use Minecraft JSON text components so data packs can supply literal, translated,
+or styled names. Keep the public `CustomersVillagerAppearance.getVillagerName` contract in common code and use
+`ComponentCUtils.codec()` when decoding skin `names`. Minecraft 1.21.1 and 1.21.11 return
+`ComponentSerialization.CODEC`; the 1.20.1 branch must adapt its older `Component.Serializer`. Assign a name only
+when an appearance returns one, leaving unnamed entities available to naming mods.
+
 ### Persistence
 
 Keep the existing Customers persistence layer:

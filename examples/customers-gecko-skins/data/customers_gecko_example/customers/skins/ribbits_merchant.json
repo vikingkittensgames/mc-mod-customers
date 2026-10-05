@@ -1,0 +1,21 @@
+{
+  "texture": "ribbits:textures/entity/ribbit.png",
+  "model": "ribbits:geo/merchant_ribbit.geo.json",
+  "animation": "ribbits:animations/ribbit.animation.json",
+  "required_mods": [
+    "ribbits"
+  ],
+  "scale": 1.0,
+  "shadow_radius": 0.35,
+  "name_tag_offset": 1.0,
+  "head_bone": "body",
+  "head_tracking": {
+    "enabled": false
+  },
+  "sitting_pivot": [0.0, 0.1, -3.7],
+  "animations": {
+    "idle": "idle",
+    "walk": "walk",
+    "sit": "idle"
+  }
+}

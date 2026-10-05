@@ -90,8 +90,13 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
     modImplementation "dev.architectury:architectury-fabric:${architectury_version}"
     modCompileOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
+    modCompileOnly "software.bernie.geckolib:geckolib-fabric-${minecraft_version}:${geckolib_version}"
+    modLocalRuntime "software.bernie.geckolib:geckolib-fabric-${minecraft_version}:${geckolib_version}"
     productionClientMods("net.fabricmc.fabric-api:fabric-api:${fabric_api_version}") { transitive = false }
     productionClientMods("dev.architectury:architectury-fabric:${architectury_version}") { transitive = false }
+    productionClientMods("software.bernie.geckolib:geckolib-fabric-${minecraft_version}:${geckolib_version}") {
+        transitive = false
+    }
     implementation project(path: ':common', configuration: 'namedElements')
     common(project(path: ':common', configuration: 'namedElements')) { transitive = false }
     shadowBundle(project(path: ':common', configuration: 'namedElements')) { transitive = false }
@@ -103,6 +108,7 @@ tasks.named('processResources', ProcessResources) {
         architectury_version  : architectury_version,
         fabric_api_version    : fabric_api_version,
         fabric_loader_version : fabric_loader_version,
+        geckolib_version       : geckolib_version,
         minecraft_version     : minecraft_version,
         mod_id                : mod_id,
         mod_name              : mod_name,
@@ -134,6 +140,7 @@ tasks.register('prepareProdClient', Copy) {
     from(configurations.productionClientMods) {
         rename(/architectury-fabric-.+\.jar/, 'architectury-api-under-test.jar')
         rename(/fabric-api-.+\.jar/, 'fabric-api-under-test.jar')
+        rename(/geckolib-fabric-.+\.jar/, 'geckolib-under-test.jar')
     }
 }
 

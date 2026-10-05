@@ -2,7 +2,10 @@ package com.vikingkittens.mc.customers.appearance.skins;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
+import dev.architectury.platform.Platform;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.Registry;
@@ -36,6 +39,13 @@ public final class SkinPackCustomersVillagerAppearance implements CustomersVilla
 
     public Optional<SkinCustomersVillagerDefinition> getSkin(CustomersVillager villager) {
         return selectSkinId(getAvailableSkinIds(), villager.getVariationSeed()).map(skins::get);
+    }
+
+    @Override
+    public @Nullable Component getVillagerName(CustomersVillager villager) {
+        List<ResourceLocation> availableSkinIds = getAvailableSkinIds();
+        return selectName(availableSkinIds, skins::get, villager.getVariationSeed())
+                .orElse(null);
     }
 
     @Override
@@ -75,8 +85,60 @@ public final class SkinPackCustomersVillagerAppearance implements CustomersVilla
         return Optional.of(skinIds.get(index));
     }
 
+    static float getSelectedSkinVariation(int skinCount, float variationSeed) {
+        if (skinCount <= 0) return 0.0F;
+        float boundedSeed = Mth.clamp(variationSeed, 0.0F, Math.nextDown(1.0F));
+        float scaledSeed = boundedSeed * skinCount;
+        return scaledSeed - Mth.floor(scaledSeed);
+    }
+
+    static Optional<Component> selectName(List<Component> names, float variationSeed) {
+        if (names.isEmpty()) return Optional.empty();
+        float boundedSeed = Mth.clamp(variationSeed, 0.0F, Math.nextDown(1.0F));
+        int index = Math.min((int)(boundedSeed * names.size()), names.size() - 1);
+        return Optional.of(names.get(index));
+    }
+
+    static Optional<Component> selectName(
+            List<ResourceLocation> skinIds,
+            Function<ResourceLocation, @Nullable SkinCustomersVillagerDefinition> definitionLookup,
+            float variationSeed
+    ) {
+        return selectSkinId(skinIds, variationSeed)
+                .map(definitionLookup)
+                .flatMap(definition ->
+                        selectName(definition.names(), getSelectedSkinVariation(skinIds.size(), variationSeed))
+                );
+    }
+
     private List<ResourceLocation> getAvailableSkinIds() {
-        return skinPack.skins().stream().filter(skins::containsKey).toList();
+        return getAvailableSkinIds(
+                skinPack.skins(),
+                skins::get,
+                Platform.isModLoaded("geckolib"),
+                Platform::isModLoaded
+        );
+    }
+
+    static List<ResourceLocation> getAvailableSkinIds(
+            List<ResourceLocation> skinIds,
+            Function<ResourceLocation, @Nullable SkinCustomersVillagerDefinition> definitionLookup,
+            boolean geckoLibLoaded,
+            Predicate<String> modLoaded
+    ) {
+        return skinIds.stream()
+                .filter(skinId -> isAvailable(definitionLookup.apply(skinId), geckoLibLoaded, modLoaded))
+                .toList();
+    }
+
+    static boolean isAvailable(
+            @Nullable SkinCustomersVillagerDefinition definition,
+            boolean geckoLibLoaded,
+            Predicate<String> modLoaded
+    ) {
+        return definition != null
+                && (!definition.model().isGecko() || geckoLibLoaded)
+                && definition.requiredMods().stream().allMatch(modLoaded);
     }
 
     private @Nullable SoundEvent getSound(CustomersVillager villager, SkinCustomersVillagerSound sound) {

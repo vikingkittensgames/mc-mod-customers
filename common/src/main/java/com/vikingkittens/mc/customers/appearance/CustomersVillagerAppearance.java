@@ -28,6 +28,10 @@ public interface CustomersVillagerAppearance {
         return Map.of();
     }
 
+    default @Nullable Component getVillagerName(CustomersVillager villager) {
+        return null;
+    }
+
     default @Nullable SoundEvent getAmbientSound(CustomersVillager villager) {
         return null;
     }

@@ -60,6 +60,7 @@ dependencies {
     testRuntimeOnly "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
     modCompileOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
     testRuntimeOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
+    modCompileOnly "software.bernie.geckolib:geckolib-fabric-${minecraft_version}:${geckolib_version}"
 
     testImplementation project(':testsupport')
     testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"

@@ -1,6 +1,7 @@
 package com.vikingkittens.mc.customers.client.customer;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -11,6 +12,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 
 import com.vikingkittens.mc.customers.client.appearance.CustomersVillagerClientAppearances;
 import com.vikingkittens.mc.customers.client.appearance.CustomersVillagerRenderProxy;
@@ -52,10 +54,14 @@ public final class CustomerWantedItemsRenderer {
                 appearanceNameTagOffset,
                 minecraft.font.lineHeight
         );
+        Vec3 anchor = getAnchor(
+                CustomersVillagerClientAppearances.getOverheadAnchor(customer),
+                customer.getBbHeight()
+        );
         poseStack.translate(
-                0,
-                customer.getBbHeight() + verticalOffset,
-                0
+                anchor.x,
+                anchor.y + verticalOffset,
+                anchor.z
         );
         poseStack.mulPose(minecraft.getEntityRenderDispatcher().cameraOrientation());
 
@@ -114,6 +120,10 @@ public final class CustomerWantedItemsRenderer {
         return BASE_VERTICAL_OFFSET
                 + appearanceNameTagOffset
                 + nameTagOffset;
+    }
+
+    static Vec3 getAnchor(Optional<Vec3> appearanceAnchor, float entityHeight) {
+        return appearanceAnchor.orElseGet(() -> new Vec3(0.0D, entityHeight, 0.0D));
     }
 
     public static boolean getDefaultNameTagVisibility(Entity renderedEntity, boolean sourceVisibility) {

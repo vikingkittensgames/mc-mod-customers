@@ -707,6 +707,11 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
     }
 
     @Override
+    public void setVillagerName(Component name) {
+        setCustomName(name);
+    }
+
+    @Override
     public boolean isVillagerSitting() {
         return isPassenger();
     }
