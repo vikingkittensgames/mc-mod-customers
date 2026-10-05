@@ -1,0 +1,19 @@
+{
+  "texture": "customers:steve",
+  "model": "customers_gecko_example:animated_steve",
+  "animation": "customers_gecko_example:animated_steve",
+  "scale": 0.9375,
+  "shadow_radius": 0.5,
+  "name_tag_offset": 0.5,
+  "names": [
+    "Steve",
+    {"translate": "name.customers_gecko_example.animated_steve"}
+  ],
+  "head_bone": "head",
+  "sitting_pivot": [0.0, 12.0, 0.0],
+  "animations": {
+    "idle": "misc.idle",
+    "walk": "move.walk",
+    "sit": "pose.sit"
+  }
+}

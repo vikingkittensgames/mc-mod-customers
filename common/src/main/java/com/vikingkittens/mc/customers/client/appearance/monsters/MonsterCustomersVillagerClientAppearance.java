@@ -3,6 +3,7 @@ package com.vikingkittens.mc.customers.client.appearance.monsters;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelLayers;
+import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.resources.ResourceLocation;
@@ -98,7 +99,7 @@ public final class MonsterCustomersVillagerClientAppearance
     }
 
     @Override
-    public MobRenderer<?, ?> getRenderer(CustomersVillager villager) {
+    public EntityRenderer<?> getRenderer(CustomersVillager villager) {
         return switch (variation(villager)) {
             case ZOMBIE -> zombie;
             case SKELETON -> skeleton;

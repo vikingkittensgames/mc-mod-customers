@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 
@@ -36,6 +37,8 @@ public interface CustomersVillager {
     Map<String, String> getAdditionalProperties();
 
     void setAdditionalProperties(Map<String, String> additionalProperties);
+
+    void setVillagerName(Component name);
 
     boolean isVillagerSitting();
 

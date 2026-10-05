@@ -116,6 +116,11 @@ dependencies {
     modLocalRuntime "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
     modCompileOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
     testRuntimeOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
+    modCompileOnly "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
+    modLocalRuntime "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
+    productionClientMods("software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}") {
+        transitive = false
+    }
 
     common(project(path: ':common', configuration: 'namedElements')) {
         transitive = false
@@ -162,6 +167,7 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
             architectury_version_range: architectury_version_range,
             ftb_quests_version_range  : ftb_quests_version_range,
             mca_version_range      : mca_version_range,
+            geckolib_version_range : geckolib_version_range,
             loader_version_range   : loader_version_range,
             mod_id                 : mod_id,
             mod_name               : mod_name,
@@ -195,6 +201,7 @@ tasks.register('prepareProdClient', Copy) {
     }
     from(configurations.productionClientMods) {
         rename(/architectury-neoforge-.+\.jar/, 'architectury-api-under-test.jar')
+        rename(/geckolib-neoforge-.+\.jar/, 'geckolib-under-test.jar')
     }
 }
 

@@ -4,12 +4,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.phys.Vec3;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillager;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearance;
@@ -111,6 +113,11 @@ public final class CustomersVillagerClientAppearances {
         return appearance == null
                 ? 0.0F
                 : appearance.getNameTagOffset(villager);
+    }
+
+    public static Optional<Vec3> getOverheadAnchor(CustomersVillager villager) {
+        CustomersVillagerClientAppearance appearance = get(villager);
+        return appearance == null ? Optional.empty() : appearance.getOverheadAnchor(villager);
     }
 
     private record InitializedProvider(

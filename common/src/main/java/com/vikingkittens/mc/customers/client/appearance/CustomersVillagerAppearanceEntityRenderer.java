@@ -4,7 +4,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.phys.Vec3;
@@ -14,11 +13,11 @@ import com.vikingkittens.mc.customers.appearance.CustomersVillager;
 public final class CustomersVillagerAppearanceEntityRenderer<
                 T extends Mob & CustomersVillager>
         extends EntityRenderer<T> {
-    private final MobRenderer<?, ?> fallbackRenderer;
+    private final EntityRenderer<?> fallbackRenderer;
 
     public CustomersVillagerAppearanceEntityRenderer(
             EntityRendererProvider.Context context,
-            MobRenderer<?, ?> fallbackRenderer
+            EntityRenderer<?> fallbackRenderer
     ) {
         super(context);
         CustomersVillagerClientAppearances.initialize(context);
@@ -65,19 +64,25 @@ public final class CustomersVillagerAppearanceEntityRenderer<
         return renderer(entity).getTextureLocation(entity);
     }
 
+    @Override
+    protected float getShadowRadius(T entity) {
+        CustomersVillagerClientAppearance appearance = CustomersVillagerClientAppearances.get(entity);
+        return appearance == null ? super.getShadowRadius(entity) : appearance.getShadowRadius(entity);
+    }
+
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private MobRenderer<T, ?> renderer(T entity) {
+    private EntityRenderer<T> renderer(T entity) {
         CustomersVillagerClientAppearance appearance =
                 CustomersVillagerClientAppearances.get(entity);
         return renderer(entity, appearance);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private MobRenderer<T, ?> renderer(
+    private EntityRenderer<T> renderer(
             T entity,
             CustomersVillagerClientAppearance appearance
     ) {
-        MobRenderer renderer = appearance == null
+        EntityRenderer renderer = appearance == null
                 ? fallbackRenderer
                 : appearance.getRenderer(entity);
         return renderer;
