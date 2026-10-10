@@ -403,8 +403,9 @@ Loader-specific recipe conditions remain in loader resources:
 - Fabric registers a `ResourceConditions` predicate and uses Fabric load
   conditions.
 
-The MCA appearance is not included because the required MCA renderer and
-entity APIs are not available through the selected 1.20.1 dependencies.
+The separate MCA Reborn Appearance add-on is not published for 1.20.1 because
+the required MCA renderer and entity APIs are not available through the
+selected dependencies.
 
 This section replaces the deleted
 `Minecraft-1.21.1-to-1.20.1.md` pre-Architectury migration document.
@@ -438,9 +439,9 @@ FTB Quests publishes shared, Fabric, and NeoForge 1.21.11 artifacts. Retain
 the common Customers task implementation and the thin loader initialization
 hooks established on the 1.21.1 branch.
 
-MCA Reborn does not currently publish a 1.21.11 artifact. The MCA appearance
-integration must remain disabled on this branch unless a compatible artifact
-becomes available and is manually tested.
+MCA Reborn does not currently publish a 1.21.11 artifact. The separate MCA
+Reborn Appearance add-on remains 1.21.1 Fabric-and-NeoForge-only unless a compatible
+artifact becomes available and is manually tested.
 
 ### Porting differences
 
@@ -801,14 +802,30 @@ registration now run from each loader's client entrypoint.
 `CustomersClientRegistrations` uses `EntityRendererRegistry`,
 `EntityModelLayerRegistry`, and `BlockEntityRendererRegistry` for customer and
 supplier entities, the customer seat, the customer model layer, and the pickup
-counter renderer. It also registers built-in monster and skin appearances, and
-the optional MCA appearance only when MCA is present.
+counter renderer. It also registers built-in monster and skin appearances.
+The separate MCA Reborn Appearance add-on registers `customers:mca` and its
+client renderer through its Fabric and NeoForge entrypoints. It uses the same
+Architectury Loom common/Fabric/NeoForge layout as Customers.
+
+The add-on pins Architectury Loom 1.13.469 like Customers. MCA Reborn's
+loader-specific production JARs remain external dependencies rather than being
+bundled into the add-on.
+
+MCA Reborn 7.7.36's Fabric JAR was built with Fabric Loom 1.17.19, which is
+newer than the latest Architectury Loom available for this build. The add-on's
+Fabric development configuration uses a cacheable artifact transform to remove
+only that build-version marker, then supplies both MCA Reborn and Customers as
+`modLocalRuntime` dependencies so Architectury Loom remaps their intermediary
+production classes and class tweakers into the named development namespace.
+This transform is development-only and does not modify or bundle either
+dependency in the release JAR.
 
 It also uses `ClientPlayerEvent.CLIENT_PLAYER_QUIT` to clear synchronized
 customer-spawner snapshots when the player leaves a level.
 
-Optional integration initialization must still check `Platform.isModLoaded`
-before loading classes from the optional mod.
+Optional integrations that remain inside the core mod must still check
+`Platform.isModLoaded` before loading classes from the optional mod. A separate
+appearance add-on instead declares the integrated mod as a required dependency.
 
 ### HUD, name tags, and world rendering
 

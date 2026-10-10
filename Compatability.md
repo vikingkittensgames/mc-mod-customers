@@ -656,9 +656,11 @@ resource, and production-run details.
 Persistence adapters own version-specific serialization. Networking remains
 common through Architectury.
 
-The MCA Appearance is supported only for Minecraft 1.21.1 and newer. The
-Minecraft 1.20.1 Fabric and Forge port does not include MCA integration or
-its dependency.
+The MCA Reborn Appearance is a separate Fabric and NeoForge add-on for Minecraft 1.21.1.
+It registers the existing `customers:mca` identifier so spawner settings and
+spawned villagers saved by the former built-in integration remain compatible.
+The Minecraft 1.20.1 Fabric and Forge port and Minecraft 1.21.11 builds do not
+include the add-on or its MCA dependency.
 
 Additional 1.20.1 details:
 

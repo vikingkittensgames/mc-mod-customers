@@ -15,12 +15,9 @@ import net.minecraft.client.renderer.entity.NoopRenderer;
 import net.minecraft.client.renderer.entity.VillagerRenderer;
 import net.minecraft.world.level.block.Block;
 
-import com.vikingkittens.mc.customers.appearance.mca.McaCustomersVillagerAppearance;
-import com.vikingkittens.mc.customers.appearance.mca.McaCustomersVillagerMod;
 import com.vikingkittens.mc.customers.appearance.monsters.MonsterCustomersVillagerAppearance;
 import com.vikingkittens.mc.customers.client.appearance.CustomersVillagerAppearanceEntityRenderer;
 import com.vikingkittens.mc.customers.client.appearance.CustomersVillagerClientAppearances;
-import com.vikingkittens.mc.customers.client.appearance.mca.McaCustomersVillagerClientAppearance;
 import com.vikingkittens.mc.customers.client.appearance.monsters.MonsterCustomersVillagerClientAppearance;
 import com.vikingkittens.mc.customers.client.appearance.skins.SkinCustomersVillagerClientAppearanceProvider;
 import com.vikingkittens.mc.customers.client.customer.CustomerPickupCounterBlockEntityRenderer;
@@ -61,12 +58,6 @@ public final class CustomersClientRegistrations {
     }
 
     private static void registerAppearances() {
-        if (McaCustomersVillagerMod.isSupported()) {
-            CustomersVillagerClientAppearances.register(
-                    McaCustomersVillagerAppearance.ID,
-                    McaCustomersVillagerClientAppearance::new
-            );
-        }
         CustomersVillagerClientAppearances.register(
                 MonsterCustomersVillagerAppearance.ID,
                 MonsterCustomersVillagerClientAppearance::new

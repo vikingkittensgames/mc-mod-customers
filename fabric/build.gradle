@@ -89,7 +89,6 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
     modImplementation "dev.architectury:architectury-fabric:${architectury_version}"
-    modCompileOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
     modCompileOnly "software.bernie.geckolib:geckolib-fabric-${minecraft_version}:${geckolib_version}"
     modLocalRuntime "software.bernie.geckolib:geckolib-fabric-${minecraft_version}:${geckolib_version}"
     productionClientMods("net.fabricmc.fabric-api:fabric-api:${fabric_api_version}") { transitive = false }

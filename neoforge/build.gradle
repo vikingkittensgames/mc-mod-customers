@@ -114,8 +114,6 @@ dependencies {
     productionClientMods("dev.architectury:architectury-neoforge:${architectury_version}") { transitive = false }
     modCompileOnly "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
     modLocalRuntime "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
-    modCompileOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
-    testRuntimeOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
     modCompileOnly "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
     modLocalRuntime "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
     productionClientMods("software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}") {
@@ -166,7 +164,6 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
             neo_version            : neo_version,
             architectury_version_range: architectury_version_range,
             ftb_quests_version_range  : ftb_quests_version_range,
-            mca_version_range      : mca_version_range,
             geckolib_version_range : geckolib_version_range,
             loader_version_range   : loader_version_range,
             mod_id                 : mod_id,

@@ -58,8 +58,6 @@ dependencies {
     modCompileOnly "net.fabricmc:fabric-loader:${fabric_loader_version}"
     compileOnly "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
     testRuntimeOnly "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
-    modCompileOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
-    testRuntimeOnly "maven.modrinth:minecraft-comes-alive-reborn:${mca_version}"
     modCompileOnly "software.bernie.geckolib:geckolib-fabric-${minecraft_version}:${geckolib_version}"
 
     testImplementation project(':testsupport')
