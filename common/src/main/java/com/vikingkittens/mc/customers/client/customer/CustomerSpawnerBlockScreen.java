@@ -1,12 +1,11 @@
 package com.vikingkittens.mc.customers.client.customer;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.components.MultiLineLabel;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
@@ -16,6 +15,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.client.common.AppearanceListWidget;
 import com.vikingkittens.mc.customers.client.common.IconsScaleControl;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlockEntity;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlockMenu;
@@ -33,8 +33,10 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
     );
     private static final int TEXTURE_WIDTH = 288;
     private static final int TEXTURE_HEIGHT = 256;
-    private static final int APPEARANCE_WIDGET_WIDTH = 99;
-    private static final int APPEARANCE_TEXT_COLOR = 0x000000;
+    private static final int APPEARANCE_LIST_X = 177;
+    private static final int APPEARANCE_LIST_Y = 101;
+    private static final int APPEARANCE_LIST_WIDTH = 99;
+    private static final int APPEARANCE_LIST_HEIGHT = 113;
     private static final int MAX_CUSTOMERS_X = 177;
     private static final int PET_PERCENTAGE_X = 200;
     private static final int PET_PERCENT_SIGN_X = 229;
@@ -69,10 +71,6 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
     private static final ResourceLocation PET_PANEL = texture("pet-panel");
     private static final ResourceLocation MANUAL_COST = texture("cost");
     private static final ResourceLocation AUTOMATIC_COST = texture("costauto");
-    private final List<AppearanceCheckbox> appearanceCheckboxes =
-            new ArrayList<>();
-    private final List<MultiLineLabel> appearanceLabels =
-            new ArrayList<>();
     private ModeButton modeButton;
     private TextureButton decrementLevelButton;
     private TextureButton incrementLevelButton;
@@ -103,8 +101,6 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         }
         menu.setPetFoodCostSlotVisible(petPanelOpen);
         lastSelectedLevel = menu.getSelectedLevel();
-        appearanceCheckboxes.clear();
-        appearanceLabels.clear();
         manualCostButton = addRenderableWidget(new ManualCostButton(
                 leftPos + MANUAL_COST_TOGGLE_X,
                 topPos + MANUAL_COST_Y
@@ -185,27 +181,17 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         });
         addRenderableWidget(petPercentage);
 
-        int y = 101;
-        int appearanceTextWidth = APPEARANCE_WIDGET_WIDTH
-                - PET_PANEL_CHECKBOX_SIZE
-                - 4;
-        for (int index = 0; index < menu.getAppearanceIds().size(); index++) {
-            Component appearanceName = menu.getAppearanceName(index);
-            AppearanceCheckbox checkbox = addRenderableWidget(
-                    new AppearanceCheckbox(
-                            leftPos + 177,
-                            topPos + y,
-                            index
-                    )
-            );
-            appearanceCheckboxes.add(checkbox);
-            appearanceLabels.add(MultiLineLabel.create(
-                    font,
-                    appearanceName,
-                    appearanceTextWidth
-            ));
-            y += 20;
-        }
+        addRenderableWidget(new AppearanceListWidget(
+                font,
+                leftPos + APPEARANCE_LIST_X,
+                topPos + APPEARANCE_LIST_Y,
+                APPEARANCE_LIST_WIDTH,
+                APPEARANCE_LIST_HEIGHT,
+                Component.translatable("screen.customers.customer_spawner.appearance"),
+                appearanceNames(),
+                menu::isAppearanceEnabled,
+                index -> send(menu.appearanceButtonId(index))
+        ));
     }
 
     @Override
@@ -379,7 +365,6 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         renderBackground(graphics, mouseX, mouseY, partialTick);
         super.render(graphics, mouseX, mouseY, partialTick);
         renderAutomaticCosts(graphics);
-        renderAppearanceLabels(graphics);
         renderPetPanel(graphics);
         renderTooltip(graphics, mouseX, mouseY);
         renderAutomaticCostTooltip(graphics, mouseX, mouseY);
@@ -452,22 +437,10 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         }
     }
 
-    private void renderAppearanceLabels(GuiGraphics graphics) {
-        for (int index = 0; index < appearanceCheckboxes.size(); index++) {
-            AppearanceCheckbox checkbox = appearanceCheckboxes.get(index);
-            MultiLineLabel label = appearanceLabels.get(index);
-            int labelHeight = label.getLineCount() * font.lineHeight;
-            int labelY = checkbox.getY()
-                    + PET_PANEL_CHECKBOX_SIZE / 2
-                    - labelHeight / 2;
-            label.renderLeftAlignedNoShadow(
-                    graphics,
-                    checkbox.getX() + PET_PANEL_CHECKBOX_SIZE + 4,
-                    labelY,
-                    font.lineHeight,
-                    APPEARANCE_TEXT_COLOR
-            );
-        }
+    private List<Component> appearanceNames() {
+        return IntStream.range(0, menu.getAppearanceIds().size())
+                .mapToObj(menu::getAppearanceName)
+                .toList();
     }
 
     private void renderAutomaticCosts(GuiGraphics graphics) {
@@ -697,28 +670,6 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                     16,
                     16
             );
-        }
-
-        @Override
-        protected void updateWidgetNarration(NarrationElementOutput narration) {}
-    }
-
-    private class AppearanceCheckbox extends AbstractButton {
-        private final int appearanceIndex;
-
-        private AppearanceCheckbox(int x, int y, int appearanceIndex) {
-            super(x, y, PET_PANEL_CHECKBOX_SIZE, PET_PANEL_CHECKBOX_SIZE, Component.empty());
-            this.appearanceIndex = appearanceIndex;
-        }
-
-        @Override
-        public void onPress() {
-            send(menu.appearanceButtonId(appearanceIndex));
-        }
-
-        @Override
-        protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-            renderPetCheckbox(graphics, menu.isAppearanceEnabled(appearanceIndex), getX(), getY());
         }
 
         @Override
