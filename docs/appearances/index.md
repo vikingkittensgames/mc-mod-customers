@@ -44,5 +44,7 @@ it available in any spawning mode.
 ### Appearance topics
 
 * [Skins]({{ '/appearances/skins.html' | relative_url }})
-* [Minecraft Comes Alive]({{ '/appearances/minecraft-comes-alive.html' | relative_url }})
+* [MCA Reborn Appearance](https://vikingkittensgames.github.io/mc-mod-customers-appearance-mcareborn)
+* [Millénaire Appearance](https://vikingkittensgames.github.io/mc-mod-customers-appearance-millenaire)
+* [MineColonies Appearance](https://vikingkittensgames.github.io/mc-mod-customers-appearance-minecolonies)
 * [Custom Appearance Mod Integration]({{ '/appearances/custom.html' | relative_url }})
