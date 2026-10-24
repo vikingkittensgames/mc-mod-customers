@@ -1,36 +1,23 @@
 package com.vikingkittens.mc.customers.client.appearance.skins;
 
 import org.junit.jupiter.api.Test;
+import software.bernie.geckolib.cache.object.GeoBone;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class SkinCustomersVillagerGeckoHeadRotationTest {
     @Test
-    void appliesTrackingOnTopOfRotationAnimatedThisFrame() {
-        SkinCustomersVillagerGeckoHeadRotation rotation =
-                SkinCustomersVillagerGeckoHeadRotation.create(0.25F, -0.5F, 0.0F, 0.0F, true, 0.5F, 1.0F);
+    void appliesTrackingToTheAnimatedHeadRotationAndResetsStateMarkers() {
+        GeoBone head = mock(GeoBone.class);
+        when(head.getRotX()).thenReturn(0.25F);
+        when(head.getRotY()).thenReturn(-0.5F);
 
-        assertEquals(0.25F, rotation.animatedPitch());
-        assertEquals(-0.5F, rotation.animatedYaw());
-        assertEquals(0.75F, rotation.renderedPitch());
-        assertEquals(0.5F, rotation.renderedYaw());
-    }
+        SkinCustomersVillagerGeckoHeadRotation.apply(head, 0.5F, 1.0F);
 
-    @Test
-    void doesNotReuseTrackingRotationFromThePreviousFrame() {
-        SkinCustomersVillagerGeckoHeadRotation first =
-                SkinCustomersVillagerGeckoHeadRotation.create(0.0F, 0.0F, 0.0F, 0.0F, false, 0.5F, 1.0F);
-        SkinCustomersVillagerGeckoHeadRotation second = SkinCustomersVillagerGeckoHeadRotation.create(
-                first.renderedPitch(),
-                first.renderedYaw(),
-                0.0F,
-                0.0F,
-                false,
-                0.5F,
-                1.0F
-        );
-
-        assertEquals(0.5F, second.renderedPitch());
-        assertEquals(1.0F, second.renderedYaw());
+        inOrder(head).verify(head).setRotX(0.75F);
+        inOrder(head).verify(head).setRotY(0.5F);
+        inOrder(head).verify(head).resetStateChanges();
     }
 }

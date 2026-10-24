@@ -177,6 +177,8 @@ may use a namespaced Gecko model ID instead of `wide` or `slim`. GeckoLib is opt
 work without it, Gecko skins are omitted from random selection when it is absent, and a pack containing only Gecko
 skins is hidden until GeckoLib is installed.
 
+![apperance-skins-gecko.png](../screenshots/apperance-skins-gecko.png)
+
 Minecraft 1.21.1 uses GeckoLib 4.8.4 or another compatible GeckoLib 4 release. Gecko skin definitions use the same
 texture and sound fields as ordinary skins. No Gecko sound-keyframe setup is needed.
 
@@ -363,10 +365,6 @@ The [Blockbench basics video](https://www.youtube.com/watch?v=QhPzgpapOWE),
 older Minecraft/GeckoLib project, but the Blockbench modeling, bone, pivot, UV, keyframe, and looping techniques still
 apply. Customers handles the code integration, so pack authors should follow this page for names and file locations.
 
-Blender can be used for reference geometry, sculpting, or previews, but GeckoLib does not document a direct Blender
-production exporter. Finish cube geometry, pixel-aligned UVs, bones, pivots, animations, and export in Blockbench.
-
 After editing, use `/reload` for data-pack definitions and `F3+T` for client model, animation, texture, or sound assets.
 The repository's `examples/customers-gecko-skins` directory is a combined data/resource pack showing one ordinary
 skin and one animated skin in the same selectable appearance.
-

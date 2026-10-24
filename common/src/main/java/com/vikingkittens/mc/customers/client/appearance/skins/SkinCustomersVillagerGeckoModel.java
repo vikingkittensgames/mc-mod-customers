@@ -53,26 +53,21 @@ final class SkinCustomersVillagerGeckoModel extends GeoModel<SkinCustomersVillag
         head.setTrackingMatrices(true);
         SkinCustomersVillagerHeadTracking tracking = definition.getHeadTracking();
         EntityModelData modelData = animationState.getData(DataTickets.ENTITY_MODEL_DATA);
-        if (tracking.enabled() && modelData != null) {
-            SkinCustomersVillagerGeckoHeadRotation rotation = SkinCustomersVillagerGeckoHeadRotation.create(
-                    head.getRotX(),
-                    head.getRotY(),
-                    head.getInitialSnapshot().getRotX(),
-                    head.getInitialSnapshot().getRotY(),
-                    head.hasRotationChanged(),
-                    SkinCustomersVillagerGeckoGeometry.trackingRotation(
-                            modelData.headPitch(),
-                            tracking.pitchMultiplier(),
-                            tracking.maximumPitch()
-                    ),
-                    SkinCustomersVillagerGeckoGeometry.trackingRotation(
-                            modelData.netHeadYaw(),
-                            tracking.yawMultiplier(),
-                            tracking.maximumYaw()
-                    )
-            );
-            head.setRotX(rotation.renderedPitch());
-            head.setRotY(rotation.renderedYaw());
+        if (!tracking.enabled() || modelData == null) {
+            return;
         }
+        SkinCustomersVillagerGeckoHeadRotation.apply(
+                head,
+                SkinCustomersVillagerGeckoGeometry.trackingRotation(
+                        modelData.headPitch(),
+                        tracking.pitchMultiplier(),
+                        tracking.maximumPitch()
+                ),
+                SkinCustomersVillagerGeckoGeometry.trackingRotation(
+                        modelData.netHeadYaw(),
+                        tracking.yawMultiplier(),
+                        tracking.maximumYaw()
+                )
+        );
     }
 }

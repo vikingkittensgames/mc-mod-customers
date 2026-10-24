@@ -59,6 +59,7 @@ dependencies {
     compileOnly "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
     testRuntimeOnly "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
     modCompileOnly "software.bernie.geckolib:geckolib-fabric-${minecraft_version}:${geckolib_version}"
+    testRuntimeOnly "software.bernie.geckolib:geckolib-fabric-${minecraft_version}:${geckolib_version}"
 
     testImplementation project(':testsupport')
     testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
