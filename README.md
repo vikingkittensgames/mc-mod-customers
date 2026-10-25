@@ -20,7 +20,7 @@ me adding more features:
 ## Supported Minecraft Versions and Mod Loaders
 
 For now we support Minecraft versions:
-* 1.20.1 - Forge
+* 1.20.1 - Forge & Fabric
 * 1.21.1 - NeoForge & Fabric
 * 1.21.11 (delayed update)
 
@@ -29,6 +29,10 @@ For now we support Minecraft versions:
 Check out the full Customers documentation here:
 
 https://vikingkittensgames.github.io/mc-mod-customers/
+
+Customer and Supplier appearances can come from data-driven skin packs. Skin packs support optional names, sounds,
+standard player models, and animated GeckoLib models. GeckoLib is optional; normal skins continue to work without it.
+MCA Reborn, Millénaire, and MineColonies appearances are distributed as separate appearance add-ons.
 
 ## Building and Testing
 
@@ -56,6 +60,16 @@ forge/build/libs folder. To test, use the runClientForge task.
 
 # Testing locally
 .\gradlew.bat runClientForge
+```
+
+### Fabric
+
+Use `buildFabric` to build the Fabric release JAR in `fabric/build/libs`, and
+`runClientFabric` to test it locally.
+
+```powershell
+.\gradlew.bat buildFabric
+.\gradlew.bat runClientFabric
 ```
 
 ## Building Documentation

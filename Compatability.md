@@ -394,6 +394,16 @@ Registry keys deliberately use `customers:skins` and
 `data/{namespace}/customers/skins` and
 `data/{namespace}/customers/skin_packs`.
 
+Skin `names` use Minecraft JSON text components through `ComponentCUtils.codec()`. Minecraft 1.20.1 adapts the older
+`Component.Serializer`, while newer branches can expose Minecraft's component codec directly. Appearance names are
+stored as normal custom names so Minecraft handles synchronization, persistence, and client translation.
+
+Gecko skin definitions and the public appearance API do not expose GeckoLib classes. Minecraft 1.20.1 and 1.21.1 use
+GeckoLib 4 and the `geo` and `animations` asset directories. Model selection, animation decisions, sitting-pivot math,
+head tracking, and wanted-item anchor behavior stay in testable Customers classes; only the optional renderer bridge
+depends directly on GeckoLib. Complete resource paths are preserved so definitions can reuse assets from another
+installed mod, and `required_mods` is checked through the loader-neutral platform helper.
+
 ## Client Compatibility
 
 ### TextureC
@@ -639,9 +649,9 @@ resource, and production-run details.
 Persistence adapters own version-specific serialization. Networking remains
 common through Architectury.
 
-The MCA Appearance is supported only for Minecraft 1.21.1 and newer. The
-Minecraft 1.20.1 Fabric and Forge port does not include MCA integration or
-its dependency.
+The MCA Reborn Appearance is a separate Fabric and NeoForge add-on for Minecraft 1.21.1. It retains the historical
+`customers:mca` ID for saved-setting compatibility. The main Customers mod no longer includes MCA integration or an
+MCA dependency, and there is currently no MCA appearance add-on for Minecraft 1.20.1.
 
 Additional 1.20.1 details:
 

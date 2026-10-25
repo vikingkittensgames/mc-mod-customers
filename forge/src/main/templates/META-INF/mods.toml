@@ -39,3 +39,10 @@ mandatory=false
 versionRange="${ftb_quests_version_range}"
 ordering="AFTER"
 side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="geckolib"
+mandatory=false
+versionRange="${geckolib_version_range}"
+ordering="AFTER"
+side="CLIENT"

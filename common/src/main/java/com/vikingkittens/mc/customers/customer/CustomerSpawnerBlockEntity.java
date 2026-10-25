@@ -1077,12 +1077,10 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                         spawnerMode,
                         false
                 );
-                customer.setAppearanceId(
-                        CustomersVillagerAppearances.select(
-                                settings.getEnabledAppearanceIds(),
-                                customer,
-                                level.getRandom()::nextInt
-                        )
+                CustomersVillagerAppearances.selectAndApply(
+                        settings.getEnabledAppearanceIds(),
+                        customer,
+                        level.getRandom()::nextInt
                 );
                 customerIds.add(customer.getUUID());
                 if (settings.getPetPercentage() > 0.0F &&

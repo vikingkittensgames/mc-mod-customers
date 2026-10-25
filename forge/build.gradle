@@ -94,6 +94,11 @@ dependencies {
 
     modCompileOnly "dev.ftb.mods:ftb-quests-forge:${ftb_quests_version}"
     modLocalRuntime "dev.ftb.mods:ftb-quests-forge:${ftb_quests_version}"
+    modCompileOnly "software.bernie.geckolib:geckolib-forge-${minecraft_version}:${geckolib_version}"
+    modLocalRuntime "software.bernie.geckolib:geckolib-forge-${minecraft_version}:${geckolib_version}"
+    productionClientMods("software.bernie.geckolib:geckolib-forge-${minecraft_version}:${geckolib_version}") {
+        transitive = false
+    }
 
     common(project(path: ':common', configuration: 'namedElements')) {
         transitive = false
@@ -114,6 +119,7 @@ def generateModMetadata = tasks.register('generateModMetadata', ProcessResources
             forge_loader_version_range : forge_loader_version_range,
             forge_version              : forge_version,
             ftb_quests_version_range   : ftb_quests_version_range,
+            geckolib_version_range     : geckolib_version_range,
             minecraft_version          : minecraft_version,
             minecraft_version_range    : minecraft_version_range,
             mod_id                     : mod_id,
@@ -149,6 +155,7 @@ tasks.register('prepareProdClient', Copy) {
     }
     from(configurations.productionClientMods) {
         rename(/architectury-forge-.+\.jar/, 'architectury-api-under-test.jar')
+        rename(/geckolib-forge-.+\.jar/, 'geckolib-under-test.jar')
     }
 }
 

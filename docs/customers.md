@@ -19,7 +19,8 @@ Each wears a different hat:
 | ![Normal Customer]({{ '/screenshots/customer-normal.png' | relative_url }}) | ![Impatient Customer]({{ '/screenshots/customer-impatient.png' | relative_url }}) | ![Casual Customer]({{ '/screenshots/customer-casual.png' | relative_url }}) |
 
 
-If you want your customers to have names, think about using the [Villager Names mod](https://www.curseforge.com/minecraft/mc-mods/villager-names).
+Some appearances provide names for their Customers and Suppliers. When the selected appearance does not provide a
+name, a naming mod such as [Villager Names](https://www.curseforge.com/minecraft/mc-mods/villager-names) can assign one.
 
 ### Picking Items to Buy
 

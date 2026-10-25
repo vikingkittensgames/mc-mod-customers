@@ -403,8 +403,8 @@ Loader-specific recipe conditions remain in loader resources:
 - Fabric registers a `ResourceConditions` predicate and uses Fabric load
   conditions.
 
-The MCA appearance is not included because the required MCA renderer and
-entity APIs are not available through the selected 1.20.1 dependencies.
+The MCA Reborn appearance is no longer embedded in the main Customers mod. It is distributed as a separate add-on
+where supported; no MCA artifact is required by this 1.20.1 build.
 
 This section replaces the deleted
 `Minecraft-1.21.1-to-1.20.1.md` pre-Architectury migration document.
@@ -778,8 +778,8 @@ registration now run from each loader's client entrypoint.
 `CustomersClientRegistrations` uses `EntityRendererRegistry`,
 `EntityModelLayerRegistry`, and `BlockEntityRendererRegistry` for customer and
 supplier entities, the customer seat, the customer model layer, and the pickup
-counter renderer. It also registers built-in monster and skin appearances, and
-the optional MCA appearance only when MCA is present.
+counter renderer. It also registers the built-in monster and skin appearances. Integrations such as MCA Reborn,
+Millénaire, and MineColonies register themselves from separate appearance add-ons.
 
 It also uses `ClientPlayerEvent.CLIENT_PLAYER_QUIT` to clear synchronized
 customer-spawner snapshots when the player leaves a level.
@@ -848,7 +848,7 @@ listeners in `common`; thin loader client and server hooks initialize them
 only when FTB Quests is present. Each loader supplies its matching FTB Quests
 runtime artifact.
 
-### MCA and other optional mods
+### Appearance add-ons and other optional mods
 
 Use `Platform.isModLoaded` for optional-mod detection.
 

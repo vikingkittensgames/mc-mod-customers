@@ -300,9 +300,8 @@ record accessors. Fabric remaps Minecraft-interface accessor names in
 production classes without updating the corresponding record accessor
 metadata, which can make `RecordComponent.getAccessor()` return `null`.
 
-MCA appearance support requires separate dependency and compatibility checks
-for NeoForge and Forge. Lack of a compatible MCA build for one loader
-disables only the MCA appearance on that loader.
+MCA Reborn, Millénaire, and MineColonies integrations are separate appearance add-ons. The main Customers artifact
+does not compile against or load their APIs.
 
 ## Migration Log
 
@@ -457,11 +456,9 @@ registration provider.
 Loader-specific appearance integrations retain only their loader-dependent
 registration, rendering, and optional-mod adapters.
 The built-in monster appearance implementation and its loader-neutral registration also live in `common`; only its client rendering
-integration remains loader-specific. Skin-pack definitions, selection, appearance behavior, and provider lookup are also shared; loaders
-retain their data-pack registry lifecycle adapters.
-MCA availability detection, appearance behavior, voice selection, and variation logic are shared because MCA exposes the APIs they use
-independently of the loader event bus. The shared MCA initializer conditionally declares its appearance through the registration service only
-when MCA is loaded. Loader modules retain client-renderer adapters.
+integration remains loader-specific. Skin-pack definitions, selection, appearance behavior, Gecko animation decisions, and provider lookup
+are shared; loaders retain their data-pack registry lifecycle adapters. The Gecko renderer bridge is loaded only when GeckoLib is present.
+External appearance add-ons use the public appearance contracts and keep their target-mod dependencies outside the main Customers artifact.
 
 The MultiLoader Template supplies the common-source convention, loader module
 layout, service-loader pattern, and IDE run-configuration approach. Template

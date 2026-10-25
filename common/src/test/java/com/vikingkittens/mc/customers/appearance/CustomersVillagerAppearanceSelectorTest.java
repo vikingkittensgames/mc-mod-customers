@@ -1,6 +1,7 @@
 package com.vikingkittens.mc.customers.appearance;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.IntUnaryOperator;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -15,6 +16,8 @@ import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class CustomersVillagerAppearanceSelectorTest {
@@ -68,6 +71,63 @@ class CustomersVillagerAppearanceSelectorTest {
                 );
 
         assertEquals(skinPackId, selected);
+    }
+
+    @Test
+    void appliesPropertiesProvidedByTheSelectedAppearance() {
+        CustomersVillager villager = mock(CustomersVillager.class);
+        ResourceLocation appearanceId = ResourceLocationCUtils.parse("example:contextual");
+        Map<String, String> properties = Map.of("culture", "millenaire:norman");
+        CustomersVillagerAppearance appearance = new CustomersVillagerAppearance() {
+            @Override
+            public Component getName() {
+                return Component.literal("Contextual");
+            }
+
+            @Override
+            public Map<String, String> getAdditionalProperties(CustomersVillager customer) {
+                return properties;
+            }
+        };
+
+        CustomersVillagerAppearances.applySelected(appearanceId, appearance, villager);
+
+        verify(villager).setAppearanceId(appearanceId);
+        verify(villager).setAdditionalProperties(properties);
+    }
+
+    @Test
+    void appliesTheNameProvidedByTheSelectedAppearance() {
+        CustomersVillager villager = mock(CustomersVillager.class);
+        Component name = Component.translatable("name.example.shopkeeper");
+        CustomersVillagerAppearance appearance = new CustomersVillagerAppearance() {
+            @Override
+            public Component getName() {
+                return Component.literal("Named");
+            }
+
+            @Override
+            public Component getVillagerName(CustomersVillager customer) {
+                return name;
+            }
+        };
+
+        CustomersVillagerAppearances.applySelected(ResourceLocationCUtils.parse("example:named"), appearance, villager);
+
+        verify(villager).setVillagerName(name);
+    }
+
+    @Test
+    void leavesTheVillagerNameAvailableToOtherModsWhenTheAppearanceDoesNotProvideOne() {
+        CustomersVillager villager = mock(CustomersVillager.class);
+
+        CustomersVillagerAppearances.applySelected(
+                ResourceLocationCUtils.parse("example:unnamed"),
+                appearance("Unnamed", true),
+                villager
+        );
+
+        verify(villager, never()).setVillagerName(org.mockito.ArgumentMatchers.any());
     }
 
     private static CustomersVillagerAppearance appearance(String name, boolean applicable) {

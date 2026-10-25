@@ -80,6 +80,14 @@ repositories {
             includeGroup('dev.ftb.mods')
         }
     }
+    maven {
+        name = 'GeckoLib'
+        url = 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
+        content {
+            includeGroup('software.bernie.geckolib')
+            includeGroup('com.eliotlash.mclib')
+        }
+    }
 }
 
 ['apiElements', 'runtimeElements', 'sourcesElements'].each { variant ->

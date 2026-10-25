@@ -1,5 +1,6 @@
 package com.vikingkittens.mc.customers.supplier;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Predicate;
@@ -77,6 +78,7 @@ class SupplierVillagerEntityTest {
                 TEST_APPEARANCE
         );
         doNothing().when(supplier).setVariationSeed(0.25F);
+        doNothing().when(supplier).setAdditionalProperties(Map.of());
         when(input.getBlockPos("SpawnerPos")).thenReturn(Optional.of(spawnerPos));
         when(input.getBlockPos("SpawnPos")).thenReturn(Optional.of(spawnPos));
 
@@ -89,6 +91,7 @@ class SupplierVillagerEntityTest {
                 TEST_APPEARANCE
         );
         verify(supplier).setVariationSeed(0.25F);
+        verify(supplier).setAdditionalProperties(Map.of());
     }
     @Test
     void writesSupplierPersistenceData() {
@@ -105,6 +108,7 @@ class SupplierVillagerEntityTest {
         doReturn(TEST_APPEARANCE)
                 .when(supplier).getAppearanceId();
         doReturn(0.25F).when(supplier).getVariationSeed();
+        doReturn(Map.of()).when(supplier).getAdditionalProperties();
 
         supplier.writeSupplierData(output);
 
