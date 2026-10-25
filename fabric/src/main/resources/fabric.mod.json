@@ -20,6 +20,6 @@
     "java": ">=21"
   },
   "suggests": {
-    "geckolib": ">=${geckolib_version}"
+    "geckolib": ">=${geckolib_version} <5"
   }
 }
