@@ -22,7 +22,7 @@ me adding more features:
 For now we support Minecraft versions:
 * 1.20.1 - Forge & Fabric
 * 1.21.1 - NeoForge & Fabric
-* 1.21.11 (delayed update)
+* 1.21.11 - NeoForge & Fabric
 
 ## Documentation
 
@@ -30,36 +30,16 @@ Check out the full Customers documentation here:
 
 https://vikingkittensgames.github.io/mc-mod-customers/
 
-Customer and Supplier appearances can come from data-driven skin packs. Skin packs support optional names, sounds,
-standard player models, and animated GeckoLib models. GeckoLib is optional; normal skins continue to work without it.
-MCA Reborn, Millénaire, and MineColonies appearances are distributed as separate appearance add-ons.
-
 ## Building and Testing
 
 ### NeoForge
 
-Use the Gradle NeoForge buildNeoForge tool to build a release JAR in the
-neoforge/build/libs folder. To test, use the runClientNeoForge task.
+For Minecraft 1.21.1+ use `buildNeoForge` to build the NeoForge release JAR in `neoforge/build/libs`, and
+`runClientNeoForge` to test it locally.
 
 ```powershell
-# Building release JAR
 .\gradlew.bat buildNeoForge
-
-# Testing locally
 .\gradlew.bat runClientNeoForge
-```
-
-### Forge
-
-Use the Gradle Forge buildForge tool to build a release JAR in the
-forge/build/libs folder. To test, use the runClientForge task.
-
-```powershell
-# Building release JAR
-.\gradlew.bat buildForge
-
-# Testing locally
-.\gradlew.bat runClientForge
 ```
 
 ### Fabric
@@ -70,6 +50,16 @@ Use `buildFabric` to build the Fabric release JAR in `fabric/build/libs`, and
 ```powershell
 .\gradlew.bat buildFabric
 .\gradlew.bat runClientFabric
+```
+
+### Forge
+
+For Minecraft 1.20.1 use `buildForge` to build the Forge release JAR in `forge/build/libs`, and
+`runClientForge` to test it locally.
+
+```powershell
+.\gradlew.bat buildForge
+.\gradlew.bat runClientForge
 ```
 
 ## Building Documentation

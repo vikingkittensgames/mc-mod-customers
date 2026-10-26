@@ -6,10 +6,9 @@ parent_url: /appearances/
 
 ### Skins
 
-Skin packs are data-driven appearances that use standard Minecraft player skins. Each
-skin-pack JSON becomes a separately selectable appearance in Customer and Supplier
-Spawner interfaces. When a skin-pack appearance is selected for a villager, its saved
-appearance variation consistently selects one of the skins in that pack.
+Skin packs are data-driven appearances that use standard Minecraft player skins or
+GeckoLib models if GeckoLib is installed. Each skin-pack JSON becomes a separately
+selectable appearance in Customer and Supplier Spawner interfaces.
 
 The mod includes an **MC Skins** appearance containing Alex, Ari, Efe, Herobrine,
 Makena, Steve, and Zuri.
@@ -179,9 +178,7 @@ skins is hidden until GeckoLib is installed.
 
 ![apperance-skins-gecko.png](../screenshots/apperance-skins-gecko.png)
 
-Minecraft 1.20.1 and 1.21.1 use GeckoLib 4.8.4 or another compatible GeckoLib 4 release. The skin JSON, GeckoLib
-asset paths, and installation process are identical on both versions. Gecko skin definitions use the same texture and
-sound fields as ordinary skins. No Gecko sound-keyframe setup is needed.
+Gecko skin definitions use the same texture and sound fields as ordinary skins.
 
 ```json
 {
@@ -234,7 +231,7 @@ sound fields as ordinary skins. No Gecko sound-keyframe setup is needed.
 mappings are optional. A missing run, crouch-walk, or swim animation uses walk; a missing crouch-idle, flying, or
 sleep animation uses idle. Optional action and reaction animations simply do not play when absent.
 
-For GeckoLib 4, the example IDs resolve to:
+For GeckoLib 4 (Minecraft 1.20.1 & 1.21.1), the example IDs resolve to:
 
 ```text
 assets/example/geo/customers/skins/animated_shopkeeper.geo.json
@@ -242,12 +239,21 @@ assets/example/animations/customers/skins/animated_shopkeeper.animation.json
 assets/example/textures/customers/skins/animated_shopkeeper.png
 ```
 
-GeckoLib 5 branches use these model and animation locations instead, allowing a cross-version pack to include both:
+For GeckoLib 5 (Minecraft 1.21.11+), use these model and animation locations instead, allowing a cross-version pack to include both:
 
 ```text
 assets/example/geckolib/models/customers/skins/animated_shopkeeper.geo.json
 assets/example/geckolib/animations/customers/skins/animated_shopkeeper.animation.json
 ```
+
+The `sitting_pivot` is the model's hip position in Blockbench model units, where 16 units equal one block. Positive X
+points right, positive Y points up, positive Z points forward, and the feet should be at Y zero. Customers aligns this
+point to its standard seated hip at `[0, 12, 0]`, including the skin scale and the villager's facing direction.
+
+`head_bone` defaults to `head`. Customers applies clamped player-looking rotation to that bone after JSON animation
+and uses its current animated position to place wanted items. `name_tag_offset` moves the item row vertically from
+the head bone; it does not define a separate overhead point. If the bone is absent, the model still renders, head
+tracking is disabled, and wanted items use entity height.
 
 #### Reusing GeckoLib assets from another mod
 
@@ -255,7 +261,7 @@ A skin can use model, animation, and texture files that are already inside anoth
 resource path, including its directory and file extension, instead of the shorter Customers ID. Add `required_mods`
 so Customers does not select the skin when the mod providing those files is absent.
 
-For example, [Ribbits](https://www.curseforge.com/minecraft/mc-mods/ribbits) 4.1.6 contains a merchant model at
+For example, [Ribbits](https://www.curseforge.com/minecraft/mc-mods/ribbits) contains a merchant model at
 `assets/ribbits/geo/merchant_ribbit.geo.json`, animations at
 `assets/ribbits/animations/ribbit.animation.json`, and its texture at
 `assets/ribbits/textures/entity/ribbit.png`. A skin using those installed assets can be defined as:
@@ -289,11 +295,6 @@ pivot with the seat. A model with a purpose-built sitting animation will produce
 model also has no separate head bone, so this example disables head tracking and uses its body bone plus
 `name_tag_offset` for wanted-item placement.
 
-Other popular GeckoLib mods vary considerably. Mowzie's Mobs, Creeper Overhaul, and Bosses of Mass Destruction ship
-Gecko model and animation JSON that can be referenced. The inspected Minecraft 1.21.1 Naturalist and L_Ender's
-Cataclysm jars contain entity textures but no `.geo.json` or `.animation.json` files, so their models cannot be used
-this way.
-
 Only the selected raw model, animation, and texture resources are reused. Customers does not inherit the other mod's
 renderer code, extra render layers, emissive passes, dynamic texture or bone selection, particles, or custom
 animation-controller state. Prefer models whose required animations use ordinary keyframes and test every mapped
@@ -302,15 +303,6 @@ state. Inspect an installed mod jar as a ZIP to find its resource paths, animati
 Resource paths and animation names are implementation details of the providing mod and may change when it updates.
 Pin and test the supported version in a modpack. Referencing installed files avoids copying them into the appearance
 pack, but pack authors must still follow the originating mod's license and distribution terms.
-
-The `sitting_pivot` is the model's hip position in Blockbench model units, where 16 units equal one block. Positive X
-points right, positive Y points up, positive Z points forward, and the feet should be at Y zero. Customers aligns this
-point to its standard seated hip at `[0, 12, 0]`, including the skin scale and the villager's facing direction.
-
-`head_bone` defaults to `head`. Customers applies clamped player-looking rotation to that bone after JSON animation
-and uses its current animated position to place wanted items. `name_tag_offset` moves the item row vertically from
-the head bone; it does not define a separate overhead point. If the bone is absent, the model still renders, head
-tracking is disabled, and wanted items use entity height.
 
 #### Producing a model in Blockbench
 
@@ -365,6 +357,8 @@ The [Blockbench basics video](https://www.youtube.com/watch?v=QhPzgpapOWE),
 [GeckoLib animation video](https://www.youtube.com/watch?v=3srLEdFTgVI) provide visual walkthroughs. They use an
 older Minecraft/GeckoLib project, but the Blockbench modeling, bone, pivot, UV, keyframe, and looping techniques still
 apply. Customers handles the code integration, so pack authors should follow this page for names and file locations.
+
+#### Example Pack with GeckoLib Models
 
 After editing, use `/reload` for data-pack definitions and `F3+T` for client model, animation, texture, or sound assets.
 The repository's `examples/customers-gecko-skins` directory is a combined data/resource pack showing one ordinary
