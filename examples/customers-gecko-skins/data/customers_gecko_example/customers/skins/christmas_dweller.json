@@ -1,0 +1,22 @@
+{
+  "texture": "santa_dweller:textures/entity/santa_dweller_texture.png",
+  "model": "santa_dweller:geckolib/models/santa_dweller.geo.json",
+  "animation": "santa_dweller:geckolib/animations/santa_dweller.animation.json",
+  "required_mods": [
+    "santa_dweller"
+  ],
+  "scale": 0.75,
+  "shadow_radius": 0.8,
+  "name_tag_offset": 0.5,
+  "head_bone": "h_head",
+  "sitting_pivot": [0.0, 22.5, -10.0],
+  "animations": {
+    "idle": "animation.santa_dweller.idle",
+    "walk": "animation.santa_dweller.calm_move",
+    "sit": "animation.santa_dweller.calm_idle",
+    "run": "animation.santa_dweller.run",
+    "crouch_idle": "animation.santa_dweller.crouch_idle",
+    "hurt": "animation.santa_dweller.spotted",
+    "swing_mainhand": "animation.santa_dweller.attack"
+  }
+}

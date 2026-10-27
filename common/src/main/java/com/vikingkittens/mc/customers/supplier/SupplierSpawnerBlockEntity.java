@@ -297,12 +297,10 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
                         CustomersVillagerAppearances.DEFAULT,
                         variationSeed
                 );
-                supplier.setAppearanceId(
-                        CustomersVillagerAppearances.select(
-                                appearanceSettings.getEnabledAppearances(),
-                                supplier,
-                                level.getRandom()::nextInt
-                        )
+                CustomersVillagerAppearances.selectAndApply(
+                        appearanceSettings.getEnabledAppearances(),
+                        supplier,
+                        level.getRandom()::nextInt
                 );
                 setChanged();
             }

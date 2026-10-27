@@ -32,6 +32,26 @@ Classes are grouped by the Minecraft concept they adapt and use the `CUtils` suf
 types needed by the Minecraft 1.21.11 appearance dispatcher. It invokes the
 selected production renderer's normal state extraction and submission paths.
 
+Gecko skin definitions and the public client appearance contract do not expose GeckoLib classes. The optional
+renderer adapter is version-specific because GeckoLib 4 renders entity instances while GeckoLib 5 uses Minecraft's
+render-state architecture. Minecraft 1.20.1 and 1.21.1 use GeckoLib 4 asset paths under `geo` and `animations`;
+Minecraft 1.21.11 uses GeckoLib 5 paths under `geckolib/models` and `geckolib/animations`. Keep model selection,
+animation-state decisions, pivot math, and overhead-anchor semantics identical across branches.
+
+GeckoLib 5 injects its data methods into Minecraft's base `EntityRenderState`. A custom render-state subclass that
+owns a separate data map must override `addGeckolibData`, `hasGeckolibData`, and `getDataMap` so GeckoLib writes and
+reads the animation manager through the same storage on both Fabric and NeoForge.
+
+Short Gecko skin resource IDs expand into the Customers asset layout for the active GeckoLib generation. Complete
+IDs ending in `.geo.json` or `.animation.json` are normalized to GeckoLib 5 logical IDs on Minecraft 1.21.11, while
+complete texture paths remain unchanged. Use Architectury `Platform.isModLoaded` through the shared skin-availability
+path for optional GeckoLib and generic `required_mods` filtering.
+
+Skin `names` use Minecraft's standard JSON text-component representation. Access its codec only through
+`ComponentCUtils.codec()` so the implementation can follow the Minecraft version's component serialization API.
+Appearance-provided names are assigned as normal entity custom names so Minecraft handles synchronization,
+persistence, and client-side translation.
+
 ## Common and Server Compatibility
 
 ### RegistrationCUtils

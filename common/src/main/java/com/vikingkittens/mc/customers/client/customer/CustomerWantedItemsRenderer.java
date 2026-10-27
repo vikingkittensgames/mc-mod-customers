@@ -1,6 +1,7 @@
 package com.vikingkittens.mc.customers.client.customer;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -12,6 +13,7 @@ import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 
 import com.vikingkittens.mc.customers.client.appearance.CustomersVillagerClientAppearances;
 import com.vikingkittens.mc.customers.client.appearance.CustomersVillagerRenderProxy;
@@ -52,11 +54,11 @@ public final class CustomerWantedItemsRenderer {
                 appearanceNameTagOffset,
                 minecraft.font.lineHeight
         );
-        poseStack.translate(
-                0,
-                customer.getBbHeight() + verticalOffset,
-                0
+        Vec3 anchor = getAnchor(
+                CustomersVillagerClientAppearances.getOverheadAnchor(customer),
+                customer.getBbHeight()
         );
+        poseStack.translate(anchor.x, anchor.y + verticalOffset, anchor.z);
         poseStack.mulPose(minecraft.gameRenderer.getMainCamera().rotation());
 
         float iconSpacing = 0.5F;
@@ -110,5 +112,9 @@ public final class CustomerWantedItemsRenderer {
         return BASE_VERTICAL_OFFSET
                 + appearanceNameTagOffset
                 + nameTagOffset;
+    }
+
+    static Vec3 getAnchor(Optional<Vec3> appearanceAnchor, float entityHeight) {
+        return appearanceAnchor.orElseGet(() -> new Vec3(0.0D, entityHeight, 0.0D));
     }
 }

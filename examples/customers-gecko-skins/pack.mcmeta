@@ -1,0 +1,9 @@
+{
+  "pack": {
+    "description": "Customers GeckoLib 5 skin example",
+    "pack_format": 75,
+    "min_format": 64,
+    "max_format": [94, 1],
+    "supported_formats": [64, 94]
+  }
+}

@@ -451,6 +451,20 @@ sounds, statistics, and advancement triggers entirely into `common`.
 Use `RegistrarBuilder.syncToClients()` for the custom appearance registry if
 its behavior matches the current loader implementations.
 
+Third-party contextual appearances use the same synchronized appearance
+registry as built-in appearances. `CustomersVillager` exposes the logical
+level, spawner position, and an immutable map of appearance-specific
+properties. The server calls `getAdditionalProperties` once when it selects an
+appearance, persists those properties with the villager, and synchronizes them
+to clients. Clients render only from the synchronized appearance ID and
+properties; they do not repeat contextual selection.
+
+Keep a registered appearance ID stable when several visual variants belong to
+one integration. Store the narrower variant selection in additional
+properties. Appearance implementations may also supply a synchronized name
+and sound overrides. Client proxy caches must not keep removed entities alive;
+use weak entity keys when a renderer requires a proxy.
+
 Architectury registration does not automatically cover every loader lifecycle
 for codec-backed data-pack registries. Keep a narrowly scoped platform bridge
 for synchronized data-pack registry declaration if required after a spike.
@@ -724,6 +738,28 @@ classes.
 Do not advertise an integration on Fabric merely because the other mod has a
 Fabric artifact. Confirm that the API classes and behavior Customers uses are
 available on that loader and Minecraft version.
+
+The Skins appearance optionally supports GeckoLib models without making
+GeckoLib mandatory for Customers or for ordinary wide/slim skin packs. Keep
+all GeckoLib-typed classes behind the loaded-mod check so a server or client
+without GeckoLib can load the base mod.
+
+GeckoLib 4 and GeckoLib 5 are source- and resource-layout-incompatible, so
+each Minecraft-version branch owns a small adapter while the skin definition
+and animation-selection behavior remain shared:
+
+| Customers branch | GeckoLib API | Model and animation assets |
+| --- | --- | --- |
+| Minecraft 1.20.1 | GeckoLib 4 | `geo/` and `animations/` |
+| Minecraft 1.21.1 | GeckoLib 4 | `geo/` and `animations/` |
+| Minecraft 1.21.11 | GeckoLib 5.4.5+ and below 6 | `geckolib/models/` and `geckolib/animations/` |
+
+Skin definitions use logical model and animation IDs. On the 1.21.11 adapter,
+complete GeckoLib 5 asset paths are normalized to those logical IDs before
+resource lookup; texture IDs remain normal Minecraft resource locations. See
+`docs/appearances/skins.md` for pack-author syntax and
+`Minecraft-1.21.1-to-1.21.11.md` for player- and administrator-facing version
+differences.
 
 ### Persistence
 

@@ -1,6 +1,8 @@
 package com.vikingkittens.mc.customers.client.appearance.skins;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -45,7 +47,14 @@ class SkinCustomersVillagerClientAppearanceTest {
                         1.1F,
                         0.4F,
                         0.2F,
-                        Map.of()
+                        List.of(),
+                        Map.of(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Map.of(),
+                        List.of()
                 );
 
         assertEquals(SkinCustomersVillagerModel.SLIM, skin.model());

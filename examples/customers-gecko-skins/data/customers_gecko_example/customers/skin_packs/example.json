@@ -1,0 +1,8 @@
+{
+  "name": "Gecko Example",
+  "skins": [
+    "customers_gecko_example:alex",
+    "customers_gecko_example:animated_steve",
+    "customers_gecko_example:christmas_dweller"
+  ]
+}

@@ -52,6 +52,9 @@ public final class CustomersVillagerAppearanceEntityRenderer<
         renderState.sittingOffset = entity.isVillagerSitting() && appearance != null
                 ? appearance.getSittingOffset(entity)
                 : Vec3.ZERO;
+        renderState.shadowRadius = appearance == null
+                ? 0.5F
+                : appearance.getShadowRadius(entity);
     }
 
     @Override
@@ -89,7 +92,7 @@ public final class CustomersVillagerAppearanceEntityRenderer<
 
     @Override
     protected float getShadowRadius(RenderState renderState) {
-        return 0.5F;
+        return renderState.shadowRadius;
     }
 
     static boolean isNameTagRendered(EntityRenderState renderState) {
@@ -101,5 +104,6 @@ public final class CustomersVillagerAppearanceEntityRenderer<
         private EntityRenderer<?, ?> renderer;
         private EntityRenderState delegateRenderState;
         private Vec3 sittingOffset = Vec3.ZERO;
+        private float shadowRadius = 0.5F;
     }
 }
