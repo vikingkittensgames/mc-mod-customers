@@ -1,7 +1,7 @@
 package com.vikingkittens.mc.customers.client.appearance.skins;
 
+import com.geckolib.animation.state.BoneSnapshot;
 import org.junit.jupiter.api.Test;
-import software.bernie.geckolib.animation.state.BoneSnapshot;
 
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;

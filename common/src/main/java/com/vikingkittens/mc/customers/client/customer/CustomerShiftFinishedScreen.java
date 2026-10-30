@@ -10,9 +10,9 @@ import java.util.UUID;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.PlayerFaceRenderer;
+import net.minecraft.client.gui.components.PlayerFaceExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
@@ -99,11 +99,11 @@ public class CustomerShiftFinishedScreen extends Screen {
     }
 
     @Override
-    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         GuiGraphicsCUtils.blit(
                 graphics,
                 RECEIPT_TEXTURE,
@@ -121,24 +121,24 @@ public class CustomerShiftFinishedScreen extends Screen {
         renderCheckmark(graphics);
         renderCustomerTotals(graphics);
         renderPlayerScores(graphics);
-        super.render(graphics, mouseX, mouseY, partialTick);
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }
 
     @Override
     public boolean isPauseScreen() {
         return false;
     }
-    private void renderShiftSummary(GuiGraphics graphics) {
+    private void renderShiftSummary(GuiGraphicsExtractor graphics) {
         Component summary = Component.empty()
                 .append(payload.spawnerMode().getTitle())
                 .append(" - ")
                 .append(Math.round(payload.percentComplete() * 100.0F) + "%");
-        graphics.drawString(font, summary, leftPos + 12, topPos + 12, TEXT_COLOR, false);
+        graphics.text(font, summary, leftPos + 12, topPos + 12, TEXT_COLOR, false);
         GuiGraphicsCUtils.blit(graphics, getShiftTexture(payload.spawnerMode()), leftPos + 225, topPos + 12,
                 0.0F, 0.0F, 16, 16, 16, 16);
     }
 
-    private void renderStars(GuiGraphics graphics) {
+    private void renderStars(GuiGraphicsExtractor graphics) {
         int totalWidth = STAR_SIZE * 5 + STAR_GAP * 4;
         int x = leftPos + (IMAGE_WIDTH - totalWidth) / 2;
         int y = topPos + 32;
@@ -181,7 +181,7 @@ public class CustomerShiftFinishedScreen extends Screen {
         return easeOutElastic(progress);
     }
 
-    private void renderCheckmark(GuiGraphics graphics) {
+    private void renderCheckmark(GuiGraphicsExtractor graphics) {
         if (!payload.levelPassed()) {
             return;
         }
@@ -259,28 +259,28 @@ public class CustomerShiftFinishedScreen extends Screen {
         };
     }
 
-    private void renderCustomerTotals(GuiGraphics graphics) {
+    private void renderCustomerTotals(GuiGraphicsExtractor graphics) {
         int y = topPos + 75;
-        graphics.drawString(font, Component.translatable(
+        graphics.text(font, Component.translatable(
                 "messages.customers.scoreboard.detail.total_customers", payload.totalCustomers()
         ), leftPos + 18, y, TEXT_COLOR, false);
-        graphics.drawString(font, Component.translatable(
+        graphics.text(font, Component.translatable(
                 "messages.customers.scoreboard.detail.customers_served", payload.numCustomersServed()
         ), leftPos + 18, y + 14, TEXT_COLOR, false);
-        graphics.drawString(font, Component.translatable(
+        graphics.text(font, Component.translatable(
                 "messages.customers.scoreboard.detail.customers_gave_up", payload.numCustomersGaveUp()
         ), leftPos + 18, y + 28, TEXT_COLOR, false);
-        graphics.drawString(font, Component.translatable(
+        graphics.text(font, Component.translatable(
                 "screen.customers.shift_finished.total_items_served",
                 payload.totalItemsServed()
         ), leftPos + 18, y + 42, TEXT_COLOR, false);
-        graphics.drawString(font, Component.translatable(
+        graphics.text(font, Component.translatable(
                 "screen.customers.shift_finished.total_items_crafted",
                 payload.totalItemsCrafted()
         ), leftPos + 18, y + 56, TEXT_COLOR, false);
     }
 
-    private void renderPlayerScores(GuiGraphics graphics) {
+    private void renderPlayerScores(GuiGraphicsExtractor graphics) {
         List<ScoreEntry> scoreEntries = duplicatePlayers(
                 getScoreEntries(
                         payload.numItemsServedByPlayer(),
@@ -340,7 +340,7 @@ public class CustomerShiftFinishedScreen extends Screen {
         return playerId == null ? "" : PlayerProfileUtils.getName(playerId);
     }
     private void renderScoreEntry(
-            GuiGraphics graphics,
+            GuiGraphicsExtractor graphics,
             ScoreEntry scoreEntry,
             Component name,
             int x,
@@ -349,7 +349,7 @@ public class CustomerShiftFinishedScreen extends Screen {
         if (scoreEntry.automated()) {
             renderAutomatedIcon(graphics, x, y);
         } else {
-            PlayerFaceRenderer.draw(
+            PlayerFaceExtractor.extractRenderState(
                     graphics,
                     PlayerProfileUtils.getPicture(scoreEntry.playerId()),
                     x,
@@ -360,7 +360,7 @@ public class CustomerShiftFinishedScreen extends Screen {
                     -1
             );
         }
-        graphics.drawString(
+        graphics.text(
                 font,
                 name,
                 x + PLAYER_HEAD_SIZE + 2,
@@ -392,7 +392,7 @@ public class CustomerShiftFinishedScreen extends Screen {
     }
 
     private void renderAutomatedIcon(
-            GuiGraphics graphics,
+            GuiGraphicsExtractor graphics,
             int x,
             int y
     ) {
@@ -400,12 +400,12 @@ public class CustomerShiftFinishedScreen extends Screen {
         GuiGraphicsCUtils.pushTransform(graphics);
         GuiGraphicsCUtils.translate(graphics, x, y);
         GuiGraphicsCUtils.scale(graphics, scale, scale);
-        graphics.renderItem(new ItemStack(Items.REDSTONE), 0, 0);
+        graphics.item(new ItemStack(Items.REDSTONE), 0, 0);
         GuiGraphicsCUtils.popTransform(graphics);
     }
 
     private void renderPlayerItemScore(
-            GuiGraphics graphics,
+            GuiGraphicsExtractor graphics,
             TextureC texture,
             int count,
             int x,
@@ -430,7 +430,7 @@ public class CustomerShiftFinishedScreen extends Screen {
                 SCORE_ICON_TEXTURE_SIZE
         );
         GuiGraphicsCUtils.popTransform(graphics);
-        graphics.drawString(
+        graphics.text(
                 font,
                 Integer.toString(count),
                 x + iconSize + 2,

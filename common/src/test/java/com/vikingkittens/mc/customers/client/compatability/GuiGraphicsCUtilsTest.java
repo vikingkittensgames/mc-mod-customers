@@ -4,7 +4,7 @@ import org.joml.Matrix3x2fStack;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
 
@@ -20,7 +20,7 @@ class GuiGraphicsCUtilsTest {
     }
     @Test
     void blitsTextureRegion() {
-        GuiGraphics graphics = mock(GuiGraphics.class);
+        GuiGraphicsExtractor graphics = mock(GuiGraphicsExtractor.class);
         TextureC texture = new TextureC(
                 "customers",
                 "textures/gui/receipt.png"
@@ -57,7 +57,7 @@ class GuiGraphicsCUtilsTest {
     }
     @Test
     void appliesGuiTransforms() {
-        GuiGraphics graphics = mock(GuiGraphics.class);
+        GuiGraphicsExtractor graphics = mock(GuiGraphicsExtractor.class);
         Matrix3x2fStack pose = mock(Matrix3x2fStack.class);
         when(graphics.pose()).thenReturn(pose);
 

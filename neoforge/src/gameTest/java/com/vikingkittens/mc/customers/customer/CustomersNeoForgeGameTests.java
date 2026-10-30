@@ -62,7 +62,7 @@ public final class CustomersNeoForgeGameTests {
 
     @SubscribeEvent
     public static void registerTests(RegisterGameTestsEvent event) {
-        Holder<TestEnvironmentDefinition> environment =
+        Holder<TestEnvironmentDefinition<?>> environment =
                 event.registerEnvironment(ENVIRONMENT);
         registerTest(
                 event,
@@ -108,7 +108,7 @@ public final class CustomersNeoForgeGameTests {
 
     private static void registerTest(
             RegisterGameTestsEvent event,
-            Holder<TestEnvironmentDefinition> environment,
+            Holder<TestEnvironmentDefinition<?>> environment,
             Identifier id
     ) {
         event.registerTest(

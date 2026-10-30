@@ -226,7 +226,7 @@ Each Customers branch should have:
 | `architectury-1.20.1` | 1.20.1 | 9.2.x | Forge only | 1.20.1 only |
 | `architectury-1.21.1` | 1.21.1 | 13.0.x | Fabric and NeoForge | Start with 1.21.1; add 1.21 only after testing |
 | `architectury-1.21.11` | 1.21.11 | 19.0.x | Fabric and NeoForge | Start with 1.21.11 only |
-| `architectury-26.1` | latest 26.1 patch | 20.1.x | Fabric and NeoForge initially | Test 26.1, 26.1.1, and 26.1.2 before publishing one range |
+| `architectury-26.1.2` | 26.1.2 | 20.1.x | Fabric and NeoForge | 26.1.2 only |
 | `architectury-26.2` | 26.2 | 21.1.x | Fabric and NeoForge initially | 26.2 only |
 | `architectury-26.3` | 26.3 | 22.0.x | Fabric and NeoForge initially | 26.3 only |
 
@@ -239,7 +239,7 @@ branch, with matching Architectury API, Fabric Loader, and Fabric API
 artifacts. Forge remains confined to 1.20.1; do not treat the Forge-like
 loaders as interchangeable platforms.
 
-### Additional 1.20 and 1.21 families
+### Additional version families
 
 If support expands to every modern Architectury line, use these as porting
 boundaries:
@@ -259,7 +259,9 @@ boundaries:
 | 1.21.7 and 1.21.8 | 17.0.x | One branch only after both are tested |
 | 1.21.9 and 1.21.10 | 18.0.x | One branch only after both are tested |
 | 1.21.11 | 19.0.x | Separate branch |
-| 26.1 through 26.1.2 | 20.1.x | One branch only after all patches are tested |
+| 26.1 | 20.0.x | Not currently planned; use a separate branch if added |
+| 26.1.1 | 20.0.x | Not currently planned; use a separate branch if added |
+| 26.1.2 | 20.1.x | Separate branch supporting 26.1.2 only |
 | 26.2 | 21.1.x | Separate branch |
 | 26.3 | 22.0.x | Separate branch |
 
@@ -272,6 +274,88 @@ When two versions share a branch, compile against the earliest version unless
 a later patch is required by the loader toolchain. Test the exact production
 JAR on every declared Minecraft version; recompiling separately is safer when
 method descriptors or class locations differ.
+
+## Minecraft 26.1.2 Port Plan
+
+Port the completed Minecraft 1.21.11 implementation directly to Minecraft
+26.1.2. The `architectury-26.1.2` branch supports only Minecraft 26.1.2 and
+must not declare compatibility with 26.1 or 26.1.1.
+
+### Build baseline
+
+Use the completed 1.21.11 branch as the source baseline for every value and
+API decision in this table. The earlier 1.21.1-to-1.21.11 port remains a
+separate step documented later in this file.
+
+| Setting | 1.21.11 source | 26.1.2 target |
+| --- | --- | --- |
+| Java | `21` | `25` |
+| Gradle | Existing 1.21.11 wrapper | `9.5.1` |
+| Architectury Loom | `1.13.469` | `1.17.493`, using `loom-no-remap` |
+| Shadow plugin | Existing 1.21.11 version | `9.6.1` |
+| Minecraft | `1.21.11` | `26.1.2` |
+| Architectury API | `19.0.1` | `20.1.17` |
+| NeoForge | `21.11.45` | `26.1.2.124` |
+| Fabric Loader | `0.19.5` | `0.20.1` |
+| Fabric API | `0.141.6+1.21.11` | `0.155.3+26.1.2` |
+| Mappings | Mojang plus Parchment `2025.12.20` | Unobfuscated Minecraft; no mappings |
+| GeckoLib | GeckoLib 5 for 1.21.11 | `5.5.2` |
+| FTB Quests | `2111.1.5` | `26.1.2.9` |
+| FTB Library | 1.21.11 matching artifact | `26.1.2.8` |
+| FTB Teams | 1.21.11 matching artifact | `26.1.2.4` |
+| Team Reborn Energy | 1.21.11 Fabric matching artifact | `5.0.0` on Fabric |
+| Minecraft runtime range | 1.21.11 only | 26.1.2 only |
+
+Minecraft 26.1.2 requires Java 25 and ships unobfuscated game classes. Use
+Architectury's no-remap Loom plugin and do not configure Parchment mappings.
+
+Compile, run unit tests, build both loader artifacts, and run all development
+and production clients against Minecraft 26.1.2. Keep only these production
+directories:
+
+- `run-prod-fabric-26.1.2`
+- `run-prod-neoforge-26.1.2`
+
+The port should preserve the player-facing functionality completed on the
+1.21.11 branch. Keep Minecraft, loader, Architectury, GeckoLib, and optional
+mod API differences within the existing compatibility utilities and thin
+loader adapters. Do not introduce cross-patch abstractions for 26.1 or 26.1.1.
+
+### Verified 26.1.2 differences
+
+- Minecraft artifacts are unobfuscated. Loader modules use
+  `loom-no-remap`, final Shadow jars, and the common module's
+  `runtimeElements` artifact so production jars contain common bytecode.
+- Client screens and HUD overlays extract render state through
+  `GuiGraphicsExtractor`. Fabric and NeoForge world markers submit gizmos from
+  their loader-specific late world-render events.
+- The old spinning counter block cannot be submitted through the 26.1.2 late
+  render hooks. The selected position is represented by a bobbing,
+  mode-colored gizmo cube; surrounding valid positions remain green cubes.
+- GeckoLib 5.5.2 retains the GeckoLib 5 renderer-data and resource layout
+  introduced on the 1.21.11 branch.
+- FTB Quests 26.1.2 persists custom task definitions as JSON5. Trigger codecs
+  use FTB Library's `Json5Ops` rather than Minecraft NBT operations.
+- Production clients install the loader-specific FTB Quests, FTB Library, and
+  FTB Teams artifacts. Fabric also installs Team Reborn Energy; NeoForge does
+  not require it.
+- Villager trades are registry entries evaluated with a villager-trade loot
+  context. Economy discovery scans the trade registry for each villager type
+  instead of reading the removed static trade maps.
+- Item cost predicates contain only components that differ from the item's
+  prototype. Entity-type tag checks use built-in registry holders.
+- Pickup-counter block and item models declare explicit overlay UV bounds;
+  Minecraft 26.1.2 rejects implicit UVs derived from slightly expanded model
+  geometry.
+- NeoForge game-test environments use the generic
+  `TestEnvironmentDefinition<?>` holder introduced by the current API.
+
+Validation for this branch includes regular JUnit suites, both loader game-test
+servers, both final Shadow jars, and packaged Fabric and NeoForge production
+clients launched from their 26.1.2 run directories.
+
+Player-facing, server-admin, and pack-author differences for this second port
+step are recorded in `Minecraft-1.21.11-to-26.1.2.md`.
 
 ## Minecraft 1.21.11 Port Details
 

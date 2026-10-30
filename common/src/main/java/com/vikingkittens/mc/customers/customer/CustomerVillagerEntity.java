@@ -214,7 +214,7 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
 
                     VillagerData data = customer.getVillagerData();
                     ResourceKey<VillagerProfession> profession = Customer.CUSTOMER_PROFESSION.getKey();
-                    float professionVariantPercentage = level.random.nextFloat();
+                    float professionVariantPercentage = level.getRandom().nextFloat();
                     if (professionVariantPercentage < 0.20F) {
                         profession = Customer.CUSTOMER_IMPATIENT_PROFESSION.getKey();
                     } else if (professionVariantPercentage < 0.50F) {

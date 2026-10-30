@@ -26,7 +26,7 @@ class PlayerCUtilsTest {
 
         PlayerCUtils.sendSystemMessage(player, message);
 
-        verify(player).displayClientMessage(message, false);
+        verify(player).sendSystemMessage(message);
     }
     @Test
     void sendsActionBarMessage() {
@@ -35,7 +35,7 @@ class PlayerCUtilsTest {
 
         PlayerCUtils.sendActionBarMessage(player, message);
 
-        verify(player).displayClientMessage(message, true);
+        verify(player).sendOverlayMessage(message);
     }
     @Test
     void getsServerLevel() {

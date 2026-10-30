@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -52,6 +53,8 @@ class CustomerPetTest {
         EntityType<Animal> animalType = mock(EntityType.class);
         Entity nonAnimal = mock(Entity.class);
         Animal animal = mock(Animal.class);
+        allowAsPet(nonAnimalType);
+        allowAsPet(animalType);
         when(nonAnimalType.create(level, EntitySpawnReason.COMMAND)).thenReturn(nonAnimal);
         when(animalType.create(level, EntitySpawnReason.COMMAND)).thenReturn(animal);
         when(animalType.getDescription()).thenReturn(Component.literal("Test Pet"));
@@ -79,7 +82,9 @@ class CustomerPetTest {
     void skipsEntityTypesInCanNotBePetTag() {
         Level level = mock(Level.class);
         EntityType<Animal> animalType = mock(EntityType.class);
-        when(animalType.is(CustomerPet.CAN_NOT_BE_PET)).thenReturn(true);
+        Holder.Reference<EntityType<?>> animalTypeHolder = mock(Holder.Reference.class);
+        when(animalType.builtInRegistryHolder()).thenReturn(animalTypeHolder);
+        when(animalTypeHolder.is(CustomerPet.CAN_NOT_BE_PET)).thenReturn(true);
 
         List<CustomerPet.Pet> pets = CustomerPet.discoverPets(
                 level,
@@ -116,6 +121,7 @@ class CustomerPetTest {
         Level level = mock(Level.class);
         EntityType<Animal> animalType = mock(EntityType.class);
         Animal animal = mock(Animal.class);
+        allowAsPet(animalType);
         when(animalType.create(level, EntitySpawnReason.COMMAND)).thenReturn(animal);
         when(animalType.getDescription()).thenReturn(Component.literal("Test Pet"));
         when(animal.isFood(any(ItemStack.class))).thenReturn(true);
@@ -138,6 +144,7 @@ class CustomerPetTest {
         Animal animal = mock(Animal.class, withSettings().extraInterfaces(FlyingAnimal.class));
         Item parrotFoodItem = mock(Item.class);
         ItemStack parrotFoodStack = mock(ItemStack.class);
+        allowAsPet(animalType);
         when(animalType.create(level, EntitySpawnReason.COMMAND)).thenReturn(animal);
         when(animalType.getDescription()).thenReturn(Component.literal("Test Flying Pet"));
         when(parrotFoodItem.getDefaultInstance()).thenReturn(parrotFoodStack);
@@ -204,5 +211,12 @@ class CustomerPetTest {
         when(((CustomerPetMobAccessor)pet).customers$getTargetSelector()).thenReturn(targetSelector);
 
         assertTrue(CustomerPet.setupGoals(level, petId, customerId));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void allowAsPet(EntityType<?> entityType) {
+        Holder.Reference<EntityType<?>> holder = mock(Holder.Reference.class);
+        doReturn(holder).when(entityType).builtInRegistryHolder();
+        when(holder.is(CustomerPet.CAN_NOT_BE_PET)).thenReturn(false);
     }
 }

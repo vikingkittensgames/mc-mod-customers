@@ -1,7 +1,7 @@
 package com.vikingkittens.mc.customers.client.compatability;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
@@ -14,7 +14,7 @@ public final class GuiGraphicsCUtils {
     }
 
     public static void blit(
-            GuiGraphics graphics,
+            GuiGraphicsExtractor graphics,
             TextureC texture,
             int x,
             int y,
@@ -40,7 +40,7 @@ public final class GuiGraphicsCUtils {
     }
 
     public static void blit(
-            GuiGraphics graphics,
+            GuiGraphicsExtractor graphics,
             Identifier texture,
             int x,
             int y,
@@ -65,16 +65,16 @@ public final class GuiGraphicsCUtils {
         );
     }
 
-    public static void pushTransform(GuiGraphics graphics) {
+    public static void pushTransform(GuiGraphicsExtractor graphics) {
         graphics.pose().pushMatrix();
     }
 
-    public static void popTransform(GuiGraphics graphics) {
+    public static void popTransform(GuiGraphicsExtractor graphics) {
         graphics.pose().popMatrix();
     }
 
     public static void translate(
-            GuiGraphics graphics,
+            GuiGraphicsExtractor graphics,
             float x,
             float y
     ) {
@@ -82,7 +82,7 @@ public final class GuiGraphicsCUtils {
     }
 
     public static void scale(
-            GuiGraphics graphics,
+            GuiGraphicsExtractor graphics,
             float x,
             float y
     ) {
@@ -99,7 +99,7 @@ public final class GuiGraphicsCUtils {
      * @param scale item rendering scale
      */
     public static void renderItem(
-            GuiGraphics graphics,
+            GuiGraphicsExtractor graphics,
             ItemStack stack,
             int x,
             int y,
@@ -108,8 +108,8 @@ public final class GuiGraphicsCUtils {
         pushTransform(graphics);
         translate(graphics, x, y);
         scale(graphics, scale, scale);
-        graphics.renderItem(stack, 0, 0);
-        graphics.renderItemDecorations(Minecraft.getInstance().font, stack, 0, 0);
+        graphics.item(stack, 0, 0);
+        graphics.itemDecorations(Minecraft.getInstance().font, stack, 0, 0);
         popTransform(graphics);
     }
 

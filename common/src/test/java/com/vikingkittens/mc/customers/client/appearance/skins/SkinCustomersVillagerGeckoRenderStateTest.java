@@ -1,7 +1,7 @@
 package com.vikingkittens.mc.customers.client.appearance.skins;
 
+import com.geckolib.constant.dataticket.DataTicket;
 import org.junit.jupiter.api.Test;
-import software.bernie.geckolib.constant.dataticket.DataTicket;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

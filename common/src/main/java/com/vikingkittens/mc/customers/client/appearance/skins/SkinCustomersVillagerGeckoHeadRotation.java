@@ -1,6 +1,6 @@
 package com.vikingkittens.mc.customers.client.appearance.skins;
 
-import software.bernie.geckolib.animation.state.BoneSnapshot;
+import com.geckolib.animation.state.BoneSnapshot;
 
 final class SkinCustomersVillagerGeckoHeadRotation {
     private SkinCustomersVillagerGeckoHeadRotation() {}

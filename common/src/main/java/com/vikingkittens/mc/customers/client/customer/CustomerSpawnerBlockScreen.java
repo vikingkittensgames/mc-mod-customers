@@ -1,9 +1,11 @@
 package com.vikingkittens.mc.customers.client.customer;
 
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
@@ -91,9 +93,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
             Inventory inventory,
             Component title
     ) {
-        super(menu, inventory, title);
-        imageWidth = TEXTURE_WIDTH;
-        imageHeight = 222;
+        super(menu, inventory, title, TEXTURE_WIDTH, 222);
         inventoryLabelY = 128;
     }
 
@@ -153,11 +153,8 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                 )
         );
         maxCustomers.setMaxLength(2);
-        maxCustomers.setFilter(
-                CustomerSpawnerBlockMenu::isValidMaxCustomersText
-        );
         maxCustomers.setValue(Integer.toString(menu.getMaxCustomers()));
-        maxCustomers.setResponder(value -> {
+        setValidatedResponder(maxCustomers, CustomerSpawnerBlockMenu::isValidMaxCustomersText, value -> {
             if (!value.isEmpty()) {
                 send(menu.maxCustomersButtonId(Integer.parseInt(value)));
             }
@@ -174,11 +171,8 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                 )
         );
         petPercentage.setMaxLength(3);
-        petPercentage.setFilter(
-                CustomerSpawnerBlockMenu::isValidPetPercentageText
-        );
         petPercentage.setValue(Integer.toString(menu.getPetPercentagePercent()));
-        petPercentage.setResponder(value -> {
+        setValidatedResponder(petPercentage, CustomerSpawnerBlockMenu::isValidPetPercentageText, value -> {
             if (!value.isEmpty()) {
                 send(menu.petPercentageButtonId(Integer.parseInt(value)));
             }
@@ -231,9 +225,8 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         }
     }
 
-    @Override
-    protected void renderBg(
-            GuiGraphics graphics,
+    protected void extractBackgroundTexture(
+            GuiGraphicsExtractor graphics,
             float partialTick,
             int mouseX,
             int mouseY
@@ -267,12 +260,12 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
     }
 
     @Override
-    protected void renderLabels(
-            GuiGraphics graphics,
+    protected void extractLabels(
+            GuiGraphicsExtractor graphics,
             int mouseX,
             int mouseY
     ) {
-        graphics.drawString(
+        graphics.text(
                 font,
                 Component.translatable(
                         "screen.customers.customer_spawner.title",
@@ -285,7 +278,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                 false
         );
         if (menu.hasAvoidBlock()) {
-            graphics.drawString(
+            graphics.text(
                     font,
                     Component.translatable("screen.customers.customer_spawner.avoid"),
                     AVOID_LABEL_X,
@@ -293,9 +286,9 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                     0xFF404040,
                     false
             );
-            graphics.renderItem(menu.getAvoidBlockItem(), AVOID_ICON_X, AVOID_ICON_Y);
+            graphics.item(menu.getAvoidBlockItem(), AVOID_ICON_X, AVOID_ICON_Y);
         }
-        graphics.drawString(
+        graphics.text(
                 font,
                 Component.translatable("container.inventory"),
                 8,
@@ -303,7 +296,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                 0xFF404040,
                 false
         );
-        graphics.drawString(
+        graphics.text(
                 font,
                 Component.translatable(
                         "screen.customers.customer_spawner.stars_required"
@@ -313,7 +306,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                 0xFF404040,
                 false
         );
-        graphics.drawString(
+        graphics.text(
                 font,
                 Component.translatable(
                         "screen.customers.customer_spawner.max"
@@ -326,7 +319,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         Component petsLabel = Component.translatable(
                 "screen.customers.customer_spawner.pets"
         );
-        graphics.drawString(
+        graphics.text(
                 font,
                 petsLabel,
                 PET_PERCENTAGE_X,
@@ -341,7 +334,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                 63,
                 0xFF404040
         );
-        graphics.drawString(
+        graphics.text(
                 font,
                 "%",
                 PET_PERCENT_SIGN_X,
@@ -349,7 +342,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                 0xFF404040,
                 false
         );
-        graphics.drawString(
+        graphics.text(
                 font,
                 Component.translatable(
                         "screen.customers.customer_spawner.appearance"
@@ -362,17 +355,17 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
     }
 
     @Override
-    public void render(
-            GuiGraphics graphics,
+    public void extractRenderState(
+            GuiGraphicsExtractor graphics,
             int mouseX,
             int mouseY,
             float partialTick
     ) {
-        renderBackground(graphics, mouseX, mouseY, partialTick);
-        super.render(graphics, mouseX, mouseY, partialTick);
+        extractBackground(graphics, mouseX, mouseY, partialTick);
+        extractBackgroundTexture(graphics, partialTick, mouseX, mouseY);
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
         renderAutomaticCosts(graphics);
         renderPetPanel(graphics);
-        renderTooltip(graphics, mouseX, mouseY);
         renderAutomaticCostTooltip(graphics, mouseX, mouseY);
         renderAvoidBlockTooltip(graphics, mouseX, mouseY);
         renderPetFoodTooltip(graphics, mouseX, mouseY);
@@ -418,7 +411,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
-    private void renderAvoidBlockTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
+    private void renderAvoidBlockTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         if (!menu.hasAvoidBlock()
                 || mouseX < leftPos + AVOID_ICON_X
                 || mouseX >= leftPos + AVOID_ICON_X + 16
@@ -430,7 +423,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         graphics.setTooltipForNextFrame(font, avoidBlockItem, mouseX, mouseY);
     }
 
-    private void renderPetFoodTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
+    private void renderPetFoodTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         if (!petPanelOpen || !isInPetPanelList(mouseX, mouseY)) {
             return;
         }
@@ -451,7 +444,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                 .toList();
     }
 
-    private void renderAutomaticCosts(GuiGraphics graphics) {
+    private void renderAutomaticCosts(GuiGraphicsExtractor graphics) {
         if (!menu.usesAutomaticCost()) {
             return;
         }
@@ -460,13 +453,13 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
             if (!cost.isEmpty()) {
                 int x = leftPos + CustomerSpawnerBlockMenu.getContainerSlotX(8);
                 int y = topPos + 18 + row * 18;
-                graphics.renderItem(cost, x, y);
-                graphics.renderItemDecorations(font, cost, x, y);
+                graphics.item(cost, x, y);
+                graphics.itemDecorations(font, cost, x, y);
             }
         }
     }
 
-    private void renderAutomaticCostTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
+    private void renderAutomaticCostTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         if (!menu.usesAutomaticCost()) {
             return;
         }
@@ -481,12 +474,12 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         }
     }
 
-    private void renderPetPanel(GuiGraphics graphics) {
+    private void renderPetPanel(GuiGraphicsExtractor graphics) {
         if (!petPanelOpen) {
             return;
         }
         int panelX = getPetPanelX();
-        graphics.drawString(
+        graphics.text(
                 font,
                 Component.translatable("screen.customers.customer_spawner.pets"),
                 panelX + PET_PANEL_TITLE_X,
@@ -500,7 +493,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                 panelX + PET_PANEL_LIST_X,
                 topPos + PET_PANEL_ALL_Y
         );
-        graphics.drawString(
+        graphics.text(
                 font,
                 Component.translatable("screen.customers.customer_spawner.all"),
                 panelX + PET_PANEL_LIST_X + PET_PANEL_CHECKBOX_SIZE + 4,
@@ -524,11 +517,11 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         renderPetPanelScrollbar(graphics, listX, listY);
     }
 
-    private void renderPetTypeRow(GuiGraphics graphics, int index, int x, int y) {
+    private void renderPetTypeRow(GuiGraphicsExtractor graphics, int index, int x, int y) {
         int checkboxY = y + (PET_PANEL_ROW_HEIGHT - PET_PANEL_CHECKBOX_SIZE) / 2;
         renderPetCheckbox(graphics, menu.isPetTypeEnabled(index), x, checkboxY);
-        graphics.renderItem(menu.getPetTypeFood(index), x + PET_PANEL_CHECKBOX_SIZE + 4, y + 1);
-        graphics.drawString(
+        graphics.item(menu.getPetTypeFood(index), x + PET_PANEL_CHECKBOX_SIZE + 4, y + 1);
+        graphics.text(
                 font,
                 menu.getPetTypeName(index),
                 x + PET_PANEL_CHECKBOX_SIZE + 24,
@@ -538,7 +531,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         );
     }
 
-    private void renderPetCheckbox(GuiGraphics graphics, boolean selected, int x, int y) {
+    private void renderPetCheckbox(GuiGraphicsExtractor graphics, boolean selected, int x, int y) {
         graphics.fill(x, y, x + PET_PANEL_CHECKBOX_SIZE, y + PET_PANEL_CHECKBOX_SIZE, 0xFF000000);
         graphics.fill(x + 1, y + 1, x + PET_PANEL_CHECKBOX_SIZE - 1, y + PET_PANEL_CHECKBOX_SIZE - 1, 0xFFFFFFFF);
         if (selected) {
@@ -546,7 +539,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         }
     }
 
-    private void renderPetPanelScrollbar(GuiGraphics graphics, int listX, int listY) {
+    private void renderPetPanelScrollbar(GuiGraphicsExtractor graphics, int listX, int listY) {
         int maxScrollOffset = getMaxPetScrollOffset();
         if (maxScrollOffset <= 0) {
             return;
@@ -630,6 +623,28 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         minecraft.gameMode.handleInventoryButtonClick(menu.containerId, id);
     }
 
+    private static void setValidatedResponder(
+            EditBox editBox,
+            Predicate<String> validator,
+            Consumer<String> responder
+    ) {
+        String[] lastValidValue = {editBox.getValue()};
+        boolean[] restoringValue = {false};
+        editBox.setResponder(value -> {
+            if (restoringValue[0]) {
+                return;
+            }
+            if (!validator.test(value)) {
+                restoringValue[0] = true;
+                editBox.setValue(lastValidValue[0]);
+                restoringValue[0] = false;
+                return;
+            }
+            lastValidValue[0] = value;
+            responder.accept(value);
+        });
+    }
+
     private static Identifier texture(String name) {
         return Identifier.fromNamespaceAndPath(
                 Customers.MODID,
@@ -661,8 +676,8 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         }
 
         @Override
-        protected void renderContents(
-                GuiGraphics graphics,
+        protected void extractContents(
+                GuiGraphicsExtractor graphics,
                 int mouseX,
                 int mouseY,
                 float partialTick
@@ -696,7 +711,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         }
 
         @Override
-        protected void renderContents(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
             GuiGraphicsCUtils.blit(
                     graphics,
                     menu.isAutoCost() ? AUTOMATIC_COST : MANUAL_COST,
@@ -739,8 +754,8 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         }
 
         @Override
-        protected void renderContents(
-                GuiGraphics graphics,
+        protected void extractContents(
+                GuiGraphicsExtractor graphics,
                 int mouseX,
                 int mouseY,
                 float partialTick

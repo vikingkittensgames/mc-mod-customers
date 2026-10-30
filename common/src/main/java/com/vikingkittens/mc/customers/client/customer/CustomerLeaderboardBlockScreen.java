@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractButton;
-import net.minecraft.client.gui.components.PlayerFaceRenderer;
+import net.minecraft.client.gui.components.PlayerFaceExtractor;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.InputWithModifiers;
@@ -93,8 +93,8 @@ public class CustomerLeaderboardBlockScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(graphics, mouseX, mouseY, partialTick);
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        extractBackground(graphics, mouseX, mouseY, partialTick);
         int left = (width - TEXTURE_SIZE) / 2;
         int top = (height - TEXTURE_SIZE) / 2;
         graphics.blit(
@@ -111,11 +111,11 @@ public class CustomerLeaderboardBlockScreen extends Screen {
         );
         renderGroupTitle(graphics, left, top);
         renderScores(graphics, left, top);
-        super.render(graphics, mouseX, mouseY, partialTick);
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }
 
     @Override
-    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
     }
 
     @Override
@@ -147,7 +147,7 @@ public class CustomerLeaderboardBlockScreen extends Screen {
         scrollOffset = 0;
     }
 
-    private void renderGroupTitle(GuiGraphics graphics, int left, int top) {
+    private void renderGroupTitle(GuiGraphicsExtractor graphics, int left, int top) {
         if (groups.isEmpty()) {
             return;
         }
@@ -172,7 +172,7 @@ public class CustomerLeaderboardBlockScreen extends Screen {
                 ICON_SIZE,
                 ICON_SIZE
         );
-        graphics.drawString(
+        graphics.text(
                 font,
                 title,
                 titleX,
@@ -182,7 +182,7 @@ public class CustomerLeaderboardBlockScreen extends Screen {
         );
     }
 
-    private void renderScores(GuiGraphics graphics, int left, int top) {
+    private void renderScores(GuiGraphicsExtractor graphics, int left, int top) {
         if (groups.isEmpty()) {
             return;
         }
@@ -192,7 +192,7 @@ public class CustomerLeaderboardBlockScreen extends Screen {
         graphics.enableScissor(contentLeft, contentTop, contentLeft + CONTENT_WIDTH, contentTop + CONTENT_HEIGHT);
         ScoreGroup group = groups.get(currentGroupIndex);
         for (int level : group.levels()) {
-            graphics.drawString(
+            graphics.text(
                     font,
                     Component.translatable("screen.customers.customer_leaderboard.level", level),
                     contentLeft,
@@ -217,9 +217,9 @@ public class CustomerLeaderboardBlockScreen extends Screen {
         graphics.disableScissor();
     }
 
-    private void renderScore(GuiGraphics graphics, ScoreEntry score, int x, int y) {
+    private void renderScore(GuiGraphicsExtractor graphics, ScoreEntry score, int x, int y) {
         int centeredHeadY = getRowElementY(y, PLAYER_HEAD_SIZE);
-        PlayerFaceRenderer.draw(
+        PlayerFaceExtractor.extractRenderState(
                 graphics,
                 PlayerProfileUtils.getPicture(score.playerId()),
                 x,
@@ -229,7 +229,7 @@ public class CustomerLeaderboardBlockScreen extends Screen {
                 false,
                 -1
         );
-        graphics.drawString(
+        graphics.text(
                 font,
                 PlayerProfileUtils.getName(score.playerId()),
                 x + PLAYER_HEAD_SIZE + 2,
@@ -240,7 +240,7 @@ public class CustomerLeaderboardBlockScreen extends Screen {
 
         int starsX = x + CONTENT_WIDTH - STAR_COUNT * ICON_SIZE - 18;
         String percentage = Math.round(score.value() * 100.0F) + "%";
-        graphics.drawString(
+        graphics.text(
                 font,
                 percentage,
                 starsX - 4 - font.width(percentage),
@@ -392,7 +392,7 @@ public class CustomerLeaderboardBlockScreen extends Screen {
         }
 
         @Override
-        protected void renderContents(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
             Identifier buttonTexture = isHoveredOrFocused() ? pressedTexture : texture;
             graphics.blit(
                     RenderPipelines.GUI_TEXTURED,

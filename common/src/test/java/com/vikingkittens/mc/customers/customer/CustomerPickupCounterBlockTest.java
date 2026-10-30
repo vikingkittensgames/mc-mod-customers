@@ -255,11 +255,10 @@ class CustomerPickupCounterBlockTest {
                 argThat(remainder -> remainder.is(Items.APPLE)
                         && remainder.getCount() == 1)
         );
-        verify(player).displayClientMessage(
+        verify(player).sendOverlayMessage(
                 Component.translatable(
                         "messages.customers.pickup_counter.full"
-                ),
-                true
+                )
         );
     }
 
@@ -298,11 +297,10 @@ class CustomerPickupCounterBlockTest {
                 eq(InteractionHand.MAIN_HAND),
                 any(ItemStack.class)
         );
-        verify(player).displayClientMessage(
+        verify(player).sendOverlayMessage(
                 Component.translatable(
                         "messages.customers.pickup_counter.not_wanted"
-                ),
-                true
+                )
         );
     }
 
@@ -329,8 +327,8 @@ class CustomerPickupCounterBlockTest {
         assertEquals(InteractionResult.PASS, result);
         verify(counter, never()).insertCraftedStackConnected(eq(player), any(ItemStack.class));
         verify(player, never()).setItemInHand(eq(InteractionHand.MAIN_HAND), any(ItemStack.class));
-        verify(player).displayClientMessage(
-                Component.translatable("messages.customers.pickup_counter.not_wanted"), true
+        verify(player).sendOverlayMessage(
+                Component.translatable("messages.customers.pickup_counter.not_wanted")
         );
     }
 

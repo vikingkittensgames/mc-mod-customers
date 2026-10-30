@@ -1,6 +1,6 @@
 package com.vikingkittens.mc.customers.client.compatability;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
@@ -55,7 +55,7 @@ public final class BossBarCUtils {
      * @param bossEvent boss bar state
      */
     public static void render(
-            GuiGraphics graphics,
+            GuiGraphicsExtractor graphics,
             int x,
             int y,
             BossEvent bossEvent
@@ -84,7 +84,7 @@ public final class BossBarCUtils {
     }
 
     private static void render(
-            GuiGraphics graphics,
+            GuiGraphicsExtractor graphics,
             int x,
             int y,
             BossEvent bossEvent,

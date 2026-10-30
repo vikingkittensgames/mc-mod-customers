@@ -65,7 +65,7 @@ public final class Economy {
     }
 
     public static void serverStarted(MinecraftServer server) {
-        DEFAULT.serverStarted(server.overworld().getDayTime() / 24_000L, System.currentTimeMillis());
+        DEFAULT.serverStarted(server.overworld().getOverworldClockTime() / 24_000L, System.currentTimeMillis());
         if (isEnabled()) {
             TRADES_AND_RECIPES.rebuild(server);
             VILLAGER_SHOP_SYSTEM.serverStarted(server);
@@ -79,7 +79,7 @@ public final class Economy {
 
     public static void serverTick(MinecraftServer server) {
         if (isEnabled()) {
-            DEFAULT.tick(server.overworld().getDayTime() / 24_000L, System.currentTimeMillis());
+            DEFAULT.tick(server.overworld().getOverworldClockTime() / 24_000L, System.currentTimeMillis());
         }
     }
 

@@ -1,6 +1,6 @@
 package com.vikingkittens.mc.customers.client.appearance.skins;
 
-import software.bernie.geckolib.constant.dataticket.DataTicket;
+import com.geckolib.constant.dataticket.DataTicket;
 
 import com.vikingkittens.mc.customers.appearance.skins.SkinCustomersVillagerDefinition;
 

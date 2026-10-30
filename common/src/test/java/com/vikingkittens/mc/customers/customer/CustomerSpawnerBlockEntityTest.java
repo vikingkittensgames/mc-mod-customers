@@ -18,6 +18,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ProblemReporter;
@@ -53,6 +54,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class CustomerSpawnerBlockEntityTest {
@@ -993,6 +995,38 @@ class CustomerSpawnerBlockEntityTest {
         assertEquals(Set.of(), playersToAdd);
     }
 
+    @Test
+    void synchronizesSnapshotsImmediatelyWhenTheProgressBarBecomesVisible() {
+        ServerBossEvent progressBar = mock(ServerBossEvent.class);
+        Runnable synchronize = mock(Runnable.class);
+        when(progressBar.isVisible()).thenReturn(false);
+
+        CustomerSpawnerBlockEntity.setProgressBarVisibility(
+                progressBar,
+                true,
+                synchronize
+        );
+
+        verify(progressBar).setVisible(true);
+        verify(synchronize).run();
+    }
+
+    @Test
+    void doesNotResynchronizeUnchangedProgressBarVisibility() {
+        ServerBossEvent progressBar = mock(ServerBossEvent.class);
+        Runnable synchronize = mock(Runnable.class);
+        when(progressBar.isVisible()).thenReturn(true);
+
+        CustomerSpawnerBlockEntity.setProgressBarVisibility(
+                progressBar,
+                true,
+                synchronize
+        );
+
+        verify(progressBar).isVisible();
+        verifyNoInteractions(synchronize);
+    }
+
     private static MerchantOffers getOffers(
             RandomSource random,
             PersistedContainer inventory,
@@ -1013,6 +1047,7 @@ class CustomerSpawnerBlockEntityTest {
         when(item.asItem()).thenReturn(item);
         when(item.components()).thenReturn(DataComponentMap.EMPTY);
         when(item.builtInRegistryHolder()).thenReturn(holder);
+        when(holder.components()).thenReturn(DataComponentMap.EMPTY);
         when(holder.value()).thenReturn(item);
         return item;
     }

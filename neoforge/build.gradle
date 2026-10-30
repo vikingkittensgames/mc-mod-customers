@@ -1,7 +1,7 @@
 plugins {
     id 'customers-loader'
-    id 'dev.architectury.loom'
-    id 'com.github.johnrengelman.shadow'
+    id 'dev.architectury.loom-no-remap'
+    id 'com.gradleup.shadow'
     id 'idea'
     id 'com.diffplug.spotless'
 }
@@ -61,8 +61,6 @@ tasks.named('check') {
 }
 
 loom {
-    silentMojangMappingsLicense()
-
     mods {
         main {
             sourceSet sourceSets.main
@@ -103,31 +101,30 @@ loom {
 
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
-    mappings loom.layered {
-        officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-${parchment_minecraft_version}:${parchment_mappings_version}@zip")
-    }
     neoForge "net.neoforged:neoforge:${neo_version}"
 
-    modCompileOnly "dev.architectury:architectury-neoforge:${architectury_version}"
-    modLocalRuntime "dev.architectury:architectury-neoforge:${architectury_version}"
+    compileOnly "dev.architectury:architectury-neoforge:${architectury_version}"
+    runtimeOnly "dev.architectury:architectury-neoforge:${architectury_version}"
     productionClientMods("dev.architectury:architectury-neoforge:${architectury_version}") { transitive = false }
-    modCompileOnly "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
-    modLocalRuntime "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
-    compileOnly "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
-    productionClientMods("software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}") {
+    compileOnly "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
+    compileOnly "dev.ftb.mods:ftb-library-neoforge:${ftb_library_version}"
+    runtimeOnly "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
+    runtimeOnly "dev.ftb.mods:ftb-library-neoforge:${ftb_library_version}"
+    productionClientMods("dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}") { transitive = false }
+    productionClientMods("dev.ftb.mods:ftb-library-neoforge:${ftb_library_version}") { transitive = false }
+    productionClientMods("dev.ftb.mods:ftb-teams-neoforge:${ftb_teams_version}") { transitive = false }
+    compileOnly "maven.modrinth:geckolib:${geckolib_neoforge_artifact_version}"
+    productionClientMods("maven.modrinth:geckolib:${geckolib_neoforge_artifact_version}") {
         transitive = false
     }
-    common(project(path: ':common', configuration: 'namedElements')) {
-        transitive = false
-    }
-    shadowBundle(project(path: ':common', configuration: 'namedElements')) {
+    implementation commonProject.sourceSets.main.output
+    shadowBundle(project(path: ':common', configuration: 'runtimeElements')) {
         transitive = false
     }
 
     testImplementation project(':testsupport')
     testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
-    testImplementation "org.mockito:mockito-core:5.12.0"
+    testImplementation "org.mockito:mockito-core:5.20.0"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 
     // Example optional mod dependency with JEI
@@ -178,12 +175,11 @@ sourceSets.main.resources.srcDir generateModMetadata
 
 tasks.named('shadowJar', Jar) {
     configurations = [project.configurations.shadowBundle]
-    archiveClassifier = 'dev-shadow'
+    archiveClassifier = ''
 }
 
-tasks.named('remapJar') {
+tasks.named('build') {
     dependsOn(tasks.named('shadowJar'))
-    inputFile = tasks.named('shadowJar').flatMap { it.archiveFile }
 }
 
 tasks.register('prepareProdClient', Copy) {
@@ -191,12 +187,15 @@ tasks.register('prepareProdClient', Copy) {
     description = 'Builds and copies production NeoForge mods into the production run directory.'
     dependsOn(tasks.named('build'))
     into(new File(productionRunDirectory, 'mods'))
-    from(tasks.named('remapJar').flatMap { it.archiveFile }) {
+    from(tasks.named('shadowJar').flatMap { it.archiveFile }) {
         rename { 'customers-under-test.jar' }
     }
     from(configurations.productionClientMods) {
         rename(/architectury-neoforge-.+\.jar/, 'architectury-api-under-test.jar')
-        rename(/geckolib-neoforge-.+\.jar/, 'geckolib-under-test.jar')
+        rename(/ftb-quests-neoforge-.+\.jar/, 'ftb-quests-under-test.jar')
+        rename(/ftb-library-neoforge-.+\.jar/, 'ftb-library-under-test.jar')
+        rename(/ftb-teams-neoforge-.+\.jar/, 'ftb-teams-under-test.jar')
+        rename(/geckolib-.+\.jar/, 'geckolib-under-test.jar')
     }
 }
 

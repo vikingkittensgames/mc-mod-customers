@@ -41,7 +41,13 @@
     {
       "faces": {
         "up": {
-          "texture": "#top_overlay"
+          "texture": "#top_overlay",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
         }
       },
       "from": [

@@ -7,7 +7,10 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import de.marhali.json5.Json5Element;
+import de.marhali.json5.Json5Object;
 import dev.ftb.mods.ftblibrary.client.config.EditableConfigGroup;
+import dev.ftb.mods.ftblibrary.json5.Json5Ops;
 import dev.ftb.mods.ftblibrary.util.NameMap;
 import org.slf4j.Logger;
 
@@ -20,9 +23,6 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.resources.Identifier;
@@ -44,29 +44,29 @@ final class CustomersFTBTriggerSchema {
     private CustomersFTBTriggerSchema() {}
 
     static <T> void writeData(
-            CompoundTag tag,
+            Json5Object tag,
             HolderLookup.Provider provider,
             CustomersTriggerSchema<T> schema,
             T trigger
     ) {
         schema.codec()
-                .encodeStart(provider.createSerializationContext(NbtOps.INSTANCE), trigger)
+                .encodeStart(provider.createSerializationContext(Json5Ops.INSTANCE), trigger)
                 .resultOrPartial(message -> LOGGER.error("Unable to encode FTB trigger task: {}", message))
-                .ifPresent(value -> tag.put(TRIGGER_DATA_KEY, value));
+                .ifPresent(value -> tag.add(TRIGGER_DATA_KEY, value));
     }
 
     static <T> T readData(
-            CompoundTag tag,
+            Json5Object tag,
             HolderLookup.Provider provider,
             CustomersTriggerSchema<T> schema,
             T defaultTrigger
     ) {
-        Tag triggerTag = tag.get(TRIGGER_DATA_KEY);
+        Json5Element triggerTag = tag.get(TRIGGER_DATA_KEY);
         if (triggerTag == null) {
             return defaultTrigger;
         }
         return schema.codec()
-                .parse(provider.createSerializationContext(NbtOps.INSTANCE), triggerTag)
+                .parse(provider.createSerializationContext(Json5Ops.INSTANCE), triggerTag)
                 .resultOrPartial(message -> LOGGER.error("Unable to decode FTB trigger task: {}", message))
                 .orElse(defaultTrigger);
     }

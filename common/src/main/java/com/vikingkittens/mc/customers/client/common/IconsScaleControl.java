@@ -2,7 +2,7 @@ package com.vikingkittens.mc.customers.client.common;
 
 import java.util.function.Consumer;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -76,8 +76,8 @@ public class IconsScaleControl extends AbstractWidget {
     }
 
     @Override
-    protected void renderWidget(
-            GuiGraphics graphics,
+    protected void extractWidgetRenderState(
+            GuiGraphicsExtractor graphics,
             int mouseX,
             int mouseY,
             float partialTick

@@ -3,7 +3,7 @@ package com.vikingkittens.mc.customers.client.supplier;
 import java.util.List;
 import java.util.stream.IntStream;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -51,9 +51,7 @@ public class SupplierSpawnerBlockScreen
             Inventory inventory,
             Component title
     ) {
-        super(menu, inventory, title);
-        imageWidth = TEXTURE_WIDTH;
-        imageHeight = 222;
+        super(menu, inventory, title, TEXTURE_WIDTH, 222);
         inventoryLabelY = 128;
     }
 
@@ -83,9 +81,8 @@ public class SupplierSpawnerBlockScreen
         manualCostButton.visible = menu.isEconomyEnabled() && !menu.isForceAutoCost();
     }
 
-    @Override
-    protected void renderBg(
-            GuiGraphics graphics,
+    protected void extractBackgroundTexture(
+            GuiGraphicsExtractor graphics,
             float partialTick,
             int mouseX,
             int mouseY
@@ -105,13 +102,13 @@ public class SupplierSpawnerBlockScreen
     }
 
     @Override
-    protected void renderLabels(
-            GuiGraphics graphics,
+    protected void extractLabels(
+            GuiGraphicsExtractor graphics,
             int mouseX,
             int mouseY
     ) {
-        super.renderLabels(graphics, mouseX, mouseY);
-        graphics.drawString(
+        super.extractLabels(graphics, mouseX, mouseY);
+        graphics.text(
                 font,
                 Component.translatable(
                         "screen.customers.supplier_spawner.appearance"
@@ -124,16 +121,16 @@ public class SupplierSpawnerBlockScreen
     }
 
     @Override
-    public void render(
-            GuiGraphics graphics,
+    public void extractRenderState(
+            GuiGraphicsExtractor graphics,
             int mouseX,
             int mouseY,
             float partialTick
     ) {
-        renderBackground(graphics, mouseX, mouseY, partialTick);
-        super.render(graphics, mouseX, mouseY, partialTick);
+        extractBackground(graphics, mouseX, mouseY, partialTick);
+        extractBackgroundTexture(graphics, partialTick, mouseX, mouseY);
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
         renderAutomaticCosts(graphics);
-        renderTooltip(graphics, mouseX, mouseY);
         renderAutomaticCostTooltip(graphics, mouseX, mouseY);
     }
 
@@ -143,7 +140,7 @@ public class SupplierSpawnerBlockScreen
                 .toList();
     }
 
-    private void renderAutomaticCosts(GuiGraphics graphics) {
+    private void renderAutomaticCosts(GuiGraphicsExtractor graphics) {
         if (!menu.usesAutomaticCost()) {
             return;
         }
@@ -153,14 +150,14 @@ public class SupplierSpawnerBlockScreen
                 if (!cost.isEmpty()) {
                     int x = leftPos + SupplierSpawnerBlockMenu.getContainerSlotX(pair * 2 + 1);
                     int y = topPos + 18 + row * 18;
-                    graphics.renderItem(cost, x, y);
-                    graphics.renderItemDecorations(font, cost, x, y);
+                    graphics.item(cost, x, y);
+                    graphics.itemDecorations(font, cost, x, y);
                 }
             }
         }
     }
 
-    private void renderAutomaticCostTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
+    private void renderAutomaticCostTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         if (!menu.usesAutomaticCost()) {
             return;
         }
@@ -195,7 +192,7 @@ public class SupplierSpawnerBlockScreen
         }
 
         @Override
-        protected void renderContents(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
             GuiGraphicsCUtils.blit(
                     graphics,
                     menu.isAutoCost() ? AUTOMATIC_COST : MANUAL_COST,

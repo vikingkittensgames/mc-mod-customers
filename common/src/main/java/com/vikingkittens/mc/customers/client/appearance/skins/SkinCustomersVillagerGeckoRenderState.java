@@ -3,8 +3,8 @@ package com.vikingkittens.mc.customers.client.appearance.skins;
 import java.util.HashMap;
 import java.util.Map;
 
-import software.bernie.geckolib.constant.dataticket.DataTicket;
-import software.bernie.geckolib.renderer.base.GeoRenderState;
+import com.geckolib.constant.dataticket.DataTicket;
+import com.geckolib.renderer.base.GeoRenderState;
 
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 

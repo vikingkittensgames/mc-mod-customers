@@ -1,7 +1,7 @@
 package com.vikingkittens.mc.customers.client.customer;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Util;
@@ -103,7 +103,7 @@ public final class CustomerBossBarRenderer {
      * @return adjusted vertical increment for the next boss bar
      */
     public static int render(
-            GuiGraphics graphics,
+            GuiGraphicsExtractor graphics,
             BossEvent bossEvent,
             CustomerSpawnerSnapshot snapshot,
             int x,
@@ -119,7 +119,7 @@ public final class CustomerBossBarRenderer {
         );
 
         int titleX = x + (BAR_WIDTH - minecraft.font.width(bossEvent.getName())) / 2;
-        graphics.drawString(
+        graphics.text(
                 minecraft.font,
                 bossEvent.getName(),
                 titleX,

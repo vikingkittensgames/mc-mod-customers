@@ -1,7 +1,7 @@
 plugins {
     id 'base'
-    id 'dev.architectury.loom' version "${architectury_loom_version}" apply false
-    id 'com.github.johnrengelman.shadow' version "${shadow_plugin_version}" apply false
+    id 'dev.architectury.loom-no-remap' version "${architectury_loom_version}" apply false
+    id 'com.gradleup.shadow' version "${shadow_plugin_version}" apply false
     id 'com.diffplug.spotless' version '8.9.0' apply false
 }
 

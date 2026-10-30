@@ -1,5 +1,7 @@
 package com.vikingkittens.mc.customers.client.customer;
 
+import org.joml.Matrix4f;
+
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -12,11 +14,11 @@ public final class CustomerCounterMarkerNeoForgeEvents {
     private CustomerCounterMarkerNeoForgeEvents() {}
 
     @SubscribeEvent
-    public static void render(RenderLevelStageEvent.AfterEntities event) {
+    public static void render(RenderLevelStageEvent.AfterTranslucentFeatures event) {
         CustomerCounterMarkerRenderer.render(
                 event.getPoseStack(),
                 event.getLevelRenderState().cameraRenderState,
-                event.getModelViewMatrix()
+                new Matrix4f(event.getModelViewMatrix())
         );
     }
 }

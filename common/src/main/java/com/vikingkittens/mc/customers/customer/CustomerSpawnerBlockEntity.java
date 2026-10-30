@@ -1283,6 +1283,18 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         return Set.copyOf(playerIdsToAdd);
     }
 
+    static void setProgressBarVisibility(
+            ServerBossEvent progressBar,
+            boolean visible,
+            Runnable synchronize
+    ) {
+        if (progressBar.isVisible() == visible) {
+            return;
+        }
+        progressBar.setVisible(visible);
+        synchronize.run();
+    }
+
     record PlayerRangeChanges(
             Set<UUID> entering,
             Set<UUID> leaving
@@ -1715,7 +1727,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                 entity.updateSpawned();
 
                 CustomerSpawnerMode spawnerMode = state.getValue(CustomerSpawnerBlock.STATE_SPAWN_MODE);
-                long timeOfDay = (level.getDayTime() + 6000L) % 24000L;
+                long timeOfDay = (level.getOverworldClockTime() + 6000L) % 24000L;
                 boolean shouldSpawn = CustomerSpawnerMode.shouldSpawn(spawnerMode, timeOfDay);
                 if (!state.getValue(CustomerSpawnerBlock.STATE_DISABLED) && shouldSpawn) {
                     float progress = CustomerSpawnerMode.generateProgress(spawnerMode, timeOfDay);
@@ -1741,6 +1753,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                     if (CustomerSpawnerMode.shouldShowProgress(spawnerMode)) {
                         if (entity.progressBar == null) {
                             entity.progressBar = new ServerBossEvent(
+                                    UUID.randomUUID(),
                                     getProgressBarTitle(spawnerMode, entity.getActiveLevel()),
                                     BossEvent.BossBarColor.GREEN,
                                     BossEvent.BossBarOverlay.PROGRESS
@@ -1764,9 +1777,17 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                         if (entity.progressBar.getColor() != progressBarColor) {
                             entity.progressBar.setColor(progressBarColor);
                         }
-                        entity.progressBar.setVisible(true);
+                        setProgressBarVisibility(
+                                entity.progressBar,
+                                true,
+                                entity::updatePlayers
+                        );
                     } else if (entity.progressBar != null) {
-                        entity.progressBar.setVisible(false);
+                        setProgressBarVisibility(
+                                entity.progressBar,
+                                false,
+                                entity::updatePlayers
+                        );
                     }
                 } else {
                     if (CustomerSpawnerMode.shouldRemoveCustomers(spawnerMode)) {
@@ -1781,7 +1802,11 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
                         }
                     }
                     if (entity.progressBar != null) {
-                        entity.progressBar.setVisible(false);
+                        setProgressBarVisibility(
+                                entity.progressBar,
+                                false,
+                                entity::updatePlayers
+                        );
                     }
                     if (entity.hasScoreboard()) {
                         entity.scoreboardShowFinal();

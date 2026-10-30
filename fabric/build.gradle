@@ -1,7 +1,7 @@
 plugins {
     id 'customers-loader'
-    id 'dev.architectury.loom'
-    id 'com.github.johnrengelman.shadow'
+    id 'dev.architectury.loom-no-remap'
+    id 'com.gradleup.shadow'
     id 'com.diffplug.spotless'
 }
 
@@ -50,7 +50,6 @@ tasks.named('check') {
 }
 
 loom {
-    silentMojangMappingsLicense()
     mods {
         main {
             sourceSet sourceSets.main
@@ -82,22 +81,22 @@ loom {
 
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
-    mappings loom.layered {
-        officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-${parchment_minecraft_version}:${parchment_mappings_version}@zip")
-    }
-    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
-    modImplementation "dev.architectury:architectury-fabric:${architectury_version}"
-    compileOnly "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
+    implementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+    implementation "dev.architectury:architectury-fabric:${architectury_version}"
+    runtimeOnly "dev.ftb.mods:ftb-quests-fabric:${ftb_quests_version}"
+    compileOnly "maven.modrinth:geckolib:${geckolib_fabric_artifact_version}"
     productionClientMods("net.fabricmc.fabric-api:fabric-api:${fabric_api_version}") { transitive = false }
     productionClientMods("dev.architectury:architectury-fabric:${architectury_version}") { transitive = false }
-    productionClientMods("software.bernie.geckolib:geckolib-fabric-${minecraft_version}:${geckolib_version}") {
+    productionClientMods("dev.ftb.mods:ftb-quests-fabric:${ftb_quests_version}") { transitive = false }
+    productionClientMods("dev.ftb.mods:ftb-library-fabric:${ftb_library_version}") { transitive = false }
+    productionClientMods("dev.ftb.mods:ftb-teams-fabric:${ftb_teams_version}") { transitive = false }
+    productionClientMods("teamreborn:energy:${team_reborn_energy_version}") { transitive = false }
+    productionClientMods("maven.modrinth:geckolib:${geckolib_fabric_artifact_version}") {
         transitive = false
     }
-    implementation project(path: ':common', configuration: 'namedElements')
-    common(project(path: ':common', configuration: 'namedElements')) { transitive = false }
-    shadowBundle(project(path: ':common', configuration: 'namedElements')) { transitive = false }
+    implementation commonProject.sourceSets.main.output
+    shadowBundle(project(path: ':common', configuration: 'runtimeElements')) { transitive = false }
 
 }
 
@@ -107,6 +106,7 @@ tasks.named('processResources', ProcessResources) {
         fabric_api_version    : fabric_api_version,
         fabric_loader_version : fabric_loader_version,
         geckolib_version       : geckolib_version,
+        java_version           : java_version,
         minecraft_version     : minecraft_version,
         mod_id                : mod_id,
         mod_name              : mod_name,
@@ -119,12 +119,11 @@ tasks.named('processResources', ProcessResources) {
 
 tasks.named('shadowJar', Jar) {
     configurations = [project.configurations.shadowBundle]
-    archiveClassifier = 'dev-shadow'
+    archiveClassifier = ''
 }
 
-tasks.named('remapJar') {
+tasks.named('build') {
     dependsOn(tasks.named('shadowJar'))
-    inputFile = tasks.named('shadowJar').flatMap { it.archiveFile }
 }
 
 tasks.register('prepareProdClient', Copy) {
@@ -132,13 +131,17 @@ tasks.register('prepareProdClient', Copy) {
     description = 'Builds and copies production Fabric mods into the production run directory.'
     dependsOn(tasks.named('build'))
     into(new File(productionRunDirectory, 'mods'))
-    from(tasks.named('remapJar').flatMap { it.archiveFile }) {
+    from(tasks.named('shadowJar').flatMap { it.archiveFile }) {
         rename { 'customers-under-test.jar' }
     }
     from(configurations.productionClientMods) {
         rename(/architectury-fabric-.+\.jar/, 'architectury-api-under-test.jar')
         rename(/fabric-api-.+\.jar/, 'fabric-api-under-test.jar')
-        rename(/geckolib-fabric-.+\.jar/, 'geckolib-under-test.jar')
+        rename(/ftb-quests-fabric-.+\.jar/, 'ftb-quests-under-test.jar')
+        rename(/ftb-library-fabric-.+\.jar/, 'ftb-library-under-test.jar')
+        rename(/ftb-teams-fabric-.+\.jar/, 'ftb-teams-under-test.jar')
+        rename(/energy-.+\.jar/, 'team-reborn-energy-under-test.jar')
+        rename(/geckolib-.+\.jar/, 'geckolib-under-test.jar')
     }
 }
 

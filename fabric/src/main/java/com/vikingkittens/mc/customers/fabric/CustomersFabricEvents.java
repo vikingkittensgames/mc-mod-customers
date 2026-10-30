@@ -32,7 +32,7 @@ public final class CustomersFabricEvents {
                     state
             );
         });
-        ServerChunkEvents.CHUNK_LOAD.register((level, chunk) -> {
+        ServerChunkEvents.CHUNK_LOAD.register((level, chunk, newlyLoaded) -> {
             CustomerSpawnerCache.onChunkLoaded(level, chunk);
             CustomerLeaderboardCache.onChunkLoaded(level, chunk);
         });

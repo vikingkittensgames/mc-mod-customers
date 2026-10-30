@@ -15,7 +15,10 @@ import com.vikingkittens.mc.customers.appearance.CustomersVillager;
 
 final class MonsterCustomersVillagerWitchRenderer<T extends Mob & CustomersVillager>
         extends MobRenderer<T, WitchRenderState, WitchModel> {
-    private static final Identifier TEXTURE = Identifier.withDefaultNamespace("textures/entity/witch.png");
+    private static final Identifier TEXTURE =
+            Identifier.withDefaultNamespace(
+                    "textures/entity/witch/witch.png"
+            );
 
     MonsterCustomersVillagerWitchRenderer(EntityRendererProvider.Context context) {
         super(context, new WitchModel(context.bakeLayer(ModelLayers.WITCH)), 0.5F);
@@ -40,6 +43,10 @@ final class MonsterCustomersVillagerWitchRenderer<T extends Mob & CustomersVilla
 
     @Override
     public Identifier getTextureLocation(WitchRenderState renderState) {
+        return textureLocation();
+    }
+
+    static Identifier textureLocation() {
         return TEXTURE;
     }
 

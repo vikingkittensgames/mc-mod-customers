@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.Slice;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.BossHealthOverlay;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.BossEvent;
@@ -35,24 +35,24 @@ abstract class BossHealthOverlayMixin {
     private boolean customers$skipTitle;
 
     @Shadow
-    private void drawBar(
-            GuiGraphics graphics,
+    private void extractBar(
+            GuiGraphicsExtractor graphics,
             int x,
             int y,
             BossEvent bossEvent
     ) {}
 
     @Redirect(
-            method = "render",
+            method = "extractRenderState",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/gui/components/BossHealthOverlay;drawBar("
-                            + "Lnet/minecraft/client/gui/GuiGraphics;IILnet/minecraft/world/BossEvent;)V"
+                    target = "Lnet/minecraft/client/gui/components/BossHealthOverlay;extractBar("
+                            + "Lnet/minecraft/client/gui/GuiGraphicsExtractor;IILnet/minecraft/world/BossEvent;)V"
             )
     )
     private void renderCustomerBossBar(
             BossHealthOverlay overlay,
-            GuiGraphics graphics,
+            GuiGraphicsExtractor graphics,
             int x,
             int y,
             BossEvent bossEvent
@@ -75,19 +75,19 @@ abstract class BossHealthOverlayMixin {
                 customers$additionalIncrement =
                         adjustedIncrement - CUSTOMERS$VANILLA_INCREMENT;
             }
-        }, () -> drawBar(graphics, x, y, bossEvent));
+        }, () -> extractBar(graphics, x, y, bossEvent));
     }
 
     @Redirect(
-            method = "render",
+            method = "extractRenderState",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/gui/GuiGraphics;drawString("
+                    target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;text("
                             + "Lnet/minecraft/client/gui/Font;Lnet/minecraft/network/chat/Component;III)V"
             )
     )
     private void renderBossBarTitle(
-            GuiGraphics graphics,
+            GuiGraphicsExtractor graphics,
             Font font,
             Component title,
             int x,
@@ -98,17 +98,17 @@ abstract class BossHealthOverlayMixin {
             customers$skipTitle = false;
             return;
         }
-        graphics.drawString(font, title, x, y, color);
+        graphics.text(font, title, x, y, color);
     }
 
     @ModifyVariable(
-            method = "render",
+            method = "extractRenderState",
             at = @At("STORE"),
             index = 4,
             slice = @Slice(
                     from = @At(
                             value = "INVOKE",
-                            target = "Lnet/minecraft/client/gui/GuiGraphics;drawString("
+                            target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;text("
                                     + "Lnet/minecraft/client/gui/Font;Lnet/minecraft/network/chat/Component;III)V"
                     )
             )

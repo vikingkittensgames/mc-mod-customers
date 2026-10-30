@@ -5,7 +5,7 @@ import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -68,7 +68,7 @@ public final class AppearanceListWidget extends AbstractWidget {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         graphics.enableScissor(getX(), getY(), getX() + getWidth(), getY() + getHeight());
         for (int index = 0; index < labels.size(); index++) {
             int rowY = getY() + index * ROW_HEIGHT - scrollOffset;
@@ -85,7 +85,7 @@ public final class AppearanceListWidget extends AbstractWidget {
         defaultButtonNarrationText(narration);
     }
 
-    private void renderEntry(GuiGraphics graphics, int index, int rowY) {
+    private void renderEntry(GuiGraphicsExtractor graphics, int index, int rowY) {
         int checkboxY = rowY + (ROW_HEIGHT - CHECKBOX_SIZE) / 2;
         graphics.fill(getX(), checkboxY, getX() + CHECKBOX_SIZE, checkboxY + CHECKBOX_SIZE, 0xFF000000);
         graphics.fill(getX() + 1, checkboxY + 1, getX() + CHECKBOX_SIZE - 1, checkboxY + CHECKBOX_SIZE - 1, 0xFFFFFFFF);
@@ -96,7 +96,7 @@ public final class AppearanceListWidget extends AbstractWidget {
         int labelHeight = lines.size() * font.lineHeight;
         int labelY = rowY + (ROW_HEIGHT - labelHeight) / 2;
         for (int line = 0; line < lines.size(); line++) {
-            graphics.drawString(
+            graphics.text(
                     font,
                     lines.get(line),
                     getX() + CHECKBOX_SIZE + 4,
@@ -107,7 +107,7 @@ public final class AppearanceListWidget extends AbstractWidget {
         }
     }
 
-    private void renderScrollbar(GuiGraphics graphics) {
+    private void renderScrollbar(GuiGraphicsExtractor graphics) {
         int maximumScrollOffset = getMaximumScrollOffset();
         if (maximumScrollOffset == 0) {
             return;

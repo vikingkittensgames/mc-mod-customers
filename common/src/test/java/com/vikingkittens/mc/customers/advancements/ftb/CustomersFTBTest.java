@@ -352,10 +352,7 @@ class CustomersFTBTest {
                 Items.OAK_LOG,
                 RegistrationInfo.BUILT_IN
         );
-        items.bindTag(
-                logs,
-                List.of(oakLog)
-        );
+        items.bindTags(Map.of(logs, List.of(oakLog)));
         items.freeze();
         Optional<ItemPredicate> predicate = CustomersFTBTriggerSchema
                 .itemPredicate(

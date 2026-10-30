@@ -4,17 +4,15 @@ import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Unit;
 import net.minecraft.world.entity.npc.villager.Villager;
-import net.minecraft.world.entity.npc.villager.VillagerProfession;
-import net.minecraft.world.entity.npc.villager.VillagerTrades;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -23,6 +21,11 @@ import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.display.SlotDisplayContext;
 import net.minecraft.world.item.trading.MerchantOffer;
+import net.minecraft.world.item.trading.VillagerTrade;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 
 public final class EconomyItemCostProviderTradesAndRecipes implements EconomyItemCostProvider {
     private static final int MAX_PROPAGATION_PASSES = 64;
@@ -63,35 +66,30 @@ public final class EconomyItemCostProviderTradesAndRecipes implements EconomyIte
             Villager villager,
             Map<Item, Price> prices
     ) {
-        for (Map.Entry<ResourceKey<VillagerProfession>, Int2ObjectMap<VillagerTrades.ItemListing[]>> profession
-                : VillagerTrades.TRADES.entrySet()) {
-            for (VillagerTrades.ItemListing[] listings : profession.getValue().values()) {
-                scanListings(level, listings, villager, prices);
-            }
-        }
-        for (Pair<VillagerTrades.ItemListing[], Integer> tradeGroup
-                : VillagerTrades.WANDERING_TRADER_TRADES) {
-            scanListings(level, tradeGroup.getLeft(), villager, prices);
-        }
+        var villagerTypes = level.registryAccess().lookupOrThrow(Registries.VILLAGER_TYPE);
+        var trades = level.registryAccess().lookupOrThrow(Registries.VILLAGER_TRADE);
+        villagerTypes.listElements().forEach(type -> {
+            villager.setVillagerData(villager.getVillagerData().withType(type));
+            LootContext context = new LootContext.Builder(
+                    new LootParams.Builder(level)
+                            .withParameter(LootContextParams.ORIGIN, villager.position())
+                            .withParameter(LootContextParams.THIS_ENTITY, villager)
+                            .withParameter(LootContextParams.ADDITIONAL_COST_COMPONENT_ALLOWED, Unit.INSTANCE)
+                            .create(LootContextParamSets.VILLAGER_TRADE)
+            ).create(Optional.empty());
+            trades.listElements().map(holder -> holder.value()).forEach(trade -> {
+                try {
+                    addTrade(trade, context, prices);
+                } catch (RuntimeException ignored) {
+                }
+            });
+        });
     }
 
-    private static void scanListings(
-            ServerLevel level,
-            VillagerTrades.ItemListing[] listings,
-            Villager villager,
-            Map<Item, Price> prices
-    ) {
-        if (listings == null) {
-            return;
-        }
-        for (VillagerTrades.ItemListing listing : listings) {
-            try {
-                MerchantOffer offer = listing.getOffer(level, villager, villager.getRandom());
-                if (offer != null) {
-                    addOffer(offer, prices);
-                }
-            } catch (RuntimeException ignored) {
-            }
+    private static void addTrade(VillagerTrade trade, LootContext context, Map<Item, Price> prices) {
+        MerchantOffer offer = trade.getOffer(context);
+        if (offer != null) {
+            addOffer(offer, prices);
         }
     }
 

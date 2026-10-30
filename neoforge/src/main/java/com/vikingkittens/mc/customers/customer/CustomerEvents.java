@@ -13,6 +13,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.level.ChunkEvent;
+import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
 
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.common.BlockBreakConfirmation;
@@ -36,7 +37,7 @@ public class CustomerEvents {
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void onCustomerSpawnerBreak(BlockEvent.BreakEvent event) {
+    public static void onCustomerSpawnerBreak(BreakBlockEvent event) {
         if (event.getPlayer() instanceof ServerPlayer player &&
                 event.getState().getBlock() instanceof CustomerSpawnerBlock &&
                 event.getLevel().getBlockEntity(event.getPos()) instanceof CustomerSpawnerBlockEntity spawner &&
@@ -52,7 +53,7 @@ public class CustomerEvents {
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void onCustomerLeaderboardBreak(BlockEvent.BreakEvent event) {
+    public static void onCustomerLeaderboardBreak(BreakBlockEvent event) {
         if (event.getPlayer() instanceof ServerPlayer player &&
                 event.getState().getBlock() instanceof CustomerLeaderboardBlock &&
                 event.getLevel().getBlockEntity(event.getPos()) instanceof CustomerLeaderboardBlockEntity leaderboard &&
@@ -86,7 +87,7 @@ public class CustomerEvents {
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void onBlockBroken(BlockEvent.BreakEvent event) {
+    public static void onBlockBroken(BreakBlockEvent event) {
         if (event.getLevel() instanceof ServerLevel level) {
             CustomerSpawnerCache.onBlockBroken(
                     level,

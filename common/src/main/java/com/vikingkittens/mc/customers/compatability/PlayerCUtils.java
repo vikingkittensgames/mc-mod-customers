@@ -15,13 +15,13 @@ public final class PlayerCUtils {
             Player player,
             Component message
     ) {
-        player.displayClientMessage(message, false);
+        player.sendSystemMessage(message);
     }
     public static void sendActionBarMessage(
             Player player,
             Component message
     ) {
-        player.displayClientMessage(message, true);
+        player.sendOverlayMessage(message);
     }
     public static ServerLevel getServerLevel(ServerPlayer player) {
         return player.level();

@@ -4,7 +4,7 @@ import java.util.List;
 
 import dev.architectury.networking.NetworkManager;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -54,18 +54,18 @@ public class BlockBreakConfirmationScreen extends Screen {
     }
 
     @Override
-    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         GuiGraphicsCUtils.blit(graphics, TEXTURE, leftPos, topPos, 0.0F, 0.0F, WIDTH, HEIGHT, WIDTH, HEIGHT);
-        graphics.drawString(font, title, leftPos + 8, topPos + 12, 0xFF000000, false);
+        graphics.text(font, title, leftPos + 8, topPos + 12, 0xFF000000, false);
         List<net.minecraft.util.FormattedCharSequence> lines = font.split(Component.translatable(payload.messageKey()), WIDTH - 16);
         for (int index = 0; index < lines.size(); index++) {
-            graphics.drawString(font, lines.get(index), leftPos + 8, topPos + 32 + index * font.lineHeight, 0xFF000000, false);
+            graphics.text(font, lines.get(index), leftPos + 8, topPos + 32 + index * font.lineHeight, 0xFF000000, false);
         }
-        super.render(graphics, mouseX, mouseY, partialTick);
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }
 
     @Override

@@ -5,22 +5,16 @@ import java.util.List;
 import org.joml.Matrix4f;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.state.CameraRenderState;
-import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Util;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 
 import com.vikingkittens.mc.customers.client.compatability.DebugBoxC;
 import com.vikingkittens.mc.customers.client.compatability.RenderingCUtils;
 import com.vikingkittens.mc.customers.customer.CustomerCounterMarker;
-import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlock;
+import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
 public final class CustomerCounterMarkerRenderer {
     private static final float SCALE = 0.5F;
@@ -30,6 +24,7 @@ public final class CustomerCounterMarkerRenderer {
     private static final float SURROUNDING_GREEN = 153.0F / 255.0F;
     private static final float SURROUNDING_BLUE = 28.0F / 255.0F;
     private static final float SURROUNDING_ALPHA = 0.6F;
+    private static final float MARKER_ALPHA = 0.85F;
 
     public static void render(
             PoseStack poseStack,
@@ -52,45 +47,14 @@ public final class CustomerCounterMarkerRenderer {
         }
 
         float bob = CustomerCounterMarkerManager.getBobOffset(currentTime);
-        Vec3 cameraPosition = cameraRenderState.pos;
-        MultiBufferSource.BufferSource bufferSource =
-                minecraft.renderBuffers().bufferSource();
-
-        for (CustomerCounterMarker marker : markers) {
-            BlockState markerState = CustomerSpawnerBlock.getMarkerState(marker.spawnerMode());
-
-            poseStack.pushPose();
-            poseStack.translate(
-                    marker.position().getX() + 0.5D - cameraPosition.x(),
-                    marker.position().getY() + HEIGHT_OFFSET + bob - cameraPosition.y(),
-                    marker.position().getZ() + 0.5D - cameraPosition.z()
-            );
-            poseStack.mulPose(Axis.YP.rotationDegrees(
-                    CustomerCounterMarkerManager.getRotationDegrees(currentTime)
-            ));
-            poseStack.scale(SCALE, SCALE, SCALE);
-            poseStack.translate(-0.5D, -0.5D, -0.5D);
-
-            minecraft.getBlockRenderer().renderSingleBlock(
-                    markerState,
-                    poseStack,
-                    bufferSource,
-                    LevelRenderer.getLightColor(
-                            minecraft.level,
-                            marker.position().above()
-                    ),
-                    OverlayTexture.NO_OVERLAY
-            );
-            poseStack.popPose();
-        }
-
-        bufferSource.endBatch();
-
         int surroundingColor = ((int) (SURROUNDING_ALPHA * 255.0F) << 24)
                 | ((int) (SURROUNDING_RED * 255.0F) << 16)
                 | ((int) (SURROUNDING_GREEN * 255.0F) << 8)
                 | (int) (SURROUNDING_BLUE * 255.0F);
         double halfScale = SURROUNDING_SCALE / 2.0D;
+        List<DebugBoxC> markerBoxes = markers.stream()
+                .map(marker -> markerBox(marker, bob))
+                .toList();
         List<DebugBoxC> surroundingBoxes = surroundingPositions.stream()
                 .map(position -> {
                     double centerX = position.getX() + 0.5D;
@@ -113,7 +77,38 @@ public final class CustomerCounterMarkerRenderer {
                 poseStack,
                 cameraRenderState,
                 modelViewMatrix,
-                surroundingBoxes
+                java.util.stream.Stream.concat(markerBoxes.stream(), surroundingBoxes.stream()).toList()
         );
+    }
+
+    private static DebugBoxC markerBox(CustomerCounterMarker marker, float bob) {
+        double centerX = marker.position().getX() + 0.5D;
+        double centerY = marker.position().getY() + HEIGHT_OFFSET + bob;
+        double centerZ = marker.position().getZ() + 0.5D;
+        double halfScale = SCALE / 2.0D;
+        return new DebugBoxC(
+                new AABB(
+                        centerX - halfScale,
+                        centerY - halfScale,
+                        centerZ - halfScale,
+                        centerX + halfScale,
+                        centerY + halfScale,
+                        centerZ + halfScale
+                ),
+                markerColor(marker.spawnerMode())
+        );
+    }
+
+    private static int markerColor(CustomerSpawnerMode mode) {
+        int rgb = switch (mode) {
+            case CONTINUOUS -> 0x36A3FF;
+            case MANUAL -> 0xB66CFF;
+            case DAY -> 0xFFE066;
+            case NIGHT -> 0x5965D8;
+            case BREAKFAST -> 0xFFB347;
+            case LUNCH -> 0x66CC66;
+            case DINNER -> 0xE86A5A;
+        };
+        return ((int) (MARKER_ALPHA * 255.0F) << 24) | rgb;
     }
 }

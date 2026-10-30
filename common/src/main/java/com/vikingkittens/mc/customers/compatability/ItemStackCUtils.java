@@ -64,10 +64,10 @@ public final class ItemStackCUtils {
     ) {
         if (value instanceof ProvidesTrimMaterial valueMaterial
                 && prototypeValue instanceof ProvidesTrimMaterial prototypeMaterial
-                && (valueMaterial.material().key().isPresent()
-                        || prototypeMaterial.material().key().isPresent())) {
-            return valueMaterial.material().key().equals(
-                    prototypeMaterial.material().key()
+                && (valueMaterial.material().unwrapKey().isPresent()
+                        || prototypeMaterial.material().unwrapKey().isPresent())) {
+            return valueMaterial.material().unwrapKey().equals(
+                    prototypeMaterial.material().unwrapKey()
             );
         }
         if (value instanceof Holder<?> valueHolder

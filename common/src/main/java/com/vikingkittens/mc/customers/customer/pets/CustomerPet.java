@@ -181,7 +181,7 @@ public final class CustomerPet {
                 .sorted(Comparator.comparingInt(getItemId))
                 .toList();
         for (EntityType<?> entityType : entityTypes) {
-            if (entityType.is(CAN_NOT_BE_PET)) {
+            if (entityType.builtInRegistryHolder().is(CAN_NOT_BE_PET)) {
                 continue;
             }
             Animal animal = createAnimalForDiscovery(entityType, level);

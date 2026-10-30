@@ -1,11 +1,7 @@
 plugins {
     id 'customers-common'
-    id 'dev.architectury.loom'
+    id 'dev.architectury.loom-no-remap'
     id 'com.diffplug.spotless'
-}
-
-loom {
-    silentMojangMappingsLicense()
 }
 
 sourceSets.test.compileClasspath += sourceSets.main.compileClasspath
@@ -49,19 +45,16 @@ tasks.named('check') {
 
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
-    mappings loom.layered {
-        officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-${parchment_minecraft_version}:${parchment_mappings_version}@zip")
-    }
-
-    modImplementation "dev.architectury:architectury:${architectury_version}"
-    modCompileOnly "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    implementation "dev.architectury:architectury:${architectury_version}"
+    compileOnly "net.fabricmc:fabric-loader:${fabric_loader_version}"
     compileOnly "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
+    compileOnly "dev.ftb.mods:ftb-library-neoforge:${ftb_library_version}"
     testRuntimeOnly "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
-    compileOnly "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
-    testRuntimeOnly "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
+    testRuntimeOnly "dev.ftb.mods:ftb-library-neoforge:${ftb_library_version}"
+    compileOnly "maven.modrinth:geckolib:${geckolib_neoforge_artifact_version}"
+    testRuntimeOnly "maven.modrinth:geckolib:${geckolib_neoforge_artifact_version}"
     testImplementation project(':testsupport')
     testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
-    testImplementation "org.mockito:mockito-core:5.12.0"
+    testImplementation "org.mockito:mockito-core:5.20.0"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }

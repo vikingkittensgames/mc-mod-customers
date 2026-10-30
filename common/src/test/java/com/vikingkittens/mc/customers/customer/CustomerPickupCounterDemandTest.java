@@ -519,11 +519,10 @@ class CustomerPickupCounterDemandTest {
                 );
 
         assertEquals(4, remainder.getCount());
-        verify(player).displayClientMessage(
+        verify(player).sendOverlayMessage(
                 Component.translatable(
                         "messages.customers.pickup_counter.items_returned"
-                ),
-                true
+                )
         );
     }
 

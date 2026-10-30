@@ -3,8 +3,10 @@ package com.vikingkittens.mc.customers.advancements.ftb;
 import java.util.Set;
 import java.util.UUID;
 
+import de.marhali.json5.Json5Object;
 import dev.ftb.mods.ftblibrary.client.config.EditableConfigGroup;
 import dev.ftb.mods.ftblibrary.icon.Icon;
+import dev.ftb.mods.ftblibrary.json5.Json5Util;
 import dev.ftb.mods.ftblibrary.util.NameMap;
 import dev.ftb.mods.ftbquests.quest.Quest;
 import dev.ftb.mods.ftbquests.quest.TeamData;
@@ -13,7 +15,6 @@ import dev.ftb.mods.ftbquests.quest.task.TaskType;
 import dev.ftb.mods.ftbquests.quest.task.TaskTypes;
 
 import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -265,10 +266,10 @@ public final class CustomersFTBTasks {
         }
 
         @Override
-        public void writeData(CompoundTag tag, HolderLookup.Provider provider) {
+        public void writeData(Json5Object tag, HolderLookup.Provider provider) {
             super.writeData(tag, provider);
-            tag.putString("customers_task", taskKind.serializedName());
-            tag.putInt("count", requiredEvents);
+            tag.addProperty("customers_task", taskKind.serializedName());
+            tag.addProperty("count", requiredEvents);
             switch (taskKind) {
                 case ITEM_SERVED -> CustomersFTBTriggerSchema.writeData(
                         tag,
@@ -322,10 +323,10 @@ public final class CustomersFTBTasks {
         }
 
         @Override
-        public void readData(CompoundTag tag, HolderLookup.Provider provider) {
+        public void readData(Json5Object tag, HolderLookup.Provider provider) {
             super.readData(tag, provider);
-            taskKind = CustomersTaskKind.NAME_MAP.get(tag.getString("customers_task").orElse(""));
-            requiredEvents = Math.max(1, tag.getInt("count").orElse(1));
+            taskKind = CustomersTaskKind.NAME_MAP.get(Json5Util.getString(tag, "customers_task").orElse(""));
+            requiredEvents = Math.max(1, Json5Util.getInt(tag, "count").orElse(1));
             switch (taskKind) {
                 case ITEM_SERVED -> itemServedTrigger = CustomersFTBTriggerSchema.readData(
                         tag,

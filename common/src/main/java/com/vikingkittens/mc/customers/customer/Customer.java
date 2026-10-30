@@ -3,6 +3,7 @@ package com.vikingkittens.mc.customers.customer;
 import com.google.common.collect.ImmutableSet;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -54,7 +55,8 @@ public class Customer {
                     holder -> false,
                     ImmutableSet.of(),
                     ImmutableSet.of(),
-                    null
+                    null,
+                    Int2ObjectMap.ofEntries()
             )
             );
     public static final RegistrySupplier<VillagerProfession> CUSTOMER_CASUAL_PROFESSION =
@@ -64,7 +66,8 @@ public class Customer {
                     holder -> false,
                     ImmutableSet.of(),
                     ImmutableSet.of(),
-                    null
+                    null,
+                    Int2ObjectMap.ofEntries()
             )
             );
     public static final RegistrySupplier<VillagerProfession> CUSTOMER_IMPATIENT_PROFESSION =
@@ -74,7 +77,8 @@ public class Customer {
                     holder -> false,
                     ImmutableSet.of(),
                     ImmutableSet.of(),
-                    null
+                    null,
+                    Int2ObjectMap.ofEntries()
             )
             );
 }

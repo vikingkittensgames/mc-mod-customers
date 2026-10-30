@@ -1,7 +1,7 @@
 package com.vikingkittens.mc.customers.client.appearance.skins;
 
-import software.bernie.geckolib.model.GeoModel;
-import software.bernie.geckolib.renderer.base.GeoRenderState;
+import com.geckolib.model.GeoModel;
+import com.geckolib.renderer.base.GeoRenderState;
 
 import net.minecraft.resources.Identifier;
 

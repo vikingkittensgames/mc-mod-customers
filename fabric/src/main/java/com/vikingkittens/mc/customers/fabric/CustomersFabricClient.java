@@ -3,7 +3,7 @@ package com.vikingkittens.mc.customers.fabric;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 
 import com.vikingkittens.mc.customers.client.CustomersClientRegistrations;
 import com.vikingkittens.mc.customers.client.advancements.ftb.CustomersFTBClient;
@@ -16,14 +16,10 @@ public final class CustomersFabricClient implements ClientModInitializer {
         CustomersClientNetworking.initialize();
         CustomersClientRegistrations.initialize();
         CustomersFTBClient.initialize();
-        WorldRenderEvents.AFTER_ENTITIES.register(context -> {
-            if (context.matrices() != null) {
-                CustomerCounterMarkerRenderer.render(
-                        context.matrices(),
-                        context.worldState().cameraRenderState,
-                        RenderSystem.getModelViewMatrix()
-                );
-            }
-        });
+        LevelRenderEvents.BEFORE_GIZMOS.register(context -> CustomerCounterMarkerRenderer.render(
+                context.poseStack(),
+                context.levelState().cameraRenderState,
+                RenderSystem.getModelViewMatrix()
+        ));
     }
 }

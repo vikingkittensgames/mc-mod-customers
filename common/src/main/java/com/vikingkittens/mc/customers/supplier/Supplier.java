@@ -3,6 +3,7 @@ package com.vikingkittens.mc.customers.supplier;
 import com.google.common.collect.ImmutableSet;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -45,7 +46,8 @@ public class Supplier {
                     holder -> false,
                     ImmutableSet.of(),
                     ImmutableSet.of(),
-                    null
+                    null,
+                    Int2ObjectMap.ofEntries()
             )
     );
 }

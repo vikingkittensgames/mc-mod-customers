@@ -12,6 +12,35 @@ Before introducing a version-specific call in functionality code:
 4. Keep structural differences, such as changed override signatures or renderer inheritance, in version-specific integration code.
 5. Update this document and the applicable migration notes when compatibility behavior changes.
 
+## Minecraft 1.21.11 to 26.1.2 Compatibility Summary
+
+Treat the completed Minecraft 1.21.11 branch as the direct source for the
+26.1.2 port. The detailed 1.21.1-to-1.21.11 tables later in this guide remain
+the reference for the first port step; do not use 1.21.1 as the direct baseline
+for 26.1.2. Player-facing and pack-author differences for the second step are
+recorded in `Minecraft-1.21.11-to-26.1.2.md`.
+
+| Compatibility area | Minecraft 1.21.11 source | Minecraft 26.1.2 target |
+| --- | --- | --- |
+| Build and mappings | Java 21, mapped Minecraft, and remapped loader jars | Java 25, unobfuscated Minecraft, `loom-no-remap`, and final Shadow jars |
+| GUI rendering | Submit through `GuiGraphics` | Extract through `GuiGraphicsExtractor`; item calls use `item` and `itemDecorations` |
+| World markers | Submit the spinning selected marker and debug geometry through the 1.21.11 render events | Submit gizmo cubes from loader-specific late render events; use a bobbing mode-colored selected cube |
+| Customer progress bar | Render the boss bar and wanted items through the 1.21.11 GUI path | Extract the overlay in two phases and immediately synchronize the matching boss-event UUID snapshot |
+| GeckoLib skins | GeckoLib 5 renderer data and `geckolib/models` and `geckolib/animations` assets | GeckoLib 5.5.2 with the same public skin schema, renderer-data contract, and logical asset IDs |
+| FTB Quests | FTB Quests 2111.1.5 custom task data using the 1.21.11 persistence API | FTB Quests 26.1.2.9 JSON5 task data and FTB Library `Json5Ops` |
+| FTB production dependencies | Matching 1.21.11 loader artifacts | FTB Quests 26.1.2.9, FTB Library 26.1.2.8, FTB Teams 26.1.2.4, plus Team Reborn Energy 5.0.0 on Fabric |
+| Villager trades | Discover offers through the 1.21.11 trade maps | Scan registry-backed villager trades and evaluate them with a villager-trade loot context |
+| Item cost predicates | Build exact predicates from the 1.21.11 component representation | Include only components that differ from the item's prototype |
+| Player messages | `displayClientMessage` for system and action-bar messages | `sendSystemMessage` and `sendOverlayMessage` |
+| Persistence | Project adapters backed by `ValueInput` and `ValueOutput` | The same project adapter contracts backed by the current `ValueInput` and `ValueOutput` APIs |
+| Static models | 1.21.11 block and item model validation | Explicit UV bounds are required for expanded overlay geometry |
+| Vanilla witch texture | `textures/entity/witch.png` | `textures/entity/witch/witch.png` |
+| NeoForge game tests | 1.21.11 test-environment holder | Generic `TestEnvironmentDefinition<?>` holder |
+
+Keep these differences inside the existing compatibility utilities or thin
+loader/version adapters. Structural changes to override signatures, renderer
+inheritance, or event subscriptions remain version-specific integration code.
+
 ## Package Organization
 
 Common and server compatibility classes belong in:
@@ -29,14 +58,16 @@ com.vikingkittens.mc.customers.client.compatability
 Classes are grouped by the Minecraft concept they adapt and use the `CUtils` suffix.
 
 `EntityRendererCUtils` bridges the erased renderer and render-state generic
-types needed by the Minecraft 1.21.11 appearance dispatcher. It invokes the
-selected production renderer's normal state extraction and submission paths.
+types needed by the Minecraft 1.21.11 and 26.1.2 appearance dispatchers. It
+invokes the selected production renderer's normal state extraction and
+submission paths.
 
 Gecko skin definitions and the public client appearance contract do not expose GeckoLib classes. The optional
 renderer adapter is version-specific because GeckoLib 4 renders entity instances while GeckoLib 5 uses Minecraft's
 render-state architecture. Minecraft 1.20.1 and 1.21.1 use GeckoLib 4 asset paths under `geo` and `animations`;
-Minecraft 1.21.11 uses GeckoLib 5 paths under `geckolib/models` and `geckolib/animations`. Keep model selection,
-animation-state decisions, pivot math, and overhead-anchor semantics identical across branches.
+Minecraft 1.21.11 and 26.1.2 use GeckoLib 5 paths under `geckolib/models` and
+`geckolib/animations`. Keep model selection, animation-state decisions, pivot
+math, and overhead-anchor semantics identical across branches.
 
 GeckoLib 5 injects its data methods into Minecraft's base `EntityRenderState`. A custom render-state subclass that
 owns a separate data map must override `addGeckolibData`, `hasGeckolibData`, and `getDataMap` so GeckoLib writes and
@@ -44,8 +75,10 @@ reads the animation manager through the same storage on both Fabric and NeoForge
 
 Short Gecko skin resource IDs expand into the Customers asset layout for the active GeckoLib generation. Complete
 IDs ending in `.geo.json` or `.animation.json` are normalized to GeckoLib 5 logical IDs on Minecraft 1.21.11, while
-complete texture paths remain unchanged. Use Architectury `Platform.isModLoaded` through the shared skin-availability
-path for optional GeckoLib and generic `required_mods` filtering.
+complete texture paths remain unchanged. Minecraft 26.1.2 retains the same
+GeckoLib 5 logical IDs and skin schema. Use Architectury
+`Platform.isModLoaded` through the shared skin-availability path for optional
+GeckoLib and generic `required_mods` filtering.
 
 Skin `names` use Minecraft's standard JSON text-component representation. Access its codec only through
 `ComponentCUtils.codec()` so the implementation can follow the Minecraft version's component serialization API.
@@ -192,6 +225,9 @@ Both implementations return an empty `ItemStack` when no crafting remainder exis
 
 `createItemCost` preserves component-bearing variants such as potions while
 centralizing the renamed component-predicate type used by supported versions.
+On Minecraft 26.1.2 it compares a stack's components with the item's prototype
+and places only non-default components in the exact cost predicate. This keeps
+normal item defaults from becoming redundant trade requirements.
 
 ### PlayerCUtils
 
@@ -222,6 +258,10 @@ public static ServerLevel getServerLevel(ServerPlayer player);
 | `sendSystemMessage` | `player.sendSystemMessage(message)` | `player.displayClientMessage(message, false)` |
 | `sendActionBarMessage` | `player.displayClientMessage(message, true)` | `player.displayClientMessage(message, true)` |
 | `getServerLevel` | `player.serverLevel()` | `player.level()` |
+
+Minecraft 26.1.2 keeps the same project-owned methods. Its implementation uses
+`Player.sendSystemMessage`, `Player.sendOverlayMessage`, and
+`ServerPlayer.level()`.
 
 ### InteractionCUtils
 
@@ -378,6 +418,8 @@ DataWriter addChild(String key);
 | Minecraft 1.21.1 | Minecraft 1.21.11 |
 | --- | --- |
 | Adapters read and write `CompoundTag`, `ListTag`, and `NbtUtils` values | Adapters read and write `ValueInput`, `ValueOutput`, and codec-backed values |
+
+Minecraft 26.1.2 continues to use the `ValueInput` and `ValueOutput` adapters.
 
 Registry-backed factory overloads preserve complete item stacks, including
 counts and data components. Minecraft 1.21.1 adapters use
@@ -560,6 +602,23 @@ public record DebugBoxC(
 | Camera orientation | Read the event camera | Read `cameraRenderState` from the extracted level render state |
 
 Event subscriptions remain version-specific and pass stable render descriptions into this class.
+Minecraft 26.1.2 submits debug geometry through `DrawableGizmoPrimitives` from
+Fabric's `BEFORE_GIZMOS` event or NeoForge's after-translucent-features stage.
+The mode marker and its surrounding valid-counter hints are both represented
+as `DebugBoxC` values on this branch.
+
+Minecraft 26.1.2 GUI code receives a `GuiGraphicsExtractor` during render-state
+extraction. `GuiGraphicsCUtils` keeps the same project-owned drawing and
+transform operations while adapting them to extractor methods such as `item`
+and `itemDecorations`.
+
+The customer progress-bar renderer submits its title, wanted-item groups, and
+relocated vanilla-style bar during that extraction phase. Loader integrations
+remain structural: NeoForge uses `CustomizeGuiOverlayEvent.BossEventProgress`,
+while Fabric redirects `BossHealthOverlay.extractRenderState`. Server progress
+bar visibility transitions must immediately synchronize the snapshot carrying
+the boss-event UUID so either loader can associate the extracted bar with its
+wanted-item data.
 
 ### RenderStateCUtils
 
@@ -597,6 +656,10 @@ initialize the common server and client registrations, while each loader
 supplies its matching FTB Quests runtime artifact. Forge does not initialize
 the integration because FTB Quests 2101.1.x has no Forge runtime artifact.
 
+FTB Quests 26.1.2 uses JSON5 for task persistence. The Customers task adapter
+uses FTB Library's `Json5Ops` for trigger codecs while preserving the same
+task fields and behavior.
+
 The following changes should not be hidden behind static compatibility methods because Java requires version-specific override signatures, superclass types, generics, or event subscriptions:
 
 - `causeFallDamage(float, ...)` versus `causeFallDamage(double, ...)`
@@ -610,6 +673,8 @@ The following changes should not be hidden behind static compatibility methods b
 - `MobRenderer` generic signatures
 - villager render-layer constructors
 - zombie, husk, drowned, skeleton, stray, and witch renderer architecture
+- vanilla entity texture layout changes such as the Minecraft 26.1.2 witch
+  texture moving under `textures/entity/witch/`
 - combined versus split `RenderNameTagEvent`
 - test bootstrap differences
 - composite-model JSON behavior
