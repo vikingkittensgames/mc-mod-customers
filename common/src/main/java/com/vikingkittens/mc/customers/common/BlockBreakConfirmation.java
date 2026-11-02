@@ -11,9 +11,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.Vec3;
 
 public final class BlockBreakConfirmation {
     private static final long EXPIRATION_MILLIS = 60_000L;
+    private static final double CONFIRMATION_RANGE_SQUARED = 36.0D;
     private static final Map<UUID, PendingBreak> PENDING_BREAKS = new HashMap<>();
 
     private BlockBreakConfirmation() {
@@ -42,7 +44,11 @@ public final class BlockBreakConfirmation {
         PendingBreak pendingBreak = PENDING_BREAKS.get(token);
         if (pendingBreak == null || !player.getUUID().equals(playerId)
                 || !ConfirmationToken.isKnownFor(playerId, token, Util.getMillis())
-                || player.serverLevel().getBlockEntity(pendingBreak.pos) != pendingBreak.blockEntity) {
+                || player.serverLevel().getBlockEntity(pendingBreak.pos) != pendingBreak.blockEntity
+                || !isWithinConfirmationRange(
+                        player.position(),
+                        pendingBreak.pos
+                )) {
             player.sendSystemMessage(Component.translatable("messages.customers.break_confirmation.expired"));
             PENDING_BREAKS.remove(token);
             ConfirmationToken.remove(token);
@@ -50,6 +56,15 @@ public final class BlockBreakConfirmation {
         }
         pendingBreak.confirmed = true;
         player.gameMode.destroyBlock(pendingBreak.pos);
+    }
+
+    static boolean isWithinConfirmationRange(
+            Vec3 playerPosition,
+            BlockPos blockPosition
+    ) {
+        return playerPosition.distanceToSqr(
+                Vec3.atCenterOf(blockPosition)
+        ) <= CONFIRMATION_RANGE_SQUARED;
     }
 
     private static void removeExpiredBreaks() {

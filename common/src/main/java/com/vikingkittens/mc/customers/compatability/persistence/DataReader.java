@@ -38,6 +38,15 @@ public interface DataReader {
      */
     List<ItemStack> getItemStacks(String key);
 
+    /**
+     * Reads at most the requested number of item-stack slots.
+     *
+     * @param key storage key
+     * @param maximumSize maximum number of slots to allocate and read
+     * @return immutable list of stored stacks
+     */
+    List<ItemStack> getItemStacks(String key, int maximumSize);
+
     DataReader childOrEmpty(String key);
 
     List<DataReader> getChildren(String key);

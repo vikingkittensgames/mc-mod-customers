@@ -15,6 +15,7 @@ import net.minecraft.world.item.ItemStack;
 import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
 
 public class PersistedContainer implements Container {
+    private final int configuredSize;
     private final Runnable changeListener;
     private final Predicate<Player> validity;
     private NonNullList<ItemStack> items;
@@ -24,6 +25,7 @@ public class PersistedContainer implements Container {
     }
 
     public PersistedContainer(int size, Runnable changeListener, Predicate<Player> validity) {
+        configuredSize = size;
         items = NonNullList.withSize(size, ItemStack.EMPTY);
         this.changeListener = changeListener;
         this.validity = validity;
@@ -130,8 +132,8 @@ public class PersistedContainer implements Container {
     }
 
     public void deserializeNBT(HolderLookup.Provider registries, CompoundTag serialized) {
-        int size = serialized.contains("Size", Tag.TAG_INT) ? Math.max(0, serialized.getInt("Size")) : items.size();
-        NonNullList<ItemStack> loadedItems = NonNullList.withSize(size, ItemStack.EMPTY);
+        NonNullList<ItemStack> loadedItems =
+                NonNullList.withSize(configuredSize, ItemStack.EMPTY);
         ListTag serializedItems = serialized.getList("Items", Tag.TAG_COMPOUND);
         for (int index = 0; index < serializedItems.size(); index++) {
             CompoundTag serializedStack = serializedItems.getCompound(index);

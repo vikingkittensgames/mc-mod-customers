@@ -215,7 +215,8 @@ public final class CustomerSpawnerLevelSettings {
         petFoods.clear();
         for (DataReader petFoodInput : input.getChildren(TAG_PET_FOODS)) {
             petFoodInput.getString("petTypeId").ifPresent(petTypeId -> {
-                List<ItemStack> food = petFoodInput.getItemStacks("food");
+                List<ItemStack> food =
+                        petFoodInput.getItemStacks("food", 1);
                 if (!food.isEmpty()) {
                     petFoods.put(petTypeId, food.getFirst());
                 }
@@ -224,7 +225,8 @@ public final class CustomerSpawnerLevelSettings {
         appearanceSettings.read(input.childOrEmpty(TAG_APPEARANCE_SETTINGS));
         autoCost = input.getBoolean(TAG_AUTO_COST);
 
-        List<ItemStack> itemStacks = input.getItemStacks(TAG_INVENTORY);
+        List<ItemStack> itemStacks =
+                input.getItemStacks(TAG_INVENTORY, INVENTORY_SIZE);
         for (int slot = 0; slot < Math.min(inventory.getContainerSize(), itemStacks.size()); slot++) {
             inventory.setItem(slot, itemStacks.get(slot));
         }
