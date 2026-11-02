@@ -113,11 +113,27 @@ final class CompoundTagDataReader implements DataReader {
 
     @Override
     public List<ItemStack> getItemStacks(String key) {
+        return getItemStacks(key, Integer.MAX_VALUE);
+    }
+
+    @Override
+    public List<ItemStack> getItemStacks(
+            String key,
+            int maximumSize
+    ) {
+        if (maximumSize < 0) {
+            throw new IllegalArgumentException(
+                    "Maximum inventory size cannot be negative"
+            );
+        }
         if (!tag.contains(key, Tag.TAG_COMPOUND)) {
             return List.of();
         }
         CompoundTag inventoryTag = tag.getCompound(key);
-        int size = inventoryTag.getInt("Size");
+        int size = Math.min(
+                Math.max(0, inventoryTag.getInt("Size")),
+                maximumSize
+        );
         List<ItemStack> stacks = new ArrayList<>(
                 Collections.nCopies(size, ItemStack.EMPTY)
         );
