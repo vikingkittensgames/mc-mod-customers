@@ -16,6 +16,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
 
 public class PersistedContainer implements Container {
+    private final int configuredSize;
     private final Runnable changeListener;
     private final Predicate<Player> validity;
     private NonNullList<ItemStack> items;
@@ -25,6 +26,7 @@ public class PersistedContainer implements Container {
     }
 
     public PersistedContainer(int size, Runnable changeListener, Predicate<Player> validity) {
+        configuredSize = size;
         items = NonNullList.withSize(size, ItemStack.EMPTY);
         this.changeListener = changeListener;
         this.validity = validity;
@@ -125,16 +127,20 @@ public class PersistedContainer implements Container {
     }
 
     public void read(ValueInput input) {
-        items = ItemStackListPersistence.read(input);
+        replaceItems(ItemStackListPersistence.read(input, configuredSize));
     }
 
     public void deserializeNBT(HolderLookup.Provider registries, CompoundTag serialized) {
         CompoundTag wrapper = new CompoundTag();
         wrapper.put("inventory", serialized);
         List<ItemStack> loadedItems = PersistenceCUtils.reader(wrapper, registries)
-                .getItemStacks("inventory");
-        items = NonNullList.withSize(loadedItems.size(), ItemStack.EMPTY);
-        for (int slot = 0; slot < loadedItems.size(); slot++) {
+                .getItemStacks("inventory", configuredSize);
+        replaceItems(loadedItems);
+    }
+
+    private void replaceItems(List<ItemStack> loadedItems) {
+        items = NonNullList.withSize(configuredSize, ItemStack.EMPTY);
+        for (int slot = 0; slot < Math.min(loadedItems.size(), configuredSize); slot++) {
             items.set(slot, loadedItems.get(slot));
         }
     }

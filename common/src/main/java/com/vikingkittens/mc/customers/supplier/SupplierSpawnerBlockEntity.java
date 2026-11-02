@@ -117,12 +117,7 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
 
-        try {
-            this.inventory.write(output.child("inventory"));
-        } catch (Throwable t) {
-            LOGGER.error("Failed to save inventory", t);
-        }
-
+        this.inventory.write(output.child("inventory"));
         writeSpawnerData(PersistenceCUtils.writer(output));
     }
     void writeSpawnerData(DataWriter output) {

@@ -89,7 +89,8 @@ class PersistedContainerTest {
         source.setItem(2, new ItemStack(Items.EMERALD, 7));
         CompoundTag serialized = source.serializeNBT(RegistryAccess.EMPTY);
         AtomicInteger changes = new AtomicInteger();
-        PersistedContainer container = new PersistedContainer(1, changes::incrementAndGet);
+        PersistedContainer container =
+                new PersistedContainer(4, changes::incrementAndGet);
 
         container.deserializeNBT(RegistryAccess.EMPTY, serialized);
 

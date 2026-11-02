@@ -16,7 +16,17 @@ final class ItemStackListPersistence {
     }
 
     static NonNullList<ItemStack> read(ValueInput input) {
-        int size = Math.max(0, input.getIntOr(TAG_SIZE, 0));
+        return read(input, Integer.MAX_VALUE);
+    }
+
+    static NonNullList<ItemStack> read(ValueInput input, int maximumSize) {
+        if (maximumSize < 0) {
+            throw new IllegalArgumentException("Maximum inventory size cannot be negative");
+        }
+        int size = Math.min(
+                Math.max(0, input.getIntOr(TAG_SIZE, 0)),
+                maximumSize
+        );
         NonNullList<ItemStack> itemStacks =
                 NonNullList.withSize(size, ItemStack.EMPTY);
         for (ValueInput itemInput : input.childrenListOrEmpty(TAG_ITEMS)) {

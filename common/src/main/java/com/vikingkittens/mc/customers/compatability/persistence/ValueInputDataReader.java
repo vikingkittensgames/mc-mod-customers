@@ -66,8 +66,13 @@ class ValueInputDataReader implements DataReader {
 
     @Override
     public List<ItemStack> getItemStacks(String key) {
+        return getItemStacks(key, Integer.MAX_VALUE);
+    }
+
+    @Override
+    public List<ItemStack> getItemStacks(String key, int maximumSize) {
         return input.child(key)
-                .map(ItemStackListPersistence::read)
+                .map(child -> ItemStackListPersistence.read(child, maximumSize))
                 .orElseGet(NonNullList::create);
     }
 
