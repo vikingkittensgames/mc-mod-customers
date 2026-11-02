@@ -322,6 +322,8 @@ List<UUID> getUuids(String key);
 
 List<ItemStack> getItemStacks(String key);
 
+List<ItemStack> getItemStacks(String key, int maximumSize);
+
 DataReader childOrEmpty(String key);
 
 List<DataReader> getChildren(String key);
@@ -363,6 +365,11 @@ Registry-backed factory overloads preserve complete item stacks, including
 counts and data components. Minecraft 1.21.1 adapters use
 `ItemStackHandler.serializeNBT` and `deserializeNBT`; Minecraft 1.21.11
 adapters use `ItemStackHandler.serialize` and `deserialize`.
+
+Use the bounded `getItemStacks` overload when the destination has a fixed
+size. The reader clamps serialized slot counts before allocating memory, and
+fixed `PersistedContainer` instances retain their configured size when loading
+legacy inventory data.
 
 Entity and block-entity override signatures cannot be hidden by static methods. Each branch keeps thin version-specific overrides that create an adapter and delegate to shared persistence logic.
 

@@ -41,6 +41,9 @@ public final class CustomerPickupCounterFabricStorage
                 resource.getItem().getDefaultMaxStackSize()
         );
         Reservation reservation = reservation(transaction);
+        if (reservation == null) {
+            return 0;
+        }
         List<net.minecraft.world.item.ItemStack> requestedStacks =
                 new ArrayList<>(reservation.stacks());
         requestedStacks.add(resource.toStack(requestedCount));
@@ -78,6 +81,18 @@ public final class CustomerPickupCounterFabricStorage
         TransactionContext outerTransaction =
                 transaction.getOpenTransaction(0);
         synchronized (RESERVATIONS) {
+            for (
+                    Map<ItemInsertionTarget, Reservation> reservations
+                    : RESERVATIONS.values()
+            ) {
+                for (Reservation existing : reservations.values()) {
+                    if (existing.target != target
+                            || existing.outerTransaction
+                                    != outerTransaction) {
+                        return null;
+                    }
+                }
+            }
             Map<ItemInsertionTarget, Reservation> byTarget =
                     RESERVATIONS.computeIfAbsent(
                             outerTransaction,
