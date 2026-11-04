@@ -9,23 +9,23 @@ This project is a Minecraft mod built with the NeoForge mod loader.
 - Use Java 21.
 - Use Gradle for builds and tests.
 - Always read version values from `gradle.properties`, including the NeoForge version, Minecraft version, and Minecraft version range.
-- Treat `README.md` as the source of truth for the mod description and expected player-facing functionality.
+- Treat `docs/` as the source of truth for the mod’s player-facing functionality and documentation.
 
 ## Product Documentation
 
-- Keep `README.md` up to date when functionality, player mechanics, usage, or rules change.
+- Keep the relevant files under `docs/` up to date when functionality, player mechanics, usage, or rules change.
 - Whenever a difference is found between supported Minecraft versions, document it in `Minecraft-1.21.1-to-{new-version}.md`.
 - Review every change against `Compatability.md` and use the documented compatibility methods whenever possible to reduce differences in functionality code between supported Minecraft versions.
 - Keep `Compatability.md` up to date when compatibility classes, methods, implementations, or supported version differences change.
-- Keep README wording focused on player-facing behavior.
-- Avoid exposing NeoForge, Minecraft internals, or implementation details in player-facing README text unless they directly affect usage.
+- Keep `README.md` as a concise project overview and avoid treating it as product documentation.
+- Keep player-facing documentation in `docs/` free of implementation details unless they directly affect usage.
 
 ## Development Workflow
 
 - Practice test-driven development.
 - Write tests before implementation changes whenever adding or changing behavior.
 - Do not change tests only to make them pass.
-- Change tests only when they no longer match the expected functionality described in `README.md` or an approved requirement change.
+- Change tests only when they no longer match the expected functionality described in `docs/` or an approved requirement change.
 - When possible, run the relevant Gradle tests before presenting changes for review.
 - Follow all code-formatting settings defined by `.editorconfig`, including the Java import order.
 - Avoid wrapping Java lines unless they would exceed the configured 120-character limit.
