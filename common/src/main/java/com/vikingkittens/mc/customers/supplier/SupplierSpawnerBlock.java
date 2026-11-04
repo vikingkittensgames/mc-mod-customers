@@ -1,5 +1,8 @@
 package com.vikingkittens.mc.customers.supplier;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -27,6 +30,8 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
 
 import com.vikingkittens.mc.customers.compatability.LevelCUtils;
@@ -84,7 +89,20 @@ public class SupplierSpawnerBlock extends BaseEntityBlock {
         if (!LevelCUtils.isClientSide(level)
                 && level.getBlockEntity(pos) instanceof SupplierSpawnerBlockEntity spawner) {
             spawner.setCustomName(stack.get(DataComponents.CUSTOM_NAME));
+            SupplierSpawnerItemSettings.apply(stack, spawner);
         }
+    }
+
+    @Override
+    protected List<ItemStack> getDrops(BlockState state, LootParams.Builder builder) {
+        List<ItemStack> drops = new ArrayList<>(super.getDrops(state, builder));
+        if (builder.getOptionalParameter(LootContextParams.BLOCK_ENTITY)
+                instanceof SupplierSpawnerBlockEntity spawner) {
+            drops.stream()
+                    .filter(stack -> stack.is(SupplierSpawner.SUPPLIER_SPAWNER_ITEM.get()))
+                    .forEach(stack -> SupplierSpawnerItemSettings.write(stack, spawner));
+        }
+        return drops;
     }
 
     @Override

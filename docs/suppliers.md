@@ -25,6 +25,9 @@ offer of 32 raw steaks for 5 emeralds. The cost can be any item, not only emeral
 The Appearance checkboxes select which appearances Suppliers from that spawner may use.
 At least one appearance is always enabled.
 
+When a Supplier Spawner is broken, its selected appearances and automatic-cost setting are retained on the
+Spawner item. Its inventory is dropped normally.
+
 ![supplier-spawner-inventory.png]({{ '/screenshots/supplier-spawner-inventory.png' | relative_url }})
 
 ![supplier-trades.png]({{ '/screenshots/supplier-trades.png' | relative_url }})
