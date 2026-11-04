@@ -9,6 +9,7 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
@@ -25,6 +26,7 @@ import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearanceSettings;
@@ -39,9 +41,10 @@ import com.vikingkittens.mc.customers.compatability.persistence.PersistedContain
 import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
 import com.vikingkittens.mc.customers.economy.Economy;
 
-public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvider {
+public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvider, Nameable {
     static final int CURRENT_DATA_VERSION = 1;
     static final String TAG_DATA_VERSION = "data_version";
+    private static final String TAG_CUSTOM_NAME = "CustomName";
     private final CustomersVillagerAppearanceSettings appearanceSettings =
             new CustomersVillagerAppearanceSettings();
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -104,9 +107,15 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
     private boolean daytimeStateInitialized = false;
     private boolean lastTickWasDaytime = false;
     private boolean autoCost;
+    @Nullable
+    private Component customName;
 
     public SupplierSpawnerBlockEntity(BlockPos pos, BlockState blockState) {
-        super(SupplierSpawner.SUPPLIER_SPAWNER_ENTITY.get(), pos, blockState);
+        this(SupplierSpawner.SUPPLIER_SPAWNER_ENTITY.get(), pos, blockState);
+    }
+
+    SupplierSpawnerBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
+        super(type, pos, blockState);
     }
 
     public boolean shouldConfirmBreak() {
@@ -116,7 +125,9 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-
+        if (customName != null) {
+            tag.putString(TAG_CUSTOM_NAME, Component.Serializer.toJson(customName, registries));
+        }
         tag.put("inventory", inventory.serializeNBT(registries));
         writeSpawnerData(PersistenceCUtils.writer(tag));
     }
@@ -131,7 +142,9 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-
+        customName = tag.contains(TAG_CUSTOM_NAME, Tag.TAG_STRING)
+                ? BlockEntity.parseCustomNameSafe(tag.getString(TAG_CUSTOM_NAME), registries)
+                : null;
         if (tag.contains("inventory")) {
             try {
                 inventory.deserializeNBT(registries, tag.getCompound("inventory"));
@@ -153,8 +166,25 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     @Override
-    public net.minecraft.network.chat.Component getDisplayName() {
-        return Component.translatable("block.customers.supplier_spawner_block");
+    public Component getName() {
+        return customName == null
+                ? Component.translatable("block.customers.supplier_spawner_block")
+                : customName;
+    }
+
+    @Override
+    public Component getDisplayName() {
+        return getName();
+    }
+
+    @Override
+    public @Nullable Component getCustomName() {
+        return customName;
+    }
+
+    public void setCustomName(@Nullable Component customName) {
+        this.customName = customName;
+        setChanged();
     }
 
     public void beforeRemove() {

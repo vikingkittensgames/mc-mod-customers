@@ -56,7 +56,7 @@ public class CustomerSpawner {
                     CustomerSpawnerBlock.NAME,
                     () -> new BlockItem(
                             CUSTOMER_SPAWNER_BLOCK.get(),
-                            new Item.Properties()
+                            new Item.Properties().stacksTo(1)
                     )
             );
     public static final RegistrySupplier<MenuType<CustomerSpawnerBlockMenu>> CUSTOMER_SPAWNER_MENU = MENUS.register(

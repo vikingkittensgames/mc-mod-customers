@@ -8,9 +8,11 @@ import com.mojang.logging.LogUtils;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -84,6 +86,21 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
                 context.getClickedPos(),
                 this.defaultBlockState()
         );
+    }
+
+    @Override
+    public void setPlacedBy(
+            Level level,
+            BlockPos pos,
+            BlockState state,
+            @Nullable LivingEntity placer,
+            ItemStack stack
+    ) {
+        super.setPlacedBy(level, pos, state, placer, stack);
+        if (!LevelCUtils.isClientSide(level)
+                && level.getBlockEntity(pos) instanceof CustomerSpawnerBlockEntity spawner) {
+            spawner.setCustomName(stack.get(DataComponents.CUSTOM_NAME));
+        }
     }
 
     @Override

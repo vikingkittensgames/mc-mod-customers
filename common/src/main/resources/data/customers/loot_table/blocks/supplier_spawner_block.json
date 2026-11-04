@@ -13,7 +13,13 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "customers:supplier_spawner_block"
+          "name": "customers:supplier_spawner_block",
+          "functions": [
+            {
+              "function": "minecraft:copy_name",
+              "source": "block_entity"
+            }
+          ]
         }
       ]
     }

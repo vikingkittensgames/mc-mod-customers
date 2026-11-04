@@ -16,6 +16,7 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerBossEvent;
@@ -57,13 +58,14 @@ import com.vikingkittens.mc.customers.customer.pets.CustomerPet;
 import com.vikingkittens.mc.customers.economy.Economy;
 import com.vikingkittens.mc.customers.economy.EconomyCost;
 
-public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvider {
+public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvider, Nameable {
     static final int CURRENT_DATA_VERSION = 3;
     public static final int MAX_LEVELS = 8;
     static final int MIN_MAX_CUSTOMERS = 1;
     static final int MAX_MAX_CUSTOMERS = 99;
     static final String TAG_DATA_VERSION = "data_version";
     static final String TAG_MAX_CUSTOMERS = "maxCustomers";
+    private static final String TAG_CUSTOM_NAME = "CustomName";
     private static final String TAG_LEVEL_SETTINGS = "levelSettings";
     private static final String TAG_CUSTOMER_PETS = "customerPets";
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -72,6 +74,8 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     private static final int SPAWN_CHECK_MAX_TICKS = 4;
     private static final int RESERVATION_CLEANUP_LOAD_GRACE_TICKS = 20 * 30;
     private static final double PLAYER_VIEW_RANGE = 64.0D;
+    @Nullable
+    private Component customName;
 
     static Item getPaymentItem() {
         return Items.EMERALD;
@@ -545,7 +549,9 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-
+        if (customName != null) {
+            tag.putString(TAG_CUSTOM_NAME, Component.Serializer.toJson(customName, registries));
+        }
         writeSpawnerData(PersistenceCUtils.writer(tag, registries));
     }
     void writeSpawnerData(DataWriter output) {
@@ -571,6 +577,9 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
+        customName = tag.contains(TAG_CUSTOM_NAME, Tag.TAG_STRING)
+                ? BlockEntity.parseCustomNameSafe(tag.getString(TAG_CUSTOM_NAME), registries)
+                : null;
         DataReader input = PersistenceCUtils.reader(tag, registries);
         boolean hasLegacyInventory = tag.contains("inventory");
         boolean usesLegacyLevelData =
@@ -861,9 +870,27 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         return CustomerVillagerEntity.isActiveCustomer(level, customerId);
     }
     @Override
-    public net.minecraft.network.chat.Component getDisplayName() {
-        return Component.translatable("block.customers.customer_spawner_block");
+    public Component getName() {
+        return customName == null
+                ? Component.translatable("block.customers.customer_spawner_block")
+                : customName;
     }
+
+    @Override
+    public Component getDisplayName() {
+        return getName();
+    }
+
+    @Override
+    public @Nullable Component getCustomName() {
+        return customName;
+    }
+
+    public void setCustomName(@Nullable Component customName) {
+        this.customName = customName;
+        setChanged();
+    }
+
     public void beforeRemove() {
         for (CustomerSpawnerLevelSettings settings : levelSettings) {
             Containers.dropContents(level, worldPosition, settings.getInventory());

@@ -15,8 +15,10 @@ import org.junit.jupiter.api.Test;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
@@ -54,6 +56,23 @@ class CustomerSpawnerBlockEntityTest {
     @AfterEach
     void clearLeaderboardCache() {
         CustomerLeaderboardCache.clear();
+    }
+
+    @Test
+    void persistsCustomName() {
+        BlockEntityType<?> type = mock(BlockEntityType.class);
+        BlockState state = mock(BlockState.class);
+        when(type.isValid(state)).thenReturn(true);
+        Component name = Component.literal("Breakfast Rush");
+        TestCustomerSpawnerBlockEntity source = new TestCustomerSpawnerBlockEntity(type, state);
+        source.setCustomName(name);
+        CompoundTag tag = new CompoundTag();
+        source.saveTo(tag);
+        TestCustomerSpawnerBlockEntity restored = new TestCustomerSpawnerBlockEntity(type, state);
+        restored.loadFrom(tag);
+
+        assertEquals(name, restored.getCustomName());
+        assertEquals(name, restored.getDisplayName());
     }
 
     @Test
@@ -238,6 +257,20 @@ class CustomerSpawnerBlockEntityTest {
     @BeforeAll
     static void bootstrapMinecraft() {
         MinecraftTestBootstrap.bootstrap();
+    }
+
+    private static final class TestCustomerSpawnerBlockEntity extends CustomerSpawnerBlockEntity {
+        private TestCustomerSpawnerBlockEntity(BlockEntityType<?> type, BlockState state) {
+            super(type, BlockPos.ZERO, state);
+        }
+
+        private void saveTo(CompoundTag tag) {
+            saveAdditional(tag, RegistryAccess.EMPTY);
+        }
+
+        private void loadFrom(CompoundTag tag) {
+            loadAdditional(tag, RegistryAccess.EMPTY);
+        }
     }
 
     /** Assigns a crafted stack across multiple active customers. */

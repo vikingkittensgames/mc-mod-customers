@@ -53,7 +53,7 @@ public class SupplierSpawner {
                     SupplierSpawnerBlock.NAME,
                     () -> new BlockItem(
                             SUPPLIER_SPAWNER_BLOCK.get(),
-                            new Item.Properties()
+                            new Item.Properties().stacksTo(1)
                     )
             );
 
