@@ -16,6 +16,7 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -450,6 +451,40 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             levelSettings.add(createLevelSettings());
         }
         return levelSettings.get(levelIndex);
+    }
+
+    int getLevelSettingsCount() {
+        return levelSettings.size();
+    }
+
+    void writeItemSettings(CompoundTag output, HolderLookup.Provider registries) {
+        ListTag serializedLevels = new ListTag();
+        for (CustomerSpawnerLevelSettings settings : levelSettings) {
+            CompoundTag serializedLevel = new CompoundTag();
+            settings.write(PersistenceCUtils.writer(serializedLevel, registries));
+            serializedLevel.remove("inventory");
+            serializedLevels.add(serializedLevel);
+        }
+        output.put(CustomerSpawnerItemSettings.TAG_LEVEL_SETTINGS, serializedLevels);
+    }
+
+    void readItemSettings(CompoundTag input, HolderLookup.Provider registries) {
+        if (!input.contains(CustomerSpawnerItemSettings.TAG_LEVEL_SETTINGS, Tag.TAG_LIST)) {
+            return;
+        }
+
+        levelSettings.clear();
+        input.getList(CustomerSpawnerItemSettings.TAG_LEVEL_SETTINGS, Tag.TAG_COMPOUND).stream()
+                .limit(MAX_LEVELS)
+                .forEach(serializedLevel -> {
+                    CustomerSpawnerLevelSettings settings = createLevelSettings();
+                    settings.read(PersistenceCUtils.reader((CompoundTag) serializedLevel, registries));
+                    levelSettings.add(settings);
+                });
+        if (levelSettings.isEmpty()) {
+            levelSettings.add(createLevelSettings());
+        }
+        setChanged();
     }
 
     private CustomerSpawnerLevelSettings getActiveLevelSettings() {

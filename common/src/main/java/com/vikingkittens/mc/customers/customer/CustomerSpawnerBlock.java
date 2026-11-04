@@ -1,5 +1,8 @@
 package com.vikingkittens.mc.customers.customer;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -28,6 +31,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
 
 import com.vikingkittens.mc.customers.compatability.LevelCUtils;
@@ -81,10 +86,12 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
 
     @Override
     public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
+        CustomerSpawnerMode mode = CustomerSpawnerItemSettings.getMode(context.getItemInHand())
+                .orElse(CustomerSpawnerMode.CONTINUOUS);
         return CustomerSpawnerBlockEntity.updateState(
                 context.getLevel(),
                 context.getClickedPos(),
-                this.defaultBlockState()
+                this.defaultBlockState().setValue(STATE_SPAWN_MODE, mode)
         );
     }
 
@@ -100,7 +107,26 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
         if (!LevelCUtils.isClientSide(level)
                 && level.getBlockEntity(pos) instanceof CustomerSpawnerBlockEntity spawner) {
             spawner.setCustomName(stack.get(DataComponents.CUSTOM_NAME));
+            CustomerSpawnerItemSettings.apply(stack, spawner, level.registryAccess());
         }
+    }
+
+    @Override
+    protected List<ItemStack> getDrops(BlockState state, LootParams.Builder builder) {
+        List<ItemStack> drops = new ArrayList<>(super.getDrops(state, builder));
+        if (builder.getOptionalParameter(LootContextParams.BLOCK_ENTITY)
+                instanceof CustomerSpawnerBlockEntity spawner) {
+            CustomerSpawnerMode mode = state.getValue(STATE_SPAWN_MODE);
+            drops.stream()
+                    .filter(stack -> stack.is(CustomerSpawner.CUSTOMER_SPAWNER_ITEM.get()))
+                    .forEach(stack -> CustomerSpawnerItemSettings.write(
+                            stack,
+                            mode,
+                            spawner,
+                            builder.getLevel().registryAccess()
+                    ));
+        }
+        return drops;
     }
 
     @Override

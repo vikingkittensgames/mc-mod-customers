@@ -18,6 +18,9 @@ count toward this maximum.
 Breaking a customer or supplier spawner that still contains items asks for confirmation. Cancel or
 press Escape to keep the configured spawner in place.
 
+When a Customer Spawner is broken, its spawning mode and level settings are retained on the Spawner item.
+All configured offer items and pet-cost items are dropped normally.
+
 During timed shifts, the customer maximum starts low, ramps up to the spawner's configured
 maximum, and ramps down over the final portion of the shift. The longer
 Day and Night Shifts ramp up more gradually than the shorter meal shifts.
