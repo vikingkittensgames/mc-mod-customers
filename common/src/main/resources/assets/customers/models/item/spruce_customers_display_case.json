@@ -1,0 +1,34 @@
+{
+    "parent":  "customers:block/spruce_customers_display_case_single",
+    "display":  {
+                    "ground":  {
+                                   "scale":  [
+                                                 0.5,
+                                                 0.5,
+                                                 0.5
+                                             ],
+                                   "translation":  [
+                                                       0,
+                                                       3,
+                                                       0
+                                                   ]
+                               },
+                    "gui":  {
+                                "rotation":  [
+                                                 45,
+                                                 225,
+                                                 0
+                                             ],
+                                "scale":  [
+                                              0.6,
+                                              0.6,
+                                              0.6
+                                          ],
+                                "translation":  [
+                                                    0,
+                                                    1,
+                                                    0
+                                                ]
+                            }
+                }
+}

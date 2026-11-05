@@ -15,6 +15,7 @@ import com.vikingkittens.mc.customers.client.supplier.SupplierSpawnerBlockScreen
 import com.vikingkittens.mc.customers.customer.Customer;
 import com.vikingkittens.mc.customers.customer.CustomerPickupCounter;
 import com.vikingkittens.mc.customers.customer.CustomerSpawner;
+import com.vikingkittens.mc.customers.customer.CustomersDisplayCase;
 import com.vikingkittens.mc.customers.supplier.SupplierSpawner;
 
 @Mod.EventBusSubscriber(
@@ -30,6 +31,7 @@ public final class CustomerForgeClientEvents {
         event.enqueueWork(() -> {
             MenuScreens.register(CustomerSpawner.CUSTOMER_SPAWNER_MENU.get(), CustomerSpawnerBlockScreen::new);
             MenuScreens.register(SupplierSpawner.SUPPLIER_SPAWNER_MENU.get(), SupplierSpawnerBlockScreen::new);
+            MenuScreens.register(CustomersDisplayCase.MENU.get(), CustomersDisplayCaseBlockScreen::new);
         });
     }
 
@@ -46,6 +48,10 @@ public final class CustomerForgeClientEvents {
         event.registerBlockEntityRenderer(
                 CustomerPickupCounter.BLOCK_ENTITY.get(),
                 CustomerPickupCounterBlockEntityRenderer::new
+        );
+        event.registerBlockEntityRenderer(
+                CustomersDisplayCase.BLOCK_ENTITY.get(),
+                CustomersDisplayCaseBlockEntityRenderer::new
         );
         event.registerEntityRenderer(Customer.CUSTOMER_SEAT.get(), NoopRenderer::new);
         event.registerEntityRenderer(
