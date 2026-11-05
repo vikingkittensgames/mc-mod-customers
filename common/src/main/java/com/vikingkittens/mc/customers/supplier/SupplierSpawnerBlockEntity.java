@@ -33,6 +33,7 @@ import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearanceSett
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 import com.vikingkittens.mc.customers.common.ContainerUtils;
 import com.vikingkittens.mc.customers.common.SearchUtils;
+import com.vikingkittens.mc.customers.common.SpawnerInventoryLocks;
 import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
 import com.vikingkittens.mc.customers.compatability.LevelCUtils;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
@@ -103,6 +104,7 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
             this::setChanged,
             player -> Container.stillValidBlockEntity(this, player)
     );
+    private final SpawnerInventoryLocks inventoryLocks = new SpawnerInventoryLocks(INVENTORY_ROW_SIZE * 6);
 
     private boolean daytimeStateInitialized = false;
     private boolean lastTickWasDaytime = false;
@@ -137,6 +139,7 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
         output.putBoolean("daytimeStateInitialized", daytimeStateInitialized);
         output.putBoolean("lastTickWasDaytime", lastTickWasDaytime);
         output.putBoolean("autoCost", autoCost);
+        inventoryLocks.write(output.child("inventoryLocks"));
     }
 
     @Override
@@ -163,6 +166,7 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
         daytimeStateInitialized = input.getBoolean("daytimeStateInitialized");
         lastTickWasDaytime = input.getBoolean("lastTickWasDaytime");
         autoCost = input.getBoolean("autoCost");
+        inventoryLocks.read(input.childOrEmpty("inventoryLocks"));
     }
 
     @Override
@@ -188,7 +192,19 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     public void beforeRemove() {
-        Containers.dropContents(level, worldPosition, inventory);
+        inventoryLocks.dropUnlocked(level, worldPosition, inventory);
+    }
+
+    boolean isInventoryLocked(int slot) {
+        return inventoryLocks.isLocked(slot);
+    }
+
+    void writeLockedInventory(DataWriter output) {
+        inventoryLocks.writeLockedInventory(output, inventory);
+    }
+
+    void readLockedInventory(DataReader input) {
+        inventoryLocks.readLockedInventory(input, inventory);
     }
 
     @Nullable

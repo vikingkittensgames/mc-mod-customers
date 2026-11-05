@@ -19,7 +19,9 @@ Breaking a customer or supplier spawner that still contains items asks for confi
 press Escape to keep the configured spawner in place.
 
 When a Customer Spawner is broken, its spawning mode and level settings are retained on the Spawner item.
-All configured offer items and pet-cost items are dropped normally.
+All configured offer items and pet-cost items are dropped normally. Preset Spawners can include locked
+offer or pet-cost items; locked items stay with the Spawner item and cannot be moved or removed from its
+interface.
 
 During timed shifts, the customer maximum starts low, ramps up to the spawner's configured
 maximum, and ramps down over the final portion of the shift. The longer

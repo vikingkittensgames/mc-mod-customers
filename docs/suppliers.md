@@ -26,7 +26,8 @@ The Appearance checkboxes select which appearances Suppliers from that spawner m
 At least one appearance is always enabled.
 
 When a Supplier Spawner is broken, its selected appearances and automatic-cost setting are retained on the
-Spawner item. Its inventory is dropped normally.
+Spawner item. Items in ordinary inventory slots are dropped normally. Preset Spawners can include locked
+inventory items; locked items stay with the Spawner item and cannot be moved or removed from its interface.
 
 ![supplier-spawner-inventory.png]({{ '/screenshots/supplier-spawner-inventory.png' | relative_url }})
 

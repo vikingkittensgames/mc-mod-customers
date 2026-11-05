@@ -71,6 +71,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
     private static final ResourceLocation PET_PANEL = texture("pet-panel");
     private static final ResourceLocation MANUAL_COST = texture("cost");
     private static final ResourceLocation AUTOMATIC_COST = texture("costauto");
+    private static final ResourceLocation LOCK_SMALL = texture("lock_small");
     private ModeButton modeButton;
     private TextureButton decrementLevelButton;
     private TextureButton incrementLevelButton;
@@ -365,6 +366,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         renderBackground(graphics, mouseX, mouseY, partialTick);
         super.render(graphics, mouseX, mouseY, partialTick);
         renderAutomaticCosts(graphics);
+        renderInventoryLocks(graphics);
         renderPetPanel(graphics);
         renderTooltip(graphics, mouseX, mouseY);
         renderAutomaticCostTooltip(graphics, mouseX, mouseY);
@@ -455,6 +457,30 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                 graphics.renderItem(cost, x, y);
                 graphics.renderItemDecorations(font, cost, x, y);
             }
+        }
+    }
+
+    private void renderInventoryLocks(GuiGraphics graphics) {
+        for (int row = 0; row < 6; row++) {
+            for (int column = 0; column < 9; column++) {
+                int slot = column + row * 9;
+                if (menu.isInventoryLocked(slot)) {
+                    graphics.blit(
+                            LOCK_SMALL,
+                            leftPos + CustomerSpawnerBlockMenu.getContainerSlotX(column) + 8,
+                            topPos + 18 + row * 18,
+                            0,
+                            0,
+                            8,
+                            8,
+                            8,
+                            8
+                    );
+                }
+            }
+        }
+        if (petPanelOpen && menu.isInventoryLocked(CustomerSpawnerLevelSettings.PET_FOOD_COST_SLOT)) {
+            graphics.blit(LOCK_SMALL, leftPos + 416, topPos + 4, 0, 0, 8, 8, 8, 8);
         }
     }
 

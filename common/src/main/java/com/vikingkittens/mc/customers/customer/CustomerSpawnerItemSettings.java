@@ -6,9 +6,12 @@ import java.util.Optional;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
+
+import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
 
 final class CustomerSpawnerItemSettings {
     static final String TAG_SETTINGS = "customers:customer_spawner_settings";
@@ -42,7 +45,14 @@ final class CustomerSpawnerItemSettings {
 
         CompoundTag itemData = customData.copyTag();
         if (itemData.contains(TAG_SETTINGS, Tag.TAG_COMPOUND)) {
-            spawner.readItemSettings(itemData.getCompound(TAG_SETTINGS), registries);
+            CompoundTag settings = itemData.getCompound(TAG_SETTINGS);
+            spawner.readItemSettings(settings, registries);
+            ListTag levels = settings.getList(TAG_LEVEL_SETTINGS, Tag.TAG_COMPOUND);
+            for (int level = 0; level < levels.size() && level < spawner.getLevelSettingsCount(); level++) {
+                spawner.getLevelSettings(level).readLockedInventory(
+                        PersistenceCUtils.reader(levels.getCompound(level), registries)
+                );
+            }
         }
     }
 
@@ -56,6 +66,12 @@ final class CustomerSpawnerItemSettings {
             CompoundTag settings = new CompoundTag();
             settings.putString(TAG_MODE, mode.getSerializedName());
             spawner.writeItemSettings(settings, registries);
+            ListTag levels = settings.getList(TAG_LEVEL_SETTINGS, Tag.TAG_COMPOUND);
+            for (int level = 0; level < levels.size() && level < spawner.getLevelSettingsCount(); level++) {
+                spawner.getLevelSettings(level).writeLockedInventory(
+                        PersistenceCUtils.writer(levels.getCompound(level), registries)
+                );
+            }
             itemData.put(TAG_SETTINGS, settings);
         });
     }

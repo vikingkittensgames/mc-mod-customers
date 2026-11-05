@@ -7,13 +7,16 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.function.Predicate;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearanceSettings;
+import com.vikingkittens.mc.customers.common.SpawnerInventoryLocks;
 import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
 import com.vikingkittens.mc.customers.compatability.persistence.DataReader;
 import com.vikingkittens.mc.customers.compatability.persistence.DataWriter;
@@ -41,6 +44,7 @@ public final class CustomerSpawnerLevelSettings {
 
     private final Runnable changeListener;
     private final PersistedContainer inventory;
+    private final SpawnerInventoryLocks inventoryLocks = new SpawnerInventoryLocks(INVENTORY_SIZE);
     private final CustomersVillagerAppearanceSettings appearanceSettings =
             new CustomersVillagerAppearanceSettings();
     private float requiredStars = DEFAULT_REQUIRED_STARS;
@@ -71,6 +75,22 @@ public final class CustomerSpawnerLevelSettings {
 
     PersistedContainer getPersistedInventory() {
         return inventory;
+    }
+
+    public boolean isInventoryLocked(int slot) {
+        return inventoryLocks.isLocked(slot);
+    }
+
+    void writeLockedInventory(DataWriter output) {
+        inventoryLocks.writeLockedInventory(output, inventory);
+    }
+
+    void readLockedInventory(DataReader input) {
+        inventoryLocks.readLockedInventory(input, inventory);
+    }
+
+    void dropUnlocked(Level level, BlockPos pos) {
+        inventoryLocks.dropUnlocked(level, pos, inventory);
     }
 
     public float getRequiredStars() {
@@ -230,6 +250,7 @@ public final class CustomerSpawnerLevelSettings {
         for (int slot = 0; slot < Math.min(inventory.getContainerSize(), itemStacks.size()); slot++) {
             inventory.setItem(slot, itemStacks.get(slot));
         }
+        inventoryLocks.read(input.childOrEmpty("inventoryLocks"));
     }
 
     void write(DataWriter output) {
@@ -251,6 +272,7 @@ public final class CustomerSpawnerLevelSettings {
             itemStacks.add(inventory.getItem(slot));
         }
         output.putItemStacks(TAG_INVENTORY, itemStacks);
+        inventoryLocks.write(output.child("inventoryLocks"));
     }
 
     public static float clampRequiredStars(float value) {

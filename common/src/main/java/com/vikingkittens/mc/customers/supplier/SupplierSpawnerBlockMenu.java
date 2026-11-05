@@ -59,20 +59,23 @@ public class SupplierSpawnerBlockMenu extends AbstractContainerMenu {
         for (int row = 0; row < 6; row++) {
             for (int column = 0; column < 8; column++) {
                 int slotColumn = column;
+                int inventorySlot = getContainerSlotIndex(row, column);
                 addSlot(new Slot(
                         container,
-                        getContainerSlotIndex(row, column),
+                        inventorySlot,
                         getContainerSlotX(column),
                         18 + row * 18
                 ) {
                     @Override
                     public boolean mayPlace(ItemStack stack) {
-                        return slotColumn % 2 == 0 || !usesAutomaticCost();
+                        return !isInventoryLocked(inventorySlot)
+                                && (slotColumn % 2 == 0 || !usesAutomaticCost());
                     }
 
                     @Override
                     public boolean mayPickup(Player player) {
-                        return slotColumn % 2 == 0 || !usesAutomaticCost();
+                        return !isInventoryLocked(inventorySlot)
+                                && (slotColumn % 2 == 0 || !usesAutomaticCost());
                     }
                 });
             }
@@ -101,7 +104,7 @@ public class SupplierSpawnerBlockMenu extends AbstractContainerMenu {
         return 8 + column * 18 + column / 2 * 4;
     }
 
-    static int getContainerSlotIndex(int row, int column) {
+    public static int getContainerSlotIndex(int row, int column) {
         return row * 9 + column;
     }
 
@@ -142,6 +145,10 @@ public class SupplierSpawnerBlockMenu extends AbstractContainerMenu {
 
     public boolean usesAutomaticCost() {
         return isEconomyEnabled() && (isForceAutoCost() || isAutoCost());
+    }
+
+    public boolean isInventoryLocked(int slot) {
+        return data.get(getInventoryLocksDataStart() + slot) != 0;
     }
 
     public ItemStack getAutomaticCost(int row, int pair) {
@@ -194,6 +201,9 @@ public class SupplierSpawnerBlockMenu extends AbstractContainerMenu {
 
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
+        if (index < VISIBLE_CONTAINER_SIZE && isInventoryLocked(getContainerSlotIndex(index / 8, index % 8))) {
+            return ItemStack.EMPTY;
+        }
         Slot slot = slots.get(index);
         if (!slot.hasItem()) {
             return ItemStack.EMPTY;
@@ -239,6 +249,10 @@ public class SupplierSpawnerBlockMenu extends AbstractContainerMenu {
                 if (index == getEconomyEnabledDataIndex()) return Economy.isEnabled() ? 1 : 0;
                 if (index == getForceAutoCostDataIndex()) return Economy.forceAutoCost() ? 1 : 0;
                 if (index == getAutoCostDataIndex()) return entity.isAutoCost() ? 1 : 0;
+                if (index >= getInventoryLocksDataStart() && index < getDataSlotCount()) {
+                    int visibleSlot = index - getInventoryLocksDataStart();
+                    return entity.isInventoryLocked(getContainerSlotIndex(visibleSlot / 8, visibleSlot % 8)) ? 1 : 0;
+                }
                 if (index >= getGeneratedCostDataStart()) {
                     int pairIndex = (index - getGeneratedCostDataStart()) / 2;
                     ItemStack result = container.getItem(pairIndex / 4 * 9 + pairIndex % 4 * 2);
@@ -285,6 +299,10 @@ public class SupplierSpawnerBlockMenu extends AbstractContainerMenu {
     }
 
     private int getDataSlotCount() {
+        return getInventoryLocksDataStart() + VISIBLE_CONTAINER_SIZE;
+    }
+
+    private int getInventoryLocksDataStart() {
         return getGeneratedCostDataStart() + 48;
     }
 

@@ -463,6 +463,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             CompoundTag serializedLevel = new CompoundTag();
             settings.write(PersistenceCUtils.writer(serializedLevel, registries));
             serializedLevel.remove("inventory");
+            serializedLevel.remove("inventoryLocks");
             serializedLevels.add(serializedLevel);
         }
         output.put(CustomerSpawnerItemSettings.TAG_LEVEL_SETTINGS, serializedLevels);
@@ -928,7 +929,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     public void beforeRemove() {
         for (CustomerSpawnerLevelSettings settings : levelSettings) {
-            Containers.dropContents(level, worldPosition, settings.getInventory());
+            settings.dropUnlocked(level, worldPosition);
         }
 
         for (UUID uuid : customerIds) {

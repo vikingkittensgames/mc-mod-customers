@@ -41,6 +41,8 @@ public class SupplierSpawnerBlockScreen
             ResourceLocation.fromNamespaceAndPath(Customers.MODID, "textures/gui/cost.png");
     private static final ResourceLocation AUTOMATIC_COST =
             ResourceLocation.fromNamespaceAndPath(Customers.MODID, "textures/gui/costauto.png");
+    private static final ResourceLocation LOCK_SMALL =
+            ResourceLocation.fromNamespaceAndPath(Customers.MODID, "textures/gui/lock_small.png");
     private ManualCostButton manualCostButton;
 
     public SupplierSpawnerBlockScreen(
@@ -129,6 +131,7 @@ public class SupplierSpawnerBlockScreen
         renderBackground(graphics, mouseX, mouseY, partialTick);
         super.render(graphics, mouseX, mouseY, partialTick);
         renderAutomaticCosts(graphics);
+        renderInventoryLocks(graphics);
         renderTooltip(graphics, mouseX, mouseY);
         renderAutomaticCostTooltip(graphics, mouseX, mouseY);
     }
@@ -151,6 +154,27 @@ public class SupplierSpawnerBlockScreen
                     int y = topPos + 18 + row * 18;
                     graphics.renderItem(cost, x, y);
                     graphics.renderItemDecorations(font, cost, x, y);
+                }
+            }
+        }
+    }
+
+    private void renderInventoryLocks(GuiGraphics graphics) {
+        for (int row = 0; row < 6; row++) {
+            for (int column = 0; column < 8; column++) {
+                int slot = SupplierSpawnerBlockMenu.getContainerSlotIndex(row, column);
+                if (menu.isInventoryLocked(slot)) {
+                    graphics.blit(
+                            LOCK_SMALL,
+                            leftPos + SupplierSpawnerBlockMenu.getContainerSlotX(column) + 8,
+                            topPos + 18 + row * 18,
+                            0,
+                            0,
+                            8,
+                            8,
+                            8,
+                            8
+                    );
                 }
             }
         }
