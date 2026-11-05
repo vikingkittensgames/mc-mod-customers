@@ -8,6 +8,7 @@ import com.vikingkittens.mc.customers.customer.CustomerLeaderboard;
 import com.vikingkittens.mc.customers.customer.CustomerPaymentBox;
 import com.vikingkittens.mc.customers.customer.CustomerPickupCounter;
 import com.vikingkittens.mc.customers.customer.CustomerSpawner;
+import com.vikingkittens.mc.customers.customer.CustomersDisplayCase;
 import com.vikingkittens.mc.customers.supplier.SupplierSpawner;
 
 public final class CustomersCreativeTabs {
@@ -19,6 +20,8 @@ public final class CustomersCreativeTabs {
         CustomerPaymentBox.ITEMS.values().forEach(item ->
                 CreativeTabRegistry.append(CreativeModeTabs.FUNCTIONAL_BLOCKS, item));
         CustomerPickupCounter.ITEMS.values().forEach(item ->
+                CreativeTabRegistry.append(CreativeModeTabs.FUNCTIONAL_BLOCKS, item));
+        CustomersDisplayCase.ITEMS.values().forEach(item ->
                 CreativeTabRegistry.append(CreativeModeTabs.FUNCTIONAL_BLOCKS, item));
         CreativeTabRegistry.append(CreativeModeTabs.FUNCTIONAL_BLOCKS, CustomerLeaderboard.ITEM);
     }

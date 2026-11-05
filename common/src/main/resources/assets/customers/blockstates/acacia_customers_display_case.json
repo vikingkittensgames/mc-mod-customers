@@ -1,0 +1,64 @@
+{
+    "variants":  {
+                     "extend_left=false,extend_right=false,facing=north":  {
+                                                                               "model":  "customers:block/acacia_customers_display_case_single"
+                                                                           },
+                     "extend_left=false,extend_right=false,facing=east":  {
+                                                                              "model":  "customers:block/acacia_customers_display_case_single",
+                                                                              "y":  90
+                                                                          },
+                     "extend_left=false,extend_right=false,facing=south":  {
+                                                                               "model":  "customers:block/acacia_customers_display_case_single",
+                                                                               "y":  180
+                                                                           },
+                     "extend_left=false,extend_right=false,facing=west":  {
+                                                                              "model":  "customers:block/acacia_customers_display_case_single",
+                                                                              "y":  270
+                                                                          },
+                     "extend_left=false,extend_right=true,facing=north":  {
+                                                                              "model":  "customers:block/acacia_customers_display_case_left"
+                                                                          },
+                     "extend_left=false,extend_right=true,facing=east":  {
+                                                                             "model":  "customers:block/acacia_customers_display_case_left",
+                                                                             "y":  90
+                                                                         },
+                     "extend_left=false,extend_right=true,facing=south":  {
+                                                                              "model":  "customers:block/acacia_customers_display_case_left",
+                                                                              "y":  180
+                                                                          },
+                     "extend_left=false,extend_right=true,facing=west":  {
+                                                                             "model":  "customers:block/acacia_customers_display_case_left",
+                                                                             "y":  270
+                                                                         },
+                     "extend_left=true,extend_right=false,facing=north":  {
+                                                                              "model":  "customers:block/acacia_customers_display_case_right"
+                                                                          },
+                     "extend_left=true,extend_right=false,facing=east":  {
+                                                                             "model":  "customers:block/acacia_customers_display_case_right",
+                                                                             "y":  90
+                                                                         },
+                     "extend_left=true,extend_right=false,facing=south":  {
+                                                                              "model":  "customers:block/acacia_customers_display_case_right",
+                                                                              "y":  180
+                                                                          },
+                     "extend_left=true,extend_right=false,facing=west":  {
+                                                                             "model":  "customers:block/acacia_customers_display_case_right",
+                                                                             "y":  270
+                                                                         },
+                     "extend_left=true,extend_right=true,facing=north":  {
+                                                                             "model":  "customers:block/acacia_customers_display_case_middle"
+                                                                         },
+                     "extend_left=true,extend_right=true,facing=east":  {
+                                                                            "model":  "customers:block/acacia_customers_display_case_middle",
+                                                                            "y":  90
+                                                                        },
+                     "extend_left=true,extend_right=true,facing=south":  {
+                                                                             "model":  "customers:block/acacia_customers_display_case_middle",
+                                                                             "y":  180
+                                                                         },
+                     "extend_left=true,extend_right=true,facing=west":  {
+                                                                            "model":  "customers:block/acacia_customers_display_case_middle",
+                                                                            "y":  270
+                                                                        }
+                 }
+}

@@ -24,11 +24,14 @@ import com.vikingkittens.mc.customers.client.customer.CustomerPickupCounterBlock
 import com.vikingkittens.mc.customers.client.customer.CustomerSpawnerBlockScreen;
 import com.vikingkittens.mc.customers.client.customer.CustomerSpawnerSnapshotManager;
 import com.vikingkittens.mc.customers.client.customer.CustomerVillagerEntityRenderer;
+import com.vikingkittens.mc.customers.client.customer.CustomersDisplayCaseBlockEntityRenderer;
+import com.vikingkittens.mc.customers.client.customer.CustomersDisplayCaseBlockScreen;
 import com.vikingkittens.mc.customers.client.supplier.SupplierSpawnerBlockScreen;
 import com.vikingkittens.mc.customers.customer.Customer;
 import com.vikingkittens.mc.customers.customer.CustomerPaymentBox;
 import com.vikingkittens.mc.customers.customer.CustomerPickupCounter;
 import com.vikingkittens.mc.customers.customer.CustomerSpawner;
+import com.vikingkittens.mc.customers.customer.CustomersDisplayCase;
 import com.vikingkittens.mc.customers.supplier.Supplier;
 import com.vikingkittens.mc.customers.supplier.SupplierSpawner;
 
@@ -43,7 +46,10 @@ public final class CustomersClientRegistrations {
 
     public static void initializeRuntime() {
         registerAppearances();
-        registerRenderTypes(CustomerPaymentBox.BLOCKS.values(), CustomerPickupCounter.BLOCKS.values());
+        registerRenderTypes(
+                CustomerPaymentBox.BLOCKS.values(),
+                CustomerPickupCounter.BLOCKS.values()
+        );
         ClientPlayerEvent.CLIENT_PLAYER_QUIT.register(player -> CustomerSpawnerSnapshotManager.clear());
     }
 
@@ -51,7 +57,11 @@ public final class CustomersClientRegistrations {
             Collection<? extends java.util.function.Supplier<? extends Block>> paymentBoxes,
             Collection<? extends java.util.function.Supplier<? extends Block>> pickupCounters
     ) {
-        Block[] blocks = Stream.concat(paymentBoxes.stream(), pickupCounters.stream())
+        Block[] blocks = Stream.of(
+                        paymentBoxes,
+                        pickupCounters
+                )
+                .flatMap(Collection::stream)
                 .map(java.util.function.Supplier::get)
                 .toArray(Block[]::new);
         RenderTypeRegistry.register(RenderType.translucent(), blocks);
@@ -76,6 +86,10 @@ public final class CustomersClientRegistrations {
                 SupplierSpawner.SUPPLIER_SPAWNER_MENU.get(),
                 SupplierSpawnerBlockScreen::new
         );
+        MenuRegistry.registerScreenFactory(
+                CustomersDisplayCase.MENU.get(),
+                CustomersDisplayCaseBlockScreen::new
+        );
     }
 
     private static void registerRenderers() {
@@ -86,6 +100,10 @@ public final class CustomersClientRegistrations {
         BlockEntityRendererRegistry.register(
                 CustomerPickupCounter.BLOCK_ENTITY.get(),
                 CustomerPickupCounterBlockEntityRenderer::new
+        );
+        BlockEntityRendererRegistry.register(
+                CustomersDisplayCase.BLOCK_ENTITY.get(),
+                CustomersDisplayCaseBlockEntityRenderer::new
         );
         EntityRendererRegistry.register(Customer.CUSTOMER_SEAT, NoopRenderer::new);
         EntityRendererRegistry.register(

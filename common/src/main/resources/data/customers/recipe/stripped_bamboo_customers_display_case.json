@@ -1,0 +1,23 @@
+{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "key":  {
+                "G":  {
+                          "item":  "minecraft:glass_pane"
+                      },
+                "T":  {
+                          "item":  "minecraft:bamboo_planks"
+                      },
+                "V":  {
+                          "item":  "minecraft:stripped_bamboo_block"
+                      }
+            },
+    "pattern":  [
+                    "VTT",
+                    "GGG"
+                ],
+    "result":  {
+                   "count":  1,
+                   "id":  "customers:stripped_bamboo_customers_display_case"
+               }
+}

@@ -548,6 +548,25 @@ public record DebugBoxC(
 
 Event subscriptions remain version-specific and pass stable render descriptions into this class.
 
+### RenderCUtils
+
+Package:
+
+```text
+com.vikingkittens.mc.customers.client.compatability.RenderCUtils
+```
+
+Method:
+
+```java
+public static RenderType getTranslucentNoDepthRenderType();
+```
+
+This supplies the lit translucent block-model render type used for glass
+rendered from block-entity renderers. It tests existing depth while writing
+color only, which prevents translucent glass submitted through one buffer from
+suppressing geometry submitted through later buffers.
+
 ### RenderStateCUtils
 
 Package:
