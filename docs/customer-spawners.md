@@ -21,7 +21,8 @@ press Escape to keep the configured spawner in place.
 When a Customer Spawner is broken, its spawning mode and level settings are retained on the Spawner item.
 All configured offer items and pet-cost items are dropped normally. Preset Spawners can include locked
 offer or pet-cost items; locked items stay with the Spawner item and cannot be moved or removed from its
-interface.
+interface. A retained spawning mode also changes the side texture shown on the Spawner item in inventories
+and when held.
 
 ### Creating Spawners With Presets
 

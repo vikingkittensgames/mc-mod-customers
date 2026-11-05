@@ -62,13 +62,13 @@ class SupplierSpawnerBlockEntityTest {
         source.setAutoCost(true);
         ItemStack stack = new ItemStack(Items.STONE);
 
-        SupplierSpawnerItemSettings.write(stack, source, RegistryAccess.EMPTY);
+        SupplierSpawnerItem.writeSettings(stack, source, RegistryAccess.EMPTY);
 
         CustomData itemData = stack.get(DataComponents.CUSTOM_DATA);
         assertNotNull(itemData);
-        assertFalse(itemData.copyTag().getCompound(SupplierSpawnerItemSettings.TAG_SETTINGS).contains("inventory"));
+        assertFalse(itemData.copyTag().getCompound(SupplierSpawnerItem.TAG_SETTINGS).contains("inventory"));
         TestSupplierSpawnerBlockEntity restored = new TestSupplierSpawnerBlockEntity(type, state);
-        SupplierSpawnerItemSettings.apply(stack, restored, RegistryAccess.EMPTY);
+        SupplierSpawnerItem.applySettings(stack, restored, RegistryAccess.EMPTY);
 
         assertEquals(appearances, restored.getEnabledAppearanceIds());
         assertEquals(true, restored.isAutoCost());

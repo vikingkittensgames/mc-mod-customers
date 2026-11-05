@@ -86,7 +86,7 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
 
     @Override
     public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
-        CustomerSpawnerMode mode = CustomerSpawnerItemSettings.getMode(context.getItemInHand())
+        CustomerSpawnerMode mode = CustomerSpawnerItem.getMode(context.getItemInHand())
                 .orElse(CustomerSpawnerMode.CONTINUOUS);
         return CustomerSpawnerBlockEntity.updateState(
                 context.getLevel(),
@@ -107,7 +107,7 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
         if (!LevelCUtils.isClientSide(level)
                 && level.getBlockEntity(pos) instanceof CustomerSpawnerBlockEntity spawner) {
             spawner.setCustomName(stack.get(DataComponents.CUSTOM_NAME));
-            CustomerSpawnerItemSettings.apply(stack, spawner, level.registryAccess());
+            CustomerSpawnerItem.applySettings(stack, spawner, level.registryAccess());
         }
     }
 
@@ -119,7 +119,7 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
             CustomerSpawnerMode mode = state.getValue(STATE_SPAWN_MODE);
             drops.stream()
                     .filter(stack -> stack.is(CustomerSpawner.CUSTOMER_SPAWNER_ITEM.get()))
-                    .forEach(stack -> CustomerSpawnerItemSettings.write(
+                    .forEach(stack -> CustomerSpawnerItem.writeSettings(
                             stack,
                             mode,
                             spawner,

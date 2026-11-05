@@ -3,22 +3,39 @@ package com.vikingkittens.mc.customers.customer;
 import java.util.Arrays;
 import java.util.Optional;
 
+import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 
+import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
 
-final class CustomerSpawnerItemSettings {
+public final class CustomerSpawnerItem {
     static final String TAG_SETTINGS = "customers:customer_spawner_settings";
     static final String TAG_LEVEL_SETTINGS = "level_settings";
     private static final String TAG_MODE = "mode";
 
-    private CustomerSpawnerItemSettings() {}
+    private CustomerSpawnerItem() {}
+
+    public static void register() {
+        ItemProperties.register(
+                CustomerSpawner.CUSTOMER_SPAWNER_ITEM.get(),
+                ResourceLocation.fromNamespaceAndPath(Customers.MODID, "spawner_mode"),
+                (stack, level, entity, seed) -> predicateValueSpawnerMode(stack)
+        );
+    }
+
+    static float predicateValueSpawnerMode(ItemStack stack) {
+        return getMode(stack)
+                .map(CustomerSpawnerMode::ordinal)
+                .orElse(0);
+    }
 
     static Optional<CustomerSpawnerMode> getMode(ItemStack stack) {
         CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
@@ -37,7 +54,7 @@ final class CustomerSpawnerItemSettings {
                 .findFirst();
     }
 
-    static void apply(ItemStack stack, CustomerSpawnerBlockEntity spawner, HolderLookup.Provider registries) {
+    static void applySettings(ItemStack stack, CustomerSpawnerBlockEntity spawner, HolderLookup.Provider registries) {
         CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
         if (customData == null) {
             return;
@@ -56,7 +73,7 @@ final class CustomerSpawnerItemSettings {
         }
     }
 
-    static void write(
+    static void writeSettings(
             ItemStack stack,
             CustomerSpawnerMode mode,
             CustomerSpawnerBlockEntity spawner,

@@ -33,12 +33,10 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.trading.ItemCost;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -466,16 +464,16 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             serializedLevel.remove("inventoryLocks");
             serializedLevels.add(serializedLevel);
         }
-        output.put(CustomerSpawnerItemSettings.TAG_LEVEL_SETTINGS, serializedLevels);
+        output.put(CustomerSpawnerItem.TAG_LEVEL_SETTINGS, serializedLevels);
     }
 
     void readItemSettings(CompoundTag input, HolderLookup.Provider registries) {
-        if (!input.contains(CustomerSpawnerItemSettings.TAG_LEVEL_SETTINGS, Tag.TAG_LIST)) {
+        if (!input.contains(CustomerSpawnerItem.TAG_LEVEL_SETTINGS, Tag.TAG_LIST)) {
             return;
         }
 
         levelSettings.clear();
-        input.getList(CustomerSpawnerItemSettings.TAG_LEVEL_SETTINGS, Tag.TAG_COMPOUND).stream()
+        input.getList(CustomerSpawnerItem.TAG_LEVEL_SETTINGS, Tag.TAG_COMPOUND).stream()
                 .limit(MAX_LEVELS)
                 .forEach(serializedLevel -> {
                     CustomerSpawnerLevelSettings settings = createLevelSettings();

@@ -29,6 +29,7 @@ import com.vikingkittens.mc.customers.customer.Customer;
 import com.vikingkittens.mc.customers.customer.CustomerPaymentBox;
 import com.vikingkittens.mc.customers.customer.CustomerPickupCounter;
 import com.vikingkittens.mc.customers.customer.CustomerSpawner;
+import com.vikingkittens.mc.customers.customer.CustomerSpawnerItem;
 import com.vikingkittens.mc.customers.supplier.Supplier;
 import com.vikingkittens.mc.customers.supplier.SupplierSpawner;
 
@@ -43,6 +44,7 @@ public final class CustomersClientRegistrations {
 
     public static void initializeRuntime() {
         registerAppearances();
+        CustomerSpawnerItem.register();
         registerRenderTypes(CustomerPaymentBox.BLOCKS.values(), CustomerPickupCounter.BLOCKS.values());
         ClientPlayerEvent.CLIENT_PLAYER_QUIT.register(player -> CustomerSpawnerSnapshotManager.clear());
     }

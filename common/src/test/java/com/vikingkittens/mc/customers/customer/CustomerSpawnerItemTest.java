@@ -28,10 +28,26 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class CustomerSpawnerItemSettingsTest {
+class CustomerSpawnerItemTest {
     @BeforeAll
     static void bootstrapMinecraft() {
         MinecraftTestBootstrap.bootstrap();
+    }
+
+    @Test
+    void providesTheMatchingModePredicateOrContinuousForAnUnconfiguredItem() {
+        assertEquals(0.0F, CustomerSpawnerItem.predicateValueSpawnerMode(new ItemStack(Items.STONE)));
+
+        for (CustomerSpawnerMode mode : CustomerSpawnerMode.values()) {
+            ItemStack stack = new ItemStack(Items.STONE);
+            CustomData.update(DataComponents.CUSTOM_DATA, stack, itemData -> {
+                CompoundTag settings = new CompoundTag();
+                settings.putString("mode", mode.getSerializedName());
+                itemData.put(CustomerSpawnerItem.TAG_SETTINGS, settings);
+            });
+
+            assertEquals((float) mode.ordinal(), CustomerSpawnerItem.predicateValueSpawnerMode(stack));
+        }
     }
 
     @Test
@@ -65,17 +81,17 @@ class CustomerSpawnerItemSettingsTest {
         secondLevel.getInventory().setItem(0, new ItemStack(Items.CARROT, 2));
         ItemStack stack = new ItemStack(Items.STONE);
 
-        CustomerSpawnerItemSettings.write(stack, CustomerSpawnerMode.BREAKFAST, source, RegistryAccess.EMPTY);
+        CustomerSpawnerItem.writeSettings(stack, CustomerSpawnerMode.BREAKFAST, source, RegistryAccess.EMPTY);
 
         CustomData itemData = stack.get(DataComponents.CUSTOM_DATA);
         assertNotNull(itemData);
-        CompoundTag settings = itemData.copyTag().getCompound(CustomerSpawnerItemSettings.TAG_SETTINGS);
-        assertFalse(settings.getList(CustomerSpawnerItemSettings.TAG_LEVEL_SETTINGS, Tag.TAG_COMPOUND)
+        CompoundTag settings = itemData.copyTag().getCompound(CustomerSpawnerItem.TAG_SETTINGS);
+        assertFalse(settings.getList(CustomerSpawnerItem.TAG_LEVEL_SETTINGS, Tag.TAG_COMPOUND)
                 .stream().anyMatch(serializedLevel -> ((CompoundTag) serializedLevel).contains("inventory")));
         CustomerSpawnerBlockEntity restored = new CustomerSpawnerBlockEntity(type, BlockPos.ZERO, state);
-        CustomerSpawnerItemSettings.apply(stack, restored, RegistryAccess.EMPTY);
+        CustomerSpawnerItem.applySettings(stack, restored, RegistryAccess.EMPTY);
 
-        assertEquals(CustomerSpawnerMode.BREAKFAST, CustomerSpawnerItemSettings.getMode(stack).orElseThrow());
+        assertEquals(CustomerSpawnerMode.BREAKFAST, CustomerSpawnerItem.getMode(stack).orElseThrow());
         assertEquals(2, restored.getLevelSettingsCount());
         assertEquals(4.5F, restored.getLevelSettings(0).getRequiredStars());
         assertEquals(8, restored.getLevelSettings(0).getMaxCustomers());

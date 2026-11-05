@@ -14,14 +14,14 @@ import net.minecraft.world.item.component.CustomData;
 
 import com.vikingkittens.mc.customers.compatability.persistence.PersistenceCUtils;
 
-final class SupplierSpawnerItemSettings {
+final class SupplierSpawnerItem {
     static final String TAG_SETTINGS = "customers:supplier_spawner_settings";
     private static final String TAG_ENABLED_APPEARANCES = "enabled_appearances";
     private static final String TAG_AUTOMATIC_COST = "automatic_cost";
 
-    private SupplierSpawnerItemSettings() {}
+    private SupplierSpawnerItem() {}
 
-    static void apply(ItemStack stack, SupplierSpawnerBlockEntity spawner, HolderLookup.Provider registries) {
+    static void applySettings(ItemStack stack, SupplierSpawnerBlockEntity spawner, HolderLookup.Provider registries) {
         CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
         if (customData == null) {
             return;
@@ -50,7 +50,7 @@ final class SupplierSpawnerItemSettings {
         spawner.readLockedInventory(PersistenceCUtils.reader(settings, registries));
     }
 
-    static void write(ItemStack stack, SupplierSpawnerBlockEntity spawner, HolderLookup.Provider registries) {
+    static void writeSettings(ItemStack stack, SupplierSpawnerBlockEntity spawner, HolderLookup.Provider registries) {
         CustomData.update(DataComponents.CUSTOM_DATA, stack, itemData -> {
             CompoundTag settings = new CompoundTag();
             ListTag appearances = new ListTag();

@@ -1,3 +1,11 @@
 {
-  "parent": "customers:block/customer_spawner_block_continuous"
+  "parent": "customers:block/customer_spawner_block_continuous",
+  "overrides": [
+    { "predicate": { "customers:spawner_mode": 1 }, "model": "customers:block/customer_spawner_block_manual" },
+    { "predicate": { "customers:spawner_mode": 2 }, "model": "customers:block/customer_spawner_block_day" },
+    { "predicate": { "customers:spawner_mode": 3 }, "model": "customers:block/customer_spawner_block_night" },
+    { "predicate": { "customers:spawner_mode": 4 }, "model": "customers:block/customer_spawner_block_breakfast" },
+    { "predicate": { "customers:spawner_mode": 5 }, "model": "customers:block/customer_spawner_block_lunch" },
+    { "predicate": { "customers:spawner_mode": 6 }, "model": "customers:block/customer_spawner_block_dinner" }
+  ]
 }

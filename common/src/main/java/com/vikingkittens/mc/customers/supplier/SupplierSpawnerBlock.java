@@ -89,7 +89,7 @@ public class SupplierSpawnerBlock extends BaseEntityBlock {
         if (!LevelCUtils.isClientSide(level)
                 && level.getBlockEntity(pos) instanceof SupplierSpawnerBlockEntity spawner) {
             spawner.setCustomName(stack.get(DataComponents.CUSTOM_NAME));
-            SupplierSpawnerItemSettings.apply(stack, spawner, level.registryAccess());
+            SupplierSpawnerItem.applySettings(stack, spawner, level.registryAccess());
         }
     }
 
@@ -100,7 +100,7 @@ public class SupplierSpawnerBlock extends BaseEntityBlock {
                 instanceof SupplierSpawnerBlockEntity spawner) {
             drops.stream()
                     .filter(stack -> stack.is(SupplierSpawner.SUPPLIER_SPAWNER_ITEM.get()))
-                    .forEach(stack -> SupplierSpawnerItemSettings.write(stack, spawner, builder.getLevel().registryAccess()));
+                    .forEach(stack -> SupplierSpawnerItem.writeSettings(stack, spawner, builder.getLevel().registryAccess()));
         }
         return drops;
     }
