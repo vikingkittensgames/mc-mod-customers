@@ -5,12 +5,10 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
@@ -27,7 +25,6 @@ public final class CustomerForgeEvents {
     private CustomerForgeEvents() {}
 
     public static void register(IEventBus modEventBus) {
-        modEventBus.addListener(CustomerForgeEvents::addCreative);
         modEventBus.addListener(CustomerForgeEvents::registerAttributes);
         MinecraftForge.EVENT_BUS.addListener(CustomerForgeEvents::onEntityLeaveLevel);
         MinecraftForge.EVENT_BUS.addListener(CustomerForgeEvents::onPickupCounterInteract);
@@ -131,11 +128,4 @@ public final class CustomerForgeEvents {
         }
     }
 
-    private static void addCreative(BuildCreativeModeTabContentsEvent event) {
-        if (event.getTabKey() == CreativeModeTabs.FUNCTIONAL_BLOCKS) {
-            event.accept(CustomerSpawner.CUSTOMER_SPAWNER_ITEM.get());
-            event.accept(CustomerLeaderboard.ITEM.get());
-            CustomerPickupCounter.ITEMS.values().forEach(item -> event.accept(item.get()));
-        }
-    }
 }

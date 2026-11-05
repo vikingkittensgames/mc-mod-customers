@@ -5,7 +5,6 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import net.minecraftforge.common.MinecraftForge;
@@ -14,7 +13,6 @@ import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
-import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
@@ -28,7 +26,6 @@ public final class CustomerPaymentBoxForgeEvents {
     private CustomerPaymentBoxForgeEvents() {}
 
     public static void register(IEventBus modEventBus) {
-        modEventBus.addListener(CustomerPaymentBoxForgeEvents::addCreative);
         MinecraftForge.EVENT_BUS.addGenericListener(
                 BlockEntity.class,
                 CustomerPaymentBoxForgeEvents::attachCapabilities
@@ -40,12 +37,6 @@ public final class CustomerPaymentBoxForgeEvents {
             ItemProvider provider = new ItemProvider(paymentBox);
             event.addCapability(ITEM_HANDLER_ID, provider);
             event.addListener(provider::invalidate);
-        }
-    }
-
-    private static void addCreative(BuildCreativeModeTabContentsEvent event) {
-        if (event.getTabKey() == CreativeModeTabs.FUNCTIONAL_BLOCKS) {
-            CustomerPaymentBox.ITEMS.values().forEach(item -> event.accept(item.get()));
         }
     }
 

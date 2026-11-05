@@ -345,9 +345,9 @@ Shared registry declarations use `IRegistrationHelper` and
 own deferred registers and binds them to its mod event bus after feature
 initialization. Customer and supplier entity and profession registrations,
 followed by both spawners, payment boxes, and pickup counters, are the first
-live features migrated to this service. Loader event listeners such as
-creative-tab population and capability attachment remain in the loader
-module.
+live features migrated to this service. Creative-tab population uses
+Architectury from common code. Loader event listeners retain capability
+attachment and other loader-specific behavior.
 
 `Customers` in `common` owns only shared mod identity. Loader entrypoints
 use explicit names such as `CustomersNeoForge` and delegate registration and
@@ -397,7 +397,7 @@ mappings keep private. Closing a player menu uses `IPlatformHelper.closeContaine
 `Player.closeContainer`. Common gameplay uses vanilla `BlockState.isAir()` rather than loader-added empty-state helpers.
 
 Both loaders initialize all shared customer and supplier registry declarations through `Customers.initialize()`. Forge feature adapters
-register customer and supplier attributes, creative-tab items, dimension-change cleanup, and the pickup counter's input-only item capability.
+register customer and supplier attributes, dimension-change cleanup, and the pickup counter's input-only item capability.
 
 Loader-neutral screens, renderers, client appearance implementations, render proxies, synchronized client state, and layout logic live in
 `common`. Loader modules retain only client lifecycle events, render-stage hooks, name-tag events, payload handlers, and loader-specific

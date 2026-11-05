@@ -1,4 +1,5 @@
 {
+  "itemGroup.customers": "Customers",
   "block.customers.customer_spawner_block": "Customer Spawner",
   "block.customers.customer_leaderboard": "Customer Leaderboard",
   "block.customers.supplier_spawner_block": "Supplier Spawner",

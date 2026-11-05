@@ -2,10 +2,8 @@ package com.vikingkittens.mc.customers.supplier;
 
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.npc.Villager;
-import net.minecraft.world.item.CreativeModeTabs;
 
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
 import net.minecraftforge.event.level.BlockEvent;
@@ -19,7 +17,6 @@ public final class SupplierForgeEvents {
     private SupplierForgeEvents() {}
 
     public static void register(IEventBus modEventBus) {
-        modEventBus.addListener(SupplierForgeEvents::addCreative);
         modEventBus.addListener(SupplierForgeEvents::registerAttributes);
         MinecraftForge.EVENT_BUS.addListener(SupplierForgeEvents::onEntityLeaveLevel);
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, SupplierForgeEvents::onSupplierSpawnerBreak);
@@ -52,9 +49,4 @@ public final class SupplierForgeEvents {
         }
     }
 
-    private static void addCreative(BuildCreativeModeTabContentsEvent event) {
-        if (event.getTabKey() == CreativeModeTabs.FUNCTIONAL_BLOCKS) {
-            event.accept(SupplierSpawner.SUPPLIER_SPAWNER_ITEM.get());
-        }
-    }
 }
