@@ -32,6 +32,23 @@ class SupplierSpawnerBlockEntityTest {
     }
 
     @Test
+    void preservesOptionalIconOnTheItemAndPlacedBlock() {
+        BlockEntityType<?> type = mock(BlockEntityType.class);
+        BlockState state = mock(BlockState.class);
+        when(type.isValid(state)).thenReturn(true);
+        ResourceLocation icon = ResourceLocation.fromNamespaceAndPath("preset_pack", "textures/icons/supplier.png");
+        TestSupplierSpawnerBlockEntity source = new TestSupplierSpawnerBlockEntity(type, state);
+        source.setIcon(icon);
+        ItemStack stack = new ItemStack(Items.STONE);
+        SupplierSpawnerItem.writeSettings(stack, source, RegistryAccess.EMPTY);
+        TestSupplierSpawnerBlockEntity placed = new TestSupplierSpawnerBlockEntity(type, state);
+        SupplierSpawnerItem.applySettings(stack, placed, RegistryAccess.EMPTY);
+
+        assertEquals(icon, SupplierSpawnerItem.getIcon(stack).orElseThrow());
+        assertEquals(icon, placed.getIcon());
+    }
+
+    @Test
     void persistsCustomName() {
         BlockEntityType<?> type = mock(BlockEntityType.class);
         BlockState state = mock(BlockState.class);

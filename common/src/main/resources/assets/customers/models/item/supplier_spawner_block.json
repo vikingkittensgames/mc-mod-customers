@@ -1,3 +1,6 @@
 {
-  "parent": "customers:block/supplier_spawner_block"
+  "parent": "customers:block/supplier_spawner_block",
+  "overrides": [
+    { "predicate": { "customers:has_spawner_icon": 1 }, "model": "customers:item/supplier_spawner_icon" }
+  ]
 }

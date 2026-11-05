@@ -6,6 +6,7 @@
     { "predicate": { "customers:spawner_mode": 3 }, "model": "customers:block/customer_spawner_block_night" },
     { "predicate": { "customers:spawner_mode": 4 }, "model": "customers:block/customer_spawner_block_breakfast" },
     { "predicate": { "customers:spawner_mode": 5 }, "model": "customers:block/customer_spawner_block_lunch" },
-    { "predicate": { "customers:spawner_mode": 6 }, "model": "customers:block/customer_spawner_block_dinner" }
+    { "predicate": { "customers:spawner_mode": 6 }, "model": "customers:block/customer_spawner_block_dinner" },
+    { "predicate": { "customers:has_spawner_icon": 1 }, "model": "customers:item/customer_spawner_icon" }
   ]
 }

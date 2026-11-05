@@ -22,9 +22,11 @@ import com.vikingkittens.mc.customers.client.appearance.monsters.MonsterCustomer
 import com.vikingkittens.mc.customers.client.appearance.skins.SkinCustomersVillagerClientAppearanceProvider;
 import com.vikingkittens.mc.customers.client.customer.CustomerPickupCounterBlockEntityRenderer;
 import com.vikingkittens.mc.customers.client.customer.CustomerSpawnerBlockScreen;
+import com.vikingkittens.mc.customers.client.customer.CustomerSpawnerIconBlockEntityRenderer;
 import com.vikingkittens.mc.customers.client.customer.CustomerSpawnerSnapshotManager;
 import com.vikingkittens.mc.customers.client.customer.CustomerVillagerEntityRenderer;
 import com.vikingkittens.mc.customers.client.supplier.SupplierSpawnerBlockScreen;
+import com.vikingkittens.mc.customers.client.supplier.SupplierSpawnerIconBlockEntityRenderer;
 import com.vikingkittens.mc.customers.customer.Customer;
 import com.vikingkittens.mc.customers.customer.CustomerPaymentBox;
 import com.vikingkittens.mc.customers.customer.CustomerPickupCounter;
@@ -32,6 +34,7 @@ import com.vikingkittens.mc.customers.customer.CustomerSpawner;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerItem;
 import com.vikingkittens.mc.customers.supplier.Supplier;
 import com.vikingkittens.mc.customers.supplier.SupplierSpawner;
+import com.vikingkittens.mc.customers.supplier.SupplierSpawnerItem;
 
 public final class CustomersClientRegistrations {
     private CustomersClientRegistrations() {}
@@ -45,6 +48,7 @@ public final class CustomersClientRegistrations {
     public static void initializeRuntime() {
         registerAppearances();
         CustomerSpawnerItem.register();
+        SupplierSpawnerItem.register();
         registerRenderTypes(CustomerPaymentBox.BLOCKS.values(), CustomerPickupCounter.BLOCKS.values());
         ClientPlayerEvent.CLIENT_PLAYER_QUIT.register(player -> CustomerSpawnerSnapshotManager.clear());
     }
@@ -81,6 +85,10 @@ public final class CustomersClientRegistrations {
     }
 
     private static void registerRenderers() {
+        BlockEntityRendererRegistry.register(CustomerSpawner.CUSTOMER_SPAWNER_ENTITY.get(),
+                CustomerSpawnerIconBlockEntityRenderer::new);
+        BlockEntityRendererRegistry.register(SupplierSpawner.SUPPLIER_SPAWNER_ENTITY.get(),
+                SupplierSpawnerIconBlockEntityRenderer::new);
         EntityModelLayerRegistry.register(
                 CustomerVillagerEntityRenderer.MODEL_LAYER,
                 CustomerVillagerEntityRenderer.Model::createBodyLayer

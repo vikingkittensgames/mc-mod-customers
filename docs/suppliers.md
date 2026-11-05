@@ -40,6 +40,7 @@ automatic-cost behavior, and locked inventory items.
   custom_name='{"text":"Breakfast Supplier"}',
   custom_data={
     "customers:supplier_spawner_settings": {
+      icon: "preset_pack:textures/icons/supplier.png",
       enabled_appearances: [
         "customers:default"
       ],
@@ -60,6 +61,8 @@ The formatting is for readability; remove line breaks before entering the comman
 file. Replace `customers:default` with any available Supplier appearance ID. `lockedInventory` has 54 slots;
 each non-empty entry is locked automatically when placed. Supplier offer rows use slots 0-7, 9-16, and so on:
 even-numbered slots are offered items and the following odd-numbered slots are their costs.
+The optional `icon` is a texture resource location available on every player's client through a mod or resource
+pack. It appears as a cutout on top of both the placed block and its item model.
 
 ![supplier-spawner-inventory.png]({{ '/screenshots/supplier-spawner-inventory.png' | relative_url }})
 

@@ -19,6 +19,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerLevel;
@@ -75,6 +76,8 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     private static final double PLAYER_VIEW_RANGE = 64.0D;
     @Nullable
     private Component customName;
+    @Nullable
+    private ResourceLocation icon;
 
     static Item getPaymentItem() {
         return Items.EMERALD;
@@ -590,6 +593,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
     void writeSpawnerData(DataWriter output) {
         output.putInt(TAG_DATA_VERSION, CURRENT_DATA_VERSION);
+        if (icon != null) output.putString("icon", icon.toString());
         for (CustomerSpawnerLevelSettings settings : levelSettings) {
             settings.write(output.addChild(TAG_LEVEL_SETTINGS));
         }
@@ -636,6 +640,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     private void readSpawnerData(DataReader input, boolean usesLegacyLevelData) {
+        icon = input.getString("icon").map(ResourceLocation::tryParse).orElse(null);
         int loadedDataVersion =
                 input.getInt(TAG_DATA_VERSION).orElse(0);
         if (usesLegacyLevelData) {
@@ -923,6 +928,28 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     public void setCustomName(@Nullable Component customName) {
         this.customName = customName;
         setChanged();
+    }
+
+    public @Nullable ResourceLocation getIcon() {
+        return icon;
+    }
+
+    public void setIcon(@Nullable ResourceLocation icon) {
+        this.icon = icon;
+        setChanged();
+        if (level != null && !LevelCUtils.isClientSide(level)) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+        }
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return saveWithoutMetadata(registries);
+    }
+
+    @Override
+    public ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     public void beforeRemove() {

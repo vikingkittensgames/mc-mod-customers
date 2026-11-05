@@ -35,6 +35,23 @@ class CustomerSpawnerItemTest {
     }
 
     @Test
+    void preservesOptionalIconOnTheItemAndPlacedBlock() {
+        BlockEntityType<?> type = mock(BlockEntityType.class);
+        BlockState state = mock(BlockState.class);
+        when(type.isValid(state)).thenReturn(true);
+        ResourceLocation icon = ResourceLocation.fromNamespaceAndPath("preset_pack", "textures/icons/breakfast.png");
+        CustomerSpawnerBlockEntity source = new CustomerSpawnerBlockEntity(type, BlockPos.ZERO, state);
+        source.setIcon(icon);
+        ItemStack stack = new ItemStack(Items.STONE);
+        CustomerSpawnerItem.writeSettings(stack, CustomerSpawnerMode.BREAKFAST, source, RegistryAccess.EMPTY);
+        CustomerSpawnerBlockEntity placed = new CustomerSpawnerBlockEntity(type, BlockPos.ZERO, state);
+        CustomerSpawnerItem.applySettings(stack, placed, RegistryAccess.EMPTY);
+
+        assertEquals(icon, CustomerSpawnerItem.getIcon(stack).orElseThrow());
+        assertEquals(icon, placed.getIcon());
+    }
+
+    @Test
     void providesTheMatchingModePredicateOrContinuousForAnUnconfiguredItem() {
         assertEquals(0.0F, CustomerSpawnerItem.predicateValueSpawnerMode(new ItemStack(Items.STONE)));
 

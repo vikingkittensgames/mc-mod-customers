@@ -45,7 +45,7 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
     private static final MapCodec<CustomerSpawnerBlock> CODEC = RecordCodecBuilder.mapCodec(instance ->
             instance.group(propertiesCodec()).apply(instance, CustomerSpawnerBlock::new));
 
-    static final EnumProperty<CustomerSpawnerMode> STATE_SPAWN_MODE = EnumProperty.create("spawn_mode", CustomerSpawnerMode.class);
+    public static final EnumProperty<CustomerSpawnerMode> STATE_SPAWN_MODE = EnumProperty.create("spawn_mode", CustomerSpawnerMode.class);
 
     static final BooleanProperty STATE_DISABLED = BooleanProperty.create("disabled");
 

@@ -11,6 +11,8 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 
@@ -20,14 +22,17 @@ import com.vikingkittens.mc.customers.client.advancements.ftb.CustomersFTBClient
 import com.vikingkittens.mc.customers.client.appearance.CustomersVillagerAppearanceEntityRenderer;
 import com.vikingkittens.mc.customers.client.customer.CustomerPickupCounterBlockEntityRenderer;
 import com.vikingkittens.mc.customers.client.customer.CustomerSpawnerBlockScreen;
+import com.vikingkittens.mc.customers.client.customer.CustomerSpawnerIconBlockEntityRenderer;
 import com.vikingkittens.mc.customers.client.customer.CustomerVillagerEntityRenderer;
 import com.vikingkittens.mc.customers.client.customer.CustomersClientNetworking;
 import com.vikingkittens.mc.customers.client.supplier.SupplierSpawnerBlockScreen;
+import com.vikingkittens.mc.customers.client.supplier.SupplierSpawnerIconBlockEntityRenderer;
 import com.vikingkittens.mc.customers.customer.Customer;
 import com.vikingkittens.mc.customers.customer.CustomerPickupCounter;
 import com.vikingkittens.mc.customers.customer.CustomerSpawner;
 import com.vikingkittens.mc.customers.supplier.Supplier;
 import com.vikingkittens.mc.customers.supplier.SupplierSpawner;
+import com.vikingkittens.mc.customers.supplier.SupplierSpawnerItem;
 
 // This class will not load on dedicated servers. Accessing client side code from here is safe.
 @Mod(value = Customers.MODID, dist = Dist.CLIENT)
@@ -46,6 +51,7 @@ public class CustomersClient {
         event.enqueueWork(() -> {
             CustomersClientNetworking.initialize();
             CustomersClientRegistrations.initializeRuntime();
+            SupplierSpawnerItem.register();
             CustomersFTBClient.initialize();
         });
     }
@@ -60,6 +66,10 @@ public class CustomersClient {
 
     @SubscribeEvent
     static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerBlockEntityRenderer(CustomerSpawner.CUSTOMER_SPAWNER_ENTITY.get(),
+                CustomerSpawnerIconBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(SupplierSpawner.SUPPLIER_SPAWNER_ENTITY.get(),
+                SupplierSpawnerIconBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(
                 CustomerPickupCounter.BLOCK_ENTITY.get(),
                 CustomerPickupCounterBlockEntityRenderer::new
@@ -85,5 +95,18 @@ public class CustomersClient {
     static void onRegisterMenuScreens(RegisterMenuScreensEvent event) {
         event.register(CustomerSpawner.CUSTOMER_SPAWNER_MENU.get(), CustomerSpawnerBlockScreen::new);
         event.register(SupplierSpawner.SUPPLIER_SPAWNER_MENU.get(), SupplierSpawnerBlockScreen::new);
+    }
+
+    @SubscribeEvent
+    static void onRegisterClientExtensions(RegisterClientExtensionsEvent event) {
+        event.registerItem(new IClientItemExtensions() {
+            private SpawnerIconNeoForgeItemRenderer renderer;
+
+            @Override
+            public net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) renderer = new SpawnerIconNeoForgeItemRenderer();
+                return renderer;
+            }
+        }, CustomerSpawner.CUSTOMER_SPAWNER_ITEM.get(), SupplierSpawner.SUPPLIER_SPAWNER_ITEM.get());
     }
 }

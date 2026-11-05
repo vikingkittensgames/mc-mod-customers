@@ -36,6 +36,7 @@ shown for its first level:
   custom_data={
     "customers:customer_spawner_settings": {
       mode: "breakfast",
+      icon: "preset_pack:textures/icons/breakfast.png",
       level_settings: [
         {
           requiredStars: 2.5f,
@@ -82,6 +83,8 @@ file. `mode` may be `continuous`, `manual`, `day`, `night`, `breakfast`, `lunch`
 `level_settings` configures one level, up to eight levels. Change the appearance and pet IDs to values available
 in the installed modpack. `lockedInventory` uses slots 0-53 for offer rows and slot 54 for the pet-cost item;
 every non-empty entry is locked automatically when placed.
+The optional `icon` is a texture resource location available on every player's client through a mod or resource
+pack. It appears as a cutout on top of both the placed block and its item model.
 
 During timed shifts, the customer maximum starts low, ramps up to the spawner's configured
 maximum, and ramps down over the final portion of the shift. The longer
