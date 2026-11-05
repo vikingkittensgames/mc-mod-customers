@@ -1,0 +1,23 @@
+{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "key":  {
+                "G":  {
+                          "item":  "minecraft:glass_pane"
+                      },
+                "T":  {
+                          "item":  "minecraft:oak_planks"
+                      },
+                "V":  {
+                          "item":  "minecraft:stripped_oak_log"
+                      }
+            },
+    "pattern":  [
+                    "VTT",
+                    "GGG"
+                ],
+    "result":  {
+                   "count":  1,
+                   "id":  "customers:oak_customers_display_case"
+               }
+}

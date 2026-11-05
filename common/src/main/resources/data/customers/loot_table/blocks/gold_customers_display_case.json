@@ -1,0 +1,21 @@
+{
+    "type":  "minecraft:block",
+    "pools":  [
+                  {
+                      "bonus_rolls":  0,
+                      "conditions":  [
+                                         {
+                                             "condition":  "minecraft:survives_explosion"
+                                         }
+                                     ],
+                      "entries":  [
+                                      {
+                                          "type":  "minecraft:item",
+                                          "name":  "customers:gold_customers_display_case"
+                                      }
+                                  ],
+                      "rolls":  1
+                  }
+              ],
+    "random_sequence":  "customers:blocks/gold_customers_display_case"
+}

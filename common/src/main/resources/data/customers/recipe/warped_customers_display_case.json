@@ -1,0 +1,23 @@
+{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "key":  {
+                "G":  {
+                          "item":  "minecraft:glass_pane"
+                      },
+                "T":  {
+                          "item":  "minecraft:warped_planks"
+                      },
+                "V":  {
+                          "item":  "minecraft:stripped_warped_stem"
+                      }
+            },
+    "pattern":  [
+                    "VTT",
+                    "GGG"
+                ],
+    "result":  {
+                   "count":  1,
+                   "id":  "customers:warped_customers_display_case"
+               }
+}

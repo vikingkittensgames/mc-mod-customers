@@ -1,0 +1,7 @@
+{
+    "parent":  "customers:block/display_case_middle",
+    "textures":  {
+                     "display_case":  "customers:block/gold_customers_display_case",
+                     "particle":  "customers:block/gold_customers_display_case"
+                 }
+}

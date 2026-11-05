@@ -10,6 +10,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
@@ -22,10 +23,14 @@ import com.vikingkittens.mc.customers.client.customer.CustomerPickupCounterBlock
 import com.vikingkittens.mc.customers.client.customer.CustomerSpawnerBlockScreen;
 import com.vikingkittens.mc.customers.client.customer.CustomerVillagerEntityRenderer;
 import com.vikingkittens.mc.customers.client.customer.CustomersClientNetworking;
+import com.vikingkittens.mc.customers.client.customer.CustomersDisplayCaseBlockEntityRenderer;
+import com.vikingkittens.mc.customers.client.customer.CustomersDisplayCaseBlockScreen;
+import com.vikingkittens.mc.customers.client.customer.CustomersDisplayCaseGlassRenderer;
 import com.vikingkittens.mc.customers.client.supplier.SupplierSpawnerBlockScreen;
 import com.vikingkittens.mc.customers.customer.Customer;
 import com.vikingkittens.mc.customers.customer.CustomerPickupCounter;
 import com.vikingkittens.mc.customers.customer.CustomerSpawner;
+import com.vikingkittens.mc.customers.customer.CustomersDisplayCase;
 import com.vikingkittens.mc.customers.supplier.Supplier;
 import com.vikingkittens.mc.customers.supplier.SupplierSpawner;
 
@@ -64,6 +69,10 @@ public class CustomersClient {
                 CustomerPickupCounter.BLOCK_ENTITY.get(),
                 CustomerPickupCounterBlockEntityRenderer::new
         );
+        event.registerBlockEntityRenderer(
+                CustomersDisplayCase.BLOCK_ENTITY.get(),
+                CustomersDisplayCaseBlockEntityRenderer::new
+        );
         event.registerEntityRenderer(Customer.CUSTOMER_SEAT.get(), NoopRenderer::new);
         event.registerEntityRenderer(
                 Customer.CUSTOMER_VILLAGER.get(),
@@ -85,5 +94,13 @@ public class CustomersClient {
     static void onRegisterMenuScreens(RegisterMenuScreensEvent event) {
         event.register(CustomerSpawner.CUSTOMER_SPAWNER_MENU.get(), CustomerSpawnerBlockScreen::new);
         event.register(SupplierSpawner.SUPPLIER_SPAWNER_MENU.get(), SupplierSpawnerBlockScreen::new);
+        event.register(CustomersDisplayCase.MENU.get(), CustomersDisplayCaseBlockScreen::new);
+    }
+
+    @SubscribeEvent
+    static void onRegisterAdditionalModels(ModelEvent.RegisterAdditional event) {
+        CustomersDisplayCaseGlassRenderer.modelIds().stream()
+                .map(CustomersDisplayCaseGlassRenderer::additionalModelLocation)
+                .forEach(event::register);
     }
 }

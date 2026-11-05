@@ -29,6 +29,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
+import com.vikingkittens.mc.customers.common.BlockUtils;
 import com.vikingkittens.mc.customers.compatability.LevelCUtils;
 
 public class CustomerPaymentBoxBlock extends BaseEntityBlock {
@@ -54,10 +55,10 @@ public class CustomerPaymentBoxBlock extends BaseEntityBlock {
             Direction clickedFace,
             Direction playerHorizontalDirection
     ) {
-        if (clickedFace.getAxis().isHorizontal()) {
-            return clickedFace;
-        }
-        return playerHorizontalDirection.getOpposite();
+        return BlockUtils.resolveHorizontalPlacementFacing(
+                clickedFace,
+                playerHorizontalDirection
+        );
     }
 
     @Override

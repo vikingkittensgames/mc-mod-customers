@@ -1,0 +1,23 @@
+{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "key":  {
+                "G":  {
+                          "item":  "minecraft:glass_pane"
+                      },
+                "T":  {
+                          "item":  "minecraft:iron_ingot"
+                      },
+                "V":  {
+                          "item":  "minecraft:iron_block"
+                      }
+            },
+    "pattern":  [
+                    "VTT",
+                    "GGG"
+                ],
+    "result":  {
+                   "count":  1,
+                   "id":  "customers:iron_customers_display_case"
+               }
+}

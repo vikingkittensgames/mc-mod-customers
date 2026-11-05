@@ -1,0 +1,23 @@
+{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "key":  {
+                "G":  {
+                          "item":  "minecraft:glass_pane"
+                      },
+                "T":  {
+                          "item":  "minecraft:mangrove_planks"
+                      },
+                "V":  {
+                          "item":  "minecraft:stripped_mangrove_log"
+                      }
+            },
+    "pattern":  [
+                    "VTT",
+                    "GGG"
+                ],
+    "result":  {
+                   "count":  1,
+                   "id":  "customers:mangrove_customers_display_case"
+               }
+}
