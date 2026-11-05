@@ -3,7 +3,6 @@ package com.vikingkittens.mc.customers.client.customer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 
 import org.jspecify.annotations.Nullable;
 
@@ -24,6 +23,7 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 
+import com.vikingkittens.mc.customers.client.common.RenderingUtils;
 import com.vikingkittens.mc.customers.customer.CustomerPickupCounterBlockEntity;
 
 public class CustomerPickupCounterBlockEntityRenderer

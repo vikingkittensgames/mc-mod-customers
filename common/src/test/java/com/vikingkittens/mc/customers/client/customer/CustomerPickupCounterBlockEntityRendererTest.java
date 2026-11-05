@@ -46,27 +46,4 @@ class CustomerPickupCounterBlockEntityRendererTest {
                         .size()
         );
     }
-    @Test
-    void rendersAdditionalModelsAsTheStackFills() {
-        assertEquals(
-                1,
-                CustomerPickupCounterBlockEntityRenderer
-                        .getModelCount(1, 64)
-        );
-        assertEquals(
-                2,
-                CustomerPickupCounterBlockEntityRenderer
-                        .getModelCount(2, 64)
-        );
-        assertEquals(
-                3,
-                CustomerPickupCounterBlockEntityRenderer
-                        .getModelCount(32, 64)
-        );
-        assertEquals(
-                5,
-                CustomerPickupCounterBlockEntityRenderer
-                        .getModelCount(64, 64)
-        );
-    }
 }

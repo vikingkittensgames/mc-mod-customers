@@ -15,6 +15,7 @@ import com.vikingkittens.mc.customers.customer.CustomerPickupCounter;
 import com.vikingkittens.mc.customers.customer.CustomerSeat;
 import com.vikingkittens.mc.customers.customer.CustomerSpawner;
 import com.vikingkittens.mc.customers.customer.CustomersCustomerEvents;
+import com.vikingkittens.mc.customers.customer.CustomersDisplayCase;
 import com.vikingkittens.mc.customers.economy.CustomersEconomyEvents;
 import com.vikingkittens.mc.customers.supplier.Supplier;
 import com.vikingkittens.mc.customers.supplier.SupplierSpawner;
@@ -37,6 +38,7 @@ public final class Customers {
         CustomerSeat.initialize();
         CustomerSpawner.initialize();
         CustomerPickupCounter.initialize();
+        CustomersDisplayCase.initialize();
         Customer.initialize();
         CustomersCustomerEvents.initialize();
         SupplierSpawner.initialize();
