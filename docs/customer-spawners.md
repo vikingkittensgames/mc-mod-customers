@@ -23,6 +23,65 @@ All configured offer items and pet-cost items are dropped normally. Preset Spawn
 offer or pet-cost items; locked items stay with the Spawner item and cannot be moved or removed from its
 interface.
 
+### Creating Spawners With Presets
+
+Server operators and datapacks can create preset Customer Spawner items with vanilla item components.
+The following command creates a named Breakfast spawner with every currently supported preset setting
+shown for its first level:
+
+```mcfunction
+/give @s customers:customer_spawner_block[
+  custom_name='{"text":"Breakfast Customers"}',
+  custom_data={
+    "customers:customer_spawner_settings": {
+      mode: "breakfast",
+      level_settings: [
+        {
+          requiredStars: 2.5f,
+          maxCustomers: 12,
+          petPercentage: 0.25f,
+          petTypesCustomized: true,
+          enabledPetTypes: [
+            "minecraft:cat"
+          ],
+          petFoods: [
+            {
+              petTypeId: "minecraft:cat",
+              food: {
+                Size: 1,
+                Items: [
+                  {Slot: 0, id: "minecraft:cod", count: 1}
+                ]
+              }
+            }
+          ],
+          appearanceSettings: {
+            CustomersEnabledAppearances: [
+              "customers:default"
+            ]
+          },
+          autoCost: false,
+          lockedInventory: {
+            Size: 55,
+            Items: [
+              {Slot: 0, id: "minecraft:bread", count: 4},
+              {Slot: 8, id: "minecraft:emerald", count: 2},
+              {Slot: 54, id: "minecraft:cod", count: 1}
+            ]
+          }
+        }
+      ]
+    }
+  }
+]
+```
+
+The formatting is for readability; remove line breaks before entering the command in chat or an `.mcfunction`
+file. `mode` may be `continuous`, `manual`, `day`, `night`, `breakfast`, `lunch`, or `dinner`. Each object in
+`level_settings` configures one level, up to eight levels. Change the appearance and pet IDs to values available
+in the installed modpack. `lockedInventory` uses slots 0-53 for offer rows and slot 54 for the pet-cost item;
+every non-empty entry is locked automatically when placed.
+
 During timed shifts, the customer maximum starts low, ramps up to the spawner's configured
 maximum, and ramps down over the final portion of the shift. The longer
 Day and Night Shifts ramp up more gradually than the shorter meal shifts.

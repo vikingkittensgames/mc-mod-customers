@@ -29,6 +29,38 @@ When a Supplier Spawner is broken, its selected appearances and automatic-cost s
 Spawner item. Items in ordinary inventory slots are dropped normally. Preset Spawners can include locked
 inventory items; locked items stay with the Spawner item and cannot be moved or removed from its interface.
 
+### Creating Spawners With Presets
+
+Server operators and datapacks can create preset Supplier Spawner items with vanilla item components.
+This command creates a named Supplier Spawner with all supported preset settings: selected appearances,
+automatic-cost behavior, and locked inventory items.
+
+```mcfunction
+/give @s customers:supplier_spawner_block[
+  custom_name='{"text":"Breakfast Supplier"}',
+  custom_data={
+    "customers:supplier_spawner_settings": {
+      enabled_appearances: [
+        "customers:default"
+      ],
+      automatic_cost: false,
+      lockedInventory: {
+        Size: 54,
+        Items: [
+          {Slot: 0, id: "minecraft:bread", count: 16},
+          {Slot: 1, id: "minecraft:emerald", count: 3}
+        ]
+      }
+    }
+  }
+]
+```
+
+The formatting is for readability; remove line breaks before entering the command in chat or an `.mcfunction`
+file. Replace `customers:default` with any available Supplier appearance ID. `lockedInventory` has 54 slots;
+each non-empty entry is locked automatically when placed. Supplier offer rows use slots 0-7, 9-16, and so on:
+even-numbered slots are offered items and the following odd-numbered slots are their costs.
+
 ![supplier-spawner-inventory.png]({{ '/screenshots/supplier-spawner-inventory.png' | relative_url }})
 
 ![supplier-trades.png]({{ '/screenshots/supplier-trades.png' | relative_url }})
