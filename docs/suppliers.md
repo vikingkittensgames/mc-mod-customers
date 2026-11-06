@@ -45,24 +45,56 @@ automatic-cost behavior, and locked inventory items.
         "customers:default"
       ],
       automatic_cost: false,
-      lockedInventory: {
-        Size: 54,
-        Items: [
-          {Slot: 0, id: "minecraft:bread", count: 16},
-          {Slot: 1, id: "minecraft:emerald", count: 3}
-        ]
-      }
+      items: [
+        {
+          item: {id: "minecraft:bread", count: 16},
+          cost: {id: "minecraft:emerald", count: 3}
+        }
+      ]
     }
   }
 ]
 ```
 
 The formatting is for readability; remove line breaks before entering the command in chat or an `.mcfunction`
-file. Replace `customers:default` with any available Supplier appearance ID. `lockedInventory` has 54 slots;
-each non-empty entry is locked automatically when placed. Supplier offer rows use slots 0-7, 9-16, and so on:
-even-numbered slots are offered items and the following odd-numbered slots are their costs.
+file. Replace `customers:default` with any available Supplier appearance ID. `items` accepts up to 24 offer
+pairs. Each pair has an `item` and optional `cost`; both use `id` and optional `count` (default 1). Every supplied
+item and cost is locked when placed. Spawner inventory size and lock flags are managed internally.
 The optional `icon` is a texture resource location available on every player's client through a mod or resource
 pack. It appears as a cutout on top of both the placed block and its item model.
+
+#### Presets from data files
+
+Mods and datapacks can add Supplier Spawner presets at
+`data/<namespace>/customers/supplier_spawner_presets/<name>.json`. Each file creates a named item in the
+Customers creative tab. The built-in `cookies_and_milk` preset is at
+`data/customers/customers/supplier_spawner_presets/cookies_and_milk.json`:
+
+```json
+{
+  "name": "Cookies & Milk Supplier",
+  "icon": "minecraft:textures/item/cookie.png",
+  "settings": {
+    "enabled_appearances": ["customers:default"],
+    "automatic_cost": true,
+    "items": [
+      {"item": {"id": "minecraft:cookie", "count": 16}},
+      {"item": {"id": "minecraft:milk_bucket"}}
+    ]
+  }
+}
+```
+
+The `settings` object accepts the same fields as `customers:supplier_spawner_settings` in the command above.
+An `icon` is optional. To give this preset by ID, use:
+
+```mcfunction
+/give @s customers:supplier_spawner_block[custom_data={"customers:preset":"customers:cookies_and_milk"}]
+```
+
+The preset is copied onto the item when it enters a player's inventory or when placed. A preset item kept in
+a container resolves when a player takes it out or places it. The copied settings stay on the item after the
+Spawner is broken, including if the preset file later changes or is removed.
 
 ![supplier-spawner-inventory.png]({{ '/screenshots/supplier-spawner-inventory.png' | relative_url }})
 

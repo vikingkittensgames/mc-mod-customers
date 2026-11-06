@@ -40,9 +40,9 @@ class SupplierSpawnerBlockEntityTest {
         TestSupplierSpawnerBlockEntity source = new TestSupplierSpawnerBlockEntity(type, state);
         source.setIcon(icon);
         ItemStack stack = new ItemStack(Items.STONE);
-        SupplierSpawnerItem.writeSettings(stack, source, RegistryAccess.EMPTY);
+        SupplierSpawnerBlock.extractItemSettings(stack, source, RegistryAccess.EMPTY);
         TestSupplierSpawnerBlockEntity placed = new TestSupplierSpawnerBlockEntity(type, state);
-        SupplierSpawnerItem.applySettings(stack, placed, RegistryAccess.EMPTY);
+        SupplierSpawnerBlock.applyItemSettings(stack, placed, RegistryAccess.EMPTY);
 
         assertEquals(icon, SupplierSpawnerItem.getIcon(stack).orElseThrow());
         assertEquals(icon, placed.getIcon());
@@ -79,13 +79,13 @@ class SupplierSpawnerBlockEntityTest {
         source.setAutoCost(true);
         ItemStack stack = new ItemStack(Items.STONE);
 
-        SupplierSpawnerItem.writeSettings(stack, source, RegistryAccess.EMPTY);
+        SupplierSpawnerBlock.extractItemSettings(stack, source, RegistryAccess.EMPTY);
 
         CustomData itemData = stack.get(DataComponents.CUSTOM_DATA);
         assertNotNull(itemData);
         assertFalse(itemData.copyTag().getCompound(SupplierSpawnerItem.TAG_SETTINGS).contains("inventory"));
         TestSupplierSpawnerBlockEntity restored = new TestSupplierSpawnerBlockEntity(type, state);
-        SupplierSpawnerItem.applySettings(stack, restored, RegistryAccess.EMPTY);
+        SupplierSpawnerBlock.applyItemSettings(stack, restored, RegistryAccess.EMPTY);
 
         assertEquals(appearances, restored.getEnabledAppearanceIds());
         assertEquals(true, restored.isAutoCost());

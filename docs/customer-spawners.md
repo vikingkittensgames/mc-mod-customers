@@ -39,38 +39,22 @@ shown for its first level:
       icon: "preset_pack:textures/icons/breakfast.png",
       level_settings: [
         {
-          requiredStars: 2.5f,
-          maxCustomers: 12,
-          petPercentage: 0.25f,
-          petTypesCustomized: true,
-          enabledPetTypes: [
-            "minecraft:cat"
+          required_stars: 2.5f,
+          max_customers: 12,
+          pet_percentage: 0.25f,
+          enabled_pets: [
+            {id: "minecraft:cat", food: "minecraft:cod"}
           ],
-          petFoods: [
+          enabled_appearances: [
+            "customers:default"
+          ],
+          automatic_cost: false,
+          rows: [
             {
-              petTypeId: "minecraft:cat",
-              food: {
-                Size: 1,
-                Items: [
-                  {Slot: 0, id: "minecraft:cod", count: 1}
-                ]
-              }
+              items: [{id: "minecraft:bread", count: 4}],
+              cost: {id: "minecraft:emerald", count: 2}
             }
-          ],
-          appearanceSettings: {
-            CustomersEnabledAppearances: [
-              "customers:default"
-            ]
-          },
-          autoCost: false,
-          lockedInventory: {
-            Size: 55,
-            Items: [
-              {Slot: 0, id: "minecraft:bread", count: 4},
-              {Slot: 8, id: "minecraft:emerald", count: 2},
-              {Slot: 54, id: "minecraft:cod", count: 1}
-            ]
-          }
+          ]
         }
       ]
     }
@@ -81,10 +65,50 @@ shown for its first level:
 The formatting is for readability; remove line breaks before entering the command in chat or an `.mcfunction`
 file. `mode` may be `continuous`, `manual`, `day`, `night`, `breakfast`, `lunch`, or `dinner`. Each object in
 `level_settings` configures one level, up to eight levels. Change the appearance and pet IDs to values available
-in the installed modpack. `lockedInventory` uses slots 0-53 for offer rows and slot 54 for the pet-cost item;
-every non-empty entry is locked automatically when placed.
+in the installed modpack. Each level accepts up to six `rows`; a row accepts up to eight `items` and an optional
+`cost`. Item objects use `id` and an optional `count` (default 1). Every supplied item is locked when placed.
+`enabled_pets` is an optional list of pet IDs. Each entry may specify a `food` item ID to override that pet's
+default food. Other preset setting names use snake_case, matching Minecraft data files and item components.
+Spawner inventory size and lock flags are managed internally.
 The optional `icon` is a texture resource location available on every player's client through a mod or resource
 pack. It appears as a cutout on top of both the placed block and its item model.
+
+#### Presets from data files
+
+Mods and datapacks can add Customer Spawner presets at
+`data/<namespace>/customers/customer_spawner_presets/<name>.json`. Each file creates a named item in the
+Customers creative tab. The built-in `cookies_and_milk` preset is at
+`data/customers/customers/customer_spawner_presets/cookies_and_milk.json`:
+
+```json
+{
+  "name": "Cookies & Milk Customers",
+  "icon": "minecraft:textures/item/cookie.png",
+  "settings": {
+    "mode": "night",
+    "level_settings": [
+      {
+        "automatic_cost": true,
+        "rows": [
+          {"items": [{"id": "minecraft:cookie", "count": 3}]},
+          {"items": [{"id": "minecraft:milk_bucket"}]}
+        ]
+      }
+    ]
+  }
+}
+```
+
+The `settings` object accepts the same fields as `customers:customer_spawner_settings` in the command above.
+An `icon` is optional. To give this preset by ID, use:
+
+```mcfunction
+/give @s customers:customer_spawner_block[custom_data={"customers:preset":"customers:cookies_and_milk"}]
+```
+
+The preset is copied onto the item when it enters a player's inventory or when placed. A preset item kept in
+a container resolves when a player takes it out or places it. The copied settings stay on the item after the
+Spawner is broken, including if the preset file later changes or is removed.
 
 During timed shifts, the customer maximum starts low, ramps up to the spawner's configured
 maximum, and ramps down over the final portion of the shift. The longer

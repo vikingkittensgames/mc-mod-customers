@@ -2,6 +2,7 @@ package com.vikingkittens.mc.customers.supplier;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -11,7 +12,7 @@ import com.mojang.logging.LogUtils;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
@@ -34,6 +35,7 @@ import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
 
+import com.vikingkittens.mc.customers.common.SpawnerPresets;
 import com.vikingkittens.mc.customers.compatability.LevelCUtils;
 
 public class SupplierSpawnerBlock extends BaseEntityBlock {
@@ -88,9 +90,29 @@ public class SupplierSpawnerBlock extends BaseEntityBlock {
         super.setPlacedBy(level, pos, state, placer, stack);
         if (!LevelCUtils.isClientSide(level)
                 && level.getBlockEntity(pos) instanceof SupplierSpawnerBlockEntity spawner) {
-            spawner.setCustomName(stack.get(DataComponents.CUSTOM_NAME));
-            SupplierSpawnerItem.applySettings(stack, spawner, level.registryAccess());
+            applyItemSettings(stack, spawner, level.registryAccess());
         }
+    }
+
+    static void applyItemSettings(ItemStack stack, SupplierSpawnerBlockEntity spawner,
+            HolderLookup.Provider registries) {
+        spawner.setCustomName(SupplierSpawnerItem.getCustomName(stack).orElse(null));
+        spawner.setIcon(SupplierSpawnerItem.getIcon(stack).orElse(null));
+        SupplierSpawnerItem.getEnabledAppearances(stack).ifPresent(spawner::setEnabledAppearanceIds);
+        SupplierSpawnerItem.getAutomaticCost(stack).ifPresent(spawner::setAutoCost);
+        SupplierSpawnerItem.getItems(stack, registries).ifPresent(offers -> {
+            for (int index = 0; index < Math.min(offers.size(), 24); index++) {
+                int slot = index / 4 * 9 + index % 4 * 2;
+                SupplierSpawnerItem.Offer offer = offers.get(index);
+                spawner.getInventory().setItem(slot, offer.item().copy());
+                spawner.getInventoryLocks().setLocked(slot, true);
+                offer.cost().ifPresent(cost -> {
+                    spawner.getInventory().setItem(slot + 1, cost.copy());
+                    spawner.getInventoryLocks().setLocked(slot + 1, true);
+                });
+            }
+        });
+        spawner.setPresetId(SpawnerPresets.getId(stack).orElse(null));
     }
 
     @Override
@@ -100,9 +122,35 @@ public class SupplierSpawnerBlock extends BaseEntityBlock {
                 instanceof SupplierSpawnerBlockEntity spawner) {
             drops.stream()
                     .filter(stack -> stack.is(SupplierSpawner.SUPPLIER_SPAWNER_ITEM.get()))
-                    .forEach(stack -> SupplierSpawnerItem.writeSettings(stack, spawner, builder.getLevel().registryAccess()));
+                    .forEach(stack -> extractItemSettings(stack, spawner, builder.getLevel().registryAccess()));
         }
         return drops;
+    }
+
+    static void extractItemSettings(ItemStack stack, SupplierSpawnerBlockEntity spawner,
+            HolderLookup.Provider registries) {
+        if (spawner.getCustomName() != null) {
+            SupplierSpawnerItem.setCustomName(stack, spawner.getCustomName());
+        }
+        if (spawner.getIcon() != null) SupplierSpawnerItem.setIcon(stack, spawner.getIcon());
+        SupplierSpawnerItem.setEnabledAppearances(stack, spawner.getEnabledAppearanceIds());
+        SupplierSpawnerItem.setAutomaticCost(stack, spawner.isAutoCost());
+        List<SupplierSpawnerItem.Offer> offers = new ArrayList<>();
+        for (int row = 0; row < 6; row++) {
+            for (int pair = 0; pair < 4; pair++) {
+                int slot = row * 9 + pair * 2;
+                if (!spawner.isInventoryLocked(slot) || spawner.getInventory().getItem(slot).isEmpty()) {
+                    continue;
+                }
+                ItemStack cost = spawner.getInventory().getItem(slot + 1);
+                offers.add(new SupplierSpawnerItem.Offer(
+                        spawner.getInventory().getItem(slot).copy(),
+                        spawner.isInventoryLocked(slot + 1) && !cost.isEmpty()
+                                ? Optional.of(cost.copy()) : Optional.empty()));
+            }
+        }
+        SupplierSpawnerItem.setItems(stack, offers, registries);
+        if (spawner.getPresetId() != null) SpawnerPresets.preserve(stack, spawner.getPresetId());
     }
 
     @Override

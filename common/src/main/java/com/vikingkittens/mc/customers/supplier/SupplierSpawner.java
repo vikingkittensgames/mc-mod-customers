@@ -12,6 +12,8 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.common.SpawnerPresetBlockItem;
+import com.vikingkittens.mc.customers.common.SpawnerPresets;
 
 public class SupplierSpawner {
     private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(Customers.MODID, Registries.BLOCK);
@@ -51,9 +53,11 @@ public class SupplierSpawner {
     // -------------------- Items --------------------
     public static final RegistrySupplier<BlockItem> SUPPLIER_SPAWNER_ITEM = ITEMS.register(
                     SupplierSpawnerBlock.NAME,
-                    () -> new BlockItem(
+                    () -> new SpawnerPresetBlockItem(
                             SUPPLIER_SPAWNER_BLOCK.get(),
-                            new Item.Properties().stacksTo(1)
+                            new Item.Properties().stacksTo(1),
+                            SpawnerPresets.SUPPLIER,
+                            SupplierSpawnerItem::applyPreset
                     )
             );
 

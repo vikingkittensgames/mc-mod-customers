@@ -12,6 +12,8 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.common.SpawnerPresetBlockItem;
+import com.vikingkittens.mc.customers.common.SpawnerPresets;
 
 /***
  * Customer Spawner main feature class that covers registering the pieces
@@ -54,9 +56,11 @@ public class CustomerSpawner {
     // -------------------- Items --------------------
     public static final RegistrySupplier<BlockItem> CUSTOMER_SPAWNER_ITEM = ITEMS.register(
                     CustomerSpawnerBlock.NAME,
-                    () -> new BlockItem(
+                    () -> new SpawnerPresetBlockItem(
                             CUSTOMER_SPAWNER_BLOCK.get(),
-                            new Item.Properties().stacksTo(1)
+                            new Item.Properties().stacksTo(1),
+                            SpawnerPresets.CUSTOMER,
+                            CustomerSpawnerItem::applyPreset
                     )
             );
     public static final RegistrySupplier<MenuType<CustomerSpawnerBlockMenu>> CUSTOMER_SPAWNER_MENU = MENUS.register(

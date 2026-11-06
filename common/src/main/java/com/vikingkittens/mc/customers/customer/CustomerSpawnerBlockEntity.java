@@ -78,6 +78,8 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     private Component customName;
     @Nullable
     private ResourceLocation icon;
+    @Nullable
+    private ResourceLocation presetId;
 
     static Item getPaymentItem() {
         return Items.EMERALD;
@@ -458,32 +460,9 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         return levelSettings.size();
     }
 
-    void writeItemSettings(CompoundTag output, HolderLookup.Provider registries) {
-        ListTag serializedLevels = new ListTag();
-        for (CustomerSpawnerLevelSettings settings : levelSettings) {
-            CompoundTag serializedLevel = new CompoundTag();
-            settings.write(PersistenceCUtils.writer(serializedLevel, registries));
-            serializedLevel.remove("inventory");
-            serializedLevel.remove("inventoryLocks");
-            serializedLevels.add(serializedLevel);
-        }
-        output.put(CustomerSpawnerItem.TAG_LEVEL_SETTINGS, serializedLevels);
-    }
-
-    void readItemSettings(CompoundTag input, HolderLookup.Provider registries) {
-        if (!input.contains(CustomerSpawnerItem.TAG_LEVEL_SETTINGS, Tag.TAG_LIST)) {
-            return;
-        }
-
+    void resetLevelSettings(int count) {
         levelSettings.clear();
-        input.getList(CustomerSpawnerItem.TAG_LEVEL_SETTINGS, Tag.TAG_COMPOUND).stream()
-                .limit(MAX_LEVELS)
-                .forEach(serializedLevel -> {
-                    CustomerSpawnerLevelSettings settings = createLevelSettings();
-                    settings.read(PersistenceCUtils.reader((CompoundTag) serializedLevel, registries));
-                    levelSettings.add(settings);
-                });
-        if (levelSettings.isEmpty()) {
+        for (int index = 0; index < Math.min(Math.max(count, 1), MAX_LEVELS); index++) {
             levelSettings.add(createLevelSettings());
         }
         setChanged();
@@ -594,6 +573,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     void writeSpawnerData(DataWriter output) {
         output.putInt(TAG_DATA_VERSION, CURRENT_DATA_VERSION);
         if (icon != null) output.putString("icon", icon.toString());
+        if (presetId != null) output.putString("presetId", presetId.toString());
         for (CustomerSpawnerLevelSettings settings : levelSettings) {
             settings.write(output.addChild(TAG_LEVEL_SETTINGS));
         }
@@ -641,6 +621,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     private void readSpawnerData(DataReader input, boolean usesLegacyLevelData) {
         icon = input.getString("icon").map(ResourceLocation::tryParse).orElse(null);
+        presetId = input.getString("presetId").map(ResourceLocation::tryParse).orElse(null);
         int loadedDataVersion =
                 input.getInt(TAG_DATA_VERSION).orElse(0);
         if (usesLegacyLevelData) {
@@ -932,6 +913,15 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     public @Nullable ResourceLocation getIcon() {
         return icon;
+    }
+
+    public @Nullable ResourceLocation getPresetId() {
+        return presetId;
+    }
+
+    public void setPresetId(@Nullable ResourceLocation presetId) {
+        this.presetId = presetId;
+        setChanged();
     }
 
     public void setIcon(@Nullable ResourceLocation icon) {

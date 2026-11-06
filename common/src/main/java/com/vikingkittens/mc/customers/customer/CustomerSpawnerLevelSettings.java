@@ -89,6 +89,10 @@ public final class CustomerSpawnerLevelSettings {
         inventoryLocks.readLockedInventory(input, inventory);
     }
 
+    SpawnerInventoryLocks getInventoryLocks() {
+        return inventoryLocks;
+    }
+
     void dropUnlocked(Level level, BlockPos pos) {
         inventoryLocks.dropUnlocked(level, pos, inventory);
     }
@@ -144,6 +148,29 @@ public final class CustomerSpawnerLevelSettings {
 
     public boolean isPetTypesCustomized() {
         return petTypesCustomized;
+    }
+
+    List<String> getConfiguredPetTypeIds() {
+        return List.copyOf(enabledPetTypes);
+    }
+
+    void setPetTypeSettings(boolean customized, Collection<String> ids) {
+        petTypesCustomized = customized;
+        enabledPetTypes.clear();
+        enabledPetTypes.addAll(ids);
+        changeListener.run();
+    }
+
+    java.util.Map<String, ItemStack> getConfiguredPetFoods() {
+        LinkedHashMap<String, ItemStack> foods = new LinkedHashMap<>();
+        petFoods.forEach((id, food) -> foods.put(id, food.copy()));
+        return java.util.Map.copyOf(foods);
+    }
+
+    void setConfiguredPetFoods(java.util.Map<String, ItemStack> foods) {
+        petFoods.clear();
+        foods.forEach((id, food) -> petFoods.put(id, food.copy()));
+        changeListener.run();
     }
 
     public void setPetTypeEnabled(

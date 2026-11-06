@@ -43,9 +43,9 @@ class CustomerSpawnerItemTest {
         CustomerSpawnerBlockEntity source = new CustomerSpawnerBlockEntity(type, BlockPos.ZERO, state);
         source.setIcon(icon);
         ItemStack stack = new ItemStack(Items.STONE);
-        CustomerSpawnerItem.writeSettings(stack, CustomerSpawnerMode.BREAKFAST, source, RegistryAccess.EMPTY);
+        CustomerSpawnerBlock.extractItemSettings(stack, CustomerSpawnerMode.BREAKFAST, source, RegistryAccess.EMPTY);
         CustomerSpawnerBlockEntity placed = new CustomerSpawnerBlockEntity(type, BlockPos.ZERO, state);
-        CustomerSpawnerItem.applySettings(stack, placed, RegistryAccess.EMPTY);
+        CustomerSpawnerBlock.applyItemSettings(stack, placed, RegistryAccess.EMPTY);
 
         assertEquals(icon, CustomerSpawnerItem.getIcon(stack).orElseThrow());
         assertEquals(icon, placed.getIcon());
@@ -85,7 +85,7 @@ class CustomerSpawnerItemTest {
         firstLevel.setPetPercentage(0.35F);
         firstLevel.setAutoCost(true);
         firstLevel.setEnabledAppearanceIds(List.of(ResourceLocation.fromNamespaceAndPath("customers", "chef")));
-        firstLevel.setPetTypeEnabled("minecraft:cat", false, petTypes);
+        firstLevel.setPetTypeEnabled("minecraft:cat", true, petTypes);
         firstLevel.initializePetFoods(List.of(cat));
         firstLevel.cyclePetFood(cat);
         firstLevel.getInventory().setItem(0, new ItemStack(Items.BREAD, 3));
@@ -98,7 +98,7 @@ class CustomerSpawnerItemTest {
         secondLevel.getInventory().setItem(0, new ItemStack(Items.CARROT, 2));
         ItemStack stack = new ItemStack(Items.STONE);
 
-        CustomerSpawnerItem.writeSettings(stack, CustomerSpawnerMode.BREAKFAST, source, RegistryAccess.EMPTY);
+        CustomerSpawnerBlock.extractItemSettings(stack, CustomerSpawnerMode.BREAKFAST, source, RegistryAccess.EMPTY);
 
         CustomData itemData = stack.get(DataComponents.CUSTOM_DATA);
         assertNotNull(itemData);
@@ -106,7 +106,7 @@ class CustomerSpawnerItemTest {
         assertFalse(settings.getList(CustomerSpawnerItem.TAG_LEVEL_SETTINGS, Tag.TAG_COMPOUND)
                 .stream().anyMatch(serializedLevel -> ((CompoundTag) serializedLevel).contains("inventory")));
         CustomerSpawnerBlockEntity restored = new CustomerSpawnerBlockEntity(type, BlockPos.ZERO, state);
-        CustomerSpawnerItem.applySettings(stack, restored, RegistryAccess.EMPTY);
+        CustomerSpawnerBlock.applyItemSettings(stack, restored, RegistryAccess.EMPTY);
 
         assertEquals(CustomerSpawnerMode.BREAKFAST, CustomerSpawnerItem.getMode(stack).orElseThrow());
         assertEquals(2, restored.getLevelSettingsCount());
@@ -118,7 +118,7 @@ class CustomerSpawnerItemTest {
                 List.of(ResourceLocation.fromNamespaceAndPath("customers", "chef")),
                 restored.getLevelSettings(0).getEnabledAppearanceIds()
         );
-        assertEquals(List.of("minecraft:wolf"), restored.getLevelSettings(0).getEnabledPetTypes(petTypes));
+        assertEquals(petTypes, restored.getLevelSettings(0).getEnabledPetTypes(petTypes));
         assertEquals(Items.SALMON, restored.getLevelSettings(0).getPetFood(cat).getItem());
         assertTrue(restored.getLevelSettings(0).getInventory().getItem(0).isEmpty());
         assertTrue(restored.getLevelSettings(0).getPetFoodCost().isEmpty());

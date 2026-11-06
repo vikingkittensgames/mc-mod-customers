@@ -1,0 +1,16 @@
+{
+  "name": "Cookies & Milk Customers",
+  "icon": "minecraft:textures/item/cookie.png",
+  "settings": {
+    "mode": "night",
+    "level_settings": [
+      {
+        "automatic_cost": true,
+        "rows": [
+          {"items": [{"id": "minecraft:cookie", "count": 3}]},
+          {"items": [{"id": "minecraft:milk_bucket"}]}
+        ]
+      }
+    ]
+  }
+}

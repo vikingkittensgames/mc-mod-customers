@@ -2,6 +2,8 @@ package com.vikingkittens.mc.customers.customer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -11,7 +13,8 @@ import com.mojang.logging.LogUtils;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
@@ -35,7 +38,10 @@ import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
 
+import com.vikingkittens.mc.customers.common.SpawnerPresets;
+import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
 import com.vikingkittens.mc.customers.compatability.LevelCUtils;
+import com.vikingkittens.mc.customers.customer.pets.CustomerPet;
 
 public class CustomerSpawnerBlock extends BaseEntityBlock {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -106,9 +112,51 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
         super.setPlacedBy(level, pos, state, placer, stack);
         if (!LevelCUtils.isClientSide(level)
                 && level.getBlockEntity(pos) instanceof CustomerSpawnerBlockEntity spawner) {
-            spawner.setCustomName(stack.get(DataComponents.CUSTOM_NAME));
-            CustomerSpawnerItem.applySettings(stack, spawner, level.registryAccess());
+            applyItemSettings(stack, spawner, level.registryAccess());
         }
+    }
+
+    static void applyItemSettings(ItemStack stack, CustomerSpawnerBlockEntity spawner,
+            HolderLookup.Provider registries) {
+        spawner.setCustomName(CustomerSpawnerItem.getCustomName(stack).orElse(null));
+        spawner.setIcon(CustomerSpawnerItem.getIcon(stack).orElse(null));
+        int levelCount = CustomerSpawnerItem.getLevelCount(stack);
+        if (levelCount > 0) {
+            spawner.resetLevelSettings(levelCount);
+            for (int index = 0; index < spawner.getLevelSettingsCount(); index++) {
+                CustomerSpawnerLevelSettings settings = spawner.getLevelSettings(index);
+                CustomerSpawnerItem.getRequiredStars(stack, index).ifPresent(settings::setRequiredStars);
+                CustomerSpawnerItem.getMaxCustomers(stack, index).ifPresent(settings::setMaxCustomers);
+                CustomerSpawnerItem.getPetPercentage(stack, index).ifPresent(settings::setPetPercentage);
+                CustomerSpawnerItem.getEnabledPets(stack, index).ifPresent(pets -> {
+                    settings.setPetTypeSettings(true, pets.stream().map(CustomerSpawnerItem.EnabledPet::id).toList());
+                    Map<String, ItemStack> selected = new java.util.LinkedHashMap<>();
+                    pets.forEach(pet -> pet.food().ifPresent(foodId -> {
+                        net.minecraft.world.item.Item food = BuiltInRegistries.ITEM.get(foodId);
+                        if (food != Items.AIR) selected.put(pet.id(), new ItemStack(food));
+                    }));
+                    settings.setConfiguredPetFoods(selected);
+                });
+                CustomerSpawnerItem.getEnabledAppearances(stack, index).ifPresent(settings::setEnabledAppearanceIds);
+                CustomerSpawnerItem.getAutomaticCost(stack, index).ifPresent(settings::setAutoCost);
+                CustomerSpawnerItem.getRows(stack, index, registries).ifPresent(rows -> {
+                    for (int row = 0; row < Math.min(rows.size(), 6); row++) {
+                        CustomerSpawnerItem.Row presetRow = rows.get(row);
+                        for (int item = 0; item < Math.min(presetRow.items().size(), 8); item++) {
+                            int slot = row * 9 + item;
+                            settings.getInventory().setItem(slot, presetRow.items().get(item).copy());
+                            settings.getInventoryLocks().setLocked(slot, true);
+                        }
+                        int costSlot = row * 9 + 8;
+                        presetRow.cost().ifPresent(cost -> {
+                            settings.getInventory().setItem(costSlot, cost.copy());
+                            settings.getInventoryLocks().setLocked(costSlot, true);
+                        });
+                    }
+                });
+            }
+        }
+        spawner.setPresetId(SpawnerPresets.getId(stack).orElse(null));
     }
 
     @Override
@@ -119,14 +167,66 @@ public class CustomerSpawnerBlock extends BaseEntityBlock {
             CustomerSpawnerMode mode = state.getValue(STATE_SPAWN_MODE);
             drops.stream()
                     .filter(stack -> stack.is(CustomerSpawner.CUSTOMER_SPAWNER_ITEM.get()))
-                    .forEach(stack -> CustomerSpawnerItem.writeSettings(
-                            stack,
-                            mode,
-                            spawner,
-                            builder.getLevel().registryAccess()
-                    ));
+                    .forEach(stack -> extractItemSettings(stack, mode, spawner, builder.getLevel().registryAccess()));
         }
         return drops;
+    }
+
+    static void extractItemSettings(ItemStack stack, CustomerSpawnerMode mode, CustomerSpawnerBlockEntity spawner,
+            HolderLookup.Provider registries) {
+        if (spawner.getCustomName() != null) {
+            CustomerSpawnerItem.setCustomName(stack, spawner.getCustomName());
+        }
+        if (spawner.getIcon() != null) CustomerSpawnerItem.setIcon(stack, spawner.getIcon());
+        CustomerSpawnerItem.setMode(stack, mode);
+        CustomerSpawnerItem.setLevelCount(stack, spawner.getLevelSettingsCount());
+            Map<String, ItemStack> defaultPetFoods = new java.util.HashMap<>();
+            if (spawner.getLevel() != null) {
+                CustomerPet.getAvailablePetTypes(spawner.getLevel()).forEach(pet ->
+                        defaultPetFoods.put(pet.entityId(), pet.foods().getFirst()));
+            }
+        for (int index = 0; index < spawner.getLevelSettingsCount(); index++) {
+            CustomerSpawnerLevelSettings settings = spawner.getLevelSettings(index);
+            CustomerSpawnerItem.setRequiredStars(stack, index, settings.getRequiredStars());
+            CustomerSpawnerItem.setMaxCustomers(stack, index, settings.getMaxCustomers());
+            CustomerSpawnerItem.setPetPercentage(stack, index, settings.getPetPercentage());
+                Map<String, ItemStack> selectedFoods = settings.getConfiguredPetFoods();
+                List<String> petIds = settings.isPetTypesCustomized()
+                        ? settings.getConfiguredPetTypeIds() : selectedFoods.keySet().stream().sorted().toList();
+                if (settings.isPetTypesCustomized() || !petIds.isEmpty()) {
+                    List<CustomerSpawnerItem.EnabledPet> pets = new ArrayList<>();
+                    petIds.forEach(id -> {
+                        ItemStack food = selectedFoods.get(id);
+                        pets.add(new CustomerSpawnerItem.EnabledPet(id,
+                            food == null || food.isEmpty() || (defaultPetFoods.containsKey(id) &&
+                                    ItemStackCUtils.isSameItemAndTags(food, defaultPetFoods.get(id))) ? Optional.empty()
+                                        : Optional.of(BuiltInRegistries.ITEM.getKey(food.getItem()))));
+                    });
+                    CustomerSpawnerItem.setEnabledPets(stack, index, pets);
+                }
+            CustomerSpawnerItem.setEnabledAppearances(stack, index, settings.getEnabledAppearanceIds());
+            CustomerSpawnerItem.setAutomaticCost(stack, index, settings.isAutoCost());
+            List<CustomerSpawnerItem.Row> rows = new ArrayList<>();
+            for (int row = 0; row < 6; row++) {
+                List<ItemStack> items = new ArrayList<>();
+                for (int item = 0; item < 8; item++) {
+                    int slot = row * 9 + item;
+                    if (settings.isInventoryLocked(slot) && !settings.getInventory().getItem(slot).isEmpty()) {
+                        items.add(settings.getInventory().getItem(slot).copy());
+                    }
+                }
+                int costSlot = row * 9 + 8;
+                ItemStack cost = settings.getInventory().getItem(costSlot);
+                rows.add(new CustomerSpawnerItem.Row(items,
+                        settings.isInventoryLocked(costSlot) && !cost.isEmpty()
+                                ? Optional.of(cost.copy()) : Optional.empty()));
+            }
+            while (!rows.isEmpty() && rows.getLast().items().isEmpty() && rows.getLast().cost().isEmpty()) {
+                rows.removeLast();
+            }
+            CustomerSpawnerItem.setRows(stack, index, rows, registries);
+        }
+        if (spawner.getPresetId() != null) SpawnerPresets.preserve(stack, spawner.getPresetId());
     }
 
     @Override

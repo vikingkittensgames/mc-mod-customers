@@ -8,6 +8,7 @@ import com.vikingkittens.mc.customers.common.CustomersCommands;
 import com.vikingkittens.mc.customers.common.CustomersCreativeTabs;
 import com.vikingkittens.mc.customers.common.CustomersEntityAttributes;
 import com.vikingkittens.mc.customers.common.CustomersNetworking;
+import com.vikingkittens.mc.customers.common.SpawnerPresets;
 import com.vikingkittens.mc.customers.customer.Customer;
 import com.vikingkittens.mc.customers.customer.CustomerLeaderboard;
 import com.vikingkittens.mc.customers.customer.CustomerPaymentBox;
@@ -25,6 +26,7 @@ public final class Customers {
     private Customers() {}
 
     public static void initialize() {
+        SpawnerPresets.initialize();
         CustomersCommands.initialize();
         CustomersEconomyEvents.initialize();
         CustomersNetworking.initialize();

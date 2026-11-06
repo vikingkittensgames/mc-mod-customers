@@ -1,0 +1,12 @@
+{
+  "name": "Cookies & Milk Supplier",
+  "icon": "minecraft:textures/item/cookie.png",
+  "settings": {
+    "enabled_appearances": ["customers:default"],
+    "automatic_cost": true,
+    "items": [
+      {"item": {"id": "minecraft:cookie", "count": 16}},
+      {"item": {"id": "minecraft:milk_bucket"}}
+    ]
+  }
+}

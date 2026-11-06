@@ -114,6 +114,8 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
     private Component customName;
     @Nullable
     private ResourceLocation icon;
+    @Nullable
+    private ResourceLocation presetId;
 
     public SupplierSpawnerBlockEntity(BlockPos pos, BlockState blockState) {
         this(SupplierSpawner.SUPPLIER_SPAWNER_ENTITY.get(), pos, blockState);
@@ -139,6 +141,7 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
     void writeSpawnerData(DataWriter output) {
         output.putInt(TAG_DATA_VERSION, CURRENT_DATA_VERSION);
         if (icon != null) output.putString("icon", icon.toString());
+        if (presetId != null) output.putString("presetId", presetId.toString());
         appearanceSettings.write(output);
         output.putBoolean("daytimeStateInitialized", daytimeStateInitialized);
         output.putBoolean("lastTickWasDaytime", lastTickWasDaytime);
@@ -171,6 +174,7 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
         lastTickWasDaytime = input.getBoolean("lastTickWasDaytime");
         autoCost = input.getBoolean("autoCost");
         icon = input.getString("icon").map(ResourceLocation::tryParse).orElse(null);
+        presetId = input.getString("presetId").map(ResourceLocation::tryParse).orElse(null);
         inventoryLocks.read(input.childOrEmpty("inventoryLocks"));
     }
 
@@ -198,6 +202,15 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     public @Nullable ResourceLocation getIcon() {
         return icon;
+    }
+
+    public @Nullable ResourceLocation getPresetId() {
+        return presetId;
+    }
+
+    public void setPresetId(@Nullable ResourceLocation presetId) {
+        this.presetId = presetId;
+        setChanged();
     }
 
     public void setIcon(@Nullable ResourceLocation icon) {
@@ -232,6 +245,14 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
 
     void readLockedInventory(DataReader input) {
         inventoryLocks.readLockedInventory(input, inventory);
+    }
+
+    Container getInventory() {
+        return inventory;
+    }
+
+    SpawnerInventoryLocks getInventoryLocks() {
+        return inventoryLocks;
     }
 
     @Nullable
