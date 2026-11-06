@@ -30,9 +30,9 @@ import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerItem
 import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerLeaderboardChanged;
 import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerSupplierSpawnerChanged;
 import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerSuppliesPurchased;
-import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
+import com.vikingkittens.mc.customers.customer.CustomerEvents;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
-import com.vikingkittens.mc.customers.supplier.SupplierInternalEvents;
+import com.vikingkittens.mc.customers.supplier.SupplierEvents;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -52,7 +52,7 @@ class CustomersFTBTest {
     }
 
     @Test
-    void exposesTaskKindsForEachSupportedInternalEvent() {
+    void exposesTaskKindsForEachSupportedEvent() {
         assertEquals(
                 List.of(
                         CustomersFTBTasks.CustomersTaskKind.ITEM_SERVED,
@@ -129,15 +129,15 @@ class CustomersFTBTest {
     }
 
     @Test
-    void routesEachTaskKindToItsInternalEvent() {
-        CustomerInternalEvents.ItemServed itemServed = itemServedEvent();
-        CustomerInternalEvents.CustomerServed customerServed = customerServedEvent();
-        CustomerInternalEvents.ShiftFinished shiftFinished = shiftFinishedEvent();
-        CustomerInternalEvents.LeaderboardChanged leaderboardChanged = leaderboardChangedEvent();
-        CustomerInternalEvents.CustomerSpawnerConfigChanged customerSpawnerChanged = customerSpawnerChangedEvent();
-        SupplierInternalEvents.SupplierSpawnerConfigChanged supplierSpawnerChanged = supplierSpawnerChangedEvent();
-        SupplierInternalEvents.SuppliesPurchased suppliesPurchased = suppliesPurchasedEvent();
-        CustomerInternalEvents.CounterBlockPlaced counterPlaced = counterPlacedEvent();
+    void routesEachTaskKindToItsEvent() {
+        CustomerEvents.ItemServed itemServed = itemServedEvent();
+        CustomerEvents.CustomerServed customerServed = customerServedEvent();
+        CustomerEvents.ShiftFinished shiftFinished = shiftFinishedEvent();
+        CustomerEvents.LeaderboardChanged leaderboardChanged = leaderboardChangedEvent();
+        CustomerEvents.CustomerSpawnerConfigChanged customerSpawnerChanged = customerSpawnerChangedEvent();
+        SupplierEvents.SupplierSpawnerConfigChanged supplierSpawnerChanged = supplierSpawnerChangedEvent();
+        SupplierEvents.SuppliesPurchased suppliesPurchased = suppliesPurchasedEvent();
+        CustomerEvents.CounterBlockPlaced counterPlaced = counterPlacedEvent();
 
         assertTrue(CustomersFTBTasks.CustomersTaskKind.ITEM_SERVED.handles(itemServed));
         assertFalse(CustomersFTBTasks.CustomersTaskKind.CUSTOMER_SERVED.handles(itemServed));
@@ -361,8 +361,8 @@ class CustomersFTBTest {
                 .isEmpty());
     }
 
-    private static CustomerInternalEvents.ItemServed itemServedEvent() {
-        return new CustomerInternalEvents.ItemServed(
+    private static CustomerEvents.ItemServed itemServedEvent() {
+        return new CustomerEvents.ItemServed(
                 mock(ServerLevel.class),
                 null,
                 CustomerSpawnerMode.LUNCH,
@@ -375,8 +375,8 @@ class CustomersFTBTest {
         );
     }
 
-    private static CustomerInternalEvents.CustomerServed customerServedEvent() {
-        return new CustomerInternalEvents.CustomerServed(
+    private static CustomerEvents.CustomerServed customerServedEvent() {
+        return new CustomerEvents.CustomerServed(
                 mock(ServerLevel.class),
                 null,
                 CustomerSpawnerMode.LUNCH,
@@ -389,8 +389,8 @@ class CustomersFTBTest {
         );
     }
 
-    private static CustomerInternalEvents.ShiftFinished shiftFinishedEvent() {
-        return new CustomerInternalEvents.ShiftFinished(
+    private static CustomerEvents.ShiftFinished shiftFinishedEvent() {
+        return new CustomerEvents.ShiftFinished(
                 mock(ServerLevel.class),
                 null,
                 CustomerSpawnerMode.LUNCH,
@@ -407,8 +407,8 @@ class CustomersFTBTest {
         );
     }
 
-    private static CustomerInternalEvents.LeaderboardChanged leaderboardChangedEvent() {
-        return new CustomerInternalEvents.LeaderboardChanged(
+    private static CustomerEvents.LeaderboardChanged leaderboardChangedEvent() {
+        return new CustomerEvents.LeaderboardChanged(
                 mock(ServerLevel.class),
                 BlockPos.ZERO,
                 CustomerSpawnerMode.LUNCH,
@@ -419,8 +419,8 @@ class CustomersFTBTest {
         );
     }
 
-    private static CustomerInternalEvents.CustomerSpawnerConfigChanged customerSpawnerChangedEvent() {
-        return new CustomerInternalEvents.CustomerSpawnerConfigChanged(
+    private static CustomerEvents.CustomerSpawnerConfigChanged customerSpawnerChangedEvent() {
+        return new CustomerEvents.CustomerSpawnerConfigChanged(
                 mock(ServerLevel.class),
                 BlockPos.ZERO,
                 CustomerSpawnerMode.LUNCH,
@@ -439,12 +439,12 @@ class CustomersFTBTest {
         );
     }
 
-    private static SupplierInternalEvents.SupplierSpawnerConfigChanged supplierSpawnerChangedEvent() {
-        return new SupplierInternalEvents.SupplierSpawnerConfigChanged(
+    private static SupplierEvents.SupplierSpawnerConfigChanged supplierSpawnerChangedEvent() {
+        return new SupplierEvents.SupplierSpawnerConfigChanged(
                 mock(ServerLevel.class),
                 BlockPos.ZERO,
                 UUID.randomUUID(),
-                List.of(new SupplierInternalEvents.Offer(
+                List.of(new SupplierEvents.Offer(
                         new ItemStack(Items.APPLE),
                         new ItemStack(Items.EMERALD)
                 )),
@@ -453,8 +453,8 @@ class CustomersFTBTest {
         );
     }
 
-    private static SupplierInternalEvents.SuppliesPurchased suppliesPurchasedEvent() {
-        return new SupplierInternalEvents.SuppliesPurchased(
+    private static SupplierEvents.SuppliesPurchased suppliesPurchasedEvent() {
+        return new SupplierEvents.SuppliesPurchased(
                 mock(ServerLevel.class),
                 BlockPos.ZERO,
                 UUID.randomUUID(),
@@ -463,8 +463,8 @@ class CustomersFTBTest {
         );
     }
 
-    private static CustomerInternalEvents.CounterBlockPlaced counterPlacedEvent() {
-        return new CustomerInternalEvents.CounterBlockPlaced(
+    private static CustomerEvents.CounterBlockPlaced counterPlacedEvent() {
+        return new CustomerEvents.CounterBlockPlaced(
                 mock(ServerLevel.class),
                 BlockPos.ZERO,
                 CustomerSpawnerMode.LUNCH,

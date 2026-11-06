@@ -47,7 +47,6 @@ import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerType;
 import com.vikingkittens.mc.customers.common.MobUtils;
 import com.vikingkittens.mc.customers.common.PositionUtils;
-import com.vikingkittens.mc.customers.common.events.InternalEvents;
 import com.vikingkittens.mc.customers.compatability.CustomersServices;
 import com.vikingkittens.mc.customers.compatability.EntityCUtils;
 import com.vikingkittens.mc.customers.compatability.InteractionCUtils;
@@ -520,7 +519,7 @@ public class SupplierVillagerEntity extends Villager implements CustomersVillage
     void emitSuppliesPurchased(MerchantOffer offer) {
         Player tradingPlayer = getTradingPlayer();
         if (tradingPlayer != null && level() instanceof ServerLevel serverLevel) {
-            InternalEvents.emit(new SupplierInternalEvents.SuppliesPurchased(
+            SupplierEvents.SUPPLIES_PURCHASED.invoker().accept(new SupplierEvents.SuppliesPurchased(
                     serverLevel,
                     spawnerPos,
                     tradingPlayer.getUUID(),

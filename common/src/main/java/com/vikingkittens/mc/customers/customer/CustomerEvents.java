@@ -9,7 +9,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 
+import dev.architectury.event.Event;
+import dev.architectury.event.EventFactory;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.BlockPos;
@@ -18,12 +21,23 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 
-import com.vikingkittens.mc.customers.common.events.InternalEvent;
 
-public final class CustomerInternalEvents {
-    private CustomerInternalEvents() {}
+public final class CustomerEvents {
+    public static final Event<Consumer<ItemServed>> ITEM_SERVED = EventFactory.createConsumerLoop(ItemServed.class);
+    public static final Event<Consumer<CustomerServed>> CUSTOMER_SERVED =
+            EventFactory.createConsumerLoop(CustomerServed.class);
+    public static final Event<Consumer<ShiftFinished>> SHIFT_FINISHED =
+            EventFactory.createConsumerLoop(ShiftFinished.class);
+    public static final Event<Consumer<LeaderboardChanged>> LEADERBOARD_CHANGED =
+            EventFactory.createConsumerLoop(LeaderboardChanged.class);
+    public static final Event<Consumer<CustomerSpawnerConfigChanged>> CUSTOMER_SPAWNER_CONFIG_CHANGED =
+            EventFactory.createConsumerLoop(CustomerSpawnerConfigChanged.class);
+    public static final Event<Consumer<CounterBlockPlaced>> COUNTER_BLOCK_PLACED =
+            EventFactory.createConsumerLoop(CounterBlockPlaced.class);
 
-    public static class CustomerEvent extends InternalEvent {
+    private CustomerEvents() {}
+
+    public static class CustomerEvent {
         private final ServerLevel level;
         private final BlockPos spawnerPosition;
         private final CustomerSpawnerMode spawnerMode;

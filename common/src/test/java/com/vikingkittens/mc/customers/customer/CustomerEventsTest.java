@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -25,17 +27,37 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
-class CustomerInternalEventsTest {
+class CustomerEventsTest {
     @BeforeAll
     static void bootstrapMinecraft() {
         MinecraftTestBootstrap.bootstrap();
     }
 
     @Test
+    void architecturyListenersReceiveAndCanUnregisterFromTheEvent() {
+        CustomerEvents.ShiftFinished event = new CustomerEvents.ShiftFinished(
+                mock(ServerLevel.class), BlockPos.ZERO, CustomerSpawnerMode.DAY, 1, 0.5f,
+                2, 1, 1, 2, Map.of(), Map.of(), 0, 0
+        );
+        AtomicReference<CustomerEvents.ShiftFinished> received = new AtomicReference<>();
+        Consumer<CustomerEvents.ShiftFinished> listener = received::set;
+        CustomerEvents.SHIFT_FINISHED.register(listener);
+        try {
+            CustomerEvents.SHIFT_FINISHED.invoker().accept(event);
+            assertEquals(event, received.get());
+        } finally {
+            CustomerEvents.SHIFT_FINISHED.unregister(listener);
+        }
+        received.set(null);
+        CustomerEvents.SHIFT_FINISHED.invoker().accept(event);
+        assertNull(received.get());
+    }
+
+    @Test
     void testItemServedCreation() {
         ItemStack servedItem = new ItemStack(Items.APPLE, 3);
         ItemStack costItem = new ItemStack(Items.EMERALD, 2);
-        CustomerInternalEvents.ItemServed event = new CustomerInternalEvents.ItemServed(
+        CustomerEvents.ItemServed event = new CustomerEvents.ItemServed(
                 mock(ServerLevel.class),
                 null,
                 CustomerSpawnerMode.LUNCH,
@@ -65,7 +87,7 @@ class CustomerInternalEventsTest {
         ResourceLocation profession = ResourceLocation.parse("customers:customer");
         ItemStack servedItem = new ItemStack(Items.APPLE, 3);
         ItemStack costItem = new ItemStack(Items.EMERALD, 2);
-        CustomerInternalEvents.CustomerServed event = new CustomerInternalEvents.CustomerServed(
+        CustomerEvents.CustomerServed event = new CustomerEvents.CustomerServed(
                 level,
                 null,
                 CustomerSpawnerMode.LUNCH,
@@ -77,7 +99,7 @@ class CustomerInternalEventsTest {
                 false
         );
 
-        assertInstanceOf(CustomerInternalEvents.ServedEvent.class, event);
+        assertInstanceOf(CustomerEvents.ServedEvent.class, event);
         assertEquals(level, event.level());
         assertEquals(CustomerSpawnerMode.LUNCH, event.spawnerMode());
         assertEquals(playerId, event.playerId());
@@ -92,7 +114,7 @@ class CustomerInternalEventsTest {
 
     @Test
     void testShiftFinishedCreation() {
-        CustomerInternalEvents.ShiftFinished event = new CustomerInternalEvents.ShiftFinished(
+        CustomerEvents.ShiftFinished event = new CustomerEvents.ShiftFinished(
                 mock(ServerLevel.class),
                 null,
                 CustomerSpawnerMode.LUNCH,
@@ -118,7 +140,7 @@ class CustomerInternalEventsTest {
     @Test
     void leaderboardRequiresMultiplePlayersToHaveALeader() {
         UUID playerId = UUID.randomUUID();
-        CustomerInternalEvents.LeaderboardChanged event = new CustomerInternalEvents.LeaderboardChanged(
+        CustomerEvents.LeaderboardChanged event = new CustomerEvents.LeaderboardChanged(
                 mock(ServerLevel.class),
                 BlockPos.ZERO,
                 CustomerSpawnerMode.LUNCH,
@@ -137,7 +159,7 @@ class CustomerInternalEventsTest {
     void leaderboardAffectedPlayersIncludeAnUnchangedLeader() {
         UUID leader = UUID.randomUUID();
         UUID newPlayer = UUID.randomUUID();
-        CustomerInternalEvents.LeaderboardChanged event = new CustomerInternalEvents.LeaderboardChanged(
+        CustomerEvents.LeaderboardChanged event = new CustomerEvents.LeaderboardChanged(
                 mock(ServerLevel.class),
                 BlockPos.ZERO,
                 CustomerSpawnerMode.LUNCH,
@@ -158,12 +180,12 @@ class CustomerInternalEventsTest {
         ItemStack costItem = new ItemStack(Items.EMERALD, 2);
         LinkedHashMap<String, ItemStack> petFoods = new LinkedHashMap<>();
         petFoods.put("minecraft:cat", new ItemStack(Items.COD));
-        CustomerInternalEvents.CustomerSpawnerConfigChanged event = customerSpawnerConfigChanged(
+        CustomerEvents.CustomerSpawnerConfigChanged event = customerSpawnerConfigChanged(
                 List.of(List.of(sellItem, ItemStack.EMPTY)),
                 List.of(costItem),
                 petFoods
         );
-        CustomerInternalEvents.CustomerSpawnerConfigChanged equivalent = customerSpawnerConfigChanged(
+        CustomerEvents.CustomerSpawnerConfigChanged equivalent = customerSpawnerConfigChanged(
                 List.of(List.of(sellItem.copy(), ItemStack.EMPTY)),
                 List.of(costItem.copy()),
                 new LinkedHashMap<>(petFoods)
@@ -186,12 +208,12 @@ class CustomerInternalEventsTest {
 
     @Test
     void customerSpawnerConfigurationDetectsAChangedValue() {
-        CustomerInternalEvents.CustomerSpawnerConfigChanged event = customerSpawnerConfigChanged(
+        CustomerEvents.CustomerSpawnerConfigChanged event = customerSpawnerConfigChanged(
                 List.of(List.of(new ItemStack(Items.APPLE))),
                 List.of(new ItemStack(Items.EMERALD)),
                 new LinkedHashMap<>()
         );
-        CustomerInternalEvents.CustomerSpawnerConfigChanged changed = new CustomerInternalEvents.CustomerSpawnerConfigChanged(
+        CustomerEvents.CustomerSpawnerConfigChanged changed = new CustomerEvents.CustomerSpawnerConfigChanged(
                 event.level(),
                 event.spawnerPosition(),
                 event.spawnerMode(),
@@ -212,12 +234,12 @@ class CustomerInternalEventsTest {
         assertFalse(event.hasSameConfiguration(changed));
     }
 
-    private static CustomerInternalEvents.CustomerSpawnerConfigChanged customerSpawnerConfigChanged(
+    private static CustomerEvents.CustomerSpawnerConfigChanged customerSpawnerConfigChanged(
             List<List<ItemStack>> sellItems,
             List<ItemStack> costItems,
             LinkedHashMap<String, ItemStack> petFoods
     ) {
-        return new CustomerInternalEvents.CustomerSpawnerConfigChanged(
+        return new CustomerEvents.CustomerSpawnerConfigChanged(
                 mock(ServerLevel.class),
                 BlockPos.ZERO,
                 CustomerSpawnerMode.LUNCH,

@@ -24,7 +24,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
-import com.vikingkittens.mc.customers.common.events.InternalEvents;
 import com.vikingkittens.mc.customers.customer.pets.CustomerPet;
 import com.vikingkittens.mc.customers.economy.Economy;
 
@@ -348,7 +347,7 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
 
     @Override
     public void clicked(int slotId, int button, ClickType clickType, Player player) {
-        CustomerInternalEvents.CustomerSpawnerConfigChanged before = configurationSnapshot(player);
+        CustomerEvents.CustomerSpawnerConfigChanged before = configurationSnapshot(player);
         super.clicked(slotId, button, clickType, player);
         emitConfigurationChange(player, before);
     }
@@ -449,22 +448,22 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
     }
 
     private void changeConfiguration(Player player, Runnable change) {
-        CustomerInternalEvents.CustomerSpawnerConfigChanged before = configurationSnapshot(player);
+        CustomerEvents.CustomerSpawnerConfigChanged before = configurationSnapshot(player);
         change.run();
         emitConfigurationChange(player, before);
     }
 
     private void emitConfigurationChange(
             Player player,
-            CustomerInternalEvents.CustomerSpawnerConfigChanged before
+            CustomerEvents.CustomerSpawnerConfigChanged before
     ) {
-        CustomerInternalEvents.CustomerSpawnerConfigChanged after = configurationSnapshot(player);
+        CustomerEvents.CustomerSpawnerConfigChanged after = configurationSnapshot(player);
         if (after != null && !after.hasSameConfiguration(before)) {
-            InternalEvents.emit(after);
+            CustomerEvents.CUSTOMER_SPAWNER_CONFIG_CHANGED.invoker().accept(after);
         }
     }
 
-    private CustomerInternalEvents.CustomerSpawnerConfigChanged configurationSnapshot(Player player) {
+    private CustomerEvents.CustomerSpawnerConfigChanged configurationSnapshot(Player player) {
         if (blockEntity == null || !(blockEntity.getLevel() instanceof ServerLevel serverLevel)) {
             return null;
         }
@@ -485,7 +484,7 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
         for (CustomerPet.PetType petType : petTypes) {
             petFoods.put(petType.entityId(), settings.getPetFood(petType));
         }
-        return new CustomerInternalEvents.CustomerSpawnerConfigChanged(
+        return new CustomerEvents.CustomerSpawnerConfigChanged(
                 serverLevel,
                 blockEntity.getBlockPos(),
                 blockEntity.getSpawnerMode(),

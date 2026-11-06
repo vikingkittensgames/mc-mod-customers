@@ -17,7 +17,7 @@ import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.level.ServerLevel;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
-import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
+import com.vikingkittens.mc.customers.customer.CustomerEvents;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -227,16 +227,16 @@ class CustomersTriggerShiftFinishedTest {
         );
     }
 
-    private static CustomerInternalEvents.ShiftFinished event(CustomerSpawnerMode mode, int activeLevel) {
+    private static CustomerEvents.ShiftFinished event(CustomerSpawnerMode mode, int activeLevel) {
         return event(mode, activeLevel, 0.75F);
     }
 
-    private static CustomerInternalEvents.ShiftFinished event(
+    private static CustomerEvents.ShiftFinished event(
             CustomerSpawnerMode mode,
             int activeLevel,
             float percentage
     ) {
-        return new CustomerInternalEvents.ShiftFinished(
+        return new CustomerEvents.ShiftFinished(
                 mock(ServerLevel.class),
                 null,
                 mode,

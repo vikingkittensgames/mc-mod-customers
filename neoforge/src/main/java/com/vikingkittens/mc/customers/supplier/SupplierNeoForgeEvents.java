@@ -11,7 +11,7 @@ import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.common.BlockBreakConfirmation;
 
 @EventBusSubscriber(modid = Customers.MODID)
-public class SupplierEvents {
+public class SupplierNeoForgeEvents {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onSupplierSpawnerBreak(BlockEvent.BreakEvent event) {
         if (event.getPlayer() instanceof ServerPlayer player &&

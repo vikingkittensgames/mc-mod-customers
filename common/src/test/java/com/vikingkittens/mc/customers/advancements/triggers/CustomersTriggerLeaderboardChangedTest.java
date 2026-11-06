@@ -19,7 +19,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
-import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
+import com.vikingkittens.mc.customers.customer.CustomerEvents;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -120,10 +120,10 @@ class CustomersTriggerLeaderboardChangedTest {
         assertTrue(instance.matchesEvent(event(), NEW_LEADER));
     }
 
-    private static CustomerInternalEvents.LeaderboardChanged event() {
+    private static CustomerEvents.LeaderboardChanged event() {
         ServerLevel level = mock(ServerLevel.class);
         when(level.dimension()).thenReturn(Level.OVERWORLD);
-        return new CustomerInternalEvents.LeaderboardChanged(
+        return new CustomerEvents.LeaderboardChanged(
                 level,
                 BlockPos.ZERO,
                 CustomerSpawnerMode.LUNCH,
@@ -134,10 +134,10 @@ class CustomersTriggerLeaderboardChangedTest {
         );
     }
 
-    private static CustomerInternalEvents.LeaderboardChanged firstScoreEvent() {
+    private static CustomerEvents.LeaderboardChanged firstScoreEvent() {
         ServerLevel level = mock(ServerLevel.class);
         when(level.dimension()).thenReturn(Level.OVERWORLD);
-        return new CustomerInternalEvents.LeaderboardChanged(
+        return new CustomerEvents.LeaderboardChanged(
                 level,
                 BlockPos.ZERO,
                 CustomerSpawnerMode.LUNCH,

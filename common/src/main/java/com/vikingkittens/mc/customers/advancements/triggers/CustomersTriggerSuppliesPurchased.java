@@ -9,7 +9,7 @@ import net.minecraft.advancements.critereon.MinMaxBounds;
 import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
 import net.minecraft.server.level.ServerPlayer;
 
-import com.vikingkittens.mc.customers.supplier.SupplierInternalEvents;
+import com.vikingkittens.mc.customers.supplier.SupplierEvents;
 
 public final class CustomersTriggerSuppliesPurchased
         extends SimpleCriterionTrigger<CustomersTriggerSuppliesPurchased.Instance> {
@@ -22,7 +22,7 @@ public final class CustomersTriggerSuppliesPurchased
 
     public void trigger(
             ServerPlayer player,
-            SupplierInternalEvents.SuppliesPurchased event,
+            SupplierEvents.SuppliesPurchased event,
             int totalSuppliesPurchased
     ) {
         trigger(player, instance -> instance.matches(event, totalSuppliesPurchased));
@@ -121,14 +121,14 @@ public final class CustomersTriggerSuppliesPurchased
         public static final Codec<Instance> CODEC = SCHEMA.codec();
 
         public boolean matches(
-                SupplierInternalEvents.SuppliesPurchased event,
+                SupplierEvents.SuppliesPurchased event,
                 int currentTotalSuppliesPurchased
         ) {
             return matchesEvent(event)
                     && totalSuppliesPurchased.map(value -> value.matches(currentTotalSuppliesPurchased)).orElse(true);
         }
 
-        public boolean matchesEvent(SupplierInternalEvents.SuppliesPurchased event) {
+        public boolean matchesEvent(SupplierEvents.SuppliesPurchased event) {
             return spawnerLocation
                             .map(value -> value.matches(event.level(), event.spawnerPosition()))
                             .orElse(true)

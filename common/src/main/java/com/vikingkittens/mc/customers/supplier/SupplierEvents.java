@@ -4,19 +4,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Consumer;
 
+import dev.architectury.event.Event;
+import dev.architectury.event.EventFactory;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 
-import com.vikingkittens.mc.customers.common.events.InternalEvent;
 
-public final class SupplierInternalEvents {
-    private SupplierInternalEvents() {}
+public final class SupplierEvents {
+    public static final Event<Consumer<SuppliesPurchased>> SUPPLIES_PURCHASED =
+            EventFactory.createConsumerLoop(SuppliesPurchased.class);
+    public static final Event<Consumer<SupplierSpawnerConfigChanged>> SUPPLIER_SPAWNER_CONFIG_CHANGED =
+            EventFactory.createConsumerLoop(SupplierSpawnerConfigChanged.class);
 
-    public static class SupplierEvent extends InternalEvent {
+    private SupplierEvents() {}
+
+    public static class SupplierEvent {
         private final ServerLevel level;
         private final BlockPos spawnerPosition;
 
@@ -59,7 +66,7 @@ public final class SupplierInternalEvents {
 
     public record Offer(ItemStack item, ItemStack cost) {}
 
-    public static final class SupplierSpawnerConfigChanged extends SupplierInternalEvents.SupplierEvent {
+    public static final class SupplierSpawnerConfigChanged extends SupplierEvent {
         private final UUID playerId;
         private final List<Offer> offers;
         private final boolean autoCost;

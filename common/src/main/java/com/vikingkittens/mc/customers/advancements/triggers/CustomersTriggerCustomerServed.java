@@ -12,7 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringRepresentable;
 
-import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
+import com.vikingkittens.mc.customers.customer.CustomerEvents;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
 public final class CustomersTriggerCustomerServed
@@ -26,7 +26,7 @@ public final class CustomersTriggerCustomerServed
 
     public void trigger(
             ServerPlayer player,
-            CustomerInternalEvents.CustomerServed event,
+            CustomerEvents.CustomerServed event,
             int totalCustomersServed,
             int totalCustomersCasualServed,
             int totalCustomersNormalServed,
@@ -201,7 +201,7 @@ public final class CustomersTriggerCustomerServed
         public static final Codec<Instance> CODEC = SCHEMA.codec();
 
         public boolean matches(
-                CustomerInternalEvents.CustomerServed event,
+                CustomerEvents.CustomerServed event,
                 int currentTotalCustomersServed,
                 int currentTotalCustomersCasualServed,
                 int currentTotalCustomersNormalServed,
@@ -220,7 +220,7 @@ public final class CustomersTriggerCustomerServed
                             .orElse(true);
         }
 
-        public boolean matchesEvent(CustomerInternalEvents.CustomerServed event) {
+        public boolean matchesEvent(CustomerEvents.CustomerServed event) {
             return spawnerLocation
                             .map(value -> value.matches(event.level(), event.spawnerPosition()))
                             .orElse(true)

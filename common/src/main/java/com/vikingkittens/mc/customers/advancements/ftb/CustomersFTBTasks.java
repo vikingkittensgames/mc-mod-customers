@@ -27,9 +27,8 @@ import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerLead
 import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerShiftFinished;
 import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerSupplierSpawnerChanged;
 import com.vikingkittens.mc.customers.advancements.triggers.CustomersTriggerSuppliesPurchased;
-import com.vikingkittens.mc.customers.common.events.InternalEvent;
-import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
-import com.vikingkittens.mc.customers.supplier.SupplierInternalEvents;
+import com.vikingkittens.mc.customers.customer.CustomerEvents;
+import com.vikingkittens.mc.customers.supplier.SupplierEvents;
 
 public final class CustomersFTBTasks {
     public static final String CUSTOMERS_TASK_NAME = "customers_task";
@@ -54,42 +53,42 @@ public final class CustomersFTBTasks {
         ITEM_SERVED(
                 "item_served",
                 "minecraft:item/cooked_chicken",
-                CustomerInternalEvents.ItemServed.class
+                CustomerEvents.ItemServed.class
         ),
         CUSTOMER_SERVED(
                 "customer_served",
                 "customers:textures/item/advancement_icon_customer.png",
-                CustomerInternalEvents.CustomerServed.class
+                CustomerEvents.CustomerServed.class
         ),
         SHIFT_FINISHED(
                 "shift_finished",
                 "customers:textures/item/advancement_icon_star.png",
-                CustomerInternalEvents.ShiftFinished.class
+                CustomerEvents.ShiftFinished.class
         ),
         LEADERBOARD_CHANGED(
                 "leaderboard_changed",
                 "customers:textures/gui/leaderboard_icon.png",
-                CustomerInternalEvents.LeaderboardChanged.class
+                CustomerEvents.LeaderboardChanged.class
         ),
         CUSTOMER_SPAWNER_CHANGED(
                 "customer_spawner_changed",
                 "customers:textures/block/customer_spawner_block_top.png",
-                CustomerInternalEvents.CustomerSpawnerConfigChanged.class
+                CustomerEvents.CustomerSpawnerConfigChanged.class
         ),
         SUPPLIER_SPAWNER_CHANGED(
                 "supplier_spawner_changed",
                 "customers:textures/block/supplier_spawner_block_top.png",
-                SupplierInternalEvents.SupplierSpawnerConfigChanged.class
+                SupplierEvents.SupplierSpawnerConfigChanged.class
         ),
         SUPPLIES_PURCHASED(
                 "supplies_purchased",
                 "customers:item/advancement_icon_sack",
-                SupplierInternalEvents.SuppliesPurchased.class
+                SupplierEvents.SuppliesPurchased.class
         ),
         COUNTER_PLACED(
                 "counter_placed",
                 "customers:textures/item/advancement_icon_table.png",
-                CustomerInternalEvents.CounterBlockPlaced.class
+                CustomerEvents.CounterBlockPlaced.class
         );
 
         private static final NameMap<CustomersTaskKind> NAME_MAP = NameMap.of(ITEM_SERVED, values())
@@ -99,12 +98,12 @@ public final class CustomersFTBTasks {
 
         private final String serializedName;
         private final String icon;
-        private final Class<? extends InternalEvent> eventType;
+        private final Class<?> eventType;
 
         CustomersTaskKind(
                 String serializedName,
                 String icon,
-                Class<? extends InternalEvent> eventType
+                Class<?> eventType
         ) {
             this.serializedName = serializedName;
             this.icon = icon;
@@ -121,7 +120,7 @@ public final class CustomersFTBTasks {
 
         String iconResource() { return icon; }
 
-        boolean handles(InternalEvent event) { return eventType.isInstance(event); }
+        boolean handles(Object event) { return eventType.isInstance(event); }
     }
 
     public static final class CustomersTask extends Task {
@@ -171,19 +170,19 @@ public final class CustomersFTBTasks {
             return requiredEvents;
         }
 
-        void recordProgress(TeamData teamData, CustomerInternalEvents.ItemServed event) {
+        void recordProgress(TeamData teamData, CustomerEvents.ItemServed event) {
             if (matches(event)) {
                 recordProgress(teamData);
             }
         }
 
-        void recordProgress(TeamData teamData, CustomerInternalEvents.CustomerServed event) {
+        void recordProgress(TeamData teamData, CustomerEvents.CustomerServed event) {
             if (matches(event)) {
                 recordProgress(teamData);
             }
         }
 
-        void recordProgress(TeamData teamData, CustomerInternalEvents.ShiftFinished event) {
+        void recordProgress(TeamData teamData, CustomerEvents.ShiftFinished event) {
             if (matches(event)) {
                 recordProgress(teamData);
             }
@@ -191,7 +190,7 @@ public final class CustomersFTBTasks {
 
         void recordProgress(
                 TeamData teamData,
-                CustomerInternalEvents.LeaderboardChanged event,
+                CustomerEvents.LeaderboardChanged event,
                 Set<UUID> changedPlayerIds
         ) {
             if (changedPlayerIds.stream().anyMatch(playerId -> matches(event, playerId))) {
@@ -199,25 +198,25 @@ public final class CustomersFTBTasks {
             }
         }
 
-        void recordProgress(TeamData teamData, CustomerInternalEvents.CustomerSpawnerConfigChanged event) {
+        void recordProgress(TeamData teamData, CustomerEvents.CustomerSpawnerConfigChanged event) {
             if (matches(event)) {
                 recordProgress(teamData);
             }
         }
 
-        void recordProgress(TeamData teamData, SupplierInternalEvents.SupplierSpawnerConfigChanged event) {
+        void recordProgress(TeamData teamData, SupplierEvents.SupplierSpawnerConfigChanged event) {
             if (matches(event)) {
                 recordProgress(teamData);
             }
         }
 
-        void recordProgress(TeamData teamData, SupplierInternalEvents.SuppliesPurchased event) {
+        void recordProgress(TeamData teamData, SupplierEvents.SuppliesPurchased event) {
             if (matches(event)) {
                 recordProgress(teamData);
             }
         }
 
-        void recordProgress(TeamData teamData, CustomerInternalEvents.CounterBlockPlaced event) {
+        void recordProgress(TeamData teamData, CustomerEvents.CounterBlockPlaced event) {
             if (matches(event)) {
                 recordProgress(teamData);
             }
@@ -232,35 +231,35 @@ public final class CustomersFTBTasks {
             teamData.addProgress(this, 1L);
         }
 
-        boolean matches(CustomerInternalEvents.ItemServed event) {
+        boolean matches(CustomerEvents.ItemServed event) {
             return taskKind.handles(event) && itemServedTrigger.matchesEvent(event);
         }
 
-        boolean matches(CustomerInternalEvents.CustomerServed event) {
+        boolean matches(CustomerEvents.CustomerServed event) {
             return taskKind.handles(event) && customerServedTrigger.matchesEvent(event);
         }
 
-        boolean matches(CustomerInternalEvents.ShiftFinished event) {
+        boolean matches(CustomerEvents.ShiftFinished event) {
             return taskKind.handles(event) && shiftFinishedTrigger.matchesEvent(event);
         }
 
-        boolean matches(CustomerInternalEvents.LeaderboardChanged event, UUID playerId) {
+        boolean matches(CustomerEvents.LeaderboardChanged event, UUID playerId) {
             return taskKind.handles(event) && leaderboardChangedTrigger.matchesEvent(event, playerId);
         }
 
-        boolean matches(CustomerInternalEvents.CustomerSpawnerConfigChanged event) {
+        boolean matches(CustomerEvents.CustomerSpawnerConfigChanged event) {
             return taskKind.handles(event) && customerSpawnerChangedTrigger.matchesEvent(event);
         }
 
-        boolean matches(SupplierInternalEvents.SupplierSpawnerConfigChanged event) {
+        boolean matches(SupplierEvents.SupplierSpawnerConfigChanged event) {
             return taskKind.handles(event) && supplierSpawnerChangedTrigger.matchesEvent(event);
         }
 
-        boolean matches(SupplierInternalEvents.SuppliesPurchased event) {
+        boolean matches(SupplierEvents.SuppliesPurchased event) {
             return taskKind.handles(event) && suppliesPurchasedTrigger.matchesEvent(event);
         }
 
-        boolean matches(CustomerInternalEvents.CounterBlockPlaced event) {
+        boolean matches(CustomerEvents.CounterBlockPlaced event) {
             return taskKind.handles(event) && counterPlacedTrigger.matchesEvent(event);
         }
 

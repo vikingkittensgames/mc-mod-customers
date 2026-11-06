@@ -32,7 +32,7 @@ public final class CustomersFTB {
      * not be used as the progress counter for event-driven team tasks.
      *
      * FTB's ObjectStarted, ObjectProgress, and ObjectCompleted events report
-     * quest lifecycle changes. They do not replace Customers InternalEvents as
+     * quest lifecycle changes. They do not replace Customers Architectury events as
      * the source of gameplay facts. CustomersFTBEvents independently consumes
      * ItemServed, ShiftFinished, and future Customers events before updating
      * matching FTB tasks.

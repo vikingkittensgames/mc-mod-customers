@@ -12,20 +12,30 @@ import dev.ftb.mods.ftbquests.quest.TeamData;
 
 import net.minecraft.server.level.ServerPlayer;
 
-import com.vikingkittens.mc.customers.common.events.InternalEventHandler;
-import com.vikingkittens.mc.customers.common.events.InternalEvents;
-import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
-import com.vikingkittens.mc.customers.supplier.SupplierInternalEvents;
+import com.vikingkittens.mc.customers.customer.CustomerEvents;
+import com.vikingkittens.mc.customers.supplier.SupplierEvents;
 
 public final class CustomersFTBEvents {
+    private static boolean initialized;
+
     private CustomersFTBEvents() {}
 
-    public static void initialize() {
-        InternalEvents.register(CustomersFTBEvents.class);
+    public static synchronized void initialize() {
+        if (initialized) {
+            return;
+        }
+        initialized = true;
+        CustomerEvents.ITEM_SERVED.register(CustomersFTBEvents::onItemServed);
+        CustomerEvents.CUSTOMER_SERVED.register(CustomersFTBEvents::onCustomerServed);
+        CustomerEvents.SHIFT_FINISHED.register(CustomersFTBEvents::onShiftFinished);
+        CustomerEvents.LEADERBOARD_CHANGED.register(CustomersFTBEvents::onLeaderboardChanged);
+        SupplierEvents.SUPPLIES_PURCHASED.register(CustomersFTBEvents::onSuppliesPurchased);
+        CustomerEvents.CUSTOMER_SPAWNER_CONFIG_CHANGED.register(CustomersFTBEvents::onCustomerSpawnerChanged);
+        CustomerEvents.COUNTER_BLOCK_PLACED.register(CustomersFTBEvents::onCounterBlockPlaced);
+        SupplierEvents.SUPPLIER_SPAWNER_CONFIG_CHANGED.register(CustomersFTBEvents::onSupplierSpawnerChanged);
     }
 
-    @InternalEventHandler
-    public static void onItemServed(CustomerInternalEvents.ItemServed event) {
+    public static void onItemServed(CustomerEvents.ItemServed event) {
         if (event.playerId() == null) {
             return;
         }
@@ -36,8 +46,7 @@ public final class CustomersFTBEvents {
         recordProgress(player, (task, teamData) -> task.recordProgress(teamData, event));
     }
 
-    @InternalEventHandler
-    public static void onCustomerServed(CustomerInternalEvents.CustomerServed event) {
+    public static void onCustomerServed(CustomerEvents.CustomerServed event) {
         if (event.playerId() == null) {
             return;
         }
@@ -47,8 +56,7 @@ public final class CustomersFTBEvents {
         }
     }
 
-    @InternalEventHandler
-    public static void onShiftFinished(CustomerInternalEvents.ShiftFinished event) {
+    public static void onShiftFinished(CustomerEvents.ShiftFinished event) {
         Set<UUID> playerIds = new HashSet<>(event.playerItemsCrafted().keySet());
         playerIds.addAll(event.playerItemsServed().keySet());
 
@@ -70,8 +78,7 @@ public final class CustomersFTBEvents {
         });
     }
 
-    @InternalEventHandler
-    public static void onLeaderboardChanged(CustomerInternalEvents.LeaderboardChanged event) {
+    public static void onLeaderboardChanged(CustomerEvents.LeaderboardChanged event) {
         ServerQuestFile.getInstance().ifPresent(file -> {
             Map<TeamData, Set<UUID>> affectedPlayersByTeam = new HashMap<>();
             for (UUID playerId : event.affectedPlayerIds()) {
@@ -92,24 +99,21 @@ public final class CustomersFTBEvents {
         });
     }
 
-    @InternalEventHandler
-    public static void onCustomerSpawnerChanged(CustomerInternalEvents.CustomerSpawnerConfigChanged event) {
+    public static void onCustomerSpawnerChanged(CustomerEvents.CustomerSpawnerConfigChanged event) {
         ServerPlayer player = event.level().getServer().getPlayerList().getPlayer(event.playerId());
         if (player != null) {
             recordProgress(player, (task, teamData) -> task.recordProgress(teamData, event));
         }
     }
 
-    @InternalEventHandler
-    public static void onSupplierSpawnerChanged(SupplierInternalEvents.SupplierSpawnerConfigChanged event) {
+    public static void onSupplierSpawnerChanged(SupplierEvents.SupplierSpawnerConfigChanged event) {
         ServerPlayer player = event.level().getServer().getPlayerList().getPlayer(event.playerId());
         if (player != null) {
             recordProgress(player, (task, teamData) -> task.recordProgress(teamData, event));
         }
     }
 
-    @InternalEventHandler
-    public static void onSuppliesPurchased(SupplierInternalEvents.SuppliesPurchased event) {
+    public static void onSuppliesPurchased(SupplierEvents.SuppliesPurchased event) {
         if (event.playerId() == null) {
             return;
         }
@@ -119,8 +123,7 @@ public final class CustomersFTBEvents {
         }
     }
 
-    @InternalEventHandler
-    public static void onCounterBlockPlaced(CustomerInternalEvents.CounterBlockPlaced event) {
+    public static void onCounterBlockPlaced(CustomerEvents.CounterBlockPlaced event) {
         ServerPlayer player = event.level().getServer().getPlayerList().getPlayer(event.playerId());
         if (player != null) {
             recordProgress(player, (task, teamData) -> task.recordProgress(teamData, event));

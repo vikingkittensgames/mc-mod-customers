@@ -20,7 +20,6 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
-import com.vikingkittens.mc.customers.common.events.InternalEvents;
 import com.vikingkittens.mc.customers.economy.Economy;
 
 public class SupplierSpawnerBlockMenu extends AbstractContainerMenu {
@@ -189,7 +188,7 @@ public class SupplierSpawnerBlockMenu extends AbstractContainerMenu {
 
     @Override
     public void clicked(int slotId, int button, ClickType clickType, Player player) {
-        SupplierInternalEvents.SupplierSpawnerConfigChanged before = configurationSnapshot(player);
+        SupplierEvents.SupplierSpawnerConfigChanged before = configurationSnapshot(player);
         super.clicked(slotId, button, clickType, player);
         emitConfigurationChange(player, before);
     }
@@ -306,35 +305,35 @@ public class SupplierSpawnerBlockMenu extends AbstractContainerMenu {
     }
 
     private void changeConfiguration(Player player, Runnable change) {
-        SupplierInternalEvents.SupplierSpawnerConfigChanged before = configurationSnapshot(player);
+        SupplierEvents.SupplierSpawnerConfigChanged before = configurationSnapshot(player);
         change.run();
         emitConfigurationChange(player, before);
     }
 
     private void emitConfigurationChange(
             Player player,
-            SupplierInternalEvents.SupplierSpawnerConfigChanged before
+            SupplierEvents.SupplierSpawnerConfigChanged before
     ) {
-        SupplierInternalEvents.SupplierSpawnerConfigChanged after = configurationSnapshot(player);
+        SupplierEvents.SupplierSpawnerConfigChanged after = configurationSnapshot(player);
         if (after != null && !after.hasSameConfiguration(before)) {
-            InternalEvents.emit(after);
+            SupplierEvents.SUPPLIER_SPAWNER_CONFIG_CHANGED.invoker().accept(after);
         }
     }
 
-    private SupplierInternalEvents.SupplierSpawnerConfigChanged configurationSnapshot(Player player) {
+    private SupplierEvents.SupplierSpawnerConfigChanged configurationSnapshot(Player player) {
         if (blockEntity == null || !(blockEntity.getLevel() instanceof ServerLevel serverLevel)) {
             return null;
         }
-        List<SupplierInternalEvents.Offer> offers = new ArrayList<>(24);
+        List<SupplierEvents.Offer> offers = new ArrayList<>(24);
         for (int row = 0; row < 6; row++) {
             for (int column = 0; column < 8; column += 2) {
-                offers.add(new SupplierInternalEvents.Offer(
+                offers.add(new SupplierEvents.Offer(
                         container.getItem(row * 9 + column),
                         container.getItem(row * 9 + column + 1)
                 ));
             }
         }
-        return new SupplierInternalEvents.SupplierSpawnerConfigChanged(
+        return new SupplierEvents.SupplierSpawnerConfigChanged(
                 serverLevel,
                 blockEntity.getBlockPos(),
                 player.getUUID(),

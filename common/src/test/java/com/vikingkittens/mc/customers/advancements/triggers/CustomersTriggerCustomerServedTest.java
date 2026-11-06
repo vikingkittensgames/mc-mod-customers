@@ -18,7 +18,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
-import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
+import com.vikingkittens.mc.customers.customer.CustomerEvents;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -270,13 +270,13 @@ class CustomersTriggerCustomerServedTest {
         ));
     }
 
-    private static CustomerInternalEvents.CustomerServed event(
+    private static CustomerEvents.CustomerServed event(
             CustomerSpawnerMode mode,
             int servedCount,
             int costCount,
             boolean isPetItem
     ) {
-        return new CustomerInternalEvents.CustomerServed(
+        return new CustomerEvents.CustomerServed(
                 mock(ServerLevel.class),
                 null,
                 mode,

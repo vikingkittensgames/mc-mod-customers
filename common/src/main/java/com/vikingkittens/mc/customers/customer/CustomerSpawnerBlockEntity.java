@@ -45,7 +45,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 import com.vikingkittens.mc.customers.common.ContainerUtils;
 import com.vikingkittens.mc.customers.common.SearchUtils;
-import com.vikingkittens.mc.customers.common.events.InternalEvents;
 import com.vikingkittens.mc.customers.compatability.ComponentCUtils;
 import com.vikingkittens.mc.customers.compatability.CustomersServices;
 import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
@@ -1562,15 +1561,15 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             CustomerSpawnerMode spawnerMode,
             int activeLevel
     ) {
-        emitShiftFinished(spawnerMode, activeLevel, InternalEvents::emit);
+        emitShiftFinished(spawnerMode, activeLevel, CustomerEvents.SHIFT_FINISHED.invoker());
     }
 
     void emitShiftFinished(
             CustomerSpawnerMode spawnerMode,
             int activeLevel,
-            Consumer<CustomerInternalEvents.ShiftFinished> eventEmitter
+            Consumer<CustomerEvents.ShiftFinished> eventEmitter
     ) {
-        eventEmitter.accept(new CustomerInternalEvents.ShiftFinished(
+        eventEmitter.accept(new CustomerEvents.ShiftFinished(
                 (ServerLevel)(getLevel()),
                 getBlockPos(),
                 spawnerMode,
@@ -1661,14 +1660,14 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
             return;
         }
 
-        sendScoresToLeaderboard(spawnerMode, activeLevel, leaderboard, InternalEvents::emit);
+        sendScoresToLeaderboard(spawnerMode, activeLevel, leaderboard, CustomerEvents.LEADERBOARD_CHANGED.invoker());
     }
 
     void sendScoresToLeaderboard(
             CustomerSpawnerMode spawnerMode,
             int activeLevel,
             CustomerLeaderboardBlockEntity leaderboard,
-            Consumer<CustomerInternalEvents.LeaderboardChanged> eventConsumer
+            Consumer<CustomerEvents.LeaderboardChanged> eventConsumer
     ) {
         int leaderboardLevel = activeLevel + 1;
         Map<UUID, Float> previousScores = leaderboard.getScores(
@@ -1684,7 +1683,7 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
         }
         Map<UUID, Float> scores = leaderboard.getScores(worldPosition, spawnerMode, leaderboardLevel);
         if (!scores.equals(previousScores)) {
-            eventConsumer.accept(new CustomerInternalEvents.LeaderboardChanged(
+            eventConsumer.accept(new CustomerEvents.LeaderboardChanged(
                     (ServerLevel) level,
                     worldPosition,
                     spawnerMode,

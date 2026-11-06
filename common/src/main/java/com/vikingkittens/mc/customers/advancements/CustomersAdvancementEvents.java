@@ -8,20 +8,30 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.StatFormatter;
 import net.minecraft.stats.Stats;
 
-import com.vikingkittens.mc.customers.common.events.InternalEventHandler;
-import com.vikingkittens.mc.customers.common.events.InternalEvents;
-import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
-import com.vikingkittens.mc.customers.supplier.SupplierInternalEvents;
+import com.vikingkittens.mc.customers.customer.CustomerEvents;
+import com.vikingkittens.mc.customers.supplier.SupplierEvents;
 
 public final class CustomersAdvancementEvents {
+    private static boolean initialized;
+
     private CustomersAdvancementEvents() {}
 
-    public static void initialize() {
-        InternalEvents.register(CustomersAdvancementEvents.class);
+    public static synchronized void initialize() {
+        if (initialized) {
+            return;
+        }
+        initialized = true;
+        CustomerEvents.ITEM_SERVED.register(CustomersAdvancementEvents::onItemServed);
+        CustomerEvents.CUSTOMER_SERVED.register(CustomersAdvancementEvents::onCustomerServed);
+        CustomerEvents.SHIFT_FINISHED.register(CustomersAdvancementEvents::onShiftFinished);
+        CustomerEvents.LEADERBOARD_CHANGED.register(CustomersAdvancementEvents::onLeaderboardChanged);
+        SupplierEvents.SUPPLIES_PURCHASED.register(CustomersAdvancementEvents::onSuppliesPurchased);
+        CustomerEvents.CUSTOMER_SPAWNER_CONFIG_CHANGED.register(CustomersAdvancementEvents::onCustomerSpawnerChanged);
+        CustomerEvents.COUNTER_BLOCK_PLACED.register(CustomersAdvancementEvents::onCounterBlockPlaced);
+        SupplierEvents.SUPPLIER_SPAWNER_CONFIG_CHANGED.register(CustomersAdvancementEvents::onSupplierSpawnerChanged);
     }
 
-    @InternalEventHandler
-    public static void onItemServed(CustomerInternalEvents.ItemServed event) {
+    public static void onItemServed(CustomerEvents.ItemServed event) {
         if (event.playerId() == null) {
             return;
         }
@@ -46,8 +56,7 @@ public final class CustomersAdvancementEvents {
         }
     }
 
-    @InternalEventHandler
-    public static void onCustomerServed(CustomerInternalEvents.CustomerServed event) {
+    public static void onCustomerServed(CustomerEvents.CustomerServed event) {
         if (event.playerId() == null) {
             return;
         }
@@ -84,8 +93,7 @@ public final class CustomersAdvancementEvents {
         }
     }
 
-    @InternalEventHandler
-    public static void onShiftFinished(CustomerInternalEvents.ShiftFinished event) {
+    public static void onShiftFinished(CustomerEvents.ShiftFinished event) {
         var shiftFinishedStat = Stats.CUSTOM.get(CustomersStatistics.SHIFT_FINISHED.get(), StatFormatter.DEFAULT);
         List<UUID> playerIds = new ArrayList<>();
         playerIds.addAll(event.playerItemsCrafted().keySet());
@@ -101,8 +109,7 @@ public final class CustomersAdvancementEvents {
         }
     }
 
-    @InternalEventHandler
-    public static void onLeaderboardChanged(CustomerInternalEvents.LeaderboardChanged event) {
+    public static void onLeaderboardChanged(CustomerEvents.LeaderboardChanged event) {
         for (UUID playerId : event.affectedPlayerIds()) {
             ServerPlayer player = event.level().getServer().getPlayerList().getPlayer(playerId);
             if (player != null) {
@@ -111,8 +118,7 @@ public final class CustomersAdvancementEvents {
         }
     }
 
-    @InternalEventHandler
-    public static void onSuppliesPurchased(SupplierInternalEvents.SuppliesPurchased event) {
+    public static void onSuppliesPurchased(SupplierEvents.SuppliesPurchased event) {
         if (event.playerId() == null) {
             return;
         }
@@ -131,24 +137,21 @@ public final class CustomersAdvancementEvents {
         }
     }
 
-    @InternalEventHandler
-    public static void onCustomerSpawnerChanged(CustomerInternalEvents.CustomerSpawnerConfigChanged event) {
+    public static void onCustomerSpawnerChanged(CustomerEvents.CustomerSpawnerConfigChanged event) {
         ServerPlayer player = event.level().getServer().getPlayerList().getPlayer(event.playerId());
         if (player != null) {
             CustomersTriggers.CUSTOMER_SPAWNER_CHANGED.get().trigger(player, event);
         }
     }
 
-    @InternalEventHandler
-    public static void onCounterBlockPlaced(CustomerInternalEvents.CounterBlockPlaced event) {
+    public static void onCounterBlockPlaced(CustomerEvents.CounterBlockPlaced event) {
         ServerPlayer player = event.level().getServer().getPlayerList().getPlayer(event.playerId());
         if (player != null) {
             CustomersTriggers.COUNTER_PLACED.get().trigger(player, event);
         }
     }
 
-    @InternalEventHandler
-    public static void onSupplierSpawnerChanged(SupplierInternalEvents.SupplierSpawnerConfigChanged event) {
+    public static void onSupplierSpawnerChanged(SupplierEvents.SupplierSpawnerConfigChanged event) {
         ServerPlayer player = event.level().getServer().getPlayerList().getPlayer(event.playerId());
         if (player != null) {
             CustomersTriggers.SUPPLIER_SPAWNER_CHANGED.get().trigger(player, event);

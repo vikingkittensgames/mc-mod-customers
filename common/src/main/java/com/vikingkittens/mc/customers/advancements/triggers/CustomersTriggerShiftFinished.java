@@ -10,7 +10,7 @@ import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringRepresentable;
 
-import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
+import com.vikingkittens.mc.customers.customer.CustomerEvents;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
 public final class CustomersTriggerShiftFinished
@@ -24,7 +24,7 @@ public final class CustomersTriggerShiftFinished
 
     public void trigger(
             ServerPlayer player,
-            CustomerInternalEvents.ShiftFinished event,
+            CustomerEvents.ShiftFinished event,
             int totalShiftsFinished
     ) {
         trigger(player, instance -> instance.matches(event, totalShiftsFinished));
@@ -190,14 +190,14 @@ public final class CustomersTriggerShiftFinished
         public static final Codec<Instance> CODEC = SCHEMA.codec();
 
         public boolean matches(
-                CustomerInternalEvents.ShiftFinished event,
+                CustomerEvents.ShiftFinished event,
                 int currentTotalShiftsFinished
         ) {
             return matchesEvent(event)
                     && totalShiftsFinished.map(value -> value.matches(currentTotalShiftsFinished)).orElse(true);
         }
 
-        public boolean matchesEvent(CustomerInternalEvents.ShiftFinished event) {
+        public boolean matchesEvent(CustomerEvents.ShiftFinished event) {
             return spawnerLocation
                             .map(value -> value.matches(event.level(), event.spawnerPosition()))
                             .orElse(true)

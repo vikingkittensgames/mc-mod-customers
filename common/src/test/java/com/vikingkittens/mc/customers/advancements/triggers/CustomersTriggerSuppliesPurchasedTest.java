@@ -19,7 +19,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
-import com.vikingkittens.mc.customers.supplier.SupplierInternalEvents;
+import com.vikingkittens.mc.customers.supplier.SupplierEvents;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -113,11 +113,11 @@ class CustomersTriggerSuppliesPurchasedTest {
         assertFalse(instance.matches(event(3, 1), 100));
     }
 
-    private static SupplierInternalEvents.SuppliesPurchased event(int supplyCount, int costCount) {
+    private static SupplierEvents.SuppliesPurchased event(int supplyCount, int costCount) {
         return event(Level.OVERWORLD, SPAWNER_POSITION, supplyCount, costCount);
     }
 
-    private static SupplierInternalEvents.SuppliesPurchased event(
+    private static SupplierEvents.SuppliesPurchased event(
             net.minecraft.resources.ResourceKey<Level> dimension,
             BlockPos spawnerPosition,
             int supplyCount,
@@ -125,7 +125,7 @@ class CustomersTriggerSuppliesPurchasedTest {
     ) {
         ServerLevel level = mock(ServerLevel.class);
         when(level.dimension()).thenReturn(dimension);
-        return new SupplierInternalEvents.SuppliesPurchased(
+        return new SupplierEvents.SuppliesPurchased(
                 level,
                 spawnerPosition,
                 UUID.randomUUID(),

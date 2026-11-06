@@ -11,7 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringRepresentable;
 
-import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
+import com.vikingkittens.mc.customers.customer.CustomerEvents;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
 public final class CustomersTriggerCounterPlaced
@@ -23,7 +23,7 @@ public final class CustomersTriggerCounterPlaced
         return Instance.CODEC;
     }
 
-    public void trigger(ServerPlayer player, CustomerInternalEvents.CounterBlockPlaced event) {
+    public void trigger(ServerPlayer player, CustomerEvents.CounterBlockPlaced event) {
         trigger(player, instance -> instance.matchesEvent(event));
     }
 
@@ -84,7 +84,7 @@ public final class CustomersTriggerCounterPlaced
 
         public static final Codec<Instance> CODEC = SCHEMA.codec();
 
-        public boolean matchesEvent(CustomerInternalEvents.CounterBlockPlaced event) {
+        public boolean matchesEvent(CustomerEvents.CounterBlockPlaced event) {
             ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(event.counterBlockState().getBlock());
             return spawnerLocation
                             .map(value -> value.matches(event.level(), event.spawnerPosition()))

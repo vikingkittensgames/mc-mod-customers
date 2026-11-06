@@ -20,7 +20,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
-import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
+import com.vikingkittens.mc.customers.customer.CustomerEvents;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -197,7 +197,7 @@ class CustomersTriggerItemServedTest {
         assertFalse(instance.matches(event(CustomerSpawnerMode.LUNCH, 3, 2, true), 100, 24));
     }
 
-    private static CustomerInternalEvents.ItemServed event(
+    private static CustomerEvents.ItemServed event(
             CustomerSpawnerMode mode,
             int servedCount,
             int costCount,
@@ -213,7 +213,7 @@ class CustomersTriggerItemServedTest {
         );
     }
 
-    private static CustomerInternalEvents.ItemServed event(
+    private static CustomerEvents.ItemServed event(
             ServerLevel level,
             BlockPos spawnerPosition,
             CustomerSpawnerMode mode,
@@ -221,7 +221,7 @@ class CustomersTriggerItemServedTest {
             int costCount,
             boolean isPetItem
     ) {
-        return new CustomerInternalEvents.ItemServed(
+        return new CustomerEvents.ItemServed(
                 level,
                 spawnerPosition,
                 mode,

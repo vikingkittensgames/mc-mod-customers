@@ -11,7 +11,7 @@ import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringRepresentable;
 
-import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
+import com.vikingkittens.mc.customers.customer.CustomerEvents;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
 public final class CustomersTriggerLeaderboardChanged
@@ -23,7 +23,7 @@ public final class CustomersTriggerLeaderboardChanged
         return Instance.CODEC;
     }
 
-    public void trigger(ServerPlayer player, CustomerInternalEvents.LeaderboardChanged event) {
+    public void trigger(ServerPlayer player, CustomerEvents.LeaderboardChanged event) {
         trigger(player, instance -> instance.matchesEvent(event, player.getUUID()));
     }
 
@@ -129,7 +129,7 @@ public final class CustomersTriggerLeaderboardChanged
 
         public static final Codec<Instance> CODEC = SCHEMA.codec();
 
-        public boolean matchesEvent(CustomerInternalEvents.LeaderboardChanged event, UUID playerId) {
+        public boolean matchesEvent(CustomerEvents.LeaderboardChanged event, UUID playerId) {
             Float previousPlayerScore = event.previousScores().get(playerId);
             Float newPlayerScore = event.scores().get(playerId);
             return spawnerLocation

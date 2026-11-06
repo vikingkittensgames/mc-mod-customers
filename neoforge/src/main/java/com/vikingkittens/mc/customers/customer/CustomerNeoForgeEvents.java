@@ -18,7 +18,7 @@ import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.common.BlockBreakConfirmation;
 
 @EventBusSubscriber(modid = Customers.MODID)
-public class CustomerEvents {
+public class CustomerNeoForgeEvents {
     /**
      * Routes sneaking pickup-counter interactions to the block instead of
      * allowing the held item to handle them.

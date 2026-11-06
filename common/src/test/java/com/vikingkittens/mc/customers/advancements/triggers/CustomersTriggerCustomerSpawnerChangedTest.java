@@ -22,7 +22,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
-import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
+import com.vikingkittens.mc.customers.customer.CustomerEvents;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -122,10 +122,10 @@ class CustomersTriggerCustomerSpawnerChangedTest {
         assertTrue(instance.matchesEvent(event()));
     }
 
-    private static CustomerInternalEvents.CustomerSpawnerConfigChanged event() {
+    private static CustomerEvents.CustomerSpawnerConfigChanged event() {
         ServerLevel level = mock(ServerLevel.class);
         when(level.dimension()).thenReturn(Level.OVERWORLD);
-        return new CustomerInternalEvents.CustomerSpawnerConfigChanged(
+        return new CustomerEvents.CustomerSpawnerConfigChanged(
                 level,
                 BlockPos.ZERO,
                 CustomerSpawnerMode.LUNCH,

@@ -10,7 +10,7 @@ import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringRepresentable;
 
-import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
+import com.vikingkittens.mc.customers.customer.CustomerEvents;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
 public final class CustomersTriggerCustomerSpawnerChanged
@@ -22,7 +22,7 @@ public final class CustomersTriggerCustomerSpawnerChanged
         return Instance.CODEC;
     }
 
-    public void trigger(ServerPlayer player, CustomerInternalEvents.CustomerSpawnerConfigChanged event) {
+    public void trigger(ServerPlayer player, CustomerEvents.CustomerSpawnerConfigChanged event) {
         trigger(player, instance -> instance.matchesEvent(event));
     }
 
@@ -146,7 +146,7 @@ public final class CustomersTriggerCustomerSpawnerChanged
 
         public static final Codec<Instance> CODEC = SCHEMA.codec();
 
-        public boolean matchesEvent(CustomerInternalEvents.CustomerSpawnerConfigChanged event) {
+        public boolean matchesEvent(CustomerEvents.CustomerSpawnerConfigChanged event) {
             return spawnerLocation
                             .map(value -> value.matches(event.level(), event.spawnerPosition()))
                             .orElse(true)

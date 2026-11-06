@@ -20,7 +20,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
-import com.vikingkittens.mc.customers.supplier.SupplierInternalEvents;
+import com.vikingkittens.mc.customers.supplier.SupplierEvents;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -101,19 +101,19 @@ class CustomersTriggerSupplierSpawnerChangedTest {
         assertTrue(instance.matchesEvent(event()));
     }
 
-    private static SupplierInternalEvents.SupplierSpawnerConfigChanged event() {
+    private static SupplierEvents.SupplierSpawnerConfigChanged event() {
         ServerLevel level = mock(ServerLevel.class);
         when(level.dimension()).thenReturn(Level.OVERWORLD);
-        return new SupplierInternalEvents.SupplierSpawnerConfigChanged(
+        return new SupplierEvents.SupplierSpawnerConfigChanged(
                 level,
                 BlockPos.ZERO,
                 UUID.randomUUID(),
                 List.of(
-                        new SupplierInternalEvents.Offer(
+                        new SupplierEvents.Offer(
                                 new ItemStack(Items.APPLE),
                                 new ItemStack(Items.EMERALD)
                         ),
-                        new SupplierInternalEvents.Offer(new ItemStack(Items.CARROT), ItemStack.EMPTY)
+                        new SupplierEvents.Offer(new ItemStack(Items.CARROT), ItemStack.EMPTY)
                 ),
                 true,
                 List.of("customers:first", "customers:second")

@@ -12,7 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringRepresentable;
 
-import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
+import com.vikingkittens.mc.customers.customer.CustomerEvents;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
 public final class CustomersTriggerItemServed
@@ -26,7 +26,7 @@ public final class CustomersTriggerItemServed
 
     public void trigger(
             ServerPlayer player,
-            CustomerInternalEvents.ItemServed event,
+            CustomerEvents.ItemServed event,
             int totalItemsServed,
             int totalPetItemsServed
     ) {
@@ -171,7 +171,7 @@ public final class CustomersTriggerItemServed
         public static final Codec<Instance> CODEC = SCHEMA.codec();
 
         public boolean matches(
-                CustomerInternalEvents.ItemServed event,
+                CustomerEvents.ItemServed event,
                 int currentTotalItemsServed,
                 int currentTotalPetItemsServed
         ) {
@@ -182,7 +182,7 @@ public final class CustomersTriggerItemServed
                             .orElse(true);
         }
 
-        public boolean matchesEvent(CustomerInternalEvents.ItemServed event) {
+        public boolean matchesEvent(CustomerEvents.ItemServed event) {
             return spawnerLocation
                             .map(value -> value.matches(event.level(), event.spawnerPosition()))
                             .orElse(true)

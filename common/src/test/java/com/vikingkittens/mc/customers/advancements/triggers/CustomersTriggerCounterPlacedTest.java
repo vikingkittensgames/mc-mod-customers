@@ -19,7 +19,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
-import com.vikingkittens.mc.customers.customer.CustomerInternalEvents;
+import com.vikingkittens.mc.customers.customer.CustomerEvents;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerMode;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -92,10 +92,10 @@ class CustomersTriggerCounterPlacedTest {
         assertTrue(instance.matchesEvent(event()));
     }
 
-    private static CustomerInternalEvents.CounterBlockPlaced event() {
+    private static CustomerEvents.CounterBlockPlaced event() {
         ServerLevel level = mock(ServerLevel.class);
         when(level.dimension()).thenReturn(Level.OVERWORLD);
-        return new CustomerInternalEvents.CounterBlockPlaced(
+        return new CustomerEvents.CounterBlockPlaced(
                 level,
                 SPAWNER_POSITION,
                 CustomerSpawnerMode.LUNCH,

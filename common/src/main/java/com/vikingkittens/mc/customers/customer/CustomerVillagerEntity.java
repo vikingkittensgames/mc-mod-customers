@@ -63,7 +63,6 @@ import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerType;
 import com.vikingkittens.mc.customers.common.MobUtils;
 import com.vikingkittens.mc.customers.common.SearchUtils;
-import com.vikingkittens.mc.customers.common.events.InternalEvents;
 import com.vikingkittens.mc.customers.compatability.CustomersServices;
 import com.vikingkittens.mc.customers.compatability.EntityCUtils;
 import com.vikingkittens.mc.customers.compatability.InteractionCUtils;
@@ -1207,7 +1206,7 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
         ResourceLocation customerProfession = serverLevel.registryAccess()
                 .registryOrThrow(Registries.VILLAGER_PROFESSION)
                 .getKey(getVillagerData().getProfession());
-        InternalEvents.emit(new CustomerInternalEvents.ItemServed(
+        CustomerEvents.ITEM_SERVED.invoker().accept(new CustomerEvents.ItemServed(
                 serverLevel,
                 spawnerPos,
                 getSpawnerMode().orElse(null),
@@ -1219,7 +1218,7 @@ public class CustomerVillagerEntity extends Villager implements CustomersVillage
                 isPetItem
         ));
         for (UUID newServingPlayerId : newServingPlayerIds) {
-            InternalEvents.emit(new CustomerInternalEvents.CustomerServed(
+            CustomerEvents.CUSTOMER_SERVED.invoker().accept(new CustomerEvents.CustomerServed(
                     serverLevel,
                     spawnerPos,
                     getSpawnerMode().orElse(null),

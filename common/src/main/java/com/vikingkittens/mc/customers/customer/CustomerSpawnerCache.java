@@ -13,7 +13,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 
-import com.vikingkittens.mc.customers.common.events.InternalEvents;
 import com.vikingkittens.mc.customers.compatability.CustomersServices;
 
 public final class CustomerSpawnerCache {
@@ -104,7 +103,7 @@ public final class CustomerSpawnerCache {
                 blockState,
                 player,
                 CustomersServices.config().maxCounterDistance(),
-                InternalEvents::emit
+                CustomerEvents.COUNTER_BLOCK_PLACED.invoker()
         );
     }
 
@@ -114,7 +113,7 @@ public final class CustomerSpawnerCache {
             BlockState blockState,
             Player player,
             int maxDistance,
-            Consumer<CustomerInternalEvents.CounterBlockPlaced> eventConsumer
+            Consumer<CustomerEvents.CounterBlockPlaced> eventConsumer
     ) {
         boolean spawnerPlaced = blockState.getBlock() instanceof CustomerSpawnerBlock;
         if (spawnerPlaced) {
@@ -131,7 +130,7 @@ public final class CustomerSpawnerCache {
                     spawner.invalidateCounterPositions();
                 }
                 if (player != null && level instanceof ServerLevel serverLevel && matchingCounterPlaced) {
-                    eventConsumer.accept(new CustomerInternalEvents.CounterBlockPlaced(
+                    eventConsumer.accept(new CustomerEvents.CounterBlockPlaced(
                             serverLevel,
                             value.spawnerPosition(),
                             spawner.getSpawnerMode(),

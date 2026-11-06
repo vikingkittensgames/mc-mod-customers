@@ -124,7 +124,7 @@ class CustomerSpawnerBlockEntityTest {
         entity.scoreboardAddCustomerServed();
         entity.scoreboardAddItemsWanted(5);
         entity.scoreboardAddItemsServed(playerId, 1);
-        AtomicReference<CustomerInternalEvents.ShiftFinished> emitted =
+        AtomicReference<CustomerEvents.ShiftFinished> emitted =
                 new AtomicReference<>();
 
         entity.emitShiftFinished(
@@ -133,7 +133,7 @@ class CustomerSpawnerBlockEntityTest {
                 emitted::set
         );
 
-        CustomerInternalEvents.ShiftFinished event = emitted.get();
+        CustomerEvents.ShiftFinished event = emitted.get();
         assertNotNull(event);
         assertSame(level, event.level());
         assertEquals(BlockPos.ZERO, event.spawnerPosition());
@@ -164,11 +164,11 @@ class CustomerSpawnerBlockEntityTest {
         leaderboard.addScore(BlockPos.ZERO, CustomerSpawnerMode.LUNCH, 2, previousPlayer, 0.5F);
         spawner.scoreboardAddItemsWanted(4);
         spawner.scoreboardAddItemsServed(changedPlayer, 3);
-        AtomicReference<CustomerInternalEvents.LeaderboardChanged> emitted = new AtomicReference<>();
+        AtomicReference<CustomerEvents.LeaderboardChanged> emitted = new AtomicReference<>();
 
         spawner.sendScoresToLeaderboard(CustomerSpawnerMode.LUNCH, 1, leaderboard, emitted::set);
 
-        CustomerInternalEvents.LeaderboardChanged event = emitted.get();
+        CustomerEvents.LeaderboardChanged event = emitted.get();
         assertNotNull(event);
         assertSame(level, event.level());
         assertEquals(BlockPos.ZERO, event.spawnerPosition());
@@ -193,7 +193,7 @@ class CustomerSpawnerBlockEntityTest {
         leaderboard.addScore(BlockPos.ZERO, CustomerSpawnerMode.LUNCH, 1, playerId, 1.0F);
         spawner.scoreboardAddItemsWanted(4);
         spawner.scoreboardAddItemsServed(playerId, 3);
-        AtomicReference<CustomerInternalEvents.LeaderboardChanged> emitted = new AtomicReference<>();
+        AtomicReference<CustomerEvents.LeaderboardChanged> emitted = new AtomicReference<>();
 
         spawner.sendScoresToLeaderboard(CustomerSpawnerMode.LUNCH, 0, leaderboard, emitted::set);
 

@@ -201,7 +201,7 @@ class CustomerSpawnerCacheTest {
         when(player.getUUID()).thenReturn(playerId);
         CustomerSpawnerCache.update(level, FIRST_SPAWNER, Blocks.OAK_PLANKS.defaultBlockState());
         CustomerSpawnerCache.update(level, secondSpawnerPosition, Blocks.OAK_PLANKS.defaultBlockState());
-        List<CustomerInternalEvents.CounterBlockPlaced> events = new ArrayList<>();
+        List<CustomerEvents.CounterBlockPlaced> events = new ArrayList<>();
         BlockPos placedPosition = FIRST_SPAWNER.offset(4, 0, 0);
 
         CustomerSpawnerCache.onBlockPlaced(
@@ -219,7 +219,7 @@ class CustomerSpawnerCacheTest {
         assertTrue(events.stream().allMatch(event -> event.counterBlockState().is(Blocks.OAK_PLANKS)));
         assertEquals(
                 List.of(FIRST_SPAWNER, secondSpawnerPosition),
-                events.stream().map(CustomerInternalEvents.CounterBlockPlaced::spawnerPosition).sorted().toList()
+                events.stream().map(CustomerEvents.CounterBlockPlaced::spawnerPosition).sorted().toList()
         );
     }
 
@@ -230,7 +230,7 @@ class CustomerSpawnerCacheTest {
         CustomerSpawnerBlockEntity spawner = spawner(CustomerSpawnerMode.LUNCH);
         when(level.getBlockEntity(FIRST_SPAWNER)).thenReturn(spawner);
         CustomerSpawnerCache.update(level, FIRST_SPAWNER, Blocks.OAK_PLANKS.defaultBlockState());
-        List<CustomerInternalEvents.CounterBlockPlaced> events = new ArrayList<>();
+        List<CustomerEvents.CounterBlockPlaced> events = new ArrayList<>();
 
         CustomerSpawnerCache.onBlockPlaced(
                 level,
