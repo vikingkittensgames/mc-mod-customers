@@ -6,12 +6,14 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -81,5 +83,27 @@ class SupplierSpawnerItemSettingsTest {
         assertEquals(16, SupplierSpawnerItem.getItems(stack, RegistryAccess.EMPTY).orElseThrow().getFirst().item().getCount());
         assertFalse(stack.get(DataComponents.CUSTOM_DATA).copyTag()
                 .getCompound(SupplierSpawnerItem.TAG_SETTINGS).contains("lockedInventory"));
+    }
+
+    @Test
+    void tooltipShowsFirstThreeSaleItemsInLightPurple() {
+        ItemStack stack = new ItemStack(Items.STONE);
+        SupplierSpawnerItem.setItems(stack, List.of(
+                new SupplierSpawnerItem.Offer(named(Items.COOKIE, "Cookie"), Optional.empty()),
+                new SupplierSpawnerItem.Offer(named(Items.MILK_BUCKET, "Milk Bucket"), Optional.empty()),
+                new SupplierSpawnerItem.Offer(named(Items.BREAD, "Bread"), Optional.empty()),
+                new SupplierSpawnerItem.Offer(named(Items.APPLE, "Apple"), Optional.empty())
+        ), RegistryAccess.EMPTY);
+
+        Component line = SupplierSpawnerItem.getTooltipLines(stack, RegistryAccess.EMPTY).getFirst();
+        assertEquals("tooltip.customers.spawner.sells", ((TranslatableContents)line.getContents()).getKey());
+        assertEquals("Cookie, Milk Bucket, Bread", ((TranslatableContents)line.getContents()).getArgs()[0]);
+        assertEquals(ChatFormatting.LIGHT_PURPLE.getColor(), line.getStyle().getColor().getValue());
+    }
+
+    private static ItemStack named(net.minecraft.world.item.Item item, String name) {
+        ItemStack stack = new ItemStack(item);
+        stack.set(DataComponents.CUSTOM_NAME, Component.literal(name));
+        return stack;
     }
 }

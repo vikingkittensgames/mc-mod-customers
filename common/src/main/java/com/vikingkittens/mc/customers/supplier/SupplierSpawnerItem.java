@@ -7,6 +7,7 @@ import java.util.function.Consumer;
 
 import dev.architectury.registry.item.ItemPropertiesRegistry;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -36,6 +37,20 @@ public final class SupplierSpawnerItem {
         ItemPropertiesRegistry.register(SupplierSpawner.SUPPLIER_SPAWNER_ITEM.get(),
                 ResourceLocation.fromNamespaceAndPath(Customers.MODID, "has_spawner_icon"),
                 (stack, level, entity, seed) -> getIcon(stack).isPresent() ? 1.0F : 0.0F);
+    }
+
+    public static List<Component> getTooltipLines(ItemStack stack, HolderLookup.Provider registries) {
+        List<String> names = getItems(stack, registries).orElse(List.of()).stream()
+                .map(Offer::item)
+                .filter(item -> !item.isEmpty())
+                .limit(3)
+                .map(item -> item.getHoverName().getString())
+                .toList();
+        String preview = names.isEmpty()
+                ? Component.translatable("tooltip.customers.spawner.none").getString()
+                : String.join(", ", names);
+        return List.of(Component.translatable("tooltip.customers.spawner.sells", preview)
+                .withStyle(ChatFormatting.LIGHT_PURPLE));
     }
 
     public static Optional<Component> getCustomName(ItemStack stack) {

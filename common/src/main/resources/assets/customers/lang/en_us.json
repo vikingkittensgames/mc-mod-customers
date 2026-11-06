@@ -20,6 +20,11 @@
   "block.customers.stripped_bamboo_customer_pickup_counter": "Stripped Bamboo Customer Pickup Counter",
   "item.customers.customer_spawner_block": "Customer Spawner",
   "item.customers.supplier_spawner_block": "Supplier Spawner",
+  "tooltip.customers.spawner.level": "%s level",
+  "tooltip.customers.spawner.levels": "%s levels",
+  "tooltip.customers.spawner.buys": "Buys: %s",
+  "tooltip.customers.spawner.sells": "Sells: %s",
+  "tooltip.customers.spawner.none": "None",
 
   "block.customers.customer_payment_box": "Customer Payment Box",
   "block.customers.iron_customer_payment_box": "Iron Customer Payment Box",

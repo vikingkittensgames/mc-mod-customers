@@ -5,9 +5,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.IntStream;
 
 import dev.architectury.registry.item.ItemPropertiesRegistry;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -46,6 +48,33 @@ public final class CustomerSpawnerItem {
 
     static float predicateValueSpawnerMode(ItemStack stack) {
         return getMode(stack).map(mode -> (float)(mode.ordinal() * MODE_PREDICATE_STEP)).orElse(0.0F);
+    }
+
+    public static List<Component> getTooltipLines(ItemStack stack, HolderLookup.Provider registries) {
+        int configuredLevels = getLevelCount(stack);
+        int displayedLevels = Math.max(1, configuredLevels);
+        Component mode = getMode(stack).orElse(CustomerSpawnerMode.CONTINUOUS)
+                .getTitle().copy().withStyle(ChatFormatting.YELLOW);
+        Component levels = Component.translatable(
+                displayedLevels == 1 ? "tooltip.customers.spawner.level" : "tooltip.customers.spawner.levels",
+                displayedLevels
+        ).withStyle(ChatFormatting.AQUA);
+        Component summary = Component.empty().append(mode).append(Component.literal(" · ")).append(levels);
+
+        List<String> names = IntStream.range(0, Math.min(configuredLevels, CustomerSpawnerBlockEntity.MAX_LEVELS))
+                .mapToObj(level -> getRows(stack, level, registries).orElse(List.of()))
+                .flatMap(List::stream)
+                .flatMap(row -> row.items().stream())
+                .filter(item -> !item.isEmpty())
+                .limit(3)
+                .map(item -> item.getHoverName().getString())
+                .toList();
+        String preview = names.isEmpty()
+                ? Component.translatable("tooltip.customers.spawner.none").getString()
+                : String.join(", ", names);
+        Component buys = Component.translatable("tooltip.customers.spawner.buys", preview)
+                .withStyle(ChatFormatting.LIGHT_PURPLE);
+        return List.of(summary, buys);
     }
 
     public static Optional<Component> getCustomName(ItemStack stack) {

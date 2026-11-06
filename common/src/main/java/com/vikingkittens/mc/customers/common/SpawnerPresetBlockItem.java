@@ -1,16 +1,23 @@
 package com.vikingkittens.mc.customers.common;
 
+import java.util.List;
+
 import net.minecraft.core.Registry;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 
 import com.vikingkittens.mc.customers.compatability.LevelCUtils;
+import com.vikingkittens.mc.customers.customer.CustomerSpawnerItem;
+import com.vikingkittens.mc.customers.supplier.SupplierSpawnerItem;
 
 public final class SpawnerPresetBlockItem extends BlockItem {
     private final ResourceKey<Registry<SpawnerPresetDefinition>> presetType;
@@ -21,6 +28,16 @@ public final class SpawnerPresetBlockItem extends BlockItem {
         super(block, properties);
         this.presetType = presetType;
         this.applier = applier;
+    }
+
+    @Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> lines, TooltipFlag flag) {
+        super.appendHoverText(stack, context, lines, flag);
+        if (presetType.equals(SpawnerPresets.CUSTOMER)) {
+            lines.addAll(CustomerSpawnerItem.getTooltipLines(stack, context.registries()));
+        } else if (presetType.equals(SpawnerPresets.SUPPLIER)) {
+            lines.addAll(SupplierSpawnerItem.getTooltipLines(stack, context.registries()));
+        }
     }
 
     @Override

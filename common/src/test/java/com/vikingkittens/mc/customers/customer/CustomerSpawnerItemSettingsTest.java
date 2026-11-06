@@ -6,12 +6,14 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -91,5 +93,44 @@ class CustomerSpawnerItemSettingsTest {
         assertFalse(stack.get(DataComponents.CUSTOM_DATA).copyTag()
                 .getCompound(CustomerSpawnerItem.TAG_SETTINGS).getList("level_settings", 10)
                 .getCompound(0).contains("lockedInventory"));
+    }
+
+    @Test
+    void tooltipShowsModeLevelsAndFirstThreeBuyItems() {
+        ItemStack stack = new ItemStack(Items.STONE);
+        CustomerSpawnerItem.setMode(stack, CustomerSpawnerMode.NIGHT);
+        CustomerSpawnerItem.setLevelCount(stack, 2);
+        CustomerSpawnerItem.setRows(stack, 0, List.of(new CustomerSpawnerItem.Row(
+                List.of(named(Items.COOKIE, "Cookie"), named(Items.MILK_BUCKET, "Milk Bucket")),
+                Optional.empty())), RegistryAccess.EMPTY);
+        CustomerSpawnerItem.setRows(stack, 1, List.of(new CustomerSpawnerItem.Row(
+                List.of(named(Items.BREAD, "Bread"), named(Items.APPLE, "Apple")),
+                Optional.empty())), RegistryAccess.EMPTY);
+
+        List<Component> lines = CustomerSpawnerItem.getTooltipLines(stack, RegistryAccess.EMPTY);
+        Component mode = lines.get(0).getSiblings().get(0);
+        Component levels = lines.get(0).getSiblings().get(2);
+        assertEquals("titles.customers.spawn_mode.night", ((TranslatableContents)mode.getContents()).getKey());
+        assertEquals(ChatFormatting.YELLOW.getColor(), mode.getStyle().getColor().getValue());
+        assertEquals("tooltip.customers.spawner.levels", ((TranslatableContents)levels.getContents()).getKey());
+        assertEquals(ChatFormatting.AQUA.getColor(), levels.getStyle().getColor().getValue());
+        assertEquals(2, ((TranslatableContents)levels.getContents()).getArgs()[0]);
+        assertEquals("Cookie, Milk Bucket, Bread",
+                ((TranslatableContents)lines.get(1).getContents()).getArgs()[0]);
+        assertEquals(ChatFormatting.LIGHT_PURPLE.getColor(), lines.get(1).getStyle().getColor().getValue());
+    }
+
+    @Test
+    void blankSpawnerTooltipShowsOneLevel() {
+        List<Component> lines = CustomerSpawnerItem.getTooltipLines(new ItemStack(Items.STONE), RegistryAccess.EMPTY);
+        Component levels = lines.get(0).getSiblings().get(2);
+        assertEquals("tooltip.customers.spawner.level", ((TranslatableContents)levels.getContents()).getKey());
+        assertEquals(1, ((TranslatableContents)levels.getContents()).getArgs()[0]);
+    }
+
+    private static ItemStack named(net.minecraft.world.item.Item item, String name) {
+        ItemStack stack = new ItemStack(item);
+        stack.set(DataComponents.CUSTOM_NAME, Component.literal(name));
+        return stack;
     }
 }
