@@ -1,12 +1,12 @@
 {
   "parent": "customers:block/customer_spawner_block_continuous",
   "overrides": [
-    { "predicate": { "customers:spawner_mode": 1 }, "model": "customers:block/customer_spawner_block_manual" },
-    { "predicate": { "customers:spawner_mode": 2 }, "model": "customers:block/customer_spawner_block_day" },
-    { "predicate": { "customers:spawner_mode": 3 }, "model": "customers:block/customer_spawner_block_night" },
-    { "predicate": { "customers:spawner_mode": 4 }, "model": "customers:block/customer_spawner_block_breakfast" },
-    { "predicate": { "customers:spawner_mode": 5 }, "model": "customers:block/customer_spawner_block_lunch" },
-    { "predicate": { "customers:spawner_mode": 6 }, "model": "customers:block/customer_spawner_block_dinner" },
+    { "predicate": { "customers:spawner_mode": 0.01 }, "model": "customers:block/customer_spawner_block_manual" },
+    { "predicate": { "customers:spawner_mode": 0.02 }, "model": "customers:block/customer_spawner_block_day" },
+    { "predicate": { "customers:spawner_mode": 0.03 }, "model": "customers:block/customer_spawner_block_night" },
+    { "predicate": { "customers:spawner_mode": 0.04 }, "model": "customers:block/customer_spawner_block_breakfast" },
+    { "predicate": { "customers:spawner_mode": 0.05 }, "model": "customers:block/customer_spawner_block_lunch" },
+    { "predicate": { "customers:spawner_mode": 0.06 }, "model": "customers:block/customer_spawner_block_dinner" },
     { "predicate": { "customers:has_spawner_icon": 1 }, "model": "customers:item/customer_spawner_icon" }
   ]
 }

@@ -63,7 +63,7 @@ class CustomerSpawnerItemTest {
                 itemData.put(CustomerSpawnerItem.TAG_SETTINGS, settings);
             });
 
-            assertEquals((float) mode.ordinal(), CustomerSpawnerItem.predicateValueSpawnerMode(stack));
+            assertEquals((float)(mode.ordinal() * 0.01D), CustomerSpawnerItem.predicateValueSpawnerMode(stack));
         }
     }
 

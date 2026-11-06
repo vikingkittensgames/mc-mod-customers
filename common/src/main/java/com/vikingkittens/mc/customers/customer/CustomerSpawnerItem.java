@@ -6,7 +6,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import net.minecraft.client.renderer.item.ItemProperties;
+import dev.architectury.registry.item.ItemPropertiesRegistry;
+
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -27,6 +28,7 @@ public final class CustomerSpawnerItem {
     private static final String TAG_LEVELS = TAG_LEVEL_SETTINGS;
     private static final String TAG_ICON = "icon";
     private static final String TAG_MODE = "mode";
+    private static final double MODE_PREDICATE_STEP = 0.01D;
 
     public record Row(List<ItemStack> items, Optional<ItemStack> cost) {}
     public record EnabledPet(String id, Optional<ResourceLocation> food) {}
@@ -34,16 +36,16 @@ public final class CustomerSpawnerItem {
     private CustomerSpawnerItem() {}
 
     public static void register() {
-        ItemProperties.register(CustomerSpawner.CUSTOMER_SPAWNER_ITEM.get(),
+        ItemPropertiesRegistry.register(CustomerSpawner.CUSTOMER_SPAWNER_ITEM.get(),
                 ResourceLocation.fromNamespaceAndPath(Customers.MODID, "spawner_mode"),
                 (stack, level, entity, seed) -> predicateValueSpawnerMode(stack));
-        ItemProperties.register(CustomerSpawner.CUSTOMER_SPAWNER_ITEM.get(),
+        ItemPropertiesRegistry.register(CustomerSpawner.CUSTOMER_SPAWNER_ITEM.get(),
                 ResourceLocation.fromNamespaceAndPath(Customers.MODID, "has_spawner_icon"),
                 (stack, level, entity, seed) -> getIcon(stack).isPresent() ? 1.0F : 0.0F);
     }
 
     static float predicateValueSpawnerMode(ItemStack stack) {
-        return getMode(stack).map(CustomerSpawnerMode::ordinal).orElse(0);
+        return getMode(stack).map(mode -> (float)(mode.ordinal() * MODE_PREDICATE_STEP)).orElse(0.0F);
     }
 
     public static Optional<Component> getCustomName(ItemStack stack) {
@@ -172,7 +174,9 @@ public final class CustomerSpawnerItem {
             for (int item = 0; item < itemTags.size(); item++) {
                 ItemStack.parse(registries, itemTags.getCompound(item)).ifPresent(items::add);
             }
-            rows.add(new Row(List.copyOf(items), ItemStack.parse(registries, entry.getCompound("cost"))));
+            Optional<ItemStack> cost = entry.contains("cost", Tag.TAG_COMPOUND)
+                    ? ItemStack.parse(registries, entry.getCompound("cost")) : Optional.empty();
+            rows.add(new Row(List.copyOf(items), cost));
         }
         return Optional.of(List.copyOf(rows));
     }

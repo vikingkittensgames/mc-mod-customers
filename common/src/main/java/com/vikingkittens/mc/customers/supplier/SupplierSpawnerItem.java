@@ -5,7 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import net.minecraft.client.renderer.item.ItemProperties;
+import dev.architectury.registry.item.ItemPropertiesRegistry;
+
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -32,7 +33,7 @@ public final class SupplierSpawnerItem {
     private SupplierSpawnerItem() {}
 
     public static void register() {
-        ItemProperties.register(SupplierSpawner.SUPPLIER_SPAWNER_ITEM.get(),
+        ItemPropertiesRegistry.register(SupplierSpawner.SUPPLIER_SPAWNER_ITEM.get(),
                 ResourceLocation.fromNamespaceAndPath(Customers.MODID, "has_spawner_icon"),
                 (stack, level, entity, seed) -> getIcon(stack).isPresent() ? 1.0F : 0.0F);
     }
@@ -88,8 +89,10 @@ public final class SupplierSpawnerItem {
         ListTag list = settings.getList(TAG_ITEMS, Tag.TAG_COMPOUND);
         for (int index = 0; index < list.size(); index++) {
             CompoundTag pair = list.getCompound(index);
+            Optional<ItemStack> cost = pair.contains("cost", Tag.TAG_COMPOUND)
+                    ? ItemStack.parse(registries, pair.getCompound("cost")) : Optional.empty();
             ItemStack.parse(registries, pair.getCompound("item")).ifPresent(item ->
-                    offers.add(new Offer(item, ItemStack.parse(registries, pair.getCompound("cost")))));
+                    offers.add(new Offer(item, cost)));
         }
         return Optional.of(List.copyOf(offers));
     }

@@ -160,6 +160,8 @@ public class SupplierSpawnerBlockScreen
     }
 
     private void renderInventoryLocks(GuiGraphics graphics) {
+        graphics.pose().pushPose();
+        graphics.pose().translate(0.0F, 0.0F, 300.0F);
         for (int row = 0; row < 6; row++) {
             for (int column = 0; column < 8; column++) {
                 int slot = SupplierSpawnerBlockMenu.getContainerSlotIndex(row, column);
@@ -178,6 +180,7 @@ public class SupplierSpawnerBlockScreen
                 }
             }
         }
+        graphics.pose().popPose();
     }
 
     private void renderAutomaticCostTooltip(GuiGraphics graphics, int mouseX, int mouseY) {

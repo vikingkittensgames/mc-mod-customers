@@ -1,6 +1,7 @@
 package com.vikingkittens.mc.customers.client.supplier;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -14,6 +15,7 @@ public final class SupplierSpawnerIconBlockEntityRenderer implements BlockEntity
     @Override
     public void render(SupplierSpawnerBlockEntity entity, float partialTick, PoseStack poseStack,
             MultiBufferSource buffers, int light, int overlay) {
-        if (entity.getIcon() != null) SpawnerIconRenderer.render(entity.getIcon(), poseStack, buffers, light, overlay);
+        if (entity.getIcon() != null) SpawnerIconRenderer.render(entity.getIcon(), poseStack, buffers,
+                LevelRenderer.getLightColor(entity.getLevel(), entity.getBlockPos().above()), overlay);
     }
 }

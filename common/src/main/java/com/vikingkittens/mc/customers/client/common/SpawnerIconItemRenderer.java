@@ -30,7 +30,6 @@ public final class SpawnerIconItemRenderer {
             state = SupplierSpawner.SUPPLIER_SPAWNER_BLOCK.get().defaultBlockState();
         }
         poseStack.pushPose();
-        poseStack.translate(-0.5D, -0.5D, -0.5D);
         Minecraft.getInstance().getBlockRenderer().renderSingleBlock(state, poseStack, buffers, light, overlay);
         if (icon != null) SpawnerIconRenderer.render(icon, poseStack, buffers, light, overlay);
         poseStack.popPose();

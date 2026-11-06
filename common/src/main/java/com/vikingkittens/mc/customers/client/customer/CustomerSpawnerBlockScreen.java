@@ -366,8 +366,8 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         renderBackground(graphics, mouseX, mouseY, partialTick);
         super.render(graphics, mouseX, mouseY, partialTick);
         renderAutomaticCosts(graphics);
-        renderInventoryLocks(graphics);
         renderPetPanel(graphics);
+        renderInventoryLocks(graphics);
         renderTooltip(graphics, mouseX, mouseY);
         renderAutomaticCostTooltip(graphics, mouseX, mouseY);
         renderAvoidBlockTooltip(graphics, mouseX, mouseY);
@@ -461,6 +461,8 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
     }
 
     private void renderInventoryLocks(GuiGraphics graphics) {
+        graphics.pose().pushPose();
+        graphics.pose().translate(0.0F, 0.0F, 300.0F);
         for (int row = 0; row < 6; row++) {
             for (int column = 0; column < 9; column++) {
                 int slot = column + row * 9;
@@ -482,6 +484,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
         if (petPanelOpen && menu.isInventoryLocked(CustomerSpawnerLevelSettings.PET_FOOD_COST_SLOT)) {
             graphics.blit(LOCK_SMALL, leftPos + 416, topPos + 4, 0, 0, 8, 8, 8, 8);
         }
+        graphics.pose().popPose();
     }
 
     private void renderAutomaticCostTooltip(GuiGraphics graphics, int mouseX, int mouseY) {

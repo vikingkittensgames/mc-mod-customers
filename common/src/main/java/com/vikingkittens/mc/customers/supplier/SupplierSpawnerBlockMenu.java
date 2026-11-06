@@ -250,8 +250,7 @@ public class SupplierSpawnerBlockMenu extends AbstractContainerMenu {
                 if (index == getForceAutoCostDataIndex()) return Economy.forceAutoCost() ? 1 : 0;
                 if (index == getAutoCostDataIndex()) return entity.isAutoCost() ? 1 : 0;
                 if (index >= getInventoryLocksDataStart() && index < getDataSlotCount()) {
-                    int visibleSlot = index - getInventoryLocksDataStart();
-                    return entity.isInventoryLocked(getContainerSlotIndex(visibleSlot / 8, visibleSlot % 8)) ? 1 : 0;
+                    return entity.isInventoryLocked(index - getInventoryLocksDataStart()) ? 1 : 0;
                 }
                 if (index >= getGeneratedCostDataStart()) {
                     int pairIndex = (index - getGeneratedCostDataStart()) / 2;
@@ -299,7 +298,7 @@ public class SupplierSpawnerBlockMenu extends AbstractContainerMenu {
     }
 
     private int getDataSlotCount() {
-        return getInventoryLocksDataStart() + VISIBLE_CONTAINER_SIZE;
+        return getInventoryLocksDataStart() + CONTAINER_SIZE;
     }
 
     private int getInventoryLocksDataStart() {
