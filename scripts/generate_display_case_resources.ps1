@@ -50,21 +50,21 @@ function New-GeometryModel([object] $Source, [string] $State) {
         if ($name.StartsWith("glass_")) {
             return $false
         }
-        if ($name -eq "bottom" -or $name -eq "top") {
+        if ($name -eq "bottom" -or
+                $name -eq "top_front" -or
+                $name -eq "top_back") {
             return $true
         }
         if ($State -eq "single") {
             return $name.EndsWith("_single") -or
-                    $name -eq "glass_left" -or
-                    $name -eq "glass_right"
+                    $name -eq "top_left" -or
+                    $name -eq "top_right"
         }
         if ($State -eq "left") {
-            return $name.EndsWith("_left") -or
-                    $name -eq "glass_left"
+            return $name.EndsWith("_left")
         }
         if ($State -eq "right") {
-            return $name.EndsWith("_right") -or
-                    $name -eq "glass_right"
+            return $name.EndsWith("_right")
         }
         return $name.EndsWith("_middle")
     })
@@ -90,18 +90,22 @@ function New-GlassModel([object] $Source, [string] $State) {
         }
         if ($State -eq "single") {
             return $name -eq "glass_front_single" -or
+                    $name -eq "glass_top_single" -or
                     $name -eq "glass_left" -or
                     $name -eq "glass_right"
         }
         if ($State -eq "left") {
             return $name -eq "glass_front_left" -or
+                    $name -eq "glass_top_left" -or
                     $name -eq "glass_left"
         }
         if ($State -eq "right") {
             return $name -eq "glass_front_right" -or
+                    $name -eq "glass_top_right" -or
                     $name -eq "glass_right"
         }
-        return $name -eq "glass_front_middle"
+        return $name -eq "glass_front_middle" -or
+                $name -eq "glass_top_middle"
     })
     foreach ($element in $elements) {
         foreach ($face in $element.faces.psobject.Properties.Value) {
