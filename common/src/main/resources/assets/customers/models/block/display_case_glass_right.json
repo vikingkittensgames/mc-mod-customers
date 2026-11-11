@@ -9,6 +9,40 @@
                  },
     "elements":  [
                      {
+                         "name":  "glass_top_right",
+                         "from":  [
+                                      1,
+                                      14,
+                                      1
+                                  ],
+                         "to":  [
+                                    16,
+                                    15,
+                                    13
+                                ],
+                         "rotation":  {
+                                          "angle":  0,
+                                          "axis":  "x",
+                                          "origin":  [
+                                                         -13,
+                                                         16,
+                                                         1
+                                                     ]
+                                      },
+                         "faces":  {
+                                       "up":  {
+                                                  "uv":  [
+                                                             0,
+                                                             8.5,
+                                                             7.5,
+                                                             15.5
+                                                         ],
+                                                  "rotation":  180,
+                                                  "texture":  "#display_case"
+                                              }
+                                   }
+                     },
+                     {
                          "name":  "glass_right",
                          "from":  [
                                       1,
