@@ -389,7 +389,7 @@
                                    }
                      },
                      {
-                         "name":  "top",
+                         "name":  "top_front",
                          "from":  [
                                       0,
                                       14,
@@ -398,7 +398,7 @@
                          "to":  [
                                     16,
                                     16,
-                                    16
+                                    1
                                 ],
                          "rotation":  {
                                           "angle":  0,
@@ -423,7 +423,7 @@
                                                     "uv":  [
                                                                0,
                                                                0,
-                                                               8,
+                                                               0.5,
                                                                1
                                                            ],
                                                     "texture":  "#display_case"
@@ -441,7 +441,7 @@
                                                     "uv":  [
                                                                0,
                                                                0,
-                                                               8,
+                                                               0.5,
                                                                1
                                                            ],
                                                     "texture":  "#display_case"
@@ -451,7 +451,7 @@
                                                              0,
                                                              0,
                                                              8,
-                                                             8
+                                                             0.5
                                                          ],
                                                   "texture":  "#display_case"
                                               },
@@ -460,7 +460,241 @@
                                                                0,
                                                                0,
                                                                8,
+                                                               0.5
+                                                           ],
+                                                    "texture":  "#display_case"
+                                                }
+                                   }
+                     },
+                     {
+                         "name":  "top_back",
+                         "from":  [
+                                      0,
+                                      14,
+                                      13
+                                  ],
+                         "to":  [
+                                    16,
+                                    16,
+                                    16
+                                ],
+                         "rotation":  {
+                                          "angle":  0,
+                                          "axis":  "y",
+                                          "origin":  [
+                                                         0,
+                                                         14,
+                                                         15
+                                                     ]
+                                      },
+                         "faces":  {
+                                       "north":  {
+                                                     "uv":  [
+                                                                0,
+                                                                0,
+                                                                8,
+                                                                1
+                                                            ],
+                                                     "texture":  "#display_case"
+                                                 },
+                                       "east":  {
+                                                    "uv":  [
+                                                               0,
+                                                               0,
+                                                               1.5,
+                                                               1
+                                                           ],
+                                                    "texture":  "#display_case"
+                                                },
+                                       "south":  {
+                                                     "uv":  [
+                                                                0,
+                                                                0,
+                                                                8,
+                                                                1
+                                                            ],
+                                                     "texture":  "#display_case"
+                                                 },
+                                       "west":  {
+                                                    "uv":  [
+                                                               6.5,
+                                                               0,
+                                                               8,
+                                                               1
+                                                           ],
+                                                    "texture":  "#display_case"
+                                                },
+                                       "up":  {
+                                                  "uv":  [
+                                                             0,
+                                                             6.5,
+                                                             8,
+                                                             8
+                                                         ],
+                                                  "texture":  "#display_case"
+                                              },
+                                       "down":  {
+                                                    "uv":  [
+                                                               0,
+                                                               6.5,
+                                                               8,
                                                                8
+                                                           ],
+                                                    "texture":  "#display_case"
+                                                }
+                                   }
+                     },
+                     {
+                         "name":  "top_left",
+                         "from":  [
+                                      15,
+                                      14,
+                                      1
+                                  ],
+                         "to":  [
+                                    16,
+                                    16,
+                                    13
+                                ],
+                         "rotation":  {
+                                          "angle":  0,
+                                          "axis":  "y",
+                                          "origin":  [
+                                                         15,
+                                                         14,
+                                                         14
+                                                     ]
+                                      },
+                         "faces":  {
+                                       "north":  {
+                                                     "uv":  [
+                                                                0,
+                                                                0,
+                                                                0.5,
+                                                                1
+                                                            ],
+                                                     "texture":  "#display_case"
+                                                 },
+                                       "east":  {
+                                                    "uv":  [
+                                                               0.5,
+                                                               0,
+                                                               6.5,
+                                                               1
+                                                           ],
+                                                    "texture":  "#display_case"
+                                                },
+                                       "south":  {
+                                                     "uv":  [
+                                                                0,
+                                                                0,
+                                                                0.5,
+                                                                1
+                                                            ],
+                                                     "texture":  "#display_case"
+                                                 },
+                                       "west":  {
+                                                    "uv":  [
+                                                               0.5,
+                                                               0,
+                                                               6.5,
+                                                               1
+                                                           ],
+                                                    "texture":  "#display_case"
+                                                },
+                                       "up":  {
+                                                  "uv":  [
+                                                             0,
+                                                             0.5,
+                                                             0.5,
+                                                             6.5
+                                                         ],
+                                                  "texture":  "#display_case"
+                                              },
+                                       "down":  {
+                                                    "uv":  [
+                                                               0,
+                                                               0.5,
+                                                               0.5,
+                                                               6.5
+                                                           ],
+                                                    "texture":  "#display_case"
+                                                }
+                                   }
+                     },
+                     {
+                         "name":  "top_right",
+                         "from":  [
+                                      0,
+                                      14,
+                                      1
+                                  ],
+                         "to":  [
+                                    1,
+                                    16,
+                                    13
+                                ],
+                         "rotation":  {
+                                          "angle":  0,
+                                          "axis":  "y",
+                                          "origin":  [
+                                                         0,
+                                                         14,
+                                                         14
+                                                     ]
+                                      },
+                         "faces":  {
+                                       "north":  {
+                                                     "uv":  [
+                                                                0,
+                                                                0,
+                                                                0.5,
+                                                                1
+                                                            ],
+                                                     "texture":  "#display_case"
+                                                 },
+                                       "east":  {
+                                                    "uv":  [
+                                                               0.5,
+                                                               0,
+                                                               6.5,
+                                                               1
+                                                           ],
+                                                    "texture":  "#display_case"
+                                                },
+                                       "south":  {
+                                                     "uv":  [
+                                                                0,
+                                                                0,
+                                                                0.5,
+                                                                1
+                                                            ],
+                                                     "texture":  "#display_case"
+                                                 },
+                                       "west":  {
+                                                    "uv":  [
+                                                               0.5,
+                                                               0,
+                                                               6.5,
+                                                               1
+                                                           ],
+                                                    "texture":  "#display_case"
+                                                },
+                                       "up":  {
+                                                  "uv":  [
+                                                             0,
+                                                             0.5,
+                                                             0.5,
+                                                             6.5
+                                                         ],
+                                                  "texture":  "#display_case"
+                                              },
+                                       "down":  {
+                                                    "uv":  [
+                                                               0,
+                                                               0.5,
+                                                               0.5,
+                                                               6.5
                                                            ],
                                                     "texture":  "#display_case"
                                                 }
