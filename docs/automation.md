@@ -29,5 +29,6 @@ the hopper to know when it's empty to signal crafting more.
 
 ### Automation topics
 
+* [Customer Pickup Counter Blocks]({{ '/counters/pickup-counters.html' | relative_url }})
 * [Customer Payment Boxes]({{ '/automation/payment-boxes.html' | relative_url }})
 
