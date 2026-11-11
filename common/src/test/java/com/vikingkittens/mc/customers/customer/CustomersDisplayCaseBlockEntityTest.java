@@ -43,6 +43,37 @@ class CustomersDisplayCaseBlockEntityTest {
         assertEquals(5, restored.getItem(11).getCount());
     }
 
+    @Test
+    void extractsOnlyTheRequestedCountFromAMatchingSlot() {
+        CustomersDisplayCaseBlockEntity displayCase = createDisplayCase();
+        displayCase.setItem(0, new ItemStack(Items.COOKIE, 8));
+
+        ItemStack extracted = displayCase.extract(
+                0,
+                new ItemStack(Items.COOKIE),
+                3
+        );
+
+        assertTrue(extracted.is(Items.COOKIE));
+        assertEquals(3, extracted.getCount());
+        assertEquals(5, displayCase.getItem(0).getCount());
+    }
+
+    @Test
+    void doesNotExtractWhenTheExpectedStackDoesNotMatch() {
+        CustomersDisplayCaseBlockEntity displayCase = createDisplayCase();
+        displayCase.setItem(0, new ItemStack(Items.COOKIE, 8));
+
+        ItemStack extracted = displayCase.extract(
+                0,
+                new ItemStack(Items.APPLE),
+                3
+        );
+
+        assertTrue(extracted.isEmpty());
+        assertEquals(8, displayCase.getItem(0).getCount());
+    }
+
     @SuppressWarnings("unchecked")
     private static CustomersDisplayCaseBlockEntity createDisplayCase() {
         BlockEntityType<CustomersDisplayCaseBlockEntity> type =

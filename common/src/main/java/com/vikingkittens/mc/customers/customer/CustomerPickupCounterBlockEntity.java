@@ -564,6 +564,125 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
         return List.copyOf(counters);
     }
 
+    static List<CustomersDisplayCaseBlockEntity> getAdjacentDisplayCases(
+            Level level,
+            List<CustomerPickupCounterBlockEntity> counters
+    ) {
+        Set<BlockPos> visited = new LinkedHashSet<>();
+        List<CustomersDisplayCaseBlockEntity> displayCases =
+                new ArrayList<>();
+        for (CustomerPickupCounterBlockEntity counter : counters) {
+            for (Direction direction : CONNECTED_DIRECTIONS) {
+                BlockPos displayCasePos =
+                        counter.getBlockPos().relative(direction);
+                if (visited.add(displayCasePos)
+                        && level.getBlockEntity(displayCasePos)
+                                instanceof CustomersDisplayCaseBlockEntity
+                                        displayCase) {
+                    displayCases.add(displayCase);
+                }
+            }
+        }
+        return List.copyOf(displayCases);
+    }
+
+    static boolean transferDisplayCaseSlot(
+            List<CustomerPickupCounterBlockEntity> counters,
+            List<CustomerSpawnerBlockEntity> spawners,
+            CustomersDisplayCaseBlockEntity displayCase,
+            int slot
+    ) {
+        ItemStack offered = displayCase.getItem(slot).copy();
+        if (offered.isEmpty()) {
+            return false;
+        }
+        ItemStack previewRemainder = previewLiveDemandStack(
+                counters,
+                spawners,
+                null,
+                offered
+        );
+        int acceptedCount =
+                offered.getCount() - previewRemainder.getCount();
+        if (acceptedCount <= 0) {
+            return false;
+        }
+        ItemStack extracted = displayCase.extract(
+                slot,
+                offered,
+                acceptedCount
+        );
+        if (extracted.isEmpty()) {
+            return false;
+        }
+        ItemStack insertionRemainder = insertLiveDemandStack(
+                counters,
+                spawners,
+                null,
+                extracted
+        );
+        restoreDisplayCaseRemainder(
+                displayCase,
+                slot,
+                insertionRemainder
+        );
+        return insertionRemainder.getCount() < extracted.getCount();
+    }
+
+    private static void restoreDisplayCaseRemainder(
+            CustomersDisplayCaseBlockEntity displayCase,
+            int slot,
+            ItemStack remainder
+    ) {
+        if (remainder.isEmpty()) {
+            return;
+        }
+        ItemStack stored = displayCase.getItem(slot);
+        if (stored.isEmpty()) {
+            displayCase.setItem(slot, remainder.copy());
+            displayCase.setChanged();
+            return;
+        }
+        if (!ItemStackCUtils.isSameItemAndTags(stored, remainder)) {
+            throw new IllegalStateException(
+                    "Display-case source slot changed during transfer"
+            );
+        }
+        stored.grow(remainder.getCount());
+        displayCase.setChanged();
+    }
+
+    private static void pullFromAdjacentDisplayCases(
+            Level level,
+            BlockPos pos,
+            CustomerPickupCounterBlockEntity counter
+    ) {
+        List<CustomerPickupCounterBlockEntity> counters =
+                getConnectedCounters(level, pos);
+        if (!isRevalidationLeader(counters, pos)) {
+            return;
+        }
+        List<CustomerSpawnerBlockEntity> spawners =
+                counter.getCustomerSpawners(
+                        level,
+                        pos,
+                        CustomerScope.COUNTER_BLOCK
+                );
+        for (CustomersDisplayCaseBlockEntity displayCase
+                : getAdjacentDisplayCases(level, counters)) {
+            for (int slot = 0;
+                    slot < displayCase.getContainerSize();
+                    slot++) {
+                transferDisplayCaseSlot(
+                        counters,
+                        spawners,
+                        displayCase,
+                        slot
+                );
+            }
+        }
+    }
+
     /**
      * Traverses horizontally connected pickup counters without revisiting a
      * position.
@@ -1525,6 +1644,7 @@ public class CustomerPickupCounterBlockEntity extends BlockEntity {
         )) {
             counter.lastItemCollectionGameTime = level.getGameTime();
             acceptDroppedItems(level, pos, counter);
+            pullFromAdjacentDisplayCases(level, pos, counter);
         }
         if (!shouldRevalidate(level.getGameTime(), pos)) {
             return;
