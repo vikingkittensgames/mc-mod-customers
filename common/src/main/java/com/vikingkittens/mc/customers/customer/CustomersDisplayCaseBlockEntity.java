@@ -15,6 +15,8 @@ import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
+import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
+
 public class CustomersDisplayCaseBlockEntity
         extends BaseContainerBlockEntity {
     public static final int INVENTORY_SIZE = 12;
@@ -62,6 +64,32 @@ public class CustomersDisplayCaseBlockEntity
                 inventory,
                 this
         );
+    }
+
+    ItemStack extract(
+            int slot,
+            ItemStack expectedStack,
+            int maximumCount
+    ) {
+        if (maximumCount <= 0 || expectedStack.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack storedStack = getItem(slot);
+        if (storedStack.isEmpty()
+                || !ItemStackCUtils.isSameItemAndTags(
+                        storedStack,
+                        expectedStack
+                )) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack extracted = removeItem(
+                slot,
+                Math.min(maximumCount, storedStack.getCount())
+        );
+        if (!extracted.isEmpty()) {
+            setChanged();
+        }
+        return extracted;
     }
 
     @Override

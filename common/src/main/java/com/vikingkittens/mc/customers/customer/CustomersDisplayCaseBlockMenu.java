@@ -98,7 +98,37 @@ public class CustomersDisplayCaseBlockMenu
 
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
-        return ItemStack.EMPTY;
+        if (index < 0 || index >= slots.size()) {
+            return ItemStack.EMPTY;
+        }
+        Slot slot = slots.get(index);
+        if (!slot.hasItem()) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack source = slot.getItem();
+        ItemStack copy = source.copy();
+        boolean moved = index < DISPLAY_SLOT_COUNT
+                ? moveItemStackTo(
+                        source,
+                        DISPLAY_SLOT_COUNT,
+                        slots.size(),
+                        true
+                )
+                : moveItemStackTo(
+                        source,
+                        0,
+                        DISPLAY_SLOT_COUNT,
+                        false
+                );
+        if (!moved) {
+            return ItemStack.EMPTY;
+        }
+        if (source.isEmpty()) {
+            slot.setByPlayer(ItemStack.EMPTY);
+        } else {
+            slot.setChanged();
+        }
+        return copy;
     }
 
     @Override
