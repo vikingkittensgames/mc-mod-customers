@@ -23,3 +23,10 @@ Minecraft 1.21.11's entity rendering pipeline extracts immutable render states b
 adapter therefore snapshots the selected skin, animation inputs, bone transforms, shadow size, and overhead anchor
 through render-state data. Minecraft 1.21.1 keeps its GeckoLib 4 entity-driven adapter. These differences are internal
 and should not change the configured animation-selection rules.
+
+## Render Types
+
+Minecraft 1.21.1 constructs the translucent-no-depth render type from
+`RenderStateShard` state and the block vertex format. Minecraft 1.21.11 uses
+the newer `RenderSetup` and render-pipeline API. `RenderCUtils` keeps this
+version difference outside display-case functionality.
