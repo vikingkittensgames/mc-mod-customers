@@ -89,12 +89,16 @@ execution:
   before the block entity is removed.
 - Manual and automated counter insertion use returned remainders to represent
   the only items not transferred.
+- Display-case transfers extract only after demand and counter capacity are
+  previewed. Any unexpected insertion remainder is restored to the source
+  display-case slot.
 
 Regression coverage:
 
 - `CustomerItemConservationSecurityTest`
 - `CustomerPaymentBoxBlockEntityTest`
 - `CustomerPickupCounterDroppedItemTest`
+- `CustomerPickupCounterDisplayCaseTransferSecurityTest`
 - `CustomerPickupCounterInsertionTargetTest`
 
 ## Save and Crash Boundaries
