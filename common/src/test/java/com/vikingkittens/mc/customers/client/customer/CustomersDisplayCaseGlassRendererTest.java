@@ -5,7 +5,7 @@ import java.util.HashSet;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -81,8 +81,8 @@ class CustomersDisplayCaseGlassRendererTest {
         );
     }
 
-    private static ResourceLocation model(String state) {
-        return ResourceLocation.fromNamespaceAndPath(
+    private static Identifier model(String state) {
+        return Identifier.fromNamespaceAndPath(
                 "customers",
                 "block/display_case_glass_" + state
         );

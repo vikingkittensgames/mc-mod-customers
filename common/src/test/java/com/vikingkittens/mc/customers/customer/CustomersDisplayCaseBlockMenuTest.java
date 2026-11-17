@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.EntityEquipment;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
@@ -46,7 +47,10 @@ class CustomersDisplayCaseBlockMenuTest {
     @Test
     void shiftClicksDisplayCaseStacksIntoPlayerInventory() {
         Player player = mock(Player.class);
-        Inventory inventory = new Inventory(player);
+        Inventory inventory = new Inventory(
+                player,
+                new EntityEquipment()
+        );
         SimpleContainer displayCase = new SimpleContainer(12);
         displayCase.setItem(0, new ItemStack(Items.COOKIE, 8));
         CustomersDisplayCaseBlockMenu menu =
@@ -68,7 +72,10 @@ class CustomersDisplayCaseBlockMenuTest {
     @Test
     void shiftClicksPlayerStacksIntoTheDisplayCase() {
         Player player = mock(Player.class);
-        Inventory inventory = new Inventory(player);
+        Inventory inventory = new Inventory(
+                player,
+                new EntityEquipment()
+        );
         inventory.setItem(0, new ItemStack(Items.APPLE, 6));
         SimpleContainer displayCase = new SimpleContainer(12);
         CustomersDisplayCaseBlockMenu menu =
@@ -90,7 +97,10 @@ class CustomersDisplayCaseBlockMenuTest {
     @Test
     void leavesPlayerStackUntouchedWhenDisplayCaseIsFull() {
         Player player = mock(Player.class);
-        Inventory inventory = new Inventory(player);
+        Inventory inventory = new Inventory(
+                player,
+                new EntityEquipment()
+        );
         inventory.setItem(0, new ItemStack(Items.APPLE, 6));
         SimpleContainer displayCase = new SimpleContainer(12);
         for (int slot = 0; slot < 12; slot++) {

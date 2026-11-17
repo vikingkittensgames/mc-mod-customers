@@ -14,6 +14,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import com.vikingkittens.mc.customers.compatability.ItemStackCUtils;
 
@@ -93,25 +95,19 @@ public class CustomersDisplayCaseBlockEntity
     }
 
     @Override
-    protected void loadAdditional(
-            CompoundTag tag,
-            HolderLookup.Provider registries
-    ) {
-        super.loadAdditional(tag, registries);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
         items = NonNullList.withSize(
                 getContainerSize(),
                 ItemStack.EMPTY
         );
-        ContainerHelper.loadAllItems(tag, items, registries);
+        ContainerHelper.loadAllItems(input, items);
     }
 
     @Override
-    protected void saveAdditional(
-            CompoundTag tag,
-            HolderLookup.Provider registries
-    ) {
-        super.saveAdditional(tag, registries);
-        ContainerHelper.saveAllItems(tag, items, registries);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        ContainerHelper.saveAllItems(output, items);
     }
 
     @Override

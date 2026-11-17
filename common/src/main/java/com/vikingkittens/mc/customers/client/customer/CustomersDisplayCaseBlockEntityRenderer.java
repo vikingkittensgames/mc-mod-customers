@@ -1,13 +1,24 @@
 package com.vikingkittens.mc.customers.client.customer;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import org.jspecify.annotations.Nullable;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.item.ItemModelResolver;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
@@ -17,8 +28,10 @@ import com.vikingkittens.mc.customers.customer.CustomersDisplayCaseBlock;
 import com.vikingkittens.mc.customers.customer.CustomersDisplayCaseBlockEntity;
 
 public class CustomersDisplayCaseBlockEntityRenderer
-        implements BlockEntityRenderer<CustomersDisplayCaseBlockEntity> {
+        implements BlockEntityRenderer<CustomersDisplayCaseBlockEntity, CustomersDisplayCaseBlockEntityRenderer.RenderState> {
     static final boolean PITCH_ITEMS = true;
+    private static final float ITEM_SCALE = 0.35F;
+    private static final float STACK_HEIGHT = 0.03F;
     private static final double PITCHED_ITEM_HEIGHT_OFFSET = 0.5D / 16.0D;
     private static final double ITEM_PITCH_DEGREES = 15.0D;
     private static final double SURFACE_OFFSET = 0.0175D;
@@ -37,24 +50,38 @@ public class CustomersDisplayCaseBlockEntityRenderer
             pixels(8.0D, 3.0D, 5.0D),
             pixels(12.0D, 3.0D, 5.0D)
     );
+    private final ItemModelResolver itemModelResolver;
 
     public CustomersDisplayCaseBlockEntityRenderer(
             BlockEntityRendererProvider.Context context
-    ) {}
+    ) {
+        itemModelResolver = context.itemModelResolver();
+    }
 
     @Override
-    public void render(
+    public RenderState createRenderState() {
+        return new RenderState();
+    }
+
+    @Override
+    public void extractRenderState(
             CustomersDisplayCaseBlockEntity displayCase,
+            RenderState renderState,
             float partialTick,
-            PoseStack poseStack,
-            MultiBufferSource buffer,
-            int packedLight,
-            int packedOverlay
+            Vec3 cameraPosition,
+            ModelFeatureRenderer.@Nullable CrumblingOverlay crumblingOverlay
     ) {
-        BlockState state = displayCase.getBlockState();
-        Direction facing = state.getValue(
+        BlockEntityRenderer.super.extractRenderState(
+                displayCase,
+                renderState,
+                partialTick,
+                cameraPosition,
+                crumblingOverlay
+        );
+        Direction facing = displayCase.getBlockState().getValue(
                 CustomersDisplayCaseBlock.FACING
         );
+        List<RenderedItem> renderedItems = new ArrayList<>();
         for (int slot = 0;
                 slot < displayCase.getContainerSize();
                 slot++) {
@@ -62,31 +89,77 @@ public class CustomersDisplayCaseBlockEntityRenderer
             if (stack.isEmpty()) {
                 continue;
             }
-            Vec3 position = getItemRenderPosition(
-                    slot,
-                    facing
+            Vec3 position = getItemRenderPosition(slot, facing);
+            int modelCount = RenderingUtils.getModelCount(
+                    stack.getCount(),
+                    stack.getMaxStackSize()
             );
+            for (int modelIndex = 0;
+                    modelIndex < modelCount;
+                    modelIndex++) {
+                ItemStackRenderState itemRenderState =
+                        new ItemStackRenderState();
+                itemModelResolver.updateForTopItem(
+                        itemRenderState,
+                        stack,
+                        ItemDisplayContext.FIXED,
+                        displayCase.getLevel(),
+                        null,
+                        (int) displayCase.getBlockPos().asLong()
+                                + slot
+                                + modelIndex
+                );
+                renderedItems.add(new RenderedItem(
+                        itemRenderState,
+                        position.add(
+                                0.0D,
+                                STACK_HEIGHT * modelIndex,
+                                0.0D
+                        ),
+                        getItemPitch(facing),
+                        getItemRotation(facing)
+                ));
+            }
+        }
+        renderState.items = renderedItems;
+    }
+
+    @Override
+    public void submit(
+            RenderState renderState,
+            PoseStack poseStack,
+            SubmitNodeCollector nodeCollector,
+            CameraRenderState cameraRenderState
+    ) {
+        for (RenderedItem item : renderState.items) {
+            if (item.renderState().isEmpty()) {
+                continue;
+            }
             poseStack.pushPose();
-            poseStack.translate(position.x, position.y, position.z);
-            applyItemPitch(poseStack, getItemPitch(facing));
-            RenderingUtils.renderCenteredItemStackOnSurface(
-                    stack,
-                    Vec3.ZERO,
+            poseStack.translate(
+                    item.position().x,
+                    item.position().y,
+                    item.position().z
+            );
+            applyItemPitch(poseStack, item.pitch());
+            poseStack.mulPose(Axis.YP.rotationDegrees(item.rotation()));
+            poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
+            poseStack.scale(ITEM_SCALE, ITEM_SCALE, ITEM_SCALE);
+            item.renderState().submit(
                     poseStack,
-                    buffer,
-                    packedLight,
-                    displayCase.getLevel(),
-                    (int) displayCase.getBlockPos().asLong() + slot,
-                    getItemRotation(facing)
+                    nodeCollector,
+                    renderState.lightCoords,
+                    OverlayTexture.NO_OVERLAY,
+                    0
             );
             poseStack.popPose();
         }
         CustomersDisplayCaseGlassRenderer.render(
-                state,
+                renderState.blockState,
                 poseStack,
-                buffer,
-                packedLight,
-                packedOverlay
+                nodeCollector,
+                renderState.lightCoords,
+                OverlayTexture.NO_OVERLAY
         );
     }
 
@@ -175,4 +248,15 @@ public class CustomersDisplayCaseBlockEntityRenderer
             poseStack.mulPose(Axis.ZP.rotationDegrees((float) pitch.z));
         }
     }
+
+    public static class RenderState extends BlockEntityRenderState {
+        private List<RenderedItem> items = Collections.emptyList();
+    }
+
+    private record RenderedItem(
+            ItemStackRenderState renderState,
+            Vec3 position,
+            Vec3 pitch,
+            float rotation
+    ) {}
 }

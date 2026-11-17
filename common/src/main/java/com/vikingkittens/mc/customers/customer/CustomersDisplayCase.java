@@ -20,6 +20,8 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 
 import com.vikingkittens.mc.customers.Customers;
+import com.vikingkittens.mc.customers.compatability.CustomersServices;
+import com.vikingkittens.mc.customers.compatability.RegistrationCUtils;
 import com.vikingkittens.mc.customers.customer.data.CustomerOverlayBlockVariant;
 import com.vikingkittens.mc.customers.customer.data.CustomerOverlayBlockVariants;
 
@@ -50,12 +52,12 @@ public final class CustomersDisplayCase {
             BlockEntityType<CustomersDisplayCaseBlockEntity>
     > BLOCK_ENTITY = BLOCK_ENTITY_REGISTRY.register(
             NAME,
-            () -> BlockEntityType.Builder.of(
+            () -> CustomersServices.registration().createBlockEntityType(
                     CustomersDisplayCase::createBlockEntity,
                     BLOCKS.values().stream()
                             .map(RegistrySupplier::get)
                             .toArray(CustomersDisplayCaseBlock[]::new)
-            ).build(null)
+            )
     );
     public static final RegistrySupplier<
             MenuType<CustomersDisplayCaseBlockMenu>
@@ -94,10 +96,11 @@ public final class CustomersDisplayCase {
                 : CustomerOverlayBlockVariants.ALL) {
             blocks.put(
                     variant,
-                    BLOCK_REGISTRY.register(
+                    RegistrationCUtils.registerBlock(
+                            BLOCK_REGISTRY,
                             getBlockName(variant),
-                            () -> new CustomersDisplayCaseBlock(
-                                    createProperties(variant)
+                            key -> new CustomersDisplayCaseBlock(
+                                    createProperties(variant).setId(key)
                             )
                     )
             );
@@ -131,11 +134,14 @@ public final class CustomersDisplayCase {
         > entry : BLOCKS.entrySet()) {
             items.put(
                     entry.getKey(),
-                    ITEM_REGISTRY.register(
+                    RegistrationCUtils.registerItem(
+                            ITEM_REGISTRY,
                             getBlockName(entry.getKey()),
-                            () -> new BlockItem(
+                            key -> new BlockItem(
                                     entry.getValue().get(),
                                     new Item.Properties()
+                                            .setId(key)
+                                            .useBlockDescriptionPrefix()
                             )
                     )
             );

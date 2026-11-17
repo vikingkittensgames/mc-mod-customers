@@ -3,6 +3,7 @@ package com.vikingkittens.mc.customers.client.customer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 import org.jspecify.annotations.Nullable;
 
@@ -17,7 +18,6 @@ import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -71,7 +71,7 @@ public class CustomerPickupCounterBlockEntityRenderer
         for (int index = 0; index < positions.size(); index++) {
             Vec3 position = positions.get(index);
             ItemStack stack = items.get(index);
-            int modelCount = getModelCount(
+            int modelCount = RenderingUtils.getModelCount(
                     stack.getCount(),
                     stack.getMaxStackSize()
             );
@@ -137,15 +137,6 @@ public class CustomerPickupCounterBlockEntityRenderer
         return ITEM_POSITIONS.subList(
                 0,
                 Math.min(itemCount, ITEM_POSITIONS.size())
-        );
-    }
-
-    static int getModelCount(int itemCount, int maxStackSize) {
-        if (itemCount <= 1) {
-            return 1;
-        }
-        return 1 + Mth.ceil(
-                (float) itemCount / maxStackSize * 4.0F
         );
     }
 

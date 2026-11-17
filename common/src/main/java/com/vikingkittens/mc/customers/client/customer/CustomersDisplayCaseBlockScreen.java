@@ -2,8 +2,9 @@ package com.vikingkittens.mc.customers.client.customer;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 import com.vikingkittens.mc.customers.Customers;
@@ -11,8 +12,8 @@ import com.vikingkittens.mc.customers.customer.CustomersDisplayCaseBlockMenu;
 
 public class CustomersDisplayCaseBlockScreen
         extends AbstractContainerScreen<CustomersDisplayCaseBlockMenu> {
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(
+    private static final Identifier TEXTURE =
+            Identifier.fromNamespaceAndPath(
                     Customers.MODID,
                     "textures/gui/display_case_ui.png"
             );
@@ -37,6 +38,7 @@ public class CustomersDisplayCaseBlockScreen
             int mouseY
     ) {
         graphics.blit(
+                RenderPipelines.GUI_TEXTURED,
                 TEXTURE,
                 leftPos,
                 topPos,

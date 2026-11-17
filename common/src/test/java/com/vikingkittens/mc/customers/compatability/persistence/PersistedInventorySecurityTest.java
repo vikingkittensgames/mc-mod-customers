@@ -7,9 +7,11 @@ import org.junit.jupiter.api.Test;
 
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 
@@ -48,15 +50,17 @@ class PersistedInventorySecurityTest {
     }
 
     private static CompoundTag serializedInventory(int size) {
-        CompoundTag itemPrefix = new CompoundTag();
-        itemPrefix.putInt("Slot", 8);
-        CompoundTag item = (CompoundTag) new ItemStack(Items.DIAMOND, 2)
-                .save(RegistryAccess.EMPTY, itemPrefix);
-        ListTag items = new ListTag();
-        items.add(item);
-        CompoundTag serialized = new CompoundTag();
-        serialized.putInt("Size", size);
-        serialized.put("Items", items);
-        return serialized;
+        TagValueOutput output = TagValueOutput.createWithContext(
+                ProblemReporter.DISCARDING,
+                RegistryAccess.EMPTY
+        );
+        output.putInt("Size", size);
+        ValueOutput item = output.childrenList("Items").addChild();
+        item.putInt("Slot", 8);
+        item.store(
+                ItemStack.MAP_CODEC,
+                new ItemStack(Items.DIAMOND, 2)
+        );
+        return output.buildResult();
     }
 }

@@ -7,7 +7,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -158,7 +157,7 @@ class CustomersDisplayCaseBlockTest {
         Player player = mock(Player.class);
         when(player.isSecondaryUseActive()).thenReturn(true);
 
-        ItemInteractionResult result = block.useItemOn(
+        InteractionResult result = block.useItemOn(
                 new ItemStack(Items.STONE),
                 mock(BlockState.class),
                 level,
@@ -169,7 +168,7 @@ class CustomersDisplayCaseBlockTest {
         );
 
         assertEquals(
-                ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION,
+                InteractionResult.TRY_WITH_EMPTY_HAND,
                 result
         );
         verifyNoInteractions(level);

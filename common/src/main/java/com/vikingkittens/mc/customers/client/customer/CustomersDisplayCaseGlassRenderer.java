@@ -1,18 +1,15 @@
 package com.vikingkittens.mc.customers.client.customer;
 
 import java.util.List;
-
-import dev.architectury.platform.Platform;
+import java.util.Objects;
+import java.util.function.Function;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.client.renderer.OrderedSubmitNodeCollector;
+import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.state.BlockState;
 
 import com.vikingkittens.mc.customers.Customers;
@@ -20,36 +17,30 @@ import com.vikingkittens.mc.customers.client.compatability.RenderCUtils;
 import com.vikingkittens.mc.customers.customer.CustomersDisplayCaseBlock;
 
 public final class CustomersDisplayCaseGlassRenderer {
-    private static final String FABRIC_MODEL_VARIANT = "fabric_resource";
-    private static final String NEOFORGE_MODEL_VARIANT = "standalone";
     private static final List<String> MODEL_STATES = List.of(
             "single",
             "left",
             "middle",
             "right"
     );
-    private static final List<ResourceLocation> MODEL_IDS = createModelIds();
+    private static final List<Identifier> MODEL_IDS = createModelIds();
+
+    private static Function<Identifier, BlockStateModel> modelProvider;
 
     private CustomersDisplayCaseGlassRenderer() {}
 
     static void render(
             BlockState state,
             PoseStack poseStack,
-            MultiBufferSource bufferSource,
+            OrderedSubmitNodeCollector nodeCollector,
             int packedLight,
             int packedOverlay
     ) {
-        ResourceLocation modelId = getGlassModelId(
+        Identifier modelId = getGlassModelId(
                 state.getValue(CustomersDisplayCaseBlock.EXTEND_LEFT),
                 state.getValue(CustomersDisplayCaseBlock.EXTEND_RIGHT)
         );
-        Minecraft minecraft = Minecraft.getInstance();
-        BakedModel model = minecraft.getModelManager().getModel(
-                additionalModelLocation(modelId)
-        );
-        VertexConsumer buffer = bufferSource.getBuffer(
-                RenderCUtils.getTranslucentNoDepthRenderType()
-        );
+        BlockStateModel model = modelProvider.apply(modelId);
 
         poseStack.pushPose();
         poseStack.translate(0.5D, 0.5D, 0.5D);
@@ -59,40 +50,35 @@ public final class CustomersDisplayCaseGlassRenderer {
                 )
         ));
         poseStack.translate(-0.5D, -0.5D, -0.5D);
-        minecraft.getBlockRenderer().getModelRenderer().renderModel(
-                poseStack.last(),
-                buffer,
-                state,
+        nodeCollector.submitBlockModel(
+                poseStack,
+                RenderCUtils.getTranslucentNoDepthRenderType(),
                 model,
                 1.0F,
                 1.0F,
                 1.0F,
                 packedLight,
-                packedOverlay
+                packedOverlay,
+                0
         );
         poseStack.popPose();
     }
 
-    public static List<ResourceLocation> modelIds() {
+    public static void setModelProvider(
+            Function<Identifier, BlockStateModel> provider
+    ) {
+        modelProvider = Objects.requireNonNull(provider);
+    }
+
+    public static List<Identifier> modelIds() {
         return MODEL_IDS;
     }
 
-    public static ModelResourceLocation additionalModelLocation(
-            ResourceLocation modelId
-    ) {
-        return new ModelResourceLocation(
-                modelId,
-                Platform.isFabric()
-                        ? FABRIC_MODEL_VARIANT
-                        : NEOFORGE_MODEL_VARIANT
-        );
-    }
-
-    static ResourceLocation getGlassModelId(
+    static Identifier getGlassModelId(
             boolean extendLeft,
             boolean extendRight
     ) {
-        return ResourceLocation.fromNamespaceAndPath(
+        return Identifier.fromNamespaceAndPath(
                 Customers.MODID,
                 "block/display_case_glass_" +
                         getModelState(extendLeft, extendRight)
@@ -124,9 +110,9 @@ public final class CustomersDisplayCaseGlassRenderer {
         return "single";
     }
 
-    private static List<ResourceLocation> createModelIds() {
+    private static List<Identifier> createModelIds() {
         return MODEL_STATES.stream()
-                .map(state -> ResourceLocation.fromNamespaceAndPath(
+                .map(state -> Identifier.fromNamespaceAndPath(
                         Customers.MODID,
                         "block/display_case_glass_" + state
                 ))

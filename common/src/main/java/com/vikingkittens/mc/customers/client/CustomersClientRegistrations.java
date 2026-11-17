@@ -86,7 +86,7 @@ public final class CustomersClientRegistrations {
                 SupplierSpawner.SUPPLIER_SPAWNER_MENU.get(),
                 SupplierSpawnerBlockScreen::new
         );
-        MenuRegistry.registerScreenFactory(
+        MenuScreenRegistry.registerScreenFactory(
                 CustomersDisplayCase.MENU.get(),
                 CustomersDisplayCaseBlockScreen::new
         );

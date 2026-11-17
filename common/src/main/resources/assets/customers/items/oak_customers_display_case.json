@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "customers:item/oak_customers_display_case"
+  }
+}

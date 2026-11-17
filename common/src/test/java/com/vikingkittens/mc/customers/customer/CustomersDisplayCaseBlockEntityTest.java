@@ -5,11 +5,14 @@ import org.junit.jupiter.api.Test;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
 
 import com.vikingkittens.mc.customers.MinecraftTestBootstrap;
 
@@ -29,12 +32,20 @@ class CustomersDisplayCaseBlockEntityTest {
         CustomersDisplayCaseBlockEntity original = createDisplayCase();
         original.setItem(0, new ItemStack(Items.APPLE, 3));
         original.setItem(11, new ItemStack(Items.BREAD, 5));
-        CompoundTag tag = new CompoundTag();
+        TagValueOutput output = TagValueOutput.createWithContext(
+                ProblemReporter.DISCARDING,
+                RegistryAccess.EMPTY
+        );
 
-        original.saveAdditional(tag, RegistryAccess.EMPTY);
+        original.saveAdditional(output);
         CustomersDisplayCaseBlockEntity restored =
                 createDisplayCase();
-        restored.loadAdditional(tag, RegistryAccess.EMPTY);
+        ValueInput input = TagValueInput.create(
+                ProblemReporter.DISCARDING,
+                RegistryAccess.EMPTY,
+                output.buildResult()
+        );
+        restored.loadAdditional(input);
 
         assertEquals(12, restored.getContainerSize());
         assertTrue(restored.getItem(0).is(Items.APPLE));

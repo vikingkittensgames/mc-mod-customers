@@ -7,7 +7,9 @@
     "ServerPlayerGameModeMixin"
   ],
   "client": [
-    "BossHealthOverlayMixin"
+    "BossHealthOverlayMixin",
+    "RenderPipelinesAccessor",
+    "RenderTypeAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

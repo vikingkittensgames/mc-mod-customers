@@ -1,7 +1,14 @@
 package com.vikingkittens.mc.customers.client;
 
+import java.util.Map;
+import java.util.function.Function;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.client.renderer.entity.NoopRenderer;
 import net.minecraft.client.renderer.entity.VillagerRenderer;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.resources.Identifier;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -12,13 +19,17 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.client.event.RegisterRenderPipelinesEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
+import net.neoforged.neoforge.client.model.standalone.SimpleUnbakedStandaloneModel;
+import net.neoforged.neoforge.client.model.standalone.StandaloneModelKey;
 
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.client.CustomersClientRegistrations;
 import com.vikingkittens.mc.customers.client.advancements.ftb.CustomersFTBClient;
 import com.vikingkittens.mc.customers.client.appearance.CustomersVillagerAppearanceEntityRenderer;
+import com.vikingkittens.mc.customers.client.compatability.RenderCUtils;
 import com.vikingkittens.mc.customers.client.customer.CustomerPickupCounterBlockEntityRenderer;
 import com.vikingkittens.mc.customers.client.customer.CustomerSpawnerBlockScreen;
 import com.vikingkittens.mc.customers.client.customer.CustomerVillagerEntityRenderer;
@@ -39,6 +50,17 @@ import com.vikingkittens.mc.customers.supplier.SupplierSpawner;
 // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
 @EventBusSubscriber(modid = Customers.MODID, value = Dist.CLIENT)
 public class CustomersClient {
+    private static final Map<
+            Identifier,
+            StandaloneModelKey<BlockStateModel>
+    > DISPLAY_CASE_GLASS_MODELS = CustomersDisplayCaseGlassRenderer
+            .modelIds()
+            .stream()
+            .collect(java.util.stream.Collectors.toUnmodifiableMap(
+                    Function.identity(),
+                    modelId -> new StandaloneModelKey<>(modelId::toString)
+            ));
+
     public CustomersClient(ModContainer container) {
         // Allows NeoForge to create a config screen for this mod's configs.
         // The config screen is accessed by going to the Mods screen > clicking on your mod > clicking on config.
@@ -98,9 +120,33 @@ public class CustomersClient {
     }
 
     @SubscribeEvent
-    static void onRegisterAdditionalModels(ModelEvent.RegisterAdditional event) {
-        CustomersDisplayCaseGlassRenderer.modelIds().stream()
-                .map(CustomersDisplayCaseGlassRenderer::additionalModelLocation)
-                .forEach(event::register);
+    static void onRegisterStandaloneModels(ModelEvent.RegisterStandalone event) {
+        DISPLAY_CASE_GLASS_MODELS.forEach(
+                (modelId, key) -> event.register(
+                        key,
+                        SimpleUnbakedStandaloneModel.blockStateModel(modelId)
+                )
+        );
+        CustomersDisplayCaseGlassRenderer.setModelProvider(modelId ->
+                Minecraft.getInstance()
+                        .getModelManager()
+                        .getStandaloneModel(
+                                DISPLAY_CASE_GLASS_MODELS.get(modelId)
+                        ));
+    }
+
+    @SubscribeEvent
+    static void onRegisterRenderPipelines(
+            RegisterRenderPipelinesEvent event
+    ) {
+        event.registerPipeline(
+                RenderCUtils.getTranslucentNoDepthPipeline()
+        );
+        RenderCUtils.setTranslucentNoDepthRenderType(
+                RenderType.create(
+                        "customers_translucent_no_depth",
+                        RenderCUtils.getTranslucentNoDepthRenderSetup()
+                )
+        );
     }
 }
