@@ -86,6 +86,9 @@ public final class EconomyItemCostProviderTradesAndRecipes implements EconomyIte
         ItemStack cost = offer.getBaseCostA();
         ItemStack secondCost = offer.getCostB();
         ItemStack result = offer.getResult();
+        if (cost.getCount() <= 0 || result.getCount() <= 0) {
+            return;
+        }
         if (result.is(Items.EMERALD) && !cost.is(Items.EMERALD)) {
             addLowest(prices, cost.getItem(), Price.of(result.getCount(), cost.getCount()));
         } else if (cost.is(Items.EMERALD) && secondCost.isEmpty() && !result.is(Items.EMERALD)) {
