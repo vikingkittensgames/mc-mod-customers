@@ -9,6 +9,7 @@ and compatibility helpers are documented in `Compatability.md`.
 | --- | --- | --- |
 | Java source, test, and runtime toolchain | 21 | 17 |
 | GeckoLib | Compatible 4.x, starting at 4.8.4 | Compatible 4.x, starting at 4.8.4 |
+| Forge GeckoLib development runtime | Dependency metadata supplies required libraries | Explicit MCLib 20 runtime dependency because the 1.20.1 Forge GeckoLib POM omits it |
 | Gecko asset directories | `geo` and `animations` | `geo` and `animations` |
 
 The established Architectury Loom build itself is unchanged. Loom's Gradle daemon runs with the JDK version required
@@ -36,3 +37,24 @@ selection, head rotation, geometry and sitting-pivot calculations, resource expa
 
 Minecraft 1.20.1 uses `defineSynchedData()` and compound tags for appearance context. Forge and Fabric share the same
 selection and persistence logic while retaining loader-specific registration and data-pack lifecycle adapters.
+
+## Customer display cases
+
+Display cases have the same player-facing behavior on 1.20.1 and 1.21.1: twelve visible storage slots, connected-case
+models, normal hopper access, quick inventory transfers, and demand-aware transfers into adjacent pickup counters.
+
+The 1.20.1 implementation keeps the version differences at the Minecraft integration boundary:
+
+| Area | Minecraft 1.21.1 | Minecraft 1.20.1 |
+| --- | --- | --- |
+| Block interaction | Split item and empty-hand interaction hooks | `Block#use`; crouching returns `PASS` so blocks can be placed against the case |
+| Block construction | Block codec override | Normal `Block(Properties)` constructor without codec hooks |
+| Block-entity persistence | Provider-aware load, save, and update tags | Provider-free `CompoundTag` methods |
+| Additional glass models | Loader-specific 1.21 model registration events | Fabric and Forge register and retrieve raw resource IDs; Forge registration uses `ModelEvent.RegisterAdditional` |
+| Resource directories | Singular data-pack directories | `recipes`, `loot_tables`, and `advancements` |
+| Recipe result | `id` | `item` |
+
+Both versions render the solid case through the block state and render one shared glass model for each connection state
+through the block-entity renderer. The translucent glass render type tests existing depth but does not write depth, so
+items behind the glass remain visible. The 1.20.1 compatibility implementation constructs that render type directly
+from the older `RenderType` state shards.

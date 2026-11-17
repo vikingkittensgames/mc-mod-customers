@@ -115,12 +115,7 @@ public class SupplierSpawnerBlockEntity extends BlockEntity implements MenuProvi
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
 
-        try {
-            tag.put("inventory", this.inventory.serializeNBT());
-        } catch (Throwable t) {
-            LOGGER.error("Failed to save inventory", t);
-        }
-
+        tag.put("inventory", inventory.serializeNBT());
         writeSpawnerData(PersistenceCUtils.writer(tag));
     }
     void writeSpawnerData(DataWriter output) {

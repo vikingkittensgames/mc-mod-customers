@@ -96,6 +96,7 @@ dependencies {
     modLocalRuntime "dev.ftb.mods:ftb-quests-forge:${ftb_quests_version}"
     modCompileOnly "software.bernie.geckolib:geckolib-forge-${minecraft_version}:${geckolib_version}"
     modLocalRuntime "software.bernie.geckolib:geckolib-forge-${minecraft_version}:${geckolib_version}"
+    forgeRuntimeLibrary "com.eliotlash.mclib:mclib:${mclib_version}"
     productionClientMods("software.bernie.geckolib:geckolib-forge-${minecraft_version}:${geckolib_version}") {
         transitive = false
     }

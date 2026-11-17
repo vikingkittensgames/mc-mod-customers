@@ -322,6 +322,8 @@ List<UUID> getUuids(String key);
 
 List<ItemStack> getItemStacks(String key);
 
+List<ItemStack> getItemStacks(String key, int maximumSize);
+
 DataReader childOrEmpty(String key);
 
 List<DataReader> getChildren(String key);
@@ -363,6 +365,11 @@ Registry-backed factory overloads preserve complete item stacks, including
 counts and data components. Minecraft 1.21.1 adapters use
 `ItemStackHandler.serializeNBT` and `deserializeNBT`; Minecraft 1.21.11
 adapters use `ItemStackHandler.serialize` and `deserialize`.
+
+Use the bounded `getItemStacks` overload when the destination has a fixed
+size. The reader clamps serialized slot counts before allocating memory, and
+fixed `PersistedContainer` instances retain their configured size when loading
+legacy inventory data.
 
 Entity and block-entity override signatures cannot be hidden by static methods. Each branch keeps thin version-specific overrides that create an adapter and delegate to shared persistence logic.
 
@@ -551,6 +558,25 @@ public record DebugBoxC(
 
 Event subscriptions remain version-specific and pass stable render descriptions into this class.
 
+### RenderCUtils
+
+Package:
+
+```text
+com.vikingkittens.mc.customers.client.compatability.RenderCUtils
+```
+
+Method:
+
+```java
+public static RenderType getTranslucentNoDepthRenderType();
+```
+
+This supplies the lit translucent block-model render type used for glass
+rendered from block-entity renderers. It tests existing depth while writing
+color only, which prevents translucent glass submitted through one buffer from
+suppressing geometry submitted through later buffers.
+
 ### RenderStateCUtils
 
 Package:
@@ -667,6 +693,11 @@ Additional 1.20.1 details:
 | Player faces | `PlayerFaceRenderer` accepts a skin `ResourceLocation`; `PlayerInfo#getSkinLocation` supplies online textures. |
 | Checkboxes | Construct `Checkbox` directly and override `onPress` for menu synchronization. |
 | Render layers | 1.20 layer helpers use explicit RGBA values and an older argument layout. |
+| Display-case glass | `RenderCUtils` builds the translucent, depth-testing, color-only render type from 1.20 `RenderStateShard` values. |
+| Additional block models | Fabric and Forge install loader-specific resolvers that retrieve raw glass-model IDs. Forge registers those IDs through `ModelEvent.RegisterAdditional`. |
+| Display-case persistence | The block entity uses provider-free `load`, `saveAdditional`, and `getUpdateTag` overrides. |
+| Display-case interaction | A single `Block#use` override opens the menu and returns `PASS` while crouching so normal block placement wins. |
+| Display-case resources | Generation writes plural 1.20 data directories and uses `item` for shaped-recipe results. |
 
 The 1.20.1 test helpers load `BuiltInRegistries` under the bootstrap guard
 before calling `Bootstrap.bootStrap()`. This avoids circular registry

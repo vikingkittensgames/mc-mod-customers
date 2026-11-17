@@ -1,10 +1,16 @@
 package com.vikingkittens.mc.customers.client.customer;
 
+import java.util.function.Function;
+
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.entity.NoopRenderer;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.resources.ResourceLocation;
 
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
+import net.minecraftforge.client.event.ModelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -16,6 +22,7 @@ import com.vikingkittens.mc.customers.client.supplier.SupplierSpawnerBlockScreen
 import com.vikingkittens.mc.customers.customer.Customer;
 import com.vikingkittens.mc.customers.customer.CustomerPickupCounter;
 import com.vikingkittens.mc.customers.customer.CustomerSpawner;
+import com.vikingkittens.mc.customers.customer.CustomersDisplayCase;
 import com.vikingkittens.mc.customers.supplier.SupplierSpawner;
 
 @Mod.EventBusSubscriber(
@@ -30,14 +37,28 @@ public final class CustomerForgeClientEvents {
     public static void clientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(() -> {
             initializeClientNetworking();
+            CustomersDisplayCaseGlassRenderer.setModelResolver(modelId ->
+                    resolveAdditionalModel(
+                            Minecraft.getInstance()
+                                    .getModelManager()::getModel,
+                            modelId
+                    ));
             CustomersFTBClient.initialize();
             MenuScreens.register(CustomerSpawner.CUSTOMER_SPAWNER_MENU.get(), CustomerSpawnerBlockScreen::new);
             MenuScreens.register(SupplierSpawner.SUPPLIER_SPAWNER_MENU.get(), SupplierSpawnerBlockScreen::new);
+            MenuScreens.register(CustomersDisplayCase.MENU.get(), CustomersDisplayCaseBlockScreen::new);
         });
     }
 
     static void initializeClientNetworking() {
         CustomersClientNetworking.initialize();
+    }
+
+    static BakedModel resolveAdditionalModel(
+            Function<ResourceLocation, BakedModel> modelResolver,
+            ResourceLocation modelId
+    ) {
+        return modelResolver.apply(modelId);
     }
 
     @SubscribeEvent
@@ -54,6 +75,10 @@ public final class CustomerForgeClientEvents {
                 CustomerPickupCounter.BLOCK_ENTITY.get(),
                 CustomerPickupCounterBlockEntityRenderer::new
         );
+        event.registerBlockEntityRenderer(
+                CustomersDisplayCase.BLOCK_ENTITY.get(),
+                CustomersDisplayCaseBlockEntityRenderer::new
+        );
         event.registerEntityRenderer(Customer.CUSTOMER_SEAT.get(), NoopRenderer::new);
         event.registerEntityRenderer(
                 Customer.CUSTOMER_VILLAGER.get(),
@@ -62,6 +87,12 @@ public final class CustomerForgeClientEvents {
                         new CustomerVillagerEntityRenderer(context)
                 )
         );
+    }
+
+    @SubscribeEvent
+    public static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
+        CustomersDisplayCaseGlassRenderer.modelIds().stream()
+                .forEach(event::register);
     }
 
 }

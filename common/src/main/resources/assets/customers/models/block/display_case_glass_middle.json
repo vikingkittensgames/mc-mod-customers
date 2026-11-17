@@ -1,0 +1,79 @@
+{
+    "texture_size":  [
+                         64,
+                         64
+                     ],
+    "textures":  {
+                     "display_case":  "customers:block/display_case",
+                     "particle":  "customers:block/display_case"
+                 },
+    "elements":  [
+                     {
+                         "name":  "glass_top_middle",
+                         "from":  [
+                                      0,
+                                      14,
+                                      1
+                                  ],
+                         "to":  [
+                                    16,
+                                    15,
+                                    13
+                                ],
+                         "rotation":  {
+                                          "angle":  0,
+                                          "axis":  "x",
+                                          "origin":  [
+                                                         -13,
+                                                         16,
+                                                         1
+                                                     ]
+                                      },
+                         "faces":  {
+                                       "up":  {
+                                                  "uv":  [
+                                                             0,
+                                                             8.5,
+                                                             8,
+                                                             15.5
+                                                         ],
+                                                  "rotation":  180,
+                                                  "texture":  "#display_case"
+                                              }
+                                   }
+                     },
+                     {
+                         "name":  "glass_front_middle",
+                         "from":  [
+                                      0,
+                                      2,
+                                      1
+                                  ],
+                         "to":  [
+                                    16,
+                                    14,
+                                    2
+                                ],
+                         "rotation":  {
+                                          "angle":  0,
+                                          "axis":  "y",
+                                          "origin":  [
+                                                         -13,
+                                                         2,
+                                                         0
+                                                     ]
+                                      },
+                         "faces":  {
+                                       "north":  {
+                                                     "uv":  [
+                                                                0,
+                                                                8.5,
+                                                                8,
+                                                                15.5
+                                                            ],
+                                                     "texture":  "#display_case"
+                                                 }
+                                   }
+                     }
+                 ]
+}

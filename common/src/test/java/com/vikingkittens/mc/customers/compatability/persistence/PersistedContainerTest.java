@@ -92,7 +92,8 @@ class PersistedContainerTest {
         serialized.putInt("Size", 4);
         serialized.put("Items", items);
         AtomicInteger changes = new AtomicInteger();
-        PersistedContainer container = new PersistedContainer(1, changes::incrementAndGet);
+        PersistedContainer container =
+                new PersistedContainer(4, changes::incrementAndGet);
 
         container.deserializeNBT(RegistryAccess.EMPTY, serialized);
 
