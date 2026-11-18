@@ -10,6 +10,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -24,6 +25,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 
 import com.vikingkittens.mc.customers.appearance.CustomersVillagerAppearances;
+import com.vikingkittens.mc.customers.common.CustomersNetworking;
 import com.vikingkittens.mc.customers.common.events.InternalEvents;
 import com.vikingkittens.mc.customers.customer.pets.CustomerPet;
 import com.vikingkittens.mc.customers.economy.Economy;
@@ -52,7 +54,11 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
     private final ContainerData data;
     private final CustomerSpawnerBlockEntity blockEntity;
     private final List<ResourceLocation> appearanceIds;
-    private final List<CustomerPet.PetType> petTypes;
+    private List<CustomerPet.PetType> petTypes = List.of();
+    private List<CustomerSpawnerPetDataPayload.Entry> clientPetEntries = List.of();
+    private final Player menuPlayer;
+    private boolean petsLoaded;
+    private boolean petDataDirty = true;
     private final RegistryAccess registryAccess;
     private final Slot petFoodCostSlot;
     private int selectedLevel;
@@ -65,13 +71,15 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
     CustomerSpawnerBlockMenu(int id, Inventory playerInventory, Container container, CustomerSpawnerBlockEntity blockEntity) {
         super(CustomerSpawner.CUSTOMER_SPAWNER_MENU.get(), id);
         this.blockEntity = blockEntity;
+        menuPlayer = playerInventory.player;
         this.container = blockEntity == null ? container : new LevelContainer(blockEntity);
         checkContainerSize(this.container, CONTAINER_SIZE);
         registryAccess = playerInventory.player.level().registryAccess();
         appearanceIds = CustomersVillagerAppearances
                 .getAvailableAppearanceIds(registryAccess);
-        petTypes = CustomerPet.getAvailablePetTypes(playerInventory.player.level());
-        if (blockEntity != null) {
+        if (blockEntity != null && CustomerPet.arePetsLoaded(playerInventory.player.level())) {
+            petTypes = CustomerPet.getAvailablePetTypes(playerInventory.player.level());
+            petsLoaded = true;
             blockEntity.getLevelSettings(selectedLevel).initializePetFoods(petTypes);
         }
         data = blockEntity == null
@@ -213,12 +221,27 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
     }
     public boolean isAppearanceEnabled(int index) { return data.get(APPEARANCE_DATA_START + index) != 0; }
     public List<CustomerPet.PetType> getPetTypes() { return petTypes; }
+    public boolean arePetsLoaded() { return petsLoaded; }
+    public void applyPetData(CustomerSpawnerPetDataPayload payload) {
+        if (blockEntity != null || payload.containerId() != containerId) {
+            return;
+        }
+        clientPetEntries = payload.entries();
+        petTypes = clientPetEntries.stream().map(CustomerSpawnerPetDataPayload.Entry::type).toList();
+        petsLoaded = true;
+    }
     public Component getPetTypeName(int index) { return petTypes.get(index).name(); }
     public ItemStack getPetTypeFood(int index) {
-        ItemStack food = BuiltInRegistries.ITEM.byId(data.get(getPetTypeFoodDataStart() + index)).getDefaultInstance();
+        ItemStack food = blockEntity == null
+                ? clientPetEntries.get(index).selectedFood()
+                : blockEntity.getLevelSettings(selectedLevel).getPetFood(petTypes.get(index));
         return food.isEmpty() ? petTypes.get(index).getFood(null) : food;
     }
-    public boolean isPetTypeEnabled(int index) { return data.get(getPetTypeDataStart() + index) != 0; }
+    public boolean isPetTypeEnabled(int index) {
+        return blockEntity == null
+                ? clientPetEntries.get(index).enabled()
+                : blockEntity.getLevelSettings(selectedLevel).isPetTypeEnabled(petTypes.get(index).entityId());
+    }
     public boolean areAllPetTypesEnabled() {
         if (petTypes.isEmpty()) {
             return false;
@@ -249,12 +272,14 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
         if (blockEntity == null) return false;
         if (id == DECREMENT_LEVEL_BUTTON_ID && selectedLevel > 0) {
             selectedLevel--;
+            petDataDirty = true;
             blockEntity.enforceAutomaticCostInventory(selectedLevel);
             broadcastChanges();
             return true;
         }
         if (id == INCREMENT_LEVEL_BUTTON_ID && selectedLevel < CustomerSpawnerBlockEntity.MAX_LEVELS - 1) {
             selectedLevel++;
+            petDataDirty = true;
             blockEntity.getLevelSettings(selectedLevel).initializePetFoods(petTypes);
             blockEntity.enforceAutomaticCostInventory(selectedLevel);
             broadcastChanges();
@@ -303,6 +328,7 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
             return true;
         }
         if (id == PET_TYPES_ALL_BUTTON_ID) {
+            if (!petsLoaded) return false;
             changeConfiguration(player, () -> {
                 CustomerSpawnerLevelSettings settings = blockEntity.getLevelSettings(selectedLevel);
                 settings.setPetTypesEnabled(
@@ -359,6 +385,31 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
 
     @Override public void removed(Player player) { super.removed(player); container.stopOpen(player); }
 
+    @Override
+    public void broadcastChanges() {
+        if (blockEntity != null) {
+            if (!petsLoaded && CustomerPet.arePetsLoaded(blockEntity.getLevel())) {
+                petTypes = CustomerPet.getAvailablePetTypes(blockEntity.getLevel());
+                blockEntity.getLevelSettings(selectedLevel).initializePetFoods(petTypes);
+                petsLoaded = true;
+                petDataDirty = true;
+            }
+            if (petsLoaded && petDataDirty && menuPlayer instanceof ServerPlayer serverPlayer) {
+                CustomerSpawnerLevelSettings settings = blockEntity.getLevelSettings(selectedLevel);
+                List<CustomerSpawnerPetDataPayload.Entry> entries = petTypes.stream()
+                        .map(type -> new CustomerSpawnerPetDataPayload.Entry(
+                                type,
+                                settings.isPetTypeEnabled(type.entityId()),
+                                settings.getPetFood(type)
+                        ))
+                        .toList();
+                CustomersNetworking.sendToPlayer(serverPlayer, new CustomerSpawnerPetDataPayload(containerId, entries));
+                petDataDirty = false;
+            }
+        }
+        super.broadcastChanges();
+    }
+
     private ContainerData createData(CustomerSpawnerBlockEntity entity) {
         return new ContainerData() {
             @Override public int get(int index) {
@@ -384,14 +435,6 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
                             ? BuiltInRegistries.ITEM.getId(cost.getItem())
                             : cost.getCount();
                 }
-                if (index >= getPetTypeFoodDataStart() && index < getDataSlotCount()) {
-                    return BuiltInRegistries.ITEM.getId(
-                            settings.getPetFood(petTypes.get(index - getPetTypeFoodDataStart())).getItem()
-                    );
-                }
-                if (index >= getPetTypeDataStart() && index < getPetTypeFoodDataStart()) {
-                    return settings.isPetTypeEnabled(petTypes.get(index - getPetTypeDataStart()).entityId()) ? 1 : 0;
-                }
                 return settings.getEnabledAppearanceIds().contains(appearanceIds.get(index - APPEARANCE_DATA_START)) ? 1 : 0;
             }
             @Override public void set(int index, int value) {}
@@ -399,20 +442,12 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
         };
     }
 
-    private int getPetTypeDataStart() {
-        return APPEARANCE_DATA_START + appearanceIds.size();
-    }
-
-    private int getPetTypeFoodDataStart() {
-        return getPetTypeDataStart() + petTypes.size();
-    }
-
     private int getDataSlotCount() {
         return getGeneratedCostDataStart() + 12;
     }
 
     private int getGeneratedCostDataStart() {
-        return getPetTypeFoodDataStart() + petTypes.size();
+        return APPEARANCE_DATA_START + appearanceIds.size();
     }
 
     private ItemStack getGeneratedCost(CustomerSpawnerLevelSettings settings, int row) {
@@ -434,6 +469,7 @@ public class CustomerSpawnerBlockMenu extends AbstractContainerMenu {
     private void changeConfiguration(Player player, Runnable change) {
         CustomerInternalEvents.CustomerSpawnerConfigChanged before = configurationSnapshot(player);
         change.run();
+        petDataDirty = true;
         emitConfigurationChange(player, before);
     }
 

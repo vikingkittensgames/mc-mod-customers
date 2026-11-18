@@ -1,5 +1,6 @@
 package com.vikingkittens.mc.customers.customer.pets;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,6 +29,7 @@ import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 import com.vikingkittens.mc.customers.customer.pets.mixin.CustomerPetMobAccessor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -42,6 +44,84 @@ class CustomerPetTest {
     @BeforeAll
     static void bootstrapMinecraft() {
         MinecraftTestBootstrap.bootstrap();
+    }
+
+    @Test
+    void discoversTenAnimalsPerTickWithoutMissingOrDuplicatingPetsOrFoods() {
+        Level level = mock(Level.class);
+        List<EntityType<?>> animalTypes = new ArrayList<>();
+        for (int index = 0; index < 12; index++) {
+            EntityType<Animal> type = mock(EntityType.class);
+            Animal animal = mock(Animal.class);
+            when(type.create(level)).thenReturn(animal);
+            when(type.getDescription()).thenReturn(Component.literal("Pet " + index));
+            when(animal.isFood(any(ItemStack.class))).thenReturn(true);
+            animalTypes.add(type);
+        }
+        CustomerPet.PetDiscovery discovery = new CustomerPet.PetDiscovery(
+                level,
+                animalTypes,
+                List.of(Items.CARROT, Items.APPLE),
+                type -> ResourceLocationCUtils.parse("test_pet_" + animalTypes.indexOf(type)),
+                item -> item == Items.CARROT ? 0 : 1
+        );
+
+        discovery.advance(10, 500);
+        assertFalse(discovery.isComplete());
+        assertEquals(10, discovery.result().size());
+        discovery.advance(10, 500);
+
+        assertTrue(discovery.isComplete());
+        assertEquals(
+                java.util.stream.IntStream.range(0, 12).mapToObj(index -> "minecraft:test_pet_" + index).toList(),
+                discovery.result().stream().map(pet -> pet.entityId).toList()
+        );
+        discovery.result().forEach(pet -> assertEquals(
+                List.of(Items.CARROT, Items.APPLE),
+                pet.foods.stream().map(ItemStack::getItem).toList()
+        ));
+    }
+
+    @Test
+    void resumesFoodSearchAcrossTicksWithoutMissingOrDuplicatingFoods() {
+        Level level = mock(Level.class);
+        List<Item> items = BuiltInRegistries.ITEM.stream()
+                .filter(item -> item != Items.AIR)
+                .limit(501)
+                .toList();
+        List<EntityType<?>> animalTypes = new ArrayList<>();
+        for (int index = 0; index < 2; index++) {
+            EntityType<Animal> type = mock(EntityType.class);
+            Animal animal = mock(Animal.class);
+            when(type.create(level)).thenReturn(animal);
+            when(type.getDescription()).thenReturn(Component.literal("Pet " + index));
+            when(animal.isFood(any(ItemStack.class))).thenAnswer(invocation -> {
+                Item item = invocation.getArgument(0, ItemStack.class).getItem();
+                return item == items.get(0) || item == items.get(500);
+            });
+            animalTypes.add(type);
+        }
+        CustomerPet.PetDiscovery discovery = new CustomerPet.PetDiscovery(
+                level,
+                animalTypes,
+                items,
+                type -> ResourceLocationCUtils.parse("test_pet_" + animalTypes.indexOf(type)),
+                items::indexOf
+        );
+
+        discovery.advance(10, 500);
+        assertFalse(discovery.isComplete());
+        assertTrue(discovery.result().isEmpty());
+        discovery.advance(10, 500);
+        assertEquals(1, discovery.result().size());
+        discovery.advance(10, 500);
+
+        assertTrue(discovery.isComplete());
+        assertEquals(2, discovery.result().size());
+        discovery.result().forEach(pet -> assertEquals(
+                List.of(items.get(0), items.get(500)),
+                pet.foods.stream().map(ItemStack::getItem).toList()
+        ));
     }
 
     @Test

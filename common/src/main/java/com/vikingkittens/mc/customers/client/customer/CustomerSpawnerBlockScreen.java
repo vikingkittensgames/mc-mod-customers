@@ -17,6 +17,7 @@ import net.minecraft.world.item.ItemStack;
 
 import com.vikingkittens.mc.customers.Customers;
 import com.vikingkittens.mc.customers.client.common.IconsScaleControl;
+import com.vikingkittens.mc.customers.client.common.LoadingWidget;
 import com.vikingkittens.mc.customers.compatability.ResourceLocationCUtils;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlockEntity;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerBlockMenu;
@@ -74,6 +75,8 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
             new ArrayList<>();
     private final List<MultiLineLabel> appearanceLabels =
             new ArrayList<>();
+    private final LoadingWidget loadingPets =
+            new LoadingWidget(Component.translatable("screen.customers.customer_spawner.loading_pets"));
     private ModeButton modeButton;
     private TextureButton decrementLevelButton;
     private TextureButton incrementLevelButton;
@@ -99,6 +102,7 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
     @Override
     protected void init() {
         super.init();
+        CustomerPayloadClientHandlers.applyPendingSpawnerPetData(menu);
         if (petPanelOpen) {
             leftPos -= PET_PANEL_SHIFT;
         }
@@ -514,6 +518,12 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
                 0x404040,
                 false
         );
+        if (!menu.arePetsLoaded()) {
+            int centerX = panelX + PET_PANEL_WIDTH / 2;
+            int centerY = topPos + PET_PANEL_HEIGHT / 2 - 12;
+            loadingPets.render(graphics, font, centerX, centerY);
+            return;
+        }
         renderPetCheckbox(
                 graphics,
                 menu.areAllPetTypesEnabled(),
@@ -591,6 +601,9 @@ public class CustomerSpawnerBlockScreen extends AbstractContainerScreen<Customer
     }
 
     private boolean clickPetPanel(double mouseX, double mouseY) {
+        if (!menu.arePetsLoaded()) {
+            return true;
+        }
         if (isInPetPanelAll(mouseX, mouseY)) {
             send(menu.petTypesAllButtonId());
             return true;

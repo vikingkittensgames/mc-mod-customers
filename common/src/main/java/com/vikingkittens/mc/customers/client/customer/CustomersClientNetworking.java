@@ -6,12 +6,18 @@ import com.vikingkittens.mc.customers.common.BlockBreakConfirmationPromptPayload
 import com.vikingkittens.mc.customers.customer.CustomerCounterMarkersPayload;
 import com.vikingkittens.mc.customers.customer.CustomerLeaderboardOpenPayload;
 import com.vikingkittens.mc.customers.customer.CustomerShiftFinishedPayload;
+import com.vikingkittens.mc.customers.customer.CustomerSpawnerPetDataPayload;
 import com.vikingkittens.mc.customers.customer.CustomerSpawnerSnapshotPayload;
 
 public final class CustomersClientNetworking {
     private CustomersClientNetworking() {}
 
     public static void initialize() {
+        NetworkManager.registerReceiver(NetworkManager.s2c(), CustomerSpawnerPetDataPayload.ID,
+                (buffer, context) -> {
+                    CustomerSpawnerPetDataPayload payload = CustomerSpawnerPetDataPayload.read(buffer);
+                    context.queue(() -> CustomerPayloadClientHandlers.updateSpawnerPetData(payload));
+                });
         NetworkManager.registerReceiver(NetworkManager.s2c(), CustomerShiftFinishedPayload.ID,
                 (buffer, context) -> {
                     CustomerShiftFinishedPayload payload = CustomerShiftFinishedPayload.read(buffer);
