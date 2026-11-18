@@ -1041,6 +1041,9 @@ public class CustomerSpawnerBlockEntity extends BlockEntity implements MenuProvi
     }
 
     public void spawnCustomer() {
+        if (level instanceof ServerLevel && !CustomerPet.arePetsLoaded(level)) {
+            return;
+        }
         CustomerSpawnerLevelSettings settings = getActiveLevelSettings();
         boolean automaticCost = usesAutomaticCost(settings);
         if (automaticCost) {

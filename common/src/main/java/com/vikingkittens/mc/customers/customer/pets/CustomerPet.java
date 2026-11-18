@@ -3,19 +3,27 @@ package com.vikingkittens.mc.customers.customer.pets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
 import java.util.stream.StreamSupport;
 
+import dev.architectury.event.events.common.LifecycleEvent;
+import dev.architectury.event.events.common.TickEvent;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 
+import com.mojang.logging.LogUtils;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
@@ -46,6 +54,10 @@ import com.vikingkittens.mc.customers.customer.pets.ai.CustomerPetSitWhenOrdered
 import com.vikingkittens.mc.customers.customer.pets.mixin.CustomerPetMobAccessor;
 
 public final class CustomerPet {
+    private static final Logger LOGGER = LogUtils.getLogger();
+    private static final int ANIMALS_PER_TICK = 10;
+    private static final int FOOD_CHECKS_PER_TICK = 500;
+    private static final TickEvent.Server PET_LOAD_TICK = CustomerPet::loadTick;
     public static final TagKey<EntityType<?>> CAN_NOT_BE_PET = TagKey.create(
             Registries.ENTITY_TYPE,
             ResourceLocationCUtils.create(Customers.MODID, "can_not_be_pet")
@@ -63,8 +75,61 @@ public final class CustomerPet {
     );
 
     private static List<Pet> pets;
+    private static PetDiscovery discovery;
+    private static ServerLevel discoveryLevel;
+    private static long discoveryStartedAt;
 
     private CustomerPet() {
+    }
+
+    public static void initialize() {
+        LifecycleEvent.SERVER_STOPPED.register(server -> clear());
+    }
+
+    public static boolean arePetsLoaded(Level level) {
+        if (LevelCUtils.isClientSide(level)) {
+            return false;
+        }
+        if (pets != null) {
+            return true;
+        }
+        if (discovery == null && level instanceof ServerLevel serverLevel) {
+            discoveryStartedAt = System.nanoTime();
+            LOGGER.info("Loading pets");
+            discoveryLevel = serverLevel;
+            discovery = new PetDiscovery(
+                    level,
+                    BuiltInRegistries.ENTITY_TYPE,
+                    BuiltInRegistries.ITEM,
+                    BuiltInRegistries.ENTITY_TYPE::getKey,
+                    BuiltInRegistries.ITEM::getId
+            );
+            TickEvent.SERVER_POST.register(PET_LOAD_TICK);
+        }
+        return false;
+    }
+
+    private static void loadTick(MinecraftServer server) {
+        if (discovery == null || discoveryLevel == null || discoveryLevel.getServer() != server) {
+            return;
+        }
+        discovery.advance(ANIMALS_PER_TICK, FOOD_CHECKS_PER_TICK);
+        if (!discovery.isComplete()) {
+            return;
+        }
+        pets = discovery.result();
+        double seconds = (System.nanoTime() - discoveryStartedAt) / 1_000_000_000.0D;
+        LOGGER.info("Loaded {} pets over {} seconds", pets.size(), String.format(Locale.ROOT, "%.2f", seconds));
+        discovery = null;
+        discoveryLevel = null;
+        server.tell(new TickTask(server.getTickCount() + 1, () -> TickEvent.SERVER_POST.unregister(PET_LOAD_TICK)));
+    }
+
+    private static void clear() {
+        pets = null;
+        discovery = null;
+        discoveryLevel = null;
+        TickEvent.SERVER_POST.unregister(PET_LOAD_TICK);
     }
 
     public static @Nullable SpawnedPet spawnRandomPetFor(Level level, UUID customerId) {
@@ -76,7 +141,9 @@ public final class CustomerPet {
             UUID customerId,
             @Nullable Collection<String> enabledPetIds
     ) {
-        findAllPossiblePets(level);
+        if (!arePetsLoaded(level)) {
+            return null;
+        }
         List<Pet> candidatePets = pets.stream()
                 .filter(pet -> enabledPetIds == null || enabledPetIds.contains(pet.entityId))
                 .toList();
@@ -135,7 +202,9 @@ public final class CustomerPet {
     }
 
     public static @Nullable String getPetTypeId(Level level, UUID petId) {
-        findAllPossiblePets(level);
+        if (!arePetsLoaded(level)) {
+            return null;
+        }
         if (!(level instanceof ServerLevel serverLevel)) {
             return null;
         }
@@ -150,7 +219,9 @@ public final class CustomerPet {
     }
 
     public static List<PetType> getAvailablePetTypes(Level level) {
-        findAllPossiblePets(level);
+        if (!arePetsLoaded(level)) {
+            return List.of();
+        }
         return pets.stream()
                 .map(pet -> new PetType(pet.entityId, pet.name, pet.foods))
                 .toList();
@@ -162,19 +233,6 @@ public final class CustomerPet {
                 .toList();
     }
 
-    private static void findAllPossiblePets(Level level) {
-        if (pets != null) {
-            return;
-        }
-        pets = discoverPets(
-                level,
-                BuiltInRegistries.ENTITY_TYPE,
-                BuiltInRegistries.ITEM,
-                BuiltInRegistries.ENTITY_TYPE::getKey,
-                BuiltInRegistries.ITEM::getId
-        );
-    }
-
     static List<Pet> discoverPets(
             Level level,
             Iterable<EntityType<?>> entityTypes,
@@ -182,29 +240,11 @@ public final class CustomerPet {
             Function<EntityType<?>, ResourceLocation> getEntityId,
             ToIntFunction<Item> getItemId
     ) {
-        List<Pet> discoveredPets = new ArrayList<>();
-        List<Item> sortedItems = StreamSupport.stream(items.spliterator(), false)
-                .sorted(Comparator.comparingInt(getItemId))
-                .toList();
-        for (EntityType<?> entityType : entityTypes) {
-            if (entityType.is(CAN_NOT_BE_PET)) {
-                continue;
-            }
-            Animal animal = createAnimalForDiscovery(entityType, level);
-            if (animal == null) {
-                continue;
-            }
-            List<ItemStack> foods = findFoods(animal, sortedItems);
-            if (!foods.isEmpty()) {
-                discoveredPets.add(new Pet(
-                        getEntityId.apply(entityType).toString(),
-                        entityType.getDescription(),
-                        petLevel -> createAnimal(entityType, petLevel),
-                        foods
-                ));
-            }
+        PetDiscovery discovery = new PetDiscovery(level, entityTypes, items, getEntityId, getItemId);
+        while (!discovery.isComplete()) {
+            discovery.advance(Integer.MAX_VALUE, Integer.MAX_VALUE);
         }
-        return List.copyOf(discoveredPets);
+        return discovery.result();
     }
 
     private static Animal createAnimalForDiscovery(EntityType<?> entityType, Level level) {
@@ -215,23 +255,91 @@ public final class CustomerPet {
         }
     }
 
-    private static List<ItemStack> findFoods(Animal animal, List<Item> items) {
-        List<ItemStack> foods = new ArrayList<>();
-        for (Item item : items) {
-            ItemStack stack = item.getDefaultInstance();
-            if (!stack.isEmpty() && animal.isFood(stack)) {
-                foods.add(stack.copy());
-            }
+    static final class PetDiscovery {
+        private final Level level;
+        private final Iterator<EntityType<?>> entityTypes;
+        private final List<Item> items;
+        private final Function<EntityType<?>, ResourceLocation> getEntityId;
+        private final List<Pet> foundPets = new ArrayList<>();
+        private final List<ItemStack> foods = new ArrayList<>();
+        private final List<ItemStack> flyingFoods = new ArrayList<>();
+        private EntityType<?> currentType;
+        private Animal currentAnimal;
+        private int itemIndex;
+
+        PetDiscovery(
+                Level level,
+                Iterable<EntityType<?>> entityTypes,
+                Iterable<Item> items,
+                Function<EntityType<?>, ResourceLocation> getEntityId,
+                ToIntFunction<Item> getItemId
+        ) {
+            this.level = level;
+            this.entityTypes = entityTypes.iterator();
+            this.items = StreamSupport.stream(items.spliterator(), false)
+                    .sorted(Comparator.comparingInt(getItemId))
+                    .toList();
+            this.getEntityId = getEntityId;
         }
-        if (foods.isEmpty() && animal instanceof FlyingAnimal) {
-            for (Item item : items) {
-                ItemStack stack = item.getDefaultInstance();
-                if (!stack.isEmpty() && PARROT_FOODS.contains(item)) {
-                    foods.add(stack.copy());
+
+        void advance(int maxAnimals, int maxFoodChecks) {
+            int animals = 0;
+            int foodChecks = 0;
+            while (animals < maxAnimals && foodChecks < maxFoodChecks && !isComplete()) {
+                animals++;
+                if (currentAnimal == null) {
+                    currentType = entityTypes.next();
+                    if (currentType.is(CAN_NOT_BE_PET)) {
+                        continue;
+                    }
+                    currentAnimal = createAnimalForDiscovery(currentType, level);
+                    if (currentAnimal == null) {
+                        continue;
+                    }
+                    itemIndex = 0;
+                    foods.clear();
+                    flyingFoods.clear();
                 }
+                while (itemIndex < items.size() && foodChecks < maxFoodChecks) {
+                    Item item = items.get(itemIndex++);
+                    ItemStack stack = item.getDefaultInstance();
+                    foodChecks++;
+                    if (!stack.isEmpty()) {
+                        if (currentAnimal.isFood(stack)) {
+                            foods.add(stack.copy());
+                        }
+                        if (currentAnimal instanceof FlyingAnimal && PARROT_FOODS.contains(item)) {
+                            flyingFoods.add(stack.copy());
+                        }
+                    }
+                }
+                if (itemIndex < items.size()) {
+                    continue;
+                }
+                if (foods.isEmpty()) {
+                    foods.addAll(flyingFoods);
+                }
+                if (!foods.isEmpty()) {
+                    EntityType<?> petType = currentType;
+                    foundPets.add(new Pet(
+                            getEntityId.apply(petType).toString(),
+                            petType.getDescription(),
+                            petLevel -> createAnimal(petType, petLevel),
+                            foods
+                    ));
+                }
+                currentAnimal = null;
+                currentType = null;
             }
         }
-        return List.copyOf(foods);
+
+        boolean isComplete() {
+            return currentAnimal == null && !entityTypes.hasNext();
+        }
+
+        List<Pet> result() {
+            return List.copyOf(foundPets);
+        }
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
